@@ -32,10 +32,27 @@ h1::first-letter { color: var(--crimson); }
 #attend-claim { width: 100%; padding: 12px; font-size: 15px; font-weight: 800; border-radius: 10px; background: linear-gradient(135deg, #f5c451, #d97706); color: #1a1400; }
 #attend-claim:disabled { background: #2a2530; color: var(--dim); }
 
-/* 캐시 상점 */
-#shop, #event { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 13; }
-#shop.hidden, #event.hidden { display: none; }
-#shop-card, #event-card { background: var(--panel); padding: 22px; border-radius: 16px; width: 320px; max-width: 90vw; border: 1px solid #3a1a1a; }
+/* 캐시 상점 + 대시보드 */
+#shop, #event, #dash { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 13; }
+#shop.hidden, #event.hidden, #dash.hidden { display: none; }
+#shop-card, #event-card, #dash-card { background: var(--panel); padding: 22px; border-radius: 16px; width: 340px; max-width: 92vw; max-height: 88vh; overflow-y: auto; border: 1px solid #3a1a1a; }
+.dpower { font-size: 13px; color: var(--dim); margin: 4px 0 8px; }
+.dpower b { color: var(--gold); }
+.protectbtn { width: auto; padding: 6px 12px; font-size: 12px; background: #1c1620; color: var(--dim); border: 1px solid #2a2530; border-radius: 8px; margin-bottom: 8px; }
+.protectbtn.on { color: #67e8f9; border-color: #67e8f9; }
+#dash-list { display: flex; flex-direction: column; gap: 6px; }
+.dcard { display: flex; align-items: center; gap: 8px; background: #1c1620; border-radius: 10px; padding: 8px 10px; }
+.dglyph { font-size: 22px; min-width: 30px; text-align: center; }
+.dstar { font-size: 10px; color: var(--gold); display: block; }
+.dinfo { flex: 1; font-size: 13px; }
+.dinfo .dlv b { color: var(--gold); }
+.dinfo .ddim { font-size: 10.5px; color: var(--dim); }
+.dbtns { display: flex; gap: 4px; }
+.denh { width: auto; padding: 8px 12px; font-size: 12px; background: var(--gold); color: #1a1400; border-radius: 8px; font-weight: 800; }
+.dasc { width: auto; padding: 8px 9px; font-size: 13px; background: linear-gradient(135deg, #f472b6, #a855f7); color: #fff; border-radius: 8px; }
+#dash-heroes { font-size: 12px; line-height: 1.9; margin: 4px 0 8px; }
+#dash-heroes .hrow { color: var(--dim); }
+#dash-heroes b { color: var(--text); }
 #shop-list { display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
 .packcard { position: relative; width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 13px 14px; background: #1c1620; border-radius: 10px; border: 1px solid #2a1f28; }
 .packcard .pwhat { font-size: 15px; font-weight: 700; }

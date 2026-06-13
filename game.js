@@ -90,7 +90,9 @@ function loadMeta() {
                 hero: "strategist",
                 heroLv: { strategist: 1, berserker: 1, warden: 1, ranger: 1, mech: 1, engineer: 1, dragoon: 1 },
                 mode: "campaign", tower: 1, towerBest: 0, dailyDone: "", sound: true, haptic: true,
-                gems: 50, attend: { day: 0, last: "" }, codes: [] };
+                gems: 50, attend: { day: 0, last: "" }, codes: [],
+                enh: { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 },
+                star: { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 } };
   try {
     const m = JSON.parse(localStorage.getItem(META_KEY));
     if (m && typeof m === "object") {
@@ -99,6 +101,8 @@ function loadMeta() {
       merged.army = Object.assign({}, def.army, m.army || {});
       merged.heroLv = Object.assign({}, def.heroLv, m.heroLv || {});
       merged.attend = Object.assign({}, def.attend, m.attend || {});
+      merged.enh = Object.assign({}, def.enh, m.enh || {});
+      merged.star = Object.assign({}, def.star, m.star || {});
       if (typeof merged.gems !== "number") merged.gems = 50;
       if (!merged.mode || merged.mode === "daily") merged.mode = "campaign";
       if (!merged.tower || merged.tower < 1) merged.tower = 1;
@@ -117,6 +121,9 @@ function lvMul(type, stat) {
   if (stat === "atk") return 1 + lv * 0.12;
   return 1;
 }
+// 군단 전력 + 복리 배당 (컬렉션 쌓일수록 전투 보너스 골드 ↑)
+function legionPower() { let p = 0; for (const t of ORDER) p += (META.army[t] || 0) * ((META.lv[t] || 0) + (META.enh[t] || 0) * 2 + (META.star[t] || 0) * 12); return p; }
+function dividendGold() { return Math.floor(legionPower() * 0.6); }
 
 const $ = (id) => document.getElementById(id);
 const $status = $("status"), $score = $("score"), $overlay = $("overlay"), $overlayMsg = $("overlay-msg");
@@ -173,8 +180,9 @@ function spawnArmy(side) {
     const s = SPEC[t];
     // 아군: 가챠 레벨 + 영웅 패시브 / 적군: 레벨 스탯 배율 (+보스전 강화)
     const epm = side === "e" ? enemyPowerMul(curLevel) : 1;
-    let hpM = (side === "p" ? lvMul(t, "hp") : epm) * hb.hpMul * (1 + (hb.typeHp[t] || 0)) * powerComp;
-    let atkM = (side === "p" ? lvMul(t, "atk") : epm) * hb.atkMul * (1 + (hb.typeAtk[t] || 0)) * synMul * powerComp;
+    const es = side === "p" ? (1 + (META.enh[t] || 0) * 0.06) * (1 + (META.star[t] || 0) * 0.25) : 1;   // 강화·승급
+    let hpM = (side === "p" ? lvMul(t, "hp") : epm) * hb.hpMul * (1 + (hb.typeHp[t] || 0)) * powerComp * es;
+    let atkM = (side === "p" ? lvMul(t, "atk") : epm) * hb.atkMul * (1 + (hb.typeAtk[t] || 0)) * synMul * powerComp * es;
     const isBoss = side === "e" && bossFight;
     if (isBoss) { hpM *= 7; atkM *= 2.2; }
     const hp = Math.round(s.hp * hpM), atk = Math.round(s.atk * atkM);
@@ -437,6 +445,8 @@ function finish(p, e) {
       title = t("rChapter");
       extra = `<div class="rwd">${t("rwGold", { n: reward })}` + (META.streak > 1 ? t("rwStreak", { n: META.streak }) : "") + `</div><div class="rwd2">${t("rwChapter", { n: META.chapter })}</div>`;
     }
+    const div = dividendGold();                        // 복리 배당
+    if (div > 0) { reward += div; extra += '<div class="rwd2">' + t("dDividend", { n: div }) + "</div>"; }
     META.gold += reward; saveMeta();
   } else { if (m === "campaign") META.streak = 0; saveMeta(); }
 
@@ -789,6 +799,62 @@ function buyPack(id) {
 $("shop-btn").addEventListener("click", openShop);
 $("shop-close").addEventListener("click", () => $("shop").classList.add("hidden"));
 $("gacha10-btn").addEventListener("click", gacha10);
+
+// ── 대시보드: 도감 + 강화(실패확률·보호) + 승급(조합) ─────────────────────────
+const PROTECT_COST = 10;   // 💎
+let dashProtect = false;
+function enhCost(type) { return 100 * ((META.enh[type] || 0) + 1); }
+function enhRate(type) { return Math.max(35, 100 - (META.enh[type] || 0) * 6); }
+function enhance(type) {
+  if (running) return;
+  const enh = META.enh[type] || 0, cost = enhCost(type);
+  if (META.gold < cost) { toast(t("tGoldShort", { n: cost }), "#ef4444"); return; }
+  if (dashProtect && (META.gems || 0) < PROTECT_COST) { toast(t("tGemShort", { n: PROTECT_COST }), "#ef4444"); return; }
+  META.gold -= cost; if (dashProtect) META.gems -= PROTECT_COST;
+  if (Math.random() * 100 < enhRate(type)) {
+    META.enh[type] = enh + 1; toast(t("dSuccess", { n: enh + 1 }), "#a3e635"); SFX.claim(); haptic("medium");
+  } else {
+    if (enh >= 5 && !dashProtect) { META.enh[type] = enh - 1; toast(t("dFail") + " −1", "#ef4444"); }
+    else { toast(t("dFail"), "#ef4444"); }
+    SFX.lose(); haptic("heavy");
+  }
+  saveMeta(); updateMeta(); renderDash();
+}
+function ascend(type) {
+  if (running || (META.enh[type] || 0) < 10) return;
+  const goldC = 5000, gemC = 50;
+  if (META.gold < goldC || (META.gems || 0) < gemC) { toast(t("tGemShort", { n: gemC }), "#ef4444"); return; }
+  META.gold -= goldC; META.gems -= gemC;
+  META.star[type] = (META.star[type] || 0) + 1; META.enh[type] = 0;
+  saveMeta(); updateMeta(); renderDash();
+  toast("⭐ " + SPEC[type].glyph + " ★" + META.star[type], "#fbbf24"); SFX.ssr(); haptic("heavy");
+}
+function openDash() { renderDash(); $("dash").classList.remove("hidden"); }
+function renderDash() {
+  if ($("dash-power")) $("dash-power").textContent = legionPower();
+  if ($("dash-div")) $("dash-div").textContent = dividendGold();
+  const box = $("dash-list"); if (box) {
+    box.innerHTML = "";
+    ORDER.forEach((type) => {
+      if (type === "titan" && !META.titanOwned) return;
+      const enh = META.enh[type] || 0, star = META.star[type] || 0, lv = META.lv[type] || 0, canAsc = enh >= 10;
+      const c = document.createElement("div"); c.className = "dcard";
+      c.innerHTML =
+        `<div class="dglyph">${SPEC[type].glyph}${star ? `<span class="dstar">★${star}</span>` : ""}</div>` +
+        `<div class="dinfo"><div class="dlv">Lv${lv} · <b>+${enh}</b></div><div class="ddim">${t("dRate")} ${enhRate(type)}% · 💰${enhCost(type)}</div></div>` +
+        `<div class="dbtns"><button class="denh" data-t="${type}">${t("dEnhance")}</button>${canAsc ? `<button class="dasc" data-t="${type}">⭐</button>` : ""}</div>`;
+      box.appendChild(c);
+    });
+    box.querySelectorAll(".denh").forEach((b) => b.addEventListener("click", () => enhance(b.dataset.t)));
+    box.querySelectorAll(".dasc").forEach((b) => b.addEventListener("click", () => ascend(b.dataset.t)));
+  }
+  const hbox = $("dash-heroes");
+  if (hbox) hbox.innerHTML = HERO_ORDER.map((hk) => { const h = HEROES[hk], tr = tHero(hk); return '<div class="hrow">' + h.glyph + " <b>" + tr[0] + "</b> <span class=\"hcode\">" + h.rank + "</span> · 💥" + tUlt(h.ult) + "</div>"; }).join("");
+  const pb = $("dash-protect"); if (pb) { pb.textContent = "💎 " + t("dProtect") + (dashProtect ? " ✓" : ""); pb.classList.toggle("on", dashProtect); }
+}
+$("dash-btn").addEventListener("click", openDash);
+$("dash-close").addEventListener("click", () => $("dash").classList.add("hidden"));
+$("dash-protect").addEventListener("click", () => { dashProtect = !dashProtect; renderDash(); });
 
 $("overlay-btn").addEventListener("click", reset);
 $("gacha-btn").addEventListener("click", gacha);

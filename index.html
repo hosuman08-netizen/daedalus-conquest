@@ -18,6 +18,7 @@
       <span class="meta gold">💰 <i id="gold">300</i></span>
       <span class="meta gem">💎 <i id="gems">50</i></span>
       <span class="meta ch">📖 <i id="chapter">1</i></span>
+      <button id="dash-btn">📋</button>
       <button id="event-btn">🎁</button>
       <button id="shop-btn">🛒</button>
       <button id="settings-btn">⚙️</button>
@@ -122,6 +123,19 @@
         <button id="attend-claim" data-i18n="evClaim">출석 보상 받기</button>
         <div class="set-ver" data-i18n="evMore">더 많은 이벤트가 곧 추가됩니다</div>
         <button id="event-close" class="ghost" data-i18n="confirm">확인</button>
+      </div>
+    </div>
+
+    <!-- 대시보드: 도감/강화/승급 -->
+    <div id="dash" class="hidden">
+      <div id="dash-card">
+        <div class="set-title">📋 <span data-i18n="dashTitle">군단 도감</span></div>
+        <div class="dpower">⚡ <span data-i18n="dPower">군단 전력</span> <b id="dash-power">0</b> &nbsp;·&nbsp; 💰<b id="dash-div">0</b>/<span data-i18n="dPerBattle">전투</span></div>
+        <button id="dash-protect" class="protectbtn">💎 보호</button>
+        <div id="dash-list"></div>
+        <div class="set-sec">🦸 <span data-i18n="dUlt">궁극기</span></div>
+        <div id="dash-heroes"></div>
+        <button id="dash-close" class="ghost" data-i18n="confirm">확인</button>
       </div>
     </div>
 

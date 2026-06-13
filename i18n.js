@@ -218,6 +218,7 @@ const DASH_I18N = {
   ru: { dash: "📋 Кодекс", dashTitle: "Кодекс легиона", dEnhance: "Улучшить", dRate: "Успех", dSuccess: "✨ Успех! +{n}", dFail: "💢 Провал…", dProtect: "💎 Защита", dPower: "Сила легиона", dDividend: "Дивиденд: +{n} золота за бой", dUlt: "Ульта", dCombo: "Синтез", dShards: "Осколки" },
 };
 for (const l in DASH_I18N) Object.assign(I18N[l], DASH_I18N[l]);
+Object.assign(I18N.ko, { dPerBattle: "전투" }); Object.assign(I18N.en, { dPerBattle: "battle" }); Object.assign(I18N.ja, { dPerBattle: "戦闘" }); Object.assign(I18N.zh, { dPerBattle: "战斗" }); Object.assign(I18N.hi, { dPerBattle: "युद्ध" }); Object.assign(I18N.ru, { dPerBattle: "бой" });
 
 // 전략 상성 설명
 const STRAT = {
