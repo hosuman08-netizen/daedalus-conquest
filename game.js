@@ -23,6 +23,9 @@ const SPEC = {
 };
 const ORDER = ["drone", "marksman", "guardian", "bruiser", "commander", "titan"];
 const COL = { p: "#3b82f6", e: "#ef4444" };
+// 상성 (가위바위보): 공격자 → 강한 표적 (+30% 데미지). 군집>원거리>근접>군집
+const COUNTER = { drone: ["marksman"], marksman: ["guardian", "bruiser"], guardian: ["drone"], bruiser: ["drone"] };
+const CTR_MUL = 1.3;
 
 // ── 영웅 7종 (군단 사령관) ────────────────────────────────────────────────────
 // passive = 전군 패시브 / ult = 궁극기(플레이어 직접 발동). heroLv가 패시브 강화(현질 자리).
@@ -124,6 +127,9 @@ function spawnArmy(side) {
   const baseY = side === "p" ? H - 36 : 36;
   const dir = side === "p" ? -1 : 1;
   const hb = side === "p" ? heroBuffs() : { aiBonus: 0, hpMul: 1, atkMul: 1, typeHp: {}, typeAtk: {}, regen: 0 };
+  // 편성 다양성 시너지: 3종↑ +10% / 4종↑ +18% 공격 (다양한 상성 편성 유도)
+  const distinct = ORDER.filter((tt) => (counts[side][tt] || 0) > 0).length;
+  const synMul = distinct >= 4 ? 1.18 : distinct >= 3 ? 1.10 : 1;
   let arr = [];
   ORDER.forEach((t) => { for (let i = 0; i < counts[side][t]; i++) arr.push(t); });
   arr.forEach((t, i) => {
@@ -135,7 +141,7 @@ function spawnArmy(side) {
     // 아군: 가챠 레벨 + 영웅 패시브 / 적군: 레벨 스탯 배율 (+보스전 강화)
     const epm = side === "e" ? enemyPowerMul(curLevel) : 1;
     let hpM = (side === "p" ? lvMul(t, "hp") : epm) * hb.hpMul * (1 + (hb.typeHp[t] || 0));
-    let atkM = (side === "p" ? lvMul(t, "atk") : epm) * hb.atkMul * (1 + (hb.typeAtk[t] || 0));
+    let atkM = (side === "p" ? lvMul(t, "atk") : epm) * hb.atkMul * (1 + (hb.typeAtk[t] || 0)) * synMul;
     const isBoss = side === "e" && bossFight;
     if (isBoss) { hpM *= 7; atkM *= 2.2; }
     const hp = Math.round(s.hp * hpM), atk = Math.round(s.atk * atkM);
@@ -296,8 +302,11 @@ function step(u, dt) {
 
 function dmg(target, amount, from) {
   if (target.hp <= 0) return;
-  let a = amount; if (target.shield > 0) a *= 0.5;
+  let a = amount, ctr = false;
+  if (from && COUNTER[from.t] && COUNTER[from.t].indexOf(target.t) >= 0) { a *= CTR_MUL; ctr = true; }   // 상성 +30%
+  if (target.shield > 0) a *= 0.5;
   target.hp -= a;
+  if (ctr) addFx(target.x, target.y, "ctr");
   if (target.hp <= 0) addFx(target.x, target.y, "die", 0, 0, target.side);
 }
 
@@ -319,6 +328,7 @@ function draw() {
     else if (f.kind === "overclock"){ ctx.strokeStyle = "#a3e635"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(f.x, f.y, 85 * (0.3 + k), 0, 7); ctx.stroke(); }
     else if (f.kind === "barrier"){ ctx.strokeStyle = "#67e8f9"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(f.x, f.y, 22, 0, 7); ctx.stroke(); }
     else if (f.kind === "evade") { ctx.strokeStyle = "#c4b5fd"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(f.x, f.y, 16, 0, 7); ctx.stroke(); }
+    else if (f.kind === "ctr")   { ctx.fillStyle = "#fde047"; ctx.font = "11px sans-serif"; ctx.textAlign = "center"; ctx.fillText("✦", f.x + 6, f.y - 8 - 10 * k); }
     else if (f.kind === "die")   { ctx.fillStyle = f.side === "p" ? "#3b82f6" : "#ef4444"; ctx.beginPath(); ctx.arc(f.x, f.y, 4 + 18 * k, 0, 7); ctx.fill(); }
     ctx.globalAlpha = 1;
   }

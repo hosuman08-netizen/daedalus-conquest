@@ -172,6 +172,17 @@ const SET = {
 };
 for (const l in SET) Object.assign(I18N[l], SET[l]);
 
+// 전략 상성 설명
+const STRAT = {
+  ko: { legend4: "⚔️ 상성: 🛸▶🎯▶🛡️🤖▶🛸 (+30%) · 3종↑ 편성 시너지" },
+  en: { legend4: "⚔️ Counters: 🛸▶🎯▶🛡️🤖▶🛸 (+30%) · 3+ types = synergy" },
+  ja: { legend4: "⚔️ 相性: 🛸▶🎯▶🛡️🤖▶🛸 (+30%) · 3種以上で連携" },
+  zh: { legend4: "⚔️ 克制: 🛸▶🎯▶🛡️🤖▶🛸 (+30%) · 3种以上协同" },
+  hi: { legend4: "⚔️ काउंटर: 🛸▶🎯▶🛡️🤖▶🛸 (+30%) · 3+ प्रकार सिनर्जी" },
+  ru: { legend4: "⚔️ Контры: 🛸▶🎯▶🛡️🤖▶🛸 (+30%) · 3+ типа синергия" },
+};
+for (const l in STRAT) Object.assign(I18N[l], STRAT[l]);
+
 let LANG = "ko";
 function detectLang() {
   let code = "";
