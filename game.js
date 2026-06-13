@@ -3,7 +3,14 @@
    군주는 군대 배치 → ▶전투 시작 → 관전. 스킬 자동 발동. 의존성 0. */
 
 const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-if (tg) { try { tg.ready(); tg.expand(); } catch (e) {} }
+if (tg) {
+  try { tg.ready(); tg.expand(); } catch (e) {}
+  try { tg.setHeaderColor("#0b0d14"); } catch (e) {}
+  try { tg.setBackgroundColor("#0b0d14"); } catch (e) {}
+  try { tg.disableVerticalSwipes(); } catch (e) {}     // 전투 중 실수로 닫힘 방지
+  try { tg.enableClosingConfirmation(); } catch (e) {}
+}
+function haptic(kind) { if (tg) { try { tg.HapticFeedback.impactOccurred(kind || "light"); } catch (e) {} } }
 
 // ── 5종 유닛 사양 ─────────────────────────────────────────────────────────────
 const SPEC = {
@@ -85,7 +92,12 @@ const $status = $("status"), $score = $("score"), $overlay = $("overlay"), $over
 function fit() {
   cv = $("field");
   const w = Math.min(460, cv.parentElement.clientWidth);
-  cv.width = w; cv.height = Math.round(w * 1.15);
+  // 화면 높이에 맞춰 캔버스 높이 제한 (폰에서 한 화면에 들어오게)
+  let h = Math.round(w * 1.0);
+  const vh = (tg && tg.viewportStableHeight) || window.innerHeight || 700;
+  h = Math.min(h, Math.round(vh * 0.46));
+  h = Math.max(h, 240);
+  cv.width = w; cv.height = h;
   W = cv.width; H = cv.height; ctx = cv.getContext("2d");
 }
 
