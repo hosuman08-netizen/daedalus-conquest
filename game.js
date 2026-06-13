@@ -162,8 +162,8 @@ function enemyForChapter(ch) {
     titan:     ch >= 50 ? 1 + Math.floor((ch - 50) / 40) : 0,  // 50챕터(보스급)
   };
 }
-// 적 스탯 배율: 20챕터까지 그대로, 이후 아주 완만히 상승 (후반 난이도)
-function enemyPowerMul(ch) { return 1 + Math.max(0, (ch | 0) - 20) * 0.03; }
+// 적 스탯 배율: 25챕터까지 그대로, 이후 완만히 상승 (후반 난이도 — 투자 보상 확실하게)
+function enemyPowerMul(ch) { return 1 + Math.max(0, (ch | 0) - 25) * 0.02; }
 
 // ── 모드별 전투 셋업 (사이클의 핵심) ─────────────────────────────────────────
 function applyMode() {
