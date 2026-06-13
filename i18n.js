@@ -163,12 +163,12 @@ const I18N = {
 
 // 설정 메뉴 문구
 const SET = {
-  ko: { setTitle: "설정", setLang: "언어", setSound: "사운드", setHaptic: "진동", setReset: "진행 초기화", setResetOk: "진행 초기화됨", langOk: "언어 변경됨", resetAsk: "정말 모든 진행을 초기화할까요?" },
-  en: { setTitle: "Settings", setLang: "Language", setSound: "Sound", setHaptic: "Haptics", setReset: "Reset progress", setResetOk: "Progress reset", langOk: "Language changed", resetAsk: "Reset all progress?" },
-  ja: { setTitle: "設定", setLang: "言語", setSound: "サウンド", setHaptic: "振動", setReset: "進行リセット", setResetOk: "リセット完了", langOk: "言語を変更", resetAsk: "全ての進行をリセットしますか?" },
-  zh: { setTitle: "设置", setLang: "语言", setSound: "声音", setHaptic: "震动", setReset: "重置进度", setResetOk: "已重置", langOk: "已切换语言", resetAsk: "确定要重置所有进度吗?" },
-  hi: { setTitle: "सेटिंग", setLang: "भाषा", setSound: "ध्वनि", setHaptic: "कंपन", setReset: "प्रगति रीसेट", setResetOk: "रीसेट हो गया", langOk: "भाषा बदली", resetAsk: "सारी प्रगति रीसेट करें?" },
-  ru: { setTitle: "Настройки", setLang: "Язык", setSound: "Звук", setHaptic: "Вибрация", setReset: "Сброс прогресса", setResetOk: "Прогресс сброшен", langOk: "Язык изменён", resetAsk: "Сбросить весь прогресс?" },
+  ko: { setTitle: "설정", setLang: "언어", setSound: "사운드", setHaptic: "진동", setReset: "진행 초기화", setResetOk: "진행 초기화됨", langOk: "언어 변경됨", resetAsk: "정말 모든 진행을 초기화할까요?", evTitle: "이벤트", evAttend: "일일 출석 보상", evClaim: "출석 보상 받기", evMore: "더 많은 이벤트가 곧 추가됩니다", evDay: "{n}일차", evDone: "오늘 출석 완료! 내일 다시", tAttend: "🎁 {n}일차 출석 보상 획득!", shopTitle: "캐시 상점", shopNote: "실제 결제는 텔레그램 Stars 연동 예정" },
+  en: { setTitle: "Settings", setLang: "Language", setSound: "Sound", setHaptic: "Haptics", setReset: "Reset progress", setResetOk: "Progress reset", langOk: "Language changed", resetAsk: "Reset all progress?", evTitle: "Events", evAttend: "Daily Check-in", evClaim: "Claim today", evMore: "More events coming soon", evDay: "Day {n}", evDone: "Checked in today! Back tomorrow", tAttend: "🎁 Day {n} check-in reward!", shopTitle: "Shop", shopNote: "Real payment via Telegram Stars coming soon" },
+  ja: { setTitle: "設定", setLang: "言語", setSound: "サウンド", setHaptic: "振動", setReset: "進行リセット", setResetOk: "リセット完了", langOk: "言語を変更", resetAsk: "全ての進行をリセットしますか?", evTitle: "イベント", evAttend: "デイリーログイン", evClaim: "本日の報酬", evMore: "新イベント近日追加", evDay: "{n}日目", evDone: "本日ログイン済み! 明日また", tAttend: "🎁 {n}日目ログイン報酬獲得!", shopTitle: "ショップ", shopNote: "実決済はTelegram Stars対応予定" },
+  zh: { setTitle: "设置", setLang: "语言", setSound: "声音", setHaptic: "震动", setReset: "重置进度", setResetOk: "已重置", langOk: "已切换语言", resetAsk: "确定要重置所有进度吗?", evTitle: "活动", evAttend: "每日签到", evClaim: "领取今日", evMore: "更多活动即将上线", evDay: "第{n}天", evDone: "今日已签到! 明天再来", tAttend: "🎁 第{n}天签到奖励!", shopTitle: "商店", shopNote: "实际支付将接入Telegram Stars" },
+  hi: { setTitle: "सेटिंग", setLang: "भाषा", setSound: "ध्वनि", setHaptic: "कंपन", setReset: "प्रगति रीसेट", setResetOk: "रीसेट हो गया", langOk: "भाषा बदली", resetAsk: "सारी प्रगति रीसेट करें?", evTitle: "इवेंट", evAttend: "डेली चेक-इन", evClaim: "आज का इनाम", evMore: "और इवेंट जल्द", evDay: "दिन {n}", evDone: "आज चेक-इन हो गया! कल फिर", tAttend: "🎁 दिन {n} चेक-इन इनाम!", shopTitle: "स्टोर", shopNote: "जल्द Telegram Stars भुगतान" },
+  ru: { setTitle: "Настройки", setLang: "Язык", setSound: "Звук", setHaptic: "Вибрация", setReset: "Сброс прогресса", setResetOk: "Прогресс сброшен", langOk: "Язык изменён", resetAsk: "Сбросить весь прогресс?", evTitle: "События", evAttend: "Ежедневный вход", evClaim: "Забрать", evMore: "Скоро новые события", evDay: "День {n}", evDone: "Вход засчитан! Завтра снова", tAttend: "🎁 Награда за день {n}!", shopTitle: "Магазин", shopNote: "Оплата через Telegram Stars скоро" },
 };
 for (const l in SET) Object.assign(I18N[l], SET[l]);
 

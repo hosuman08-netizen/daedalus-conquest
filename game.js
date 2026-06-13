@@ -26,14 +26,15 @@ const COL = { p: "#3b82f6", e: "#ef4444" };
 
 // ── 영웅 7종 (군단 사령관) ────────────────────────────────────────────────────
 // passive = 전군 패시브 / ult = 궁극기(플레이어 직접 발동). heroLv가 패시브 강화(현질 자리).
+// 다이달로스 군단 = 랭크 매겨진 엘리트 결사 (번호 서열 + 흑·적 망토 모티브, 일반 클리셰)
 const HEROES = {
-  strategist: { glyph: "🧠", name: "책략가",   desc: "전군 AI 지능 +1",        ult: "focus",   ultName: "전술 지휘",   ultCd: 13 },
-  berserker:  { glyph: "⚡", name: "광전사",   desc: "전군 공격력 +15%",       ult: "rage",    ultName: "광폭화",      ultCd: 13 },
-  warden:     { glyph: "🛡️", name: "수호자",   desc: "전군 체력 +20%",         ult: "wall",    ultName: "철벽",        ultCd: 13 },
-  ranger:     { glyph: "🎯", name: "사격대장", desc: "드론·사수 공격 +30%",    ult: "volley",  ultName: "일제사격",    ultCd: 12 },
-  mech:       { glyph: "🤖", name: "기갑사령", desc: "돌격봇·가디언 체력 +40%", ult: "assault", ultName: "강습",        ultCd: 12 },
-  engineer:   { glyph: "💉", name: "정비공",   desc: "전군 체력 재생",         ult: "repair",  ultName: "긴급 수리",   ultCd: 12 },
-  dragoon:    { glyph: "🐉", name: "용기사",   desc: "전군 +8% · 강력 궁극기",  ult: "dragon",  ultName: "드래곤 강림", ultCd: 15 },
+  dragoon:    { glyph: "🐉", code: "龍", rank: "0",  ult: "dragon",   ultName: "드래곤 강림", ultCd: 15 },
+  mech:       { glyph: "🤖", code: "鋼", rank: "Ⅰ", ult: "assault",  ultName: "강습",        ultCd: 12 },
+  strategist: { glyph: "🧠", code: "策", rank: "Ⅱ", ult: "focus",    ultName: "전술 지휘",   ultCd: 13 },
+  warden:     { glyph: "🛡️", code: "盾", rank: "Ⅲ", ult: "wall",     ultName: "철벽",        ultCd: 13 },
+  berserker:  { glyph: "⚡", code: "狂", rank: "Ⅳ", ult: "rage",     ultName: "광폭화",      ultCd: 13 },
+  ranger:     { glyph: "🎯", code: "射", rank: "Ⅴ", ult: "volley",   ultName: "일제사격",    ultCd: 12 },
+  engineer:   { glyph: "💉", code: "癒", rank: "Ⅵ", ult: "repair",   ultName: "긴급 수리",   ultCd: 12 },
 };
 const HERO_ORDER = ["strategist", "berserker", "warden", "ranger", "mech", "engineer", "dragoon"];
 // heroLv → 패시브 배율 (현질/강화로 올림)
@@ -60,7 +61,8 @@ function loadMeta() {
                 army: { drone: 4, marksman: 2, guardian: 1, bruiser: 1, commander: 0, titan: 0 },
                 hero: "strategist",
                 heroLv: { strategist: 1, berserker: 1, warden: 1, ranger: 1, mech: 1, engineer: 1, dragoon: 1 },
-                mode: "campaign", tower: 1, towerBest: 0, dailyDone: "", sound: true, haptic: true };
+                mode: "campaign", tower: 1, towerBest: 0, dailyDone: "", sound: true, haptic: true,
+                gems: 50, attend: { day: 0, last: "" } };
   try {
     const m = JSON.parse(localStorage.getItem(META_KEY));
     if (m && typeof m === "object") {
@@ -68,7 +70,9 @@ function loadMeta() {
       merged.lv = Object.assign({}, def.lv, m.lv || {});
       merged.army = Object.assign({}, def.army, m.army || {});
       merged.heroLv = Object.assign({}, def.heroLv, m.heroLv || {});
-      if (!merged.mode) merged.mode = "campaign";
+      merged.attend = Object.assign({}, def.attend, m.attend || {});
+      if (typeof merged.gems !== "number") merged.gems = 50;
+      if (!merged.mode || merged.mode === "daily") merged.mode = "campaign";
       if (!merged.tower || merged.tower < 1) merged.tower = 1;
       if (!merged.hero || !HEROES[merged.hero]) merged.hero = "strategist";
       if (!merged.chapter || merged.chapter < 1) merged.chapter = 1;   // 안전장치
@@ -199,6 +203,7 @@ function reset() {
 // ── 메타 UI 갱신 ──────────────────────────────────────────────────────────────
 function updateMeta() {
   if ($("gold")) $("gold").textContent = META.gold;
+  if ($("gems")) $("gems").textContent = META.gems || 0;
   if ($("chapter")) $("chapter").textContent = META.chapter;
   // 유닛 레벨 뱃지 + 타이탄 슬롯 노출
   ORDER.forEach((t) => {
@@ -537,9 +542,13 @@ function doUlt() {
 // ── 영웅 선택 / 강화 ──────────────────────────────────────────────────────────
 function heroUpCost() { return 150 * (META.heroLv[META.hero] || 1); }
 function updateHeroUI() {
-  HERO_ORDER.forEach((h) => { const b = document.querySelector('.hbtn[data-h="' + h + '"]'); if (b) b.classList.toggle("sel", h === META.hero); });
+  HERO_ORDER.forEach((hk) => {
+    const b = document.querySelector('.hbtn[data-h="' + hk + '"]'); if (!b) return;
+    b.classList.toggle("sel", hk === META.hero);
+    if (!b.dataset.dec) { b.innerHTML = HEROES[hk].glyph + '<i class="rk">' + HEROES[hk].rank + '</i>'; b.dataset.dec = "1"; }
+  });
   const h = HEROES[META.hero], lv = META.heroLv[META.hero] || 1, tr = tHero(META.hero);
-  if ($("hero-name")) $("hero-name").textContent = h.glyph + " " + tr[0] + " Lv" + lv;
+  if ($("hero-name")) $("hero-name").innerHTML = h.glyph + ' <span class="hcode">' + h.code + " · " + h.rank + '</span> ' + tr[0] + " Lv" + lv;
   if ($("hero-desc")) $("hero-desc").textContent = tr[1] + " · " + tUlt(h.ult);
   if ($("hero-up")) $("hero-up").textContent = t("upgrade") + " " + heroUpCost() + "g";
 }
@@ -618,6 +627,68 @@ $("settings-close").addEventListener("click", () => $("settings").classList.add(
 $("set-sound").addEventListener("click", () => { META.sound = META.sound === false; saveMeta(); updateToggles(); });
 $("set-haptic").addEventListener("click", () => { META.haptic = META.haptic === false; saveMeta(); updateToggles(); });
 $("set-reset").addEventListener("click", resetProgress);
+
+// ── 이벤트: 일일 출석 (7일 사이클, 골드+다이아) ──────────────────────────────
+const ATTEND = [{ g: 200 }, { g: 300 }, { gem: 20 }, { g: 600 }, { g: 900 }, { gem: 40 }, { g: 2000, gem: 60 }];
+function openEvent() { renderAttend(); $("event").classList.remove("hidden"); }
+function renderAttend() {
+  const grid = $("attend-grid"); if (!grid) return;
+  grid.innerHTML = "";
+  const claimed = META.attend.last === today(), cur = (META.attend.day || 0) % 7;
+  ATTEND.forEach((r, i) => {
+    const d = document.createElement("div");
+    d.className = "attcell" + (i < cur ? " done" : "") + (i === cur && !claimed ? " today" : "");
+    d.innerHTML = '<div class="ad">' + t("evDay", { n: i + 1 }) + '</div><div class="ar">' + (r.gem ? "💎" + r.gem : "") + (r.g ? "💰" + r.g : "") + "</div>";
+    grid.appendChild(d);
+  });
+  const btn = $("attend-claim");
+  if (btn) { btn.disabled = claimed; btn.textContent = claimed ? t("evDone") : t("evClaim"); }
+}
+function claimAttend() {
+  if (META.attend.last === today()) { toast(t("evDone"), "#8b93a7"); return; }
+  const idx = (META.attend.day || 0) % 7, r = ATTEND[idx];
+  if (r.g) META.gold += r.g;
+  if (r.gem) META.gems = (META.gems || 0) + r.gem;
+  META.attend.day = (META.attend.day || 0) + 1; META.attend.last = today();
+  saveMeta(); updateMeta(); renderAttend();
+  toast(t("tAttend", { n: idx + 1 }), "#fbbf24"); haptic("medium");
+}
+$("event-btn").addEventListener("click", openEvent);
+$("event-close").addEventListener("click", () => $("event").classList.add("hidden"));
+$("attend-claim").addEventListener("click", claimAttend);
+
+// ── 캐시 상점 (별도, Stars 결제 자리 — 지금은 데모 지급) ─────────────────────
+const SHOP = [
+  { id: "gem1", gem: 60, price: "₩1,100" },
+  { id: "gem2", gem: 330, price: "₩5,500", tag: "+10%" },
+  { id: "gem3", gem: 1180, price: "₩19,900", tag: "+18%" },
+  { id: "gold1", g: 6000, price: "₩1,100" },
+  { id: "starter", starter: true, price: "₩990", tag: "BEST" },
+];
+function openShop() { renderShop(); $("shop").classList.remove("hidden"); }
+function renderShop() {
+  const box = $("shop-list"); if (!box) return;
+  box.innerHTML = "";
+  SHOP.forEach((p) => {
+    if (p.starter && META.starter) return;
+    const c = document.createElement("button"); c.className = "packcard";
+    const what = p.starter ? "💎 " + t("spTitle") : (p.gem ? "💎 " + p.gem : "💰 " + p.g);
+    c.innerHTML = (p.tag ? '<span class="ptag">' + p.tag + "</span>" : "") + '<div class="pwhat">' + what + '</div><div class="pprice">' + p.price + "</div>";
+    c.addEventListener("click", () => buyPack(p.id));
+    box.appendChild(c);
+  });
+}
+function buyPack(id) {
+  const p = SHOP.find((x) => x.id === id); if (!p) return;
+  // TODO: 실제 결제 = tg.openInvoice (Stars). 지금은 데모 지급.
+  if (p.starter) { buyStarter(); $("shop").classList.add("hidden"); return; }
+  if (p.gem) META.gems = (META.gems || 0) + p.gem;
+  if (p.g) META.gold += p.g;
+  saveMeta(); updateMeta(); renderShop();
+  toast("🛒 " + (p.gem ? "💎+" + p.gem : "💰+" + p.g), "#fbbf24"); haptic("medium");
+}
+$("shop-btn").addEventListener("click", openShop);
+$("shop-close").addEventListener("click", () => $("shop").classList.add("hidden"));
 
 $("overlay-btn").addEventListener("click", reset);
 $("gacha-btn").addEventListener("click", gacha);

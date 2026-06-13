@@ -16,16 +16,17 @@
 
     <div id="metabar">
       <span class="meta gold">💰 <i id="gold">300</i></span>
+      <span class="meta gem">💎 <i id="gems">50</i></span>
       <span class="meta ch">📖 <i id="chapter">1</i></span>
+      <button id="event-btn">🎁</button>
+      <button id="shop-btn">🛒</button>
       <button id="settings-btn">⚙️</button>
-      <button id="starter-btn" data-i18n="pkg">💎 패키지</button>
       <button id="gacha-btn" data-i18n="gacha">🎰 뽑기 100</button>
     </div>
 
     <div id="modes">
       <button class="modetab" data-m="campaign" data-i18n="mode.campaign">📖 캠페인</button>
       <button class="modetab" data-m="tower" data-i18n="mode.tower">🗼 무한탑</button>
-      <button class="modetab" data-m="daily" data-i18n="mode.daily">📅 일일</button>
       <button class="modetab" data-m="boss" data-i18n="mode.boss">🐲 보스</button>
       <button class="modetab" data-m="turnbased" data-i18n="mode.turnbased">⚔️ 턴제</button>
       <button class="modetab" data-m="arena" data-i18n="mode.arena">🏟️ 아레나</button>
@@ -107,6 +108,28 @@
         <div class="sp-price" data-i18n="spPrice"></div>
         <button id="starter-buy" data-i18n="buy">구매하기</button>
         <button id="starter-close" class="ghost" data-i18n="later">나중에</button>
+      </div>
+    </div>
+
+    <!-- 이벤트 (일일 출석) -->
+    <div id="event" class="hidden">
+      <div id="event-card">
+        <div class="set-title">🎁 <span data-i18n="evTitle">이벤트</span></div>
+        <div class="set-sec">📅 <span data-i18n="evAttend">일일 출석 보상</span></div>
+        <div id="attend-grid"></div>
+        <button id="attend-claim" data-i18n="evClaim">출석 보상 받기</button>
+        <div class="set-ver" data-i18n="evMore">더 많은 이벤트가 곧 추가됩니다</div>
+        <button id="event-close" class="ghost" data-i18n="confirm">확인</button>
+      </div>
+    </div>
+
+    <!-- 캐시 상점 -->
+    <div id="shop" class="hidden">
+      <div id="shop-card">
+        <div class="set-title">🛒 <span data-i18n="shopTitle">캐시 상점</span></div>
+        <div id="shop-list"></div>
+        <div class="set-ver" data-i18n="shopNote">실제 결제는 텔레그램 Stars 연동 예정</div>
+        <button id="shop-close" class="ghost" data-i18n="confirm">확인</button>
       </div>
     </div>
 

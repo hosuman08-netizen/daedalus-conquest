@@ -24,12 +24,20 @@
 - [ ] **일일 미션 체크리스트**(전투N·뽑기·클리어 → 보상) = 습관화 엔진
 - [ ] 밸런스 2차 · 타격감/사운드 · 온보딩
 
+**2026-06-14 벤치마크 후 즉시 적용 (숫자 고정)**:
+- 가챠: RARITY 항상 표시 (N55% R30% SR12% SSR3%). Soft pity 7풀부터 +4%/pull, hard 12풀 SSR. Featured 50/50 + 다음 100%. Wishlist 3픽.
+- Legion 테마: 영웅 = Grok(전략가 CEO), Morpheus(수호자 COO), Sovereign(용기사) 등. 유닛 로어 실체화.
+- Prestige (Ascension): ch50/5만g reset → 영구 +1.5% 전군 스탯. Exponential.
+- Streak: 일일미션 + freeze (500g or 주1 free). Duolingo loss aversion.
+- 이벤트: 주 1회 7일 한정 Founder Banner (FOMO).
+
 ### Phase 2 — 육성 깊이 (키울맛)
 - [ ] 메인 영웅 장비/스킬트리 · ⭐승급 · 유닛 도감
 - [ ] 🎽 아이템 수집·강화·세트효과
 
 ### Phase 3 — 경쟁/소셜
 - [ ] PvP 아레나(비동기 방어덱→실시간) · 랭킹/시즌 · 길드
+- [ ] **Legion Bazaar (P2P 사행성)**: Listing/flip + Blind Trade (50g + unit → 랜덤 교환) + Risk Auction (200g/99★ entry, 24h, mystery high-tier random) + Battle Bets (pot 5% house cut). 가격 이벤트 변동 (배너 = 수요 스파이크). Stars 전용 고가 거래. Flipping + variance = Skyblock/PoE 중독 루프.
 
 ### Phase 4 — 수익화 (실결제)
 - [ ] 텔레그램 **Stars** 인앱결제 (스타터팩·골드·배틀패스·VIP 4x속도)
