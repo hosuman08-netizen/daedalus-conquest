@@ -10,7 +10,7 @@ if (tg) {
   try { tg.disableVerticalSwipes(); } catch (e) {}     // 전투 중 실수로 닫힘 방지
   try { tg.enableClosingConfirmation(); } catch (e) {}
 }
-function haptic(kind) { if (tg) { try { tg.HapticFeedback.impactOccurred(kind || "light"); } catch (e) {} } }
+function haptic(kind) { if (tg && (typeof META === "undefined" || META.haptic !== false)) { try { tg.HapticFeedback.impactOccurred(kind || "light"); } catch (e) {} } }
 
 // ── 5종 유닛 사양 ─────────────────────────────────────────────────────────────
 const SPEC = {
@@ -60,7 +60,7 @@ function loadMeta() {
                 army: { drone: 4, marksman: 2, guardian: 1, bruiser: 1, commander: 0, titan: 0 },
                 hero: "strategist",
                 heroLv: { strategist: 1, berserker: 1, warden: 1, ranger: 1, mech: 1, engineer: 1, dragoon: 1 },
-                mode: "campaign", tower: 1, towerBest: 0, dailyDone: "" };
+                mode: "campaign", tower: 1, towerBest: 0, dailyDone: "", sound: true, haptic: true };
   try {
     const m = JSON.parse(localStorage.getItem(META_KEY));
     if (m && typeof m === "object") {
@@ -168,21 +168,19 @@ function applyMode() {
   if (m === "tower") {
     curLevel = META.tower + 8;                        // 탑은 챕터보다 빡셈
     counts.e = enemyForChapter(META.tower);
-    $status.textContent = "🗼 무한의 탑 " + META.tower + "층  (최고 " + (META.towerBest || 0) + "층)";
+    $status.textContent = t("sTower", { n: META.tower, b: META.towerBest || 0 });
   } else if (m === "daily") {
     curLevel = META.chapter + 4;
     counts.e = enemyForChapter(META.chapter + 4);
-    $status.textContent = META.dailyDone === today()
-      ? "📅 일일던전 — 오늘 완료! 내일 다시 ↩"
-      : "📅 일일던전 — 클리어 시 보너스 골드 💰";
+    $status.textContent = META.dailyDone === today() ? t("sDailyDone") : t("sDaily");
   } else if (m === "boss") {
     curLevel = META.chapter; bossFight = true;
     counts.e = { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 1 };
-    $status.textContent = "🐲 보스 레이드 — 거대 보스를 격파하라!";
+    $status.textContent = t("sBoss");
   } else {                                            // campaign
     curLevel = META.chapter;
     counts.e = enemyForChapter(META.chapter);
-    $status.textContent = "📖 챕터 " + META.chapter + " — 배치 후 ▶ 전투";
+    $status.textContent = t("sDeploy", { n: META.chapter });
   }
 }
 
@@ -194,7 +192,7 @@ function reset() {
   units = []; fx = []; running = false; gameOver = false; lastT = 0; ultT = 0;
   spawnArmy("p"); spawnArmy("e");
   $overlay.classList.add("hidden");
-  $("start").textContent = "▶ 전투 시작";
+  $("start").textContent = t("start");
   updateMeta(); updateHeroUI(); updateUltBtn(); updateModeTabs(); draw(); updateScore();
 }
 
@@ -212,7 +210,7 @@ function updateMeta() {
   const ts = $("slot-titan");
   if (ts) ts.style.display = META.titanOwned ? "" : "none";
   const sb = $("starter-btn"); if (sb) sb.style.display = META.starter ? "none" : "";
-  const sp = $("speed"); if (sp && !META.starter && !running) sp.textContent = "속도 1x 🔒";
+  const sp = $("speed"); if (sp && !running) sp.textContent = META.starter ? t("speed", { n: speed }) : t("speedLock");
 }
 
 // ── 모드 사이클 ───────────────────────────────────────────────────────────────
@@ -220,9 +218,9 @@ function updateModeTabs() {
   document.querySelectorAll(".modetab").forEach((b) => b.classList.toggle("sel", b.dataset.m === META.mode));
 }
 function setMode(m) {
-  if (running) { toast("전투 중엔 모드 변경 불가", "#ef4444"); return; }
-  if (m === "turnbased") { toast("⚔️ 턴제 전술 — 곧 출시!", "#a855f7"); return; }
-  if (m === "arena") { toast("🏟️ PvP 아레나 — 곧 출시!", "#a855f7"); return; }
+  if (running) { toast(t("tNoSwitch"), "#ef4444"); return; }
+  if (m === "turnbased") { toast(t("tComingTb"), "#a855f7"); return; }
+  if (m === "arena") { toast(t("tComingAr"), "#a855f7"); return; }
   META.mode = m; saveMeta(); reset();
 }
 
@@ -361,7 +359,7 @@ function finish(p, e) {
   running = false; gameOver = true;
   const win = p && !e, dr = !p && !e;
   const m = META.mode;
-  let extra = "", title = win ? "🏆 승리!" : dr ? "⚖️ 무승부" : "💀 패배";
+  let extra = "", title = win ? t("rWin") : dr ? t("rDraw") : t("rLose");
   let bonus = (x) => (META.starter ? Math.floor(x * 1.2) : x);
 
   if (win) {
@@ -370,22 +368,22 @@ function finish(p, e) {
       reward = bonus(30 + curLevel * 15);
       if (META.tower > (META.towerBest || 0)) META.towerBest = META.tower;
       META.tower += 1;
-      title = "🏆 " + (META.tower - 1) + "층 돌파!";
-      extra = `<div class="rwd">💰 +${reward}</div><div class="rwd2">🗼 ${META.tower}층 도전 (최고 ${META.towerBest})</div>`;
+      title = t("rTower", { n: META.tower - 1 });
+      extra = `<div class="rwd">${t("rwGold", { n: reward })}</div><div class="rwd2">${t("rwTowerNext", { n: META.tower, b: META.towerBest })}</div>`;
     } else if (m === "daily") {                         // 📅 일일: 하루 1회 보너스
-      if (META.dailyDone !== today()) { reward = bonus(200 + META.chapter * 15); META.dailyDone = today(); extra = `<div class="rwd">💰 +${reward} 일일 보너스!</div>`; }
-      else { extra = `<div class="rwd2">오늘 보상은 이미 받음 — 내일 다시</div>`; }
-      title = "🏆 일일던전 클리어!";
+      if (META.dailyDone !== today()) { reward = bonus(200 + META.chapter * 15); META.dailyDone = today(); extra = `<div class="rwd">${t("rwDailyBonus", { n: reward })}</div>`; }
+      else { extra = `<div class="rwd2">${t("rwDailyDone")}</div>`; }
+      title = t("rDaily");
     } else if (m === "boss") {                          // 🐲 보스: 큰 보상
       reward = bonus(120 + META.chapter * 25);
-      title = "🏆 보스 격파!";
-      extra = `<div class="rwd">💰 +${reward} 보스 보상!</div>`;
+      title = t("rBoss");
+      extra = `<div class="rwd">${t("rwBoss", { n: reward })}</div>`;
     } else {                                            // 📖 캠페인: 다음 챕터
       META.streak = (META.streak || 0) + 1;
       reward = bonus(40 + META.chapter * 20 + Math.min(80, (META.streak - 1) * 10));
       if (META.chapter < 999) META.chapter += 1;
-      title = "🏆 챕터 클리어!";
-      extra = `<div class="rwd">💰 +${reward}` + (META.streak > 1 ? ` · 🔥${META.streak}연승!` : "") + `</div><div class="rwd2">📖 챕터 ${META.chapter} 해금!</div>`;
+      title = t("rChapter");
+      extra = `<div class="rwd">${t("rwGold", { n: reward })}` + (META.streak > 1 ? t("rwStreak", { n: META.streak }) : "") + `</div><div class="rwd2">${t("rwChapter", { n: META.chapter })}</div>`;
     }
     META.gold += reward; saveMeta();
   } else { if (m === "campaign") META.streak = 0; saveMeta(); }
@@ -393,7 +391,7 @@ function finish(p, e) {
   // 자동사냥: 캠페인·무한탑에서만, 승리 시 자동 진행
   const autoMode = (m === "campaign" || m === "tower");
   if (auto && win && autoMode) {
-    toast("⚔️ 자동사냥 진행…", "#a3e635");
+    toast(t("tAutoRun"), "#a3e635");
     updateMeta(); draw();
     setTimeout(() => { if (auto) { reset(); start(); } }, 1000);
     return;
@@ -401,7 +399,7 @@ function finish(p, e) {
   if (auto && (!win || !autoMode)) { auto = false; updateAutoBtn(); }
 
   $overlayMsg.innerHTML = title + extra;
-  $("overlay-btn").textContent = win ? "계속 ▶" : "다시 ↻";
+  $("overlay-btn").textContent = win ? t("cont") : t("retry");
   $overlay.classList.remove("hidden");
   if (tg) { try { tg.HapticFeedback.notificationOccurred(win ? "success" : "error"); } catch (e2) {} }
   updateMeta(); draw();
@@ -418,17 +416,17 @@ const RARITY = [
 function rollRarity() { let r = Math.random(), a = 0; for (const t of RARITY) { a += t.p; if (r <= a) return t; } return RARITY[0]; }
 function gacha() {
   if (running) return;
-  if (META.gold < GACHA_COST) { toast("골드 부족! 챕터를 클리어해 모으세요", "#ef4444"); return; }
+  if (META.gold < GACHA_COST) { toast(t("tGoldShort", { n: GACHA_COST }), "#ef4444"); return; }
   META.gold -= GACHA_COST; META.pulls = (META.pulls || 0) + 1; META.pity = (META.pity || 0) + 1;
   let rar = rollRarity();
   if (META.pity >= 10) rar = RARITY[3];                 // 10연차 천장 = SSR 보장
   if (rar.key === "SSR" || rar.key === "SR") META.pity = 0;
   let msg;
-  if (rar.key === "SSR" && !META.titanOwned) { META.titanOwned = true; counts.p.titan = 1; msg = "🐉 전설 <b>타이탄</b> 해금!!"; }
+  if (rar.key === "SSR" && !META.titanOwned) { META.titanOwned = true; counts.p.titan = 1; msg = t("tTitan"); }
   else {
-    const pool = ORDER.filter((t) => t !== "titan" || META.titanOwned);
-    for (let i = 0; i < rar.lvls; i++) { const t = pool[(Math.random() * pool.length) | 0]; META.lv[t] = (META.lv[t] || 0) + 1; }
-    msg = `유닛 <b>+${rar.lvls}강화</b>`;
+    const pool = ORDER.filter((u) => u !== "titan" || META.titanOwned);
+    for (let i = 0; i < rar.lvls; i++) { const u = pool[(Math.random() * pool.length) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; }
+    msg = t("tGachaUp", { n: rar.lvls });
   }
   saveMeta(); updateMeta(); reset();
   showGacha(rar, msg);
@@ -453,14 +451,14 @@ function toast(text, color) {
 // ── 일일 보상 ─────────────────────────────────────────────────────────────────
 function checkDaily() {
   let today = ""; try { today = new Date().toISOString().slice(0, 10); } catch (e) { return; }
-  if (META.lastDaily !== today) { META.lastDaily = today; META.gold += 150; saveMeta(); updateMeta(); setTimeout(() => toast("🎁 일일 보상 +150 골드!", "#fbbf24"), 500); }
+  if (META.lastDaily !== today) { META.lastDaily = today; META.gold += 150; saveMeta(); updateMeta(); setTimeout(() => toast(t("tDaily"), "#fbbf24"), 500); }
 }
 
 function start() {
   if (gameOver) reset();
-  if (running) { running = false; $("start").textContent = "▶ 재개"; cancelAnimationFrame(raf); return; }
-  running = true; lastT = 0; $("start").textContent = "⏸ 일시정지";
-  $status.textContent = "⚔️ 교전 중 — AI 자율 전투";
+  if (running) { running = false; $("start").textContent = t("resume"); cancelAnimationFrame(raf); return; }
+  running = true; lastT = 0; $("start").textContent = t("pause");
+  $status.textContent = t("sFight");
   raf = requestAnimationFrame(loop);
 }
 
@@ -469,20 +467,20 @@ function bindDeploy() {
   document.querySelectorAll("#deploy button").forEach((b) => {
     b.addEventListener("click", () => {
       if (running) return;
-      const t = b.dataset.t, d = +b.dataset.d, price = PRICE[t] || 50;
+      const ty = b.dataset.t, d = +b.dataset.d, price = PRICE[ty] || 50;
       if (d > 0) {                                        // 구매
-        if (META.army[t] >= 12) { toast("이 유닛 최대치(12)", "#ef4444"); return; }
-        if (META.gold < price) { toast("골드 부족! " + price + "g 필요", "#ef4444"); return; }
-        META.gold -= price; META.army[t]++;
-        toast("🛒 구매 −" + price + "g", "#a3e635");
+        if (META.army[ty] >= 12) { toast(t("tMaxUnit"), "#ef4444"); return; }
+        if (META.gold < price) { toast(t("tGoldShort", { n: price }), "#ef4444"); return; }
+        META.gold -= price; META.army[ty]++;
+        toast(t("tBought", { n: price }), "#a3e695");
       } else {                                            // 판매(90% 환불 — 거의 안 깎음)
-        if (META.army[t] <= 0) return;
+        if (META.army[ty] <= 0) return;
         const refund = Math.floor(price * 0.9);
-        META.army[t]--; META.gold += refund;
-        toast("💸 판매 +" + refund + "g", "#93c5fd");
+        META.army[ty]--; META.gold += refund;
+        toast(t("tSold", { n: refund }), "#93c5fd");
       }
       saveMeta();
-      $("p-" + t).textContent = META.army[t];
+      $("p-" + ty).textContent = META.army[ty];
       updateMeta(); reset();
     });
   });
@@ -494,30 +492,30 @@ $("speed").addEventListener("click", () => {
   if (!META.starter) { showStarter(); return; }            // 속도업은 스타터팩부터
   const max = META.vip ? 4 : 2;                             // 스타터=2x, 4x는 상위상품(VIP)
   speed = speed >= max ? 1 : speed * 2;
-  $("speed").textContent = "속도 " + speed + "x";
+  $("speed").textContent = t("speed", { n: speed });
 });
 
 // ── 스타터팩 (₩990 첫 결제 상품) ─────────────────────────────────────────────
 function showStarter() {
-  if (META.starter) { toast("이미 보유 중 — 속도 2x/4x 사용 가능", "#a3e635"); return; }
+  if (META.starter) { toast(t("tOwned"), "#a3e635"); return; }
   $("starter").classList.remove("hidden");
 }
 function buyStarter() {
   // TODO: 실제 결제는 텔레그램 Stars 연동 (tg.openInvoice). 지금은 데모 지급.
   META.starter = true; META.gold += 3000;
-  for (let i = 0; i < 10; i++) { const t = ORDER[(Math.random() * 5) | 0]; META.lv[t] = (META.lv[t] || 0) + 1; }  // 10연 효과
+  for (let i = 0; i < 10; i++) { const u = ORDER[(Math.random() * 5) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; }  // 10연 효과
   saveMeta(); updateMeta();
   $("starter").classList.add("hidden");
-  toast("💎 스타터팩 획득! 속도 2x 해금 +골드3000", "#fbbf24");
+  toast(t("tStarter"), "#fbbf24");
 }
 // ── 궁극기 (플레이어 직접 발동) ───────────────────────────────────────────────
 function updateUltBtn() {
   const b = $("ult"); if (!b) return;
-  const h = HEROES[META.hero];
-  if (!running) { b.textContent = "💥 " + h.ultName; b.disabled = true; b.classList.remove("ready"); return; }
+  const name = "💥 " + tUlt(HEROES[META.hero].ult);
+  if (!running) { b.textContent = name; b.disabled = true; b.classList.remove("ready"); return; }
   b.disabled = ultT > 0;
   if (ultT > 0) { b.textContent = "💥 " + Math.ceil(ultT) + "s"; b.classList.remove("ready"); }
-  else { b.textContent = "💥 " + h.ultName; b.classList.add("ready"); }
+  else { b.textContent = name; b.classList.add("ready"); }
 }
 function doUlt() {
   if (!running || ultT > 0) return;
@@ -532,27 +530,27 @@ function doUlt() {
   else if (h.ult === "repair")  mine.forEach((u) => { u.hp = Math.min(u.maxHp, u.hp + u.maxHp * 0.4); addFx(u.x, u.y, "barrier"); });
   else if (h.ult === "dragon")  { foes.forEach((f) => dmg(f, 42 * k, null)); addFx(W / 2, H / 2, "overclock"); }
   ultT = h.ultCd;
-  toast("💥 " + h.ultName + "!", "#fbbf24");
-  if (tg) { try { tg.HapticFeedback.impactOccurred("heavy"); } catch (e) {} }
+  toast(t("tUlt", { x: tUlt(h.ult) }), "#fbbf24");
+  haptic("heavy");
 }
 
 // ── 영웅 선택 / 강화 ──────────────────────────────────────────────────────────
 function heroUpCost() { return 150 * (META.heroLv[META.hero] || 1); }
 function updateHeroUI() {
   HERO_ORDER.forEach((h) => { const b = document.querySelector('.hbtn[data-h="' + h + '"]'); if (b) b.classList.toggle("sel", h === META.hero); });
-  const h = HEROES[META.hero], lv = META.heroLv[META.hero] || 1;
-  if ($("hero-name")) $("hero-name").textContent = h.glyph + " " + h.name + " Lv" + lv;
-  if ($("hero-desc")) $("hero-desc").textContent = h.desc + " · 궁극기: " + h.ultName;
-  if ($("hero-cost")) $("hero-cost").textContent = heroUpCost();
+  const h = HEROES[META.hero], lv = META.heroLv[META.hero] || 1, tr = tHero(META.hero);
+  if ($("hero-name")) $("hero-name").textContent = h.glyph + " " + tr[0] + " Lv" + lv;
+  if ($("hero-desc")) $("hero-desc").textContent = tr[1] + " · " + tUlt(h.ult);
+  if ($("hero-up")) $("hero-up").textContent = t("upgrade") + " " + heroUpCost() + "g";
 }
 function selectHero(h) { if (running || !HEROES[h]) return; META.hero = h; saveMeta(); updateHeroUI(); reset(); }
 function upgradeHero() {
   if (running) return;
   const cost = heroUpCost();
-  if (META.gold < cost) { toast("골드 부족! " + cost + "g 필요", "#ef4444"); return; }
+  if (META.gold < cost) { toast(t("tGoldShort", { n: cost }), "#ef4444"); return; }
   META.gold -= cost; META.heroLv[META.hero] = (META.heroLv[META.hero] || 1) + 1;
   saveMeta(); updateHeroUI(); updateMeta(); reset();
-  toast("🦸 " + HEROES[META.hero].name + " 강화! Lv" + META.heroLv[META.hero], "#a3e635");
+  toast(t("tHeroUp", { x: tHero(META.hero)[0], n: META.heroLv[META.hero] }), "#a3e635");
 }
 
 // ── 자동사냥 토글 ─────────────────────────────────────────────────────────────
@@ -564,8 +562,8 @@ function updateAutoBtn() {
 function toggleAuto() {
   auto = !auto;
   updateAutoBtn();
-  if (auto) { toast("⚔️ 자동사냥 시작 — 알아서 싸웁니다", "#a3e635"); if (!running) { if (gameOver) reset(); start(); } }
-  else toast("자동사냥 중지", "#8b93a7");
+  if (auto) { toast(t("tAutoStart"), "#a3e635"); if (!running) { if (gameOver) reset(); start(); } }
+  else toast(t("tAutoStop"), "#8b93a7");
 }
 
 // ── 오프라인(방치) 보상 ───────────────────────────────────────────────────────
@@ -579,10 +577,47 @@ function checkIdle() {
   if (gold > 0) {
     META.gold += gold; saveMeta(); updateMeta();
     const hrs = Math.floor(elapsed / 3600), mins = Math.floor((elapsed % 3600) / 60);
-    const t = hrs ? hrs + "시간 " + mins + "분" : mins + "분";
-    setTimeout(() => toast("🌙 방치 보상 (" + t + ") +" + gold + " 골드!", "#fbbf24"), 900);
+    const tm = hrs ? hrs + "h " + mins + "m" : mins + "m";
+    setTimeout(() => toast(t("tIdle", { t: tm, n: gold }), "#fbbf24"), 900);
   }
 }
+
+// ── i18n 적용 + 설정 메뉴 ─────────────────────────────────────────────────────
+function applyStaticI18n() {
+  try { document.documentElement.lang = LANG; } catch (e) {}
+  document.querySelectorAll("[data-i18n]").forEach((el) => { const v = t(el.getAttribute("data-i18n")); if (v) el.textContent = v; });
+}
+function buildLangList() {
+  const box = $("lang-list"); if (!box) return;
+  box.innerHTML = "";
+  LANGS.forEach((l) => {
+    const b = document.createElement("button");
+    b.className = "langbtn" + (l === LANG ? " sel" : "");
+    b.textContent = LANG_LABEL[l];
+    b.addEventListener("click", () => applyLanguage(l));
+    box.appendChild(b);
+  });
+}
+function applyLanguage(l) {
+  setLang(l); applyStaticI18n(); buildLangList();
+  if (!running) reset(); else { updateHeroUI(); updateUltBtn(); }
+  toast(t("langOk"), "#a3e635");
+}
+function updateToggles() {
+  if ($("set-sound")) { $("set-sound").textContent = META.sound === false ? "OFF" : "ON"; $("set-sound").classList.toggle("off", META.sound === false); }
+  if ($("set-haptic")) { $("set-haptic").textContent = META.haptic === false ? "OFF" : "ON"; $("set-haptic").classList.toggle("off", META.haptic === false); }
+}
+function openSettings() { updateToggles(); $("settings").classList.remove("hidden"); }
+function resetProgress() {
+  const go = () => { try { localStorage.removeItem(META_KEY); } catch (e) {} META = loadMeta(); counts.p = META.army; applyStaticI18n(); updateHeroUI(); reset(); $("settings").classList.add("hidden"); toast(t("setResetOk"), "#fbbf24"); };
+  if (tg && tg.showConfirm) { tg.showConfirm(t("resetAsk"), (ok) => { if (ok) go(); }); }
+  else if (confirm(t("resetAsk"))) go();
+}
+$("settings-btn").addEventListener("click", openSettings);
+$("settings-close").addEventListener("click", () => $("settings").classList.add("hidden"));
+$("set-sound").addEventListener("click", () => { META.sound = META.sound === false; saveMeta(); updateToggles(); });
+$("set-haptic").addEventListener("click", () => { META.haptic = META.haptic === false; saveMeta(); updateToggles(); });
+$("set-reset").addEventListener("click", resetProgress);
 
 $("overlay-btn").addEventListener("click", reset);
 $("gacha-btn").addEventListener("click", gacha);
@@ -602,6 +637,8 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) saveM
 window.addEventListener("beforeunload", saveMeta);
 
 bindDeploy();
+applyStaticI18n();
+buildLangList();
 updateHeroUI();
 reset();
 checkIdle();

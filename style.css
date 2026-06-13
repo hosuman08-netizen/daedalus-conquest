@@ -20,8 +20,25 @@ h1 { font-size: 16px; margin: 2px 0; }
 #gacha-btn { flex: none; padding: 8px 12px; font-size: 13px; font-weight: 800;
   background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #2a1a00; border: none; border-radius: 9px; }
 #gacha-btn:active, #starter-btn:active { transform: scale(.96); }
-#starter-btn { margin-left: auto; flex: none; padding: 8px 12px; font-size: 13px; font-weight: 800;
+#starter-btn { flex: none; padding: 8px 12px; font-size: 13px; font-weight: 800;
   background: linear-gradient(135deg, #f472b6, #a855f7); color: #fff; border: none; border-radius: 9px; }
+#settings-btn { margin-left: auto; flex: none; padding: 8px 10px; font-size: 14px; background: #232838; color: var(--text); border: none; border-radius: 9px; }
+
+/* 설정 메뉴 */
+#settings { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 14; }
+#settings.hidden { display: none; }
+#settings-card { background: var(--panel); padding: 22px 22px; border-radius: 16px; width: 300px; max-width: 88vw; }
+.set-title { font-size: 19px; font-weight: 800; margin-bottom: 14px; }
+.set-sec { font-size: 13px; color: var(--dim); margin: 10px 0 6px; }
+#lang-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.langbtn { flex: 0 0 auto; padding: 8px 12px; font-size: 13px; border-radius: 8px; background: #232838; color: var(--text); border: 1.5px solid transparent; }
+.langbtn.sel { border-color: var(--blue); background: #1e293b; color: #fff; }
+.set-row { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; font-size: 14px; }
+.toggle { flex: none; width: 56px; padding: 7px 0; font-size: 13px; font-weight: 800; border-radius: 8px; background: #65a30d; color: #fff; }
+.toggle.off { background: #3a3f4d; color: var(--dim); }
+.danger { width: 100%; margin-top: 12px; padding: 11px; background: #3a1414; color: #f87171; border-radius: 9px; font-size: 13px; }
+.set-ver { text-align: center; color: #6b7280; font-size: 11px; margin: 12px 0 8px; }
+#settings-card .ghost { width: 100%; background: transparent; color: var(--dim); padding: 8px; }
 
 /* 스타터팩 모달 */
 #starter { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 12; }

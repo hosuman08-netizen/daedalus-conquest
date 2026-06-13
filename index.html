@@ -10,24 +10,25 @@
 <body>
   <div id="app">
     <header>
-      <h1>⚔️ AI 군단 전쟁</h1>
+      <h1 data-i18n="title">⚔️ AI 군단 전쟁</h1>
       <div id="score"></div>
     </header>
 
     <div id="metabar">
       <span class="meta gold">💰 <i id="gold">300</i></span>
       <span class="meta ch">📖 <i id="chapter">1</i></span>
-      <button id="starter-btn">💎 패키지</button>
-      <button id="gacha-btn">🎰 뽑기 100</button>
+      <button id="settings-btn">⚙️</button>
+      <button id="starter-btn" data-i18n="pkg">💎 패키지</button>
+      <button id="gacha-btn" data-i18n="gacha">🎰 뽑기 100</button>
     </div>
 
     <div id="modes">
-      <button class="modetab" data-m="campaign">📖 캠페인</button>
-      <button class="modetab" data-m="tower">🗼 무한탑</button>
-      <button class="modetab" data-m="daily">📅 일일</button>
-      <button class="modetab" data-m="boss">🐲 보스</button>
-      <button class="modetab" data-m="turnbased">⚔️ 턴제</button>
-      <button class="modetab" data-m="arena">🏟️ 아레나</button>
+      <button class="modetab" data-m="campaign" data-i18n="mode.campaign">📖 캠페인</button>
+      <button class="modetab" data-m="tower" data-i18n="mode.tower">🗼 무한탑</button>
+      <button class="modetab" data-m="daily" data-i18n="mode.daily">📅 일일</button>
+      <button class="modetab" data-m="boss" data-i18n="mode.boss">🐲 보스</button>
+      <button class="modetab" data-m="turnbased" data-i18n="mode.turnbased">⚔️ 턴제</button>
+      <button class="modetab" data-m="arena" data-i18n="mode.arena">🏟️ 아레나</button>
     </div>
 
     <div id="heroes">
@@ -41,7 +42,7 @@
         <button class="hbtn" data-h="dragoon">🐉</button>
       </div>
       <div id="hero-info">
-        <div><b id="hero-name"></b> <button id="hero-up">강화 <i id="hero-cost"></i>g</button></div>
+        <div><b id="hero-name"></b> <button id="hero-up"></button></div>
         <div id="hero-desc"></div>
       </div>
     </div>
@@ -50,10 +51,10 @@
 
     <canvas id="field"></canvas>
 
-    <button id="ult" disabled>💥 궁극기</button>
+    <button id="ult" disabled>💥</button>
 
     <div id="deploy">
-      <div class="tag">🔵 내 군단 <small>(골드로 구매 · −는 90% 환불)</small></div>
+      <div class="tag"><span data-i18n="armyTitle">🔵 내 군단</span> <small data-i18n="armySub"></small></div>
       <div class="army b">
         <span class="step">🛸<button data-side="p" data-t="drone" data-d="-1">−</button><i id="p-drone">4</i><button data-side="p" data-t="drone" data-d="1">+</button><em id="lv-drone"></em><u class="px">35g</u></span>
         <span class="step">🎯<button data-side="p" data-t="marksman" data-d="-1">−</button><i id="p-marksman">2</i><button data-side="p" data-t="marksman" data-d="1">+</button><em id="lv-marksman"></em><u class="px">60g</u></span>
@@ -65,55 +66,67 @@
     </div>
 
     <div id="controls">
-      <button id="start">▶ 전투 시작</button>
-      <button id="auto">⚔️ 자동사냥</button>
+      <button id="start" data-i18n="start">▶ 전투 시작</button>
+      <button id="auto" data-i18n="auto">⚔️ 자동사냥</button>
       <button id="speed">속도 1x</button>
     </div>
     <div id="controls" style="margin-top:6px">
-      <button id="reset">↻ 다시</button>
+      <button id="reset" data-i18n="reset">↻ 다시</button>
     </div>
 
     <div id="legend">
-      🛸 드론 <small>지능1·다수·빠름 / 회피</small> · 🎯 사수 <small>지능2·원거리 / 저격</small><br/>
-      🛡️ 가디언 <small>탱커 / 방어막</small> · 🤖 돌격봇 <small>지능2 / 돌진</small> · 🧠 지휘관 <small>지능3 / 전군강화</small><br/>
-      <b>티어 높을수록 AI가 똑똑해 몰살. 뽑기로 강화·전설🐉 해금.</b>
+      <span data-i18n="legend1"></span><br/>
+      <span data-i18n="legend2"></span><br/>
+      <b data-i18n="legend3"></b>
     </div>
 
-    <!-- 결과 오버레이 -->
+    <!-- 결과 -->
     <div id="overlay" class="hidden">
       <div id="overlay-card">
         <div id="overlay-msg"></div>
-        <button id="overlay-btn">다시 ↻</button>
+        <button id="overlay-btn"></button>
       </div>
     </div>
 
-    <!-- 가챠 모달 -->
+    <!-- 가챠 -->
     <div id="gacha" class="hidden">
       <div id="gacha-card">
         <div id="gacha-rank">SSR</div>
         <div id="gacha-msg"></div>
-        <button id="gacha-close">확인</button>
+        <button id="gacha-close" data-i18n="confirm">확인</button>
       </div>
     </div>
 
-    <!-- 스타터팩 모달 -->
+    <!-- 스타터팩 -->
     <div id="starter" class="hidden">
       <div id="starter-card">
-        <div class="sp-badge">💎 초심자 패키지</div>
+        <div class="sp-badge" data-i18n="spTitle">💎 초심자 패키지</div>
         <div class="sp-perks">
-          <div>⚡ 전투 속도 <b>2x 영구 해금</b></div>
-          <div>💰 골드 <b>3,000</b> 즉시 지급</div>
-          <div>📈 골드 획득 <b>영구 +20%</b></div>
-          <div>🎰 <b>10연 뽑기</b> 효과</div>
+          <div data-i18n="sp1"></div><div data-i18n="sp2"></div><div data-i18n="sp3"></div><div data-i18n="sp4"></div>
         </div>
-        <div class="sp-price">단 한 번 · <b>₩990</b></div>
-        <button id="starter-buy">구매하기</button>
-        <button id="starter-close" class="ghost">나중에</button>
+        <div class="sp-price" data-i18n="spPrice"></div>
+        <button id="starter-buy" data-i18n="buy">구매하기</button>
+        <button id="starter-close" class="ghost" data-i18n="later">나중에</button>
+      </div>
+    </div>
+
+    <!-- 설정 -->
+    <div id="settings" class="hidden">
+      <div id="settings-card">
+        <div class="set-title">⚙️ <span data-i18n="setTitle">설정</span></div>
+        <div class="set-sec">🌐 <span data-i18n="setLang">언어</span></div>
+        <div id="lang-list"></div>
+        <div class="set-row"><span>🔊 <span data-i18n="setSound">사운드</span></span><button id="set-sound" class="toggle">ON</button></div>
+        <div class="set-row"><span>📳 <span data-i18n="setHaptic">진동</span></span><button id="set-haptic" class="toggle">ON</button></div>
+        <button id="set-reset" class="danger" data-i18n="setReset">진행 초기화</button>
+        <div class="set-ver">v0.3 · 다이달로스</div>
+        <button id="settings-close" class="ghost" data-i18n="confirm">확인</button>
       </div>
     </div>
 
     <div id="toast"></div>
   </div>
+  <script src="i18n.js"></script>
   <script src="game.js"></script>
 </body>
 </html>
