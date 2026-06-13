@@ -205,6 +205,20 @@ const VIP_I18N = {
 };
 for (const l in VIP_I18N) Object.assign(I18N[l], VIP_I18N[l]);
 
+// 게임명: LEGION (전 언어 공통 브랜드)
+for (const l in I18N) I18N[l].title = "⚔️ LEGION";
+
+// 대시보드 + 강화(실패) + 복리
+const DASH_I18N = {
+  ko: { dash: "📋 도감", dashTitle: "군단 도감", dEnhance: "강화", dRate: "성공률", dSuccess: "✨ 강화 성공! +{n}", dFail: "💢 강화 실패…", dProtect: "💎 보호 사용", dPower: "군단 전력", dDividend: "복리 배당: 전투마다 +{n}골드", dUlt: "궁극기", dCombo: "조합", dShards: "조각" },
+  en: { dash: "📋 Codex", dashTitle: "Legion Codex", dEnhance: "Enhance", dRate: "Success", dSuccess: "✨ Enhance success! +{n}", dFail: "💢 Enhance failed…", dProtect: "💎 Protect", dPower: "Legion Power", dDividend: "Dividend: +{n} gold per battle", dUlt: "Ultimate", dCombo: "Combine", dShards: "Shards" },
+  ja: { dash: "📋 図鑑", dashTitle: "軍団図鑑", dEnhance: "強化", dRate: "成功率", dSuccess: "✨ 強化成功! +{n}", dFail: "💢 強化失敗…", dProtect: "💎 保護", dPower: "軍団戦力", dDividend: "配当: 戦闘毎 +{n}ゴールド", dUlt: "奥義", dCombo: "合成", dShards: "欠片" },
+  zh: { dash: "📋 图鉴", dashTitle: "军团图鉴", dEnhance: "强化", dRate: "成功率", dSuccess: "✨ 强化成功! +{n}", dFail: "💢 强化失败…", dProtect: "💎 保护", dPower: "军团战力", dDividend: "分红: 每战 +{n}金币", dUlt: "必杀", dCombo: "合成", dShards: "碎片" },
+  hi: { dash: "📋 कोडेक्स", dashTitle: "लीजन कोडेक्स", dEnhance: "एन्हांस", dRate: "सफलता", dSuccess: "✨ सफल! +{n}", dFail: "💢 विफल…", dProtect: "💎 सुरक्षा", dPower: "लीजन पावर", dDividend: "डिविडेंड: हर युद्ध +{n} गोल्ड", dUlt: "अल्टीमेट", dCombo: "कंबाइन", dShards: "शार्ड" },
+  ru: { dash: "📋 Кодекс", dashTitle: "Кодекс легиона", dEnhance: "Улучшить", dRate: "Успех", dSuccess: "✨ Успех! +{n}", dFail: "💢 Провал…", dProtect: "💎 Защита", dPower: "Сила легиона", dDividend: "Дивиденд: +{n} золота за бой", dUlt: "Ульта", dCombo: "Синтез", dShards: "Осколки" },
+};
+for (const l in DASH_I18N) Object.assign(I18N[l], DASH_I18N[l]);
+
 // 전략 상성 설명
 const STRAT = {
   ko: { legend4: "⚔️ 상성: 🛸▶🎯▶🛡️🤖▶🛸 (+30%) · 3종↑ 편성 시너지" },
@@ -233,4 +247,4 @@ function t(key, p) {
 function tHero(h) { return (I18N[LANG].heroes[h] || I18N.en.heroes[h] || [h, ""]); }
 function tUlt(u) { return (I18N[LANG].ultName[u] || I18N.en.ultName[u] || u); }
 // 초기 언어 결정
-(function () { let saved = ""; try { saved = localStorage.getItem("daedalus_lang") || ""; } catch (e) {} LANG = (I18N[saved] ? saved : detectLang()); })();
+(function () { let saved = ""; try { saved = localStorage.getItem("daedalus_lang") || ""; } catch (e) {} LANG = (LANGS.indexOf(saved) >= 0 ? saved : detectLang()); })();

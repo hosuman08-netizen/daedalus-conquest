@@ -12,6 +12,31 @@ if (tg) {
 }
 function haptic(kind) { if (tg && (typeof META === "undefined" || META.haptic !== false)) { try { tg.HapticFeedback.impactOccurred(kind || "light"); } catch (e) {} } }
 
+// ── 사운드 (WebAudio 합성 — 음원 파일 0개, 설정 토글 연동) ────────────────────
+let _actx = null;
+function tone(freq, dur, type, vol) {
+  if (typeof META !== "undefined" && META && META.sound === false) return;
+  try {
+    if (!_actx) _actx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = _actx.createOscillator(), g = _actx.createGain();
+    o.type = type || "sine"; o.frequency.value = freq; g.gain.value = vol || 0.04;
+    o.connect(g); g.connect(_actx.destination); o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, _actx.currentTime + (dur || 0.08));
+    o.stop(_actx.currentTime + (dur || 0.08));
+  } catch (e) {}
+}
+const SFX = {
+  ctr:   () => tone(900, 0.08, "triangle", 0.05),
+  skill: () => { tone(420, 0.13, "sawtooth", 0.045); setTimeout(() => tone(620, 0.1, "sawtooth", 0.04), 60); },
+  die:   () => tone(110, 0.12, "sine", 0.03),
+  win:   () => [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, 0.16, "square", 0.05), i * 110)),
+  lose:  () => [330, 247, 165].forEach((f, i) => setTimeout(() => tone(f, 0.22, "sawtooth", 0.05), i * 150)),
+  gacha: () => [660, 880].forEach((f, i) => setTimeout(() => tone(f, 0.1, "triangle", 0.05), i * 80)),
+  ssr:   () => [523, 659, 784, 1047, 1319].forEach((f, i) => setTimeout(() => tone(f, 0.18, "square", 0.06), i * 90)),
+  tap:   () => tone(440, 0.04, "sine", 0.02),
+  claim: () => { tone(700, 0.09, "triangle", 0.05); setTimeout(() => tone(1050, 0.1, "triangle", 0.05), 70); },
+};
+
 // ── 5종 유닛 사양 ─────────────────────────────────────────────────────────────
 const SPEC = {
   drone:    { glyph: "🛸", name: "드론",   hp: 22,  atk: 5,  range: 14, speed: 66, atkCd: 0.55, ai: 1, sight: 170, r: 9,  skill: "evade",     skillCd: 5, ranged: false },
@@ -29,15 +54,15 @@ const CTR_MUL = 1.3;
 
 // ── 영웅 7종 (군단 사령관) ────────────────────────────────────────────────────
 // passive = 전군 패시브 / ult = 궁극기(플레이어 직접 발동). heroLv가 패시브 강화(현질 자리).
-// 다이달로스 군단 = 랭크 매겨진 엘리트 결사 (번호 서열 + 흑·적 망토 모티브, 일반 클리셰)
+// LEGION = 랭크 매겨진 엘리트 결사 (번호 서열 + 흑·적 모티브, 일반 클리셰)
 const HEROES = {
-  dragoon:    { glyph: "🐉", code: "龍", rank: "0",  ult: "dragon",   ultName: "드래곤 강림", ultCd: 15 },
-  mech:       { glyph: "🤖", code: "鋼", rank: "Ⅰ", ult: "assault",  ultName: "강습",        ultCd: 12 },
-  strategist: { glyph: "🧠", code: "策", rank: "Ⅱ", ult: "focus",    ultName: "전술 지휘",   ultCd: 13 },
-  warden:     { glyph: "🛡️", code: "盾", rank: "Ⅲ", ult: "wall",     ultName: "철벽",        ultCd: 13 },
-  berserker:  { glyph: "⚡", code: "狂", rank: "Ⅳ", ult: "rage",     ultName: "광폭화",      ultCd: 13 },
-  ranger:     { glyph: "🎯", code: "射", rank: "Ⅴ", ult: "volley",   ultName: "일제사격",    ultCd: 12 },
-  engineer:   { glyph: "💉", code: "癒", rank: "Ⅵ", ult: "repair",   ultName: "긴급 수리",   ultCd: 12 },
+  dragoon:    { glyph: "🐉", rank: "0",  ult: "dragon",   ultName: "드래곤 강림", ultCd: 15 },
+  mech:       { glyph: "🤖", rank: "Ⅰ", ult: "assault",  ultName: "강습",        ultCd: 12 },
+  strategist: { glyph: "🧠", rank: "Ⅱ", ult: "focus",    ultName: "전술 지휘",   ultCd: 13 },
+  warden:     { glyph: "🛡️", rank: "Ⅲ", ult: "wall",     ultName: "철벽",        ultCd: 13 },
+  berserker:  { glyph: "⚡", rank: "Ⅳ", ult: "rage",     ultName: "광폭화",      ultCd: 13 },
+  ranger:     { glyph: "🎯", rank: "Ⅴ", ult: "volley",   ultName: "일제사격",    ultCd: 12 },
+  engineer:   { glyph: "💉", rank: "Ⅵ", ult: "repair",   ultName: "긴급 수리",   ultCd: 12 },
 };
 const HERO_ORDER = ["strategist", "berserker", "warden", "ranger", "mech", "engineer", "dragoon"];
 // heroLv → 패시브 배율 (현질/강화로 올림)
@@ -316,8 +341,8 @@ function dmg(target, amount, from) {
   if (from && COUNTER[from.t] && COUNTER[from.t].indexOf(target.t) >= 0) { a *= CTR_MUL; ctr = true; }   // 상성 +30%
   if (target.shield > 0) a *= 0.5;
   target.hp -= a;
-  if (ctr) addFx(target.x, target.y, "ctr");
-  if (target.hp <= 0) addFx(target.x, target.y, "die", 0, 0, target.side);
+  if (ctr) { addFx(target.x, target.y, "ctr"); if (Math.random() < 0.3) SFX.ctr(); }
+  if (target.hp <= 0) { addFx(target.x, target.y, "die", 0, 0, target.side); if (Math.random() < 0.5) SFX.die(); }
 }
 
 function addFx(x, y, kind, x2, y2, side) { fx.push({ x, y, kind, x2, y2, side, t: 0, life: kind === "shot" ? 0.12 : 0.45 }); }
@@ -429,6 +454,7 @@ function finish(p, e) {
   $("overlay-btn").textContent = win ? t("cont") : t("retry");
   $overlay.classList.remove("hidden");
   if (tg) { try { tg.HapticFeedback.notificationOccurred(win ? "success" : "error"); } catch (e2) {} }
+  if (win) SFX.win(); else SFX.lose();
   updateMeta(); draw();
 }
 
@@ -487,6 +513,8 @@ function showGacha(rar, msg) {
   $("gacha-card").style.boxShadow = `0 0 40px ${rar.color}, inset 0 0 0 2px ${rar.color}`;
   $("gacha-msg").innerHTML = msg;
   g.classList.remove("hidden");
+  if (rar.key === "SSR") SFX.ssr(); else SFX.gacha();
+  haptic(rar.key === "SSR" ? "heavy" : "light");
 }
 
 // ── 토스트 ────────────────────────────────────────────────────────────────────
@@ -593,7 +621,7 @@ function updateHeroUI() {
     if (!b.dataset.dec) { b.innerHTML = HEROES[hk].glyph + '<i class="rk">' + HEROES[hk].rank + '</i>'; b.dataset.dec = "1"; }
   });
   const h = HEROES[META.hero], lv = META.heroLv[META.hero] || 1, tr = tHero(META.hero);
-  if ($("hero-name")) $("hero-name").innerHTML = h.glyph + ' <span class="hcode">' + h.code + " · " + h.rank + '</span> ' + tr[0] + " Lv" + lv;
+  if ($("hero-name")) $("hero-name").innerHTML = h.glyph + ' <span class="hcode">RANK ' + h.rank + '</span> ' + tr[0] + " Lv" + lv;
   if ($("hero-desc")) $("hero-desc").textContent = tr[1] + " · " + tUlt(h.ult);
   if ($("hero-up")) $("hero-up").textContent = t("upgrade") + " " + heroUpCost() + "g";
 }
@@ -696,7 +724,7 @@ function claimAttend() {
   if (r.gem) META.gems = (META.gems || 0) + r.gem;
   META.attend.day = (META.attend.day || 0) + 1; META.attend.last = today();
   saveMeta(); updateMeta(); renderAttend();
-  toast(t("tAttend", { n: idx + 1 }), "#fbbf24"); haptic("medium");
+  toast(t("tAttend", { n: idx + 1 }), "#fbbf24"); haptic("medium"); SFX.claim();
 }
 $("event-btn").addEventListener("click", openEvent);
 $("event-close").addEventListener("click", () => $("event").classList.add("hidden"));
