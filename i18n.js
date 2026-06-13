@@ -172,6 +172,17 @@ const SET = {
 };
 for (const l in SET) Object.assign(I18N[l], SET[l]);
 
+// 이벤트 코드 + 커뮤니티
+const CODE_I18N = {
+  ko: { setCode: "이벤트 코드", setComm: "커뮤니티 채널 (준비중)", codeUsed: "이미 사용한 코드", codeBad: "잘못된 코드", codeOk: "🎟️ 코드 보상: {x}" },
+  en: { setCode: "Event Code", setComm: "Community channel (soon)", codeUsed: "Code already used", codeBad: "Invalid code", codeOk: "🎟️ Code reward: {x}" },
+  ja: { setCode: "イベントコード", setComm: "コミュニティ (近日)", codeUsed: "使用済みコード", codeBad: "無効なコード", codeOk: "🎟️ コード報酬: {x}" },
+  zh: { setCode: "活动码", setComm: "社区频道 (即将)", codeUsed: "该码已使用", codeBad: "无效的码", codeOk: "🎟️ 兑换奖励: {x}" },
+  hi: { setCode: "इवेंट कोड", setComm: "कम्युनिटी (जल्द)", codeUsed: "कोड पहले से उपयोग", codeBad: "गलत कोड", codeOk: "🎟️ कोड इनाम: {x}" },
+  ru: { setCode: "Промокод", setComm: "Сообщество (скоро)", codeUsed: "Код уже использован", codeBad: "Неверный код", codeOk: "🎟️ Награда: {x}" },
+};
+for (const l in CODE_I18N) Object.assign(I18N[l], CODE_I18N[l]);
+
 // 전략 상성 설명
 const STRAT = {
   ko: { legend4: "⚔️ 상성: 🛸▶🎯▶🛡️🤖▶🛸 (+30%) · 3종↑ 편성 시너지" },

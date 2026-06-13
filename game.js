@@ -65,7 +65,7 @@ function loadMeta() {
                 hero: "strategist",
                 heroLv: { strategist: 1, berserker: 1, warden: 1, ranger: 1, mech: 1, engineer: 1, dragoon: 1 },
                 mode: "campaign", tower: 1, towerBest: 0, dailyDone: "", sound: true, haptic: true,
-                gems: 50, attend: { day: 0, last: "" } };
+                gems: 50, attend: { day: 0, last: "" }, codes: [] };
   try {
     const m = JSON.parse(localStorage.getItem(META_KEY));
     if (m && typeof m === "object") {
@@ -132,6 +132,14 @@ function spawnArmy(side) {
   const synMul = distinct >= 4 ? 1.18 : distinct >= 3 ? 1.10 : 1;
   let arr = [];
   ORDER.forEach((t) => { for (let i = 0; i < counts[side][t]; i++) arr.push(t); });
+  // 성능: 유닛 수 상한 (초과 시 셔플·컷 + 전투력 보존 배율)
+  const MAX_UNITS = 26;
+  let powerComp = 1;
+  if (arr.length > MAX_UNITS) {
+    powerComp = arr.length / MAX_UNITS;
+    for (let i = arr.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; const tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp; }
+    arr = arr.slice(0, MAX_UNITS);
+  }
   arr.forEach((t, i) => {
     const perRow = 5, row = Math.floor(i / perRow), col = i % perRow;
     const rowCount = Math.min(perRow, arr.length - row * perRow);
@@ -140,8 +148,8 @@ function spawnArmy(side) {
     const s = SPEC[t];
     // 아군: 가챠 레벨 + 영웅 패시브 / 적군: 레벨 스탯 배율 (+보스전 강화)
     const epm = side === "e" ? enemyPowerMul(curLevel) : 1;
-    let hpM = (side === "p" ? lvMul(t, "hp") : epm) * hb.hpMul * (1 + (hb.typeHp[t] || 0));
-    let atkM = (side === "p" ? lvMul(t, "atk") : epm) * hb.atkMul * (1 + (hb.typeAtk[t] || 0)) * synMul;
+    let hpM = (side === "p" ? lvMul(t, "hp") : epm) * hb.hpMul * (1 + (hb.typeHp[t] || 0)) * powerComp;
+    let atkM = (side === "p" ? lvMul(t, "atk") : epm) * hb.atkMul * (1 + (hb.typeAtk[t] || 0)) * synMul * powerComp;
     const isBoss = side === "e" && bossFight;
     if (isBoss) { hpM *= 7; atkM *= 2.2; }
     const hp = Math.round(s.hp * hpM), atk = Math.round(s.atk * atkM);
@@ -236,8 +244,10 @@ function setMode(m) {
 }
 
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
-const enemiesOf = (u) => units.filter((o) => o.side !== u.side && o.hp > 0);
-const alliesOf = (u) => units.filter((o) => o.side === u.side && o.hp > 0 && o !== u);
+// 프레임당 1회 캐싱 (n² 필터 제거 = 성능 핵심)
+let _aliveP = [], _aliveE = [];
+const enemiesOf = (u) => (u.side === "p" ? _aliveE : _aliveP);
+const alliesOf = (u) => (u.side === "p" ? _aliveP : _aliveE).filter((o) => o !== u && o.hp > 0);
 const val = (u) => ({ commander: 4, marksman: 3, bruiser: 2, guardian: 2, drone: 1 }[u.t] || 1);
 
 // ── AI 표적 선정 (지능별) ─────────────────────────────────────────────────────
@@ -354,6 +364,8 @@ function loop(ts) {
   if (!lastT) lastT = ts;
   let dt = Math.min(0.05, (ts - lastT) / 1000) * speed;
   lastT = ts;
+  _aliveP = units.filter((u) => u.side === "p" && u.hp > 0);   // 프레임당 1회
+  _aliveE = units.filter((u) => u.side === "e" && u.hp > 0);
   for (const u of units) step(u, dt);
   for (const f of fx) f.t += dt;
   fx = fx.filter((f) => f.t < f.life);
@@ -666,6 +678,29 @@ function claimAttend() {
 $("event-btn").addEventListener("click", openEvent);
 $("event-close").addEventListener("click", () => $("event").classList.add("hidden"));
 $("attend-claim").addEventListener("click", claimAttend);
+
+// ── 이벤트/쿠폰 코드 (회원 배포용) ───────────────────────────────────────────
+const CODES = {
+  WELCOME:    { gold: 1000, gem: 50 },
+  LEGION:     { gem: 100 },
+  DAEDALUS:   { gold: 3000 },
+  LAUNCH2026: { gold: 2000, gem: 200 },
+};
+function redeemCode() {
+  const inp = $("code-input"); if (!inp) return;
+  const code = (inp.value || "").trim().toUpperCase();
+  if (!code) return;
+  if (!META.codes) META.codes = [];
+  if (META.codes.indexOf(code) >= 0) { toast(t("codeUsed"), "#ef4444"); return; }
+  const r = CODES[code];
+  if (!r) { toast(t("codeBad"), "#ef4444"); return; }
+  if (r.gold) META.gold += r.gold;
+  if (r.gem) META.gems = (META.gems || 0) + r.gem;
+  META.codes.push(code); saveMeta(); updateMeta(); inp.value = "";
+  toast(t("codeOk", { x: (r.gold ? "💰" + r.gold + " " : "") + (r.gem ? "💎" + r.gem : "") }), "#fbbf24");
+  haptic("medium");
+}
+$("code-btn").addEventListener("click", redeemCode);
 
 // ── 캐시 상점 (별도, Stars 결제 자리 — 지금은 데모 지급) ─────────────────────
 const SHOP = [

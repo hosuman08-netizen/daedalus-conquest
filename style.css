@@ -66,6 +66,9 @@ h1::first-letter { color: var(--crimson); }
 .set-row { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; font-size: 14px; }
 .toggle { flex: none; width: 56px; padding: 7px 0; font-size: 13px; font-weight: 800; border-radius: 8px; background: #65a30d; color: #fff; }
 .toggle.off { background: #3a3f4d; color: var(--dim); }
+.coderow { display: flex; gap: 6px; margin: 6px 0 4px; }
+#code-input { flex: 1; padding: 9px 10px; border-radius: 8px; border: 1px solid #2a2530; background: #100c14; color: var(--text); font-size: 14px; text-transform: uppercase; }
+#code-btn { flex: none; width: auto; padding: 9px 14px; background: var(--gold); color: #1a1400; border-radius: 8px; font-size: 13px; font-weight: 800; }
 .danger { width: 100%; margin-top: 12px; padding: 11px; background: #3a1414; color: #f87171; border-radius: 9px; font-size: 13px; }
 .set-ver { text-align: center; color: #6b7280; font-size: 11px; margin: 12px 0 8px; }
 #settings-card .ghost { width: 100%; background: transparent; color: var(--dim); padding: 8px; }
