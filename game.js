@@ -229,7 +229,7 @@ function updateMeta() {
   const ts = $("slot-titan");
   if (ts) ts.style.display = META.titanOwned ? "" : "none";
   const sb = $("starter-btn"); if (sb) sb.style.display = META.starter ? "none" : "";
-  const sp = $("speed"); if (sp && !running) sp.textContent = META.starter ? t("speed", { n: speed }) : t("speedLock");
+  const sp = $("speed"); if (sp && !running) sp.textContent = t("speed", { n: speed });
 }
 
 // ── 모드 사이클 ───────────────────────────────────────────────────────────────
@@ -387,7 +387,7 @@ function finish(p, e) {
   const win = p && !e, dr = !p && !e;
   const m = META.mode;
   let extra = "", title = win ? t("rWin") : dr ? t("rDraw") : t("rLose");
-  let bonus = (x) => (META.starter ? Math.floor(x * 1.2) : x);
+  let bonus = (x) => Math.floor(x * (META.vip ? 1.5 : META.starter ? 1.2 : 1));   // VIP +50% / 스타터 +20% 골드
 
   if (win) {
     let reward = 0;
@@ -458,6 +458,28 @@ function gacha() {
   saveMeta(); updateMeta(); reset();
   showGacha(rar, msg);
 }
+// 💎 프리미엄 10연 (SR↑ 1개 보장) — 다이아의 핵심 용도
+const GACHA10_COST = 30;
+function gacha10() {
+  if (running) return;
+  if ((META.gems || 0) < GACHA10_COST) { toast(t("tGemShort", { n: GACHA10_COST }), "#ef4444"); return; }
+  META.gems -= GACHA10_COST;
+  const RANK = { N: 0, R: 1, SR: 2, SSR: 3 };
+  let best = 0;
+  for (let i = 0; i < 10; i++) {
+    META.pity = (META.pity || 0) + 1;
+    let rar = rollRarity();
+    if (META.pity >= 10) rar = RARITY[3];
+    if (i === 9 && best < 2) rar = RARITY[2];          // 10연 SR↑ 보장
+    if (rar.key === "SSR" || rar.key === "SR") META.pity = 0;
+    best = Math.max(best, RANK[rar.key]);
+    if (rar.key === "SSR" && !META.titanOwned) { META.titanOwned = true; counts.p.titan = 1; }
+    else { const pool = ORDER.filter((u) => u !== "titan" || META.titanOwned); for (let j = 0; j < rar.lvls; j++) { const u = pool[(Math.random() * pool.length) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; } }
+  }
+  saveMeta(); updateMeta(); reset();
+  const bestKey = Object.keys(RANK).find((k) => RANK[k] === best);
+  showGacha(RARITY[best], t("tGacha10", { x: bestKey }));
+}
 function showGacha(rar, msg) {
   const g = $("gacha"); if (!g) return;
   $("gacha-rank").textContent = rar.key;
@@ -516,9 +538,10 @@ function bindDeploy() {
 $("start").addEventListener("click", start);
 $("reset").addEventListener("click", reset);
 $("speed").addEventListener("click", () => {
-  if (!META.starter) { showStarter(); return; }            // 속도업은 스타터팩부터
-  const max = META.vip ? 4 : 2;                             // 스타터=2x, 4x는 상위상품(VIP)
-  speed = speed >= max ? 1 : speed * 2;
+  // 무료 1x·2x / 스타터 4x / VIP 8x — 팝업 없이 순환
+  const tiers = META.vip ? [1, 2, 4, 8] : (META.starter ? [1, 2, 4] : [1, 2]);
+  const i = tiers.indexOf(speed);
+  speed = tiers[(i + 1) % tiers.length];
   $("speed").textContent = t("speed", { n: speed });
 });
 
@@ -651,7 +674,7 @@ $("set-haptic").addEventListener("click", () => { META.haptic = META.haptic === 
 $("set-reset").addEventListener("click", resetProgress);
 
 // ── 이벤트: 일일 출석 (7일 사이클, 골드+다이아) ──────────────────────────────
-const ATTEND = [{ g: 200 }, { g: 300 }, { gem: 20 }, { g: 600 }, { g: 900 }, { gem: 40 }, { g: 2000, gem: 60 }];
+const ATTEND = [{ g: 300 }, { g: 500 }, { gem: 30 }, { g: 1000 }, { g: 1500 }, { gem: 60 }, { g: 5000, gem: 150 }];
 function openEvent() { renderAttend(); $("event").classList.remove("hidden"); }
 function renderAttend() {
   const grid = $("attend-grid"); if (!grid) return;
@@ -704,11 +727,12 @@ $("code-btn").addEventListener("click", redeemCode);
 
 // ── 캐시 상점 (별도, Stars 결제 자리 — 지금은 데모 지급) ─────────────────────
 const SHOP = [
+  { id: "starter", starter: true, price: "₩990", tag: "BEST" },
+  { id: "vip", vip: true, price: "₩29,900", tag: "VIP" },
   { id: "gem1", gem: 60, price: "₩1,100" },
   { id: "gem2", gem: 330, price: "₩5,500", tag: "+10%" },
   { id: "gem3", gem: 1180, price: "₩19,900", tag: "+18%" },
   { id: "gold1", g: 6000, price: "₩1,100" },
-  { id: "starter", starter: true, price: "₩990", tag: "BEST" },
 ];
 function openShop() { renderShop(); $("shop").classList.remove("hidden"); }
 function renderShop() {
@@ -716,8 +740,9 @@ function renderShop() {
   box.innerHTML = "";
   SHOP.forEach((p) => {
     if (p.starter && META.starter) return;
-    const c = document.createElement("button"); c.className = "packcard";
-    const what = p.starter ? "💎 " + t("spTitle") : (p.gem ? "💎 " + p.gem : "💰 " + p.g);
+    if (p.vip && META.vip) return;
+    const c = document.createElement("button"); c.className = "packcard" + (p.vip ? " vip" : "");
+    const what = p.starter ? "💎 " + t("spTitle") : p.vip ? "👑 " + t("vipTitle") : (p.gem ? "💎 " + p.gem : "💰 " + p.g);
     c.innerHTML = (p.tag ? '<span class="ptag">' + p.tag + "</span>" : "") + '<div class="pwhat">' + what + '</div><div class="pprice">' + p.price + "</div>";
     c.addEventListener("click", () => buyPack(p.id));
     box.appendChild(c);
@@ -727,6 +752,7 @@ function buyPack(id) {
   const p = SHOP.find((x) => x.id === id); if (!p) return;
   // TODO: 실제 결제 = tg.openInvoice (Stars). 지금은 데모 지급.
   if (p.starter) { buyStarter(); $("shop").classList.add("hidden"); return; }
+  if (p.vip) { META.vip = true; META.starter = true; META.gems = (META.gems || 0) + 300; saveMeta(); updateMeta(); $("shop").classList.add("hidden"); toast(t("tVip"), "#fbbf24"); haptic("heavy"); return; }
   if (p.gem) META.gems = (META.gems || 0) + p.gem;
   if (p.g) META.gold += p.g;
   saveMeta(); updateMeta(); renderShop();
@@ -734,6 +760,7 @@ function buyPack(id) {
 }
 $("shop-btn").addEventListener("click", openShop);
 $("shop-close").addEventListener("click", () => $("shop").classList.add("hidden"));
+$("gacha10-btn").addEventListener("click", gacha10);
 
 $("overlay-btn").addEventListener("click", reset);
 $("gacha-btn").addEventListener("click", gacha);

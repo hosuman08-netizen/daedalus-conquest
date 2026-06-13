@@ -183,6 +183,28 @@ const CODE_I18N = {
 };
 for (const l in CODE_I18N) Object.assign(I18N[l], CODE_I18N[l]);
 
+// 다이아 프리미엄 가챠
+const GEM_I18N = {
+  ko: { gacha10: "💎 10연", tGemShort: "다이아 부족! 💎{n} 필요", tGacha10: "🎉 10연 결과: 최고 {x}!" },
+  en: { gacha10: "💎 10x", tGemShort: "Not enough gems! Need 💎{n}", tGacha10: "🎉 10x result: best {x}!" },
+  ja: { gacha10: "💎 10連", tGemShort: "ダイヤ不足! 💎{n}必要", tGacha10: "🎉 10連結果: 最高 {x}!" },
+  zh: { gacha10: "💎 十连", tGemShort: "钻石不足! 需要💎{n}", tGacha10: "🎉 十连结果: 最高 {x}!" },
+  hi: { gacha10: "💎 10x", tGemShort: "जेम कम! 💎{n} चाहिए", tGacha10: "🎉 10x परिणाम: सर्वश्रेष्ठ {x}!" },
+  ru: { gacha10: "💎 10x", tGemShort: "Мало алмазов! Нужно 💎{n}", tGacha10: "🎉 10x: лучшее {x}!" },
+};
+for (const l in GEM_I18N) Object.assign(I18N[l], GEM_I18N[l]);
+
+// VIP 패키지
+const VIP_I18N = {
+  ko: { vipTitle: "VIP 패키지", tVip: "👑 VIP 획득! 속도8x·골드+50%·💎300" },
+  en: { vipTitle: "VIP Pack", tVip: "👑 VIP unlocked! 8x speed·+50% gold·💎300" },
+  ja: { vipTitle: "VIPパック", tVip: "👑 VIP獲得! 速度8x·ゴールド+50%·💎300" },
+  zh: { vipTitle: "VIP礼包", tVip: "👑 获得VIP! 8倍速·金币+50%·💎300" },
+  hi: { vipTitle: "VIP पैक", tVip: "👑 VIP अनलॉक! 8x गति·+50% गोल्ड·💎300" },
+  ru: { vipTitle: "VIP набор", tVip: "👑 VIP! Скорость 8x·+50% золота·💎300" },
+};
+for (const l in VIP_I18N) Object.assign(I18N[l], VIP_I18N[l]);
+
 // 전략 상성 설명
 const STRAT = {
   ko: { legend4: "⚔️ 상성: 🛸▶🎯▶🛡️🤖▶🛸 (+30%) · 3종↑ 편성 시너지" },
