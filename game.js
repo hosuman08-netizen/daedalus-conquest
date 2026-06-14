@@ -50,7 +50,7 @@ const ORDER = ["drone", "marksman", "guardian", "bruiser", "commander", "titan"]
 const COL = { p: "#3b82f6", e: "#ef4444" };
 // 상성 (가위바위보): 공격자 → 강한 표적 (+30% 데미지). 군집>원거리>근접>군집
 const COUNTER = { drone: ["marksman"], marksman: ["guardian", "bruiser"], guardian: ["drone"], bruiser: ["drone"] };
-const CTR_MUL = 1.3;
+const CTR_MUL = 1.5;
 
 // ── 영웅 7종 (군단 사령관) ────────────────────────────────────────────────────
 // passive = 전군 패시브 / ult = 궁극기(플레이어 직접 발동). heroLv가 패시브 강화(현질 자리).
@@ -82,7 +82,7 @@ const counts = {
 const META_KEY = "daedalus_meta_v1";
 let META = loadMeta();
 // 유닛 구매 가격 (티어 = 가격. 타이탄은 가챠 전용 프리미엄)
-const PRICE = { drone: 35, marksman: 60, guardian: 75, bruiser: 70, commander: 150, titan: 700 };
+const PRICE = { drone: 35, marksman: 60, guardian: 75, bruiser: 70, commander: 110, titan: 700 };
 function loadMeta() {
   const def = { gold: 400, chapter: 1, streak: 0, pulls: 0, pity: 0, titanOwned: false, starter: false, lastSeen: 0, lastDaily: "",
                 lv: { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 },
@@ -178,7 +178,7 @@ function spawnArmy(side) {
   const synMul = distinct >= 4 ? 1.18 : distinct >= 3 ? 1.10 : 1;
   // 장비 스탯 (아군 전군에 적용): 힘→공격 / 지능→체력 / 민첩→공속 / 운→치명타
   const gs = side === "p" ? heroGearStats() : { str: 0, int: 0, agi: 0, luk: 0 };
-  const gAtk = 1 + gs.str * 0.004, gHp = 1 + gs.int * 0.004, gSpd = 1 - Math.min(0.4, gs.agi * 0.002), gCrit = Math.min(40, gs.luk * 0.3);
+  const gAtk = 1 + gs.str * 0.004, gHp = 1 + gs.int * 0.004, gSpd = 1 - Math.min(0.4, gs.agi * 0.0035), gCrit = Math.min(40, gs.luk * 0.4);
   let arr = [];
   ORDER.forEach((t) => { for (let i = 0; i < counts[side][t]; i++) arr.push(t); });
   // 성능: 유닛 수 상한 (초과 시 셔플·컷 + 전투력 보존 배율)
@@ -366,7 +366,7 @@ function step(u, dt) {
 function dmg(target, amount, from) {
   if (target.hp <= 0) return;
   let a = amount, ctr = false;
-  if (from && from.crit && Math.random() * 100 < from.crit) { a *= 1.6; ctr = true; }                    // 운→치명타 ×1.6
+  if (from && from.crit && Math.random() * 100 < from.crit) { a *= 2.0; ctr = true; }                    // 운→치명타 ×1.6
   if (from && COUNTER[from.t] && COUNTER[from.t].indexOf(target.t) >= 0) { a *= CTR_MUL; ctr = true; }   // 상성 +30%
   if (target.shield > 0) a *= 0.5;
   target.hp -= a;
