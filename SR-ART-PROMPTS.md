@@ -3,9 +3,10 @@
 > 저장: `art/u10.png` ~ `art/u64.png` (또는 슬러그). 1024×1024, 캐릭터 중앙, **자줏빛 SR 프레임**(SSR는 골드였음).
 > 저작권: anime gacha SR splash, sci-fi mecha, **오리지널**. IP/특정작품 모방·카피 금지.
 > SSR(u1~u9)보다 한 급 아래 연출 — 화려함 80%, 단색/투명 배경 OK.
+> **별(star) 절대 금지**: 이미지에 ★ 배지나 별 그래픽 넣지 말 것. (같은 이유로 들쭉날쭉 방지. UI에서 별도 처리)
 
 ## 공통 접미 (모든 SR 프롬프트 뒤)
-`anime gacha SR splash art, original sci-fi mecha unit, purple/violet SR frame energy, dramatic rim lighting, vertical portrait, high detail, original design, no real brands`
+`anime gacha SR splash art, original sci-fi mecha unit, purple/violet SR frame energy, dramatic rim lighting, vertical portrait, high detail, original design, no real brands, NO stars or star rating at bottom`
 
 ## 아키타입별 프롬프트 베이스 (이름·진영색만 바꿔 적용)
 - **drone(정찰/비행)**: `agile recon drone-knight unit, sleek slim frame, hovering nano-wings, scout visor`

@@ -8,11 +8,12 @@
 1. **상업 라이선스 도구** — Firefly / DALL·E(OpenAI) / 유료 Midjourney 등 생성물 상업 사용 허용.
 2. **모방 OK, 카피 NO** — 장르(애니풍 가챠 SF)에서 영감받는 건 자유. 단 **특정 작품·캐릭터·작가·게임을 직접 베끼거나 "○○ 스타일"로 지정 금지.**
 3. **실존 브랜드·로고·실존 인물 얼굴·트레이드마크 단어** 넣지 말 것.
-4. 스타일은 **장르 키워드만** — "anime gacha splash art, sci-fi mecha, original character".
-5. 우리 캐릭터 이름은 전부 자체 창작이라 안전.
+4. **별(star rating) 절대 금지** — 이미지 파일 자체에 ★★★★★ 배지, 별 그래픽, star count 넣지 말 것. (UI에서 별도 처리. 이유: 같은 티어인데 별 개수 들쭉날쭉 문제 발생)
+5. 스타일은 **장르 키워드만** — "anime gacha splash art, sci-fi mecha, original character".
+6. 우리 캐릭터 이름은 전부 자체 창작이라 안전.
 
 ## 공통 접미 (모든 프롬프트 뒤에 붙이기)
-`anime gacha SSR splash art, original sci-fi "AI Legion" character, dramatic rim lighting, vertical portrait, glowing gold SSR frame, high detail, original design, no real brands or logos`
+`anime gacha SSR splash art, original sci-fi "AI Legion" character, dramatic rim lighting, vertical portrait, glowing gold SSR frame, high detail, original design, no real brands or logos, NO stars or star rating at bottom`
 
 ---
 
