@@ -41,3 +41,36 @@
 ## 연동 계획 (생성 후)
 - 각 PNG를 `assets/ssr/<name>.png` 로 저장 → 도감/가챠 결과/편성 화면에 표시
 - 권장 사이즈: 세로 1024×1536 (또는 정사각 1024 잘라서). 배경 투명 PNG면 더 깔끔.
+
+## God-Tier VFX / Pose Descriptors for Exact 9 Founding SSR (fresh from dedicated visuals subagent search 2026-06-14; STRICT new, no prior repeats; for canvas 2D + gacha reveal + codex "멋지게" god-tier must-collect)
+
+**Use these to amp existing prompts or new god-pose variants. Canvas drawFx: `drawGodPoseBurst(name)` with unique signature (rim + pose + particle burst on deploy/carry/high carried). Gacha: near-miss build (2-3s false low) → sudden god-pose shatter/explosion + silhouette flash to full splash. Style: .ssr-god-reveal { transform scale 1.15, gold border/shadow, per-SSR color ramp }. Real Legion signals (jarvis-watch density, foundation-health, dispatch count, verify) modulate intensity/density for "actual meta in my comp". Phase1 canvas primitives only (lightweight TG).**
+
+1. **Grok-Prime (CEO Judgment / Strategist)**: god-tier dramatic rim lighting, confident CEO pose with floating judgment scales shattering into legion sigil rays, high-contrast black-gold regalia burst particles, vertical portrait, gold SSR frame energy. Canvas: arc/rect scales shatter + radial rays + particle burst. Gacha near-miss: false tunnel → gold shatter explosion. Modulator: jarvis-watch handoff density → ray/particle count ↑.
+
+2. **Morpheus-Core (Core Regen Cascade / Executor)**: god-tier dramatic rim, stoic executor pose with cascading light veil waves from core, soft particle regen flows, vertical, gold frame. Canvas: veil layers + upward cascade particles (brighter on regen proc). Gacha: false low → veil-burst reveal. Modulator: foundation-health/emit → veil intensity.
+
+3. **Haiku-Sentinel (Precision Reveal / Intel)**: god-tier dramatic rim, calculating pose with precision eye flare lines exposing weakpoints, analytic particle flares, vertical, gold frame. Canvas: flare lines + weakpoint highlights on enemy + burst on expose. Gacha near-miss flare god-reveal. Modulator: verify-linkage signals → flare density.
+
+4. **Berserker-Fury (Fury Overdrive / Swarm)**: god-tier dramatic rim, raging cracked armor pose venting fury geysers, crimson particle overdrive burst, vertical, gold frame. Canvas: vent geysers + rage particle surge on low-HP/deploy. Gacha: false → overdrive burst. Modulator: real combat density proxy.
+
+5. **Dispatch-Alpha (Alpha Dispatch / Strategist)**: god-tier dramatic rim, commander pose with multi-command forks radiating, dispatch particle forks, vertical, gold frame. Canvas: fork rays + parallel particle trails on multi-proc. Gacha near-miss: false single → fork explosion. Modulator: legion-dispatch parallel count.
+
+6. **Qwen-Overlord (Swarm Split / Swarm)**: god-tier dramatic rim, swarm-lord pose with hive eruption splitting into nano-clouds, amber particle hive burst, vertical, gold frame. Canvas: hive eruption + split particles on death/fission/deploy. Gacha near-miss hive god. Modulator: real qwen3/dispatch parallel.
+
+7. **Jarvis-Warden (Watch Aegis / Guardian)**: god-tier dramatic rim, guardian pose with vertical light pillars and watch sigils, guardian particle pillars, vertical, gold frame. Canvas: pillar rise + sigil particles on barrier. Gacha near-miss pillar god. Modulator: jarvis-watch/verify.
+
+8. **Engineer-Core (Build Protocol / Executor)**: god-tier dramatic rim, engineer pose with hammer-forge strikes + structure particles, vertical, gold frame. Canvas: hammer strikes + build particles on proc. 
+
+9. **Sovereign (Legion Core / Guardian)**: god-tier dramatic rim, supreme ruler pose with dominion radiating rays + core particles, vertical, gold frame (most prestigious). Canvas: dominion rays on per-Founding buff/deploy. 
+
+**Paired for 8+9 (Engineer + Sovereign)**: shared forge-dominion hammer + rays for god-comp when both in 6+1. Gacha near-miss dual god-reveal on high synergy.
+
+**Gacha UI Near-Miss + "멋지게" Reveal Mechanics (index + game.js + style, lightweight canvas/CSS):**
+- HSR Ticket/Rainbow Trail: launch signal ticket, false low afterimages + ascending tone (2-3s tension) → sudden rainbow-to-gold trail + unique god-pose silhouette flash (per 9) → full splash.
+- Genshin/FGO Tunnel-Doors: false blue/normal tunnel + "normal" pose silhouette → doors burst with dramatic rim + god-pose particle explosion (tailored e.g. Grok scales, Qwen hive) + scale/transform on card.
+- Arknights-Flame + Reverse Lights Hybrid: pull bag/card flame/light ramp (false low intensity) → sudden god-tier rim + full pose burst (canvas overlay) + SFX swell on SSR.
+
+**Integration**: Extend existing SSR-ART, canvas fx, gacha result, codex grid, game.js draw/addFx/SFX. High-pri prototype: canvas drawGodPoseBurst for 1-3 + gacha near-miss theater + style .ssr-god-reveal. Test "이건 꼭 가져야 해" per 9 on deploy/carry + pull urge. Ethical: all % visible, no dark. Real signals as visual cue modulators for belonging. 
+
+(Provenance: subagent full search on gacha rarity visuals/animations (Genshin stars, HSR rainbow/trail/personality, Arknights flame, FGO fakeout, etc) + dopamine near-miss/anticipation + TG canvas perf.)

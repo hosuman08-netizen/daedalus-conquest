@@ -975,7 +975,7 @@ function renderShop() {
     const isPass = p.id === "monthly" || p.id === "weekly";
     const active = p.id === "monthly" ? passActive("monthly") : p.id === "weekly" ? passActive("weekly") : false;
     const c = document.createElement("button"); c.className = "packcard" + (p.vip || p.ultra ? " vip" : "") + (p.k ? " grow" : "") + (active ? " active" : "");
-    const what = p.starter ? "💎 " + t("spTitle") : p.vip ? "👑 " + t("vipTitle") : p.ultra ? "🔱 " + t("ultraTitle") : p.k ? t(p.k) : (p.gem ? "💎 " + p.gem : "💰 " + p.g);
+    const what = p.starter ? "💎 " + t("spTitle") : p.vip ? t("tVip") : p.ultra ? t("tUltra") : p.k ? t(p.k) : (p.gem ? "💎 " + p.gem : "💰 " + p.g);
     const sub = active ? '<div class="psub">✓ ~' + META.pass[p.id] + "</div>" : "";
     c.innerHTML = (p.tag ? '<span class="ptag">' + p.tag + "</span>" : "") + '<div class="pwhat">' + what + "</div>" + sub + '<div class="pprice">' + p.price + "</div>";
     c.addEventListener("click", () => buyPack(p.id));
