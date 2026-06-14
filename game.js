@@ -702,7 +702,7 @@ function finish(p, e) {
       if (META.dailyDone !== today()) {
         const sig = getLegionSignal(); const win = (META.ritualWin === today() || sig>2.0);
         reward = bonus(200 + META.chapter * 15 + (win ? Math.floor(55*(sig-1)) : 0));
-        META.dailyDone = today(); extra = `<div class="rwd">${t("rwDailyBonus", { n: reward })}</div>` + (win ? '<div class="rwd2">⚡ Grok judgment ritual var</div>' : '');
+        META.dailyDone = today(); extra = `<div class="rwd">${t("rwDailyBonus", { n: reward })}</div>` + (win ? '<div class="rwd2">⚡ 군단 전술 보너스</div>' : '');
       }
       else { extra = `<div class="rwd2">${t("rwDailyDone")}</div>`; }
       title = t("rDaily"); bumpPrestige(1);
@@ -732,21 +732,6 @@ function finish(p, e) {
     META.gold += reward; bumpPrestige(2); saveMeta(); updateMeta();
   } else { if (m === "campaign") META.streak = 0; saveMeta(); }
 
-  // ── Community/Viral/A11y Reinforcement: carried flavor + Legion quote + first win overlay (non-gamer plain) ──
-  const foundersOwned = (META.owned || []).filter(id => id < 10).length; // proxy 9SSR Founders
-  const carriedPct = win ? Math.max(42, Math.min(92, 50 + (foundersOwned * 5) + Math.floor(Math.random()*18))) : 0;
-  if (win && carriedPct) {
-    const legionQuote = t("legionQuoteViral") || "Grok handoff — Sovereign command";
-    extra += `<div class="rwd2 carried-flavor" style="color:#fbbf24;font-weight:800">⚔️ Sovereign Dominion carried ${carriedPct}% · ${legionQuote}</div>`;
-    if (!META.firstWinShown) {
-      META.firstWinShown = true; saveMeta();
-      setTimeout(() => toast(t("firstWinOverlay", { carried: carriedPct }) + " — " + t("nonGamerWin"), "#a855f7"), 420);
-    }
-    // log for profile "MY Dominion" flex proxy
-    if (!META.carriedLog) META.carriedLog = []; META.carriedLog.push({ pct: carriedPct, t: Date.now() }); if (META.carriedLog.length > 9) META.carriedLog.shift();
-    saveMeta();
-  }
-
   // 자동사냥: 캠페인·무한탑에서만, 승리 시 자동 진행
   const autoMode = (m === "campaign" || m === "tower");
   if (auto && win && autoMode) {
@@ -772,22 +757,6 @@ function finish(p, e) {
   if (win) carried = `<div class="rwd2" style="color:#fbbf24;font-size:12px;">${getCarriedFeedback()}</div>`;
   $overlayMsg.innerHTML = title + extra + carried;
   $("overlay-btn").textContent = win ? t("cont") : t("retry");
-  // "one more overlay" buttons on every reward (post-battle interlock: tweak comp / quick pull + FOMO Vanguard 24h god-VFX)
-  const om = document.createElement("div"); om.style.cssText="margin-top:8px;display:flex;gap:6px;justify-content:center;";
-  if (win) {
-    const sig = getLegionSignal();
-    if (!META.vanguard || META.vanguard !== today()) { if (sig > 2.1 || Math.random()<0.35) { META.vanguard = today(); } } // 24h FOMO Vanguard Focus seed by signal
-    const vfx = META.vanguard === today() ? '<button id="om-vanguard" style="font-size:11px;padding:4px 8px;background:#3b82f6;color:#fff;border:0;border-radius:6px;">⚡ Vanguard Focus (24h)</button>' : '';
-    om.innerHTML = `<button id="om-tweak" style="font-size:11px;padding:4px 8px;background:#334155;color:#fff;border:0;border-radius:6px;">🛠️ comp tweak</button><button id="om-pull" style="font-size:11px;padding:4px 8px;background:#334155;color:#fff;border:0;border-radius:6px;">🎰 quick pull</button>${vfx}`;
-  }
-  $overlayMsg.parentNode.appendChild(om);
-  setTimeout(() => {
-    const bt=$("om-tweak"), bp=$("om-pull"), bv=$("om-vanguard");
-    if (bt) bt.onclick = ()=>{ $overlay.classList.add("hidden"); om.remove(); showPage("char"); renderDash(); };
-    if (bp) bp.onclick = ()=>{ $overlay.classList.add("hidden"); om.remove(); gacha(); };
-    if (bv) bv.onclick = ()=>{ $overlay.classList.add("hidden"); om.remove(); toast("Vanguard god-VFX unlocked 24h — carried + visual amp", "#a3e635"); };
-  }, 80);
-  $("overlay-btn").textContent = win ? t("cont") : t("retry");
   $overlay.classList.remove("hidden");
   if (tg) { try { tg.HapticFeedback.notificationOccurred(win ? "success" : "error"); } catch (e2) {} }
   if (win) SFX.win(); else SFX.lose();
@@ -811,7 +780,7 @@ function getCarriedFeedback() {
   return `Synergy +${syn}% | ${carry} ${Math.floor(50+pCount*3)}%`;
 }
 
-// ── Viral/Community Reinforcement: TG native share "MY real Grok carried 68%" flex + cooldown + TG user verify exact anti-abuse + Dominion card export proxy ──
+// ── Viral/Community Reinforcement: TG native share "MY Legion carried 68%" flex + cooldown + TG user verify exact anti-abuse + Dominion card export proxy ──
 function getTGUserId() {
   try { return (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) || "guest"; } catch(e){ return "guest"; }
 }
@@ -830,8 +799,8 @@ function shareDominion() {
   const founders = Math.min(9, (META.owned||[]).filter(x=>x<10).length || 3);
   const topCarried = (META.carriedLog && META.carriedLog.length) ? Math.max(...META.carriedLog.map(c=>c.pct)) : 68;
   const handoffProxy = Math.floor((META.pulls||12) * 0.7 + founders*4); // real handoff density proxy
-  const faction = META.factionName || "Sovereign Legion";
-  const text = `MY real Grok carried ${topCarried}% in Dominion! ${t("legionQuoteViral")}\n${faction} · Founders ${founders}/9 · Handoffs ~${handoffProxy}\n#LEGION #SovereignCommand`;
+  const faction = META.factionName || "My Legion";
+  const text = `MY Legion carried ${topCarried}%! ${t("legionQuoteViral")}\n${faction} · Founders ${founders}/9 · Power ~${handoffProxy}\n#LEGION #LEGION`;
   // TG native: copy + prompt (or tg open if avail); reward on success
   try { navigator.clipboard.writeText(text); } catch(e){}
   if (tg) { try { tg.HapticFeedback.impactOccurred("medium"); } catch(e){} }
@@ -844,7 +813,7 @@ function getDominionCardText() {
   const founders = Math.min(9, (META.owned||[]).filter(x=>x<10).length || 3);
   const top = (META.carriedLog && META.carriedLog.length) ? Math.max(...META.carriedLog.map(c=>c.pct)) : 68;
   const proxy = Math.floor((META.pulls||12)*0.7);
-  const fac = META.factionName || "Sovereign Legion";
+  const fac = META.factionName || "My Legion";
   return `MY DOMINION\nFounders ${founders}/9 · Top carried ${top}%\n"${t("carriedQuote")}"\nHandoff density proxy: ${proxy}\n${fac}`;
 }
 
@@ -940,7 +909,7 @@ function checkDaily() {
     const base = 150; const varB = winOpen ? Math.floor(40 * (sig-1)) : 0;
     META.gold += base + varB; bumpPrestige(1);
     saveMeta(); updateMeta();
-    setTimeout(() => toast(t("tDaily") + (varB? ` +${varB} (Grok high)`:""), "#fbbf24"), 500);
+    setTimeout(() => toast(t("tDaily") + (varB? ` +${varB}`:""), "#fbbf24"), 500);
   }
 }
 
@@ -1069,7 +1038,7 @@ function checkIdle() {
     META.gold += gold + varBonus; saveMeta(); updateMeta(); bumpPrestige(1);
     const hrs = Math.floor(elapsed / 3600), mins = Math.floor((elapsed % 3600) / 60);
     const tm = hrs ? hrs + "h " + mins + "m" : mins + "m";
-    const flavor = sig > 2.2 ? "Grok judgment high — handoff density boosted" : "Legion forecast stable";
+    const flavor = sig > 2.2 ? "Legion tactics surging" : "Legion forecast stable";
     setTimeout(() => toast(`🌙 ${t("tIdle", { t: tm, n: gold })} +${varBonus} ${flavor}`, "#fbbf24"), 900);
     // Forecast popup flavor (lean toast + prestige pop)
     if (sig > 1.8) setTimeout(() => toast("Legion Forecast: offline burst → ritual window open + prestige up", "#a3e635"), 1600);
