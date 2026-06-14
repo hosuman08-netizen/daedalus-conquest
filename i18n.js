@@ -317,6 +317,10 @@ const PAY_I18N = {
 };
 for (const l in PAY_I18N) Object.assign(I18N[l], PAY_I18N[l]);
 
+// 🎵 배경음악 토글
+const MUSIC_I18N = { ko: "배경음악", en: "Music", ja: "BGM", zh: "背景音乐", hi: "संगीत", ru: "Музыка" };
+for (const l in MUSIC_I18N) I18N[l].setMusic = MUSIC_I18N[l];
+
 let LANG = "ko";
 function detectLang() {
   let code = "";

@@ -18,6 +18,7 @@ function tone(freq, dur, type, vol) {
   if (typeof META !== "undefined" && META && META.sound === false) return;
   try {
     if (!_actx) _actx = new (window.AudioContext || window.webkitAudioContext)();
+    if (_actx.state === "suspended") _actx.resume();
     const o = _actx.createOscillator(), g = _actx.createGain();
     o.type = type || "sine"; o.frequency.value = freq; g.gain.value = vol || 0.04;
     o.connect(g); g.connect(_actx.destination); o.start();
@@ -35,7 +36,42 @@ const SFX = {
   ssr:   () => [523, 659, 784, 1047, 1319].forEach((f, i) => setTimeout(() => tone(f, 0.18, "square", 0.06), i * 90)),
   tap:   () => tone(440, 0.04, "sine", 0.02),
   claim: () => { tone(700, 0.09, "triangle", 0.05); setTimeout(() => tone(1050, 0.1, "triangle", 0.05), 70); },
+  hit:   () => tone(180 + Math.random() * 60, 0.05, "square", 0.025),   // 타격
+  equip: () => { tone(520, 0.07, "triangle", 0.04); setTimeout(() => tone(780, 0.09, "triangle", 0.04), 60); },
 };
+
+// ── 🎵 BGM (합성 루프, 에셋 없음) — A단조 4코드 아르페지오 + 베이스 ───────────────
+function ensureAudio() { try { if (!_actx) _actx = new (window.AudioContext || window.webkitAudioContext)(); if (_actx.state === "suspended") _actx.resume(); } catch (e) {} }
+function bgmTone(freq, dur, type, vol) {
+  if (!_actx || (typeof META !== "undefined" && META && META.music === false)) return;
+  try {
+    const o = _actx.createOscillator(), g = _actx.createGain();
+    o.type = type; o.frequency.value = freq; g.gain.value = vol;
+    o.connect(g); g.connect(_actx.destination); o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, _actx.currentTime + dur);
+    o.stop(_actx.currentTime + dur);
+  } catch (e) {}
+}
+const BGM_CHORDS = [[220.00, 261.63, 329.63], [174.61, 220.00, 261.63], [261.63, 329.63, 392.00], [196.00, 246.94, 293.66]];  // Am F C G
+const BGM_ARP = [0, 1, 2, 1];
+let bgmTimer = null, bgmStep = 0;
+function bgmTick() {
+  const chord = BGM_CHORDS[(bgmStep >> 2) % BGM_CHORDS.length];
+  bgmTone(chord[BGM_ARP[bgmStep % 4]] * 2, 0.26, "triangle", 0.018);   // 멜로디(한 옥타브 위)
+  if (bgmStep % 4 === 0) bgmTone(chord[0] / 2, 0.55, "sine", 0.03);     // 베이스
+  if (bgmStep % 8 === 4) bgmTone(chord[2], 0.3, "triangle", 0.012);     // 화음 보강
+  bgmStep = (bgmStep + 1) % 16;
+}
+function bgmStart() { if (bgmTimer || (META && META.music === false)) return; ensureAudio(); bgmStep = 0; bgmTimer = setInterval(bgmTick, 250); }
+function bgmStop() { if (bgmTimer) { clearInterval(bgmTimer); bgmTimer = null; } }
+function audioUnlock() {
+  ensureAudio();
+  if (!(META && META.music === false)) bgmStart();
+  document.removeEventListener("pointerdown", audioUnlock);
+  document.removeEventListener("touchend", audioUnlock);
+}
+document.addEventListener("pointerdown", audioUnlock);
+document.addEventListener("touchend", audioUnlock);
 
 // ── 5종 유닛 사양 ─────────────────────────────────────────────────────────────
 const SPEC = {
@@ -89,7 +125,7 @@ function loadMeta() {
                 army: { drone: 4, marksman: 2, guardian: 1, bruiser: 1, commander: 0, titan: 0 },
                 hero: "strategist",
                 heroLv: { strategist: 1, berserker: 1, warden: 1, ranger: 1, mech: 1, engineer: 1, dragoon: 1 },
-                mode: "campaign", tower: 1, towerBest: 0, dailyDone: "", sound: true, haptic: true,
+                mode: "campaign", tower: 1, towerBest: 0, dailyDone: "", sound: true, haptic: true, music: true,
                 gems: 50, attend: { day: 0, last: "" }, codes: [],
                 enh: { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 },
                 star: { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 },
@@ -772,6 +808,7 @@ function applyLanguage(l) {
 function updateToggles() {
   if ($("set-sound")) { $("set-sound").textContent = META.sound === false ? "OFF" : "ON"; $("set-sound").classList.toggle("off", META.sound === false); }
   if ($("set-haptic")) { $("set-haptic").textContent = META.haptic === false ? "OFF" : "ON"; $("set-haptic").classList.toggle("off", META.haptic === false); }
+  if ($("set-music")) { $("set-music").textContent = META.music === false ? "OFF" : "ON"; $("set-music").classList.toggle("off", META.music === false); }
 }
 function renderProfile() {
   const box = $("tg-profile"); if (!box) return;
@@ -791,8 +828,9 @@ function resetProgress() {
   if (tg && tg.showConfirm) { tg.showConfirm(t("resetAsk"), (ok) => { if (ok) go(); }); }
   else if (confirm(t("resetAsk"))) go();
 }
-$("set-sound").addEventListener("click", () => { META.sound = META.sound === false; saveMeta(); updateToggles(); });
+$("set-sound").addEventListener("click", () => { META.sound = META.sound === false; saveMeta(); updateToggles(); if (META.sound !== false) SFX.tap(); });
 $("set-haptic").addEventListener("click", () => { META.haptic = META.haptic === false; saveMeta(); updateToggles(); });
+on("set-music", "click", () => { META.music = META.music === false; saveMeta(); updateToggles(); if (META.music === false) bgmStop(); else bgmStart(); });
 $("set-reset").addEventListener("click", resetProgress);
 
 // ── 이벤트: 일일 출석 (7일 사이클, 골드+다이아) ──────────────────────────────
