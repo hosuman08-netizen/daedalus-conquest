@@ -302,12 +302,12 @@ const SOUL_I18N = {
 };
 for (const l in SOUL_I18N) Object.assign(I18N[l], SOUL_I18N[l]);
 const SOULHINT_I18N = {
-  ko: "🔮 소울은 보스만 드랍하는 희소 재화. 오직 ✦각성에만 사용 — 유닛 AI를 영리하게 만들고 초월(✦5)시킨다. 현질로 못 얻는 진짜 실력의 증표.",
-  en: "🔮 Souls drop only from bosses — rare. Used only for ✦Awakening: make units smarter (AI) and transcend (✦5). Can't be bought.",
-  ja: "🔮 ソウルはボス限定の希少素材。✦覚醒のみに使用 — AIを賢くし超越(✦5)。課金では入手不可。",
-  zh: "🔮 灵魂仅Boss掉落，稀有。只用于✦觉醒：让单位更聪明(AI)并超越(✦5)。无法购买。",
-  hi: "🔮 आत्मा केवल बॉस से — दुर्लभ। सिर्फ ✦जागृति हेतु: यूनिट को होशियार(AI) व पारलौकिक(✦5) बनाएँ। खरीदी नहीं जा सकती।",
-  ru: "🔮 Души падают только с боссов — редкость. Только для ✦Пробуждения: умнее (AI) и трансцендент (✦5). Нельзя купить.",
+  ko: "🔮 소울은 보스만 드랍하는 희소 재화. 오직 ✦각성에만 사용 — 유닛 AI를 영리하게 만들고 초월(✦5)시킨다.",
+  en: "🔮 Souls drop only from bosses — rare. Used only for ✦Awakening: make units smarter (AI) and transcend (✦5).",
+  ja: "🔮 ソウルはボス限定の希少素材。✦覚醒のみに使用 — AIを賢くし超越(✦5)。",
+  zh: "🔮 灵魂仅Boss掉落，稀有。只用于✦觉醒：让单位更聪明(AI)并超越(✦5)。",
+  hi: "🔮 आत्मा केवल बॉस से — दुर्लभ। सिर्फ ✦जागृति हेतु: यूनिट को होशियार(AI) व पारलौकिक(✦5) बनाएँ।",
+  ru: "🔮 Души падают только с боссов — редкость. Только для ✦Пробуждения: умнее (AI) и трансцендент (✦5).",
 };
 for (const l in SOULHINT_I18N) I18N[l].soulAwakHint = SOULHINT_I18N[l];
 

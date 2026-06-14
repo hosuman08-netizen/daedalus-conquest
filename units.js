@@ -4,6 +4,9 @@
    총: SSR9 | SR55 | R80 | N85 = 229. buildRoster가 229 생성. */
 const ARCHES = ["drone", "marksman", "guardian", "bruiser", "commander", "titan"];
 const ARCH_GLYPH = { drone: "🛸", marksman: "🎯", guardian: "🛡️", bruiser: "🤖", commander: "🧠", titan: "🐉" };
+// 유닛 시각 차별화 (도감·캔버스·UI): archetype 공유 glyph만으로는 부족 → SSR 고유 + faction/accent procedural
+const SSR_VIS = { Arclight: "⚖️", Solace: "🌊", Cipher: "🔭", Ignis: "🔥", Vector: "↯", Vespera: "🐝", Aegis: "🛡️", Anvil: "🔨", Dominus: "👑" };
+const FACTION_ACCENT = { Strategist: "🧠", Executor: "⚙️", Swarm: "🐜", Guardian: "🛡️", Intel: "👁️" };
 const ARCH_NOUN = {
   drone: ["정찰기", "벌떼", "비행체", "추적자", "날개", "탐사기"],
   marksman: ["저격수", "매", "조준자", "사수", "관통자", "표식자"],
@@ -60,12 +63,15 @@ function buildRoster() {
       if (rar === "SSR" && ssrIdx < SSR_CHARS.length) {
         const c = SSR_CHARS[ssrIdx++];
         u.name = c.name; u.title = c.title; u.persona = c.persona; u.trait = c.trait; if (c.faction) u.faction = c.faction;
+        u.vis = SSR_VIS[c.name] || u.glyph; u.accent = FACTION_ACCENT[u.faction] || "";
       } else if (rar === "SR" && srIdx < SR_CHARS.length) {
         const c = SR_CHARS[srIdx++]; u.name = c.name; u.title = c.title;
+        u.vis = u.glyph; u.accent = FACTION_ACCENT[u.faction] || "";
       } else {
         // 절차적 + 고유번호 (faction 일반 병사: 예 "Intel 정찰기-073")
         const nouns = ARCH_NOUN[arch];
         u.name = fac + " " + nouns[i % nouns.length] + "-" + String(id).padStart(3, "0");
+        u.vis = u.glyph; u.accent = FACTION_ACCENT[fac] || "";
       }
       roster.push(u);
     }

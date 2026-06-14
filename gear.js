@@ -37,6 +37,8 @@ function buildGearRoster() {
           tpl[STAT_KEYS[(si + i + 1) % 4]] += Math.round(base * 0.4);   // 보조스탯(결정적)
         }
         tpl.name = GEAR_PREFIX[pi % GEAR_PREFIX.length] + " " + GEAR_NOUN[slot][i]; pi++;
+        // 장비 시각 차별화: 슬롯 아이콘 + rarity/변형으로 "다르게" (도감·슬롯·인벤)
+        tpl.vis = SLOT_ICON[slot] + (["⚔️","🗡️","🔪","🏹","🔫","💣"][i % 6] || ""); // noun index로 미세 변형 (synthetic)
         roster.push(tpl);
       }
     });

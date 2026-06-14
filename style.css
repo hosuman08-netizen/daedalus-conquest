@@ -108,6 +108,19 @@ h1::first-letter { color: var(--crimson); }
 .cxc.rSSR, .gxc.rSSR { background: linear-gradient(160deg, #3a2c12 0%, #1a1330 100%); box-shadow: inset 0 0 16px rgba(245,196,81,0.28), 0 0 8px rgba(245,196,81,0.18); }
 .cxc.rSSR:not(.lock) .cxgly, .cxc.rSR:not(.lock) .cxgly { filter: drop-shadow(0 0 6px currentColor); }
 .cxc.rSSR .cxr, .gxc.rSSR .gxr { text-shadow: 0 0 6px rgba(245,196,81,0.7); }
+/* 유닛 도감 시각 차별화 (arch + faction으로 "다 다르게" synthetic feel; codex grid 5열에서 즉시 구분) */
+.cxc.arch-drone .cxg { background: linear-gradient(180deg, #1a2333 0%, transparent 70%); }
+.cxc.arch-marksman .cxg { background: linear-gradient(180deg, #2a2a1a 0%, transparent 70%); }
+.cxc.arch-guardian .cxg { background: linear-gradient(180deg, #1f2a3a 0%, transparent 70%); }
+.cxc.arch-bruiser .cxg { background: linear-gradient(180deg, #2a1f1f 0%, transparent 70%); }
+.cxc.arch-commander .cxg { background: linear-gradient(180deg, #2a2233 0%, transparent 70%); }
+.cxc.arch-titan .cxg { background: linear-gradient(180deg, #3a2a12 0%, transparent 70%); box-shadow: inset 0 0 12px rgba(251,191,36,0.15); }
+.cxc.fac-strategist { border-color: #6366f1 !important; }
+.cxc.fac-executor { border-color: #22c55e !important; }
+.cxc.fac-swarm { border-color: #ef4444 !important; }
+.cxc.fac-guardian { border-color: #67e8f9 !important; }
+.cxc.fac-intel { border-color: #a855f7 !important; }
+.cxc .cxgly .acc { vertical-align: super; }
 #gdex-filter { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; }
 #gdex-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
 .gxc { aspect-ratio: 1/1.15; background: #16101f; border: 1.5px solid; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; }
