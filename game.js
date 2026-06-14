@@ -1675,7 +1675,7 @@ function renderDeploySpecificsPreview() {
   el.style.opacity = "1";
   el.innerHTML = `<b>특수 배치 (${specs.length})</b>: ` + specs.map(u => `${artHTML(u, "", "")}<span style="color:${u.color}">${u.name}</span>`).join(" · ");
 }
-// ── 캐릭터 도감 그리드 (229종 수집) ──────────────────────────────────────────
+// ── 캐릭터 도감 그리드 (79종 lean 수집: 9SSR god-tier + 70 fodder) ──────────────────────────────────────────
 let codexFilter = "ALL";
 function grantUnit(rarity) {
   if (typeof ROSTER === "undefined") return null;
@@ -1694,7 +1694,8 @@ function artHTML(u, glyphCls, imgCls) {
   const g = `<span class="${glyphCls}">${base}${acc}</span>`;
   // PNG: 1차 art/u<id>.png (ASCII·안전) → 실패 시 art/<slug>.png → 그래도 없으면 synthetic(vis+accent)
   const slug = unitSlug(u);
-  return g + `<img class="${imgCls}" src="art/u${u.id}.png" alt="" loading="lazy" onerror="if(this.dataset.f){this.remove()}else{this.dataset.f='1';this.src='art/${slug}.png'}">`;
+  // 3단 폴백: art/u<id>.png → art/ssr/<slug>.png → art/<slug>.png → 이모지/합성
+  return g + `<img class="${imgCls}" src="art/u${u.id}.png" alt="" loading="lazy" onerror="var s=(+this.dataset.s||0)+1;this.dataset.s=s;if(s===1){this.src='art/ssr/${slug}.png'}else if(s===2){this.src='art/${slug}.png'}else{this.remove()}">`;
 }
 function renderCodex() {
   const grid = $("codex-grid"); if (!grid || typeof ROSTER === "undefined") return;

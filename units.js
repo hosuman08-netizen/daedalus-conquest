@@ -1,7 +1,9 @@
-/* LEGION 유닛 로스터 — Phase1 229종 (SSR9 창립군단 + 변형)
-   6 아키타입 × faction/numbered 변형. 결정적 생성.
-   v4 패치: SSR 9인 오리지널 네이밍(트레이드마크/내부명 배제). Low: faction prefix + numbered (e.g. Intel 정찰기-073).
-   총: SSR9 | SR55 | R80 | N85 = 229. buildRoster가 229 생성. */
+/* LEGION 유닛 로스터 — Phase1 lean 79종 (9/20/50)
+   6 아키타입 × faction 변형. 결정적 생성.
+   SSR 9 Founding (fictional codenames only: Arclight 등). Low: faction + noun + id (procedural fodder for volume/synergy/hybrid comps).
+   총: SSR:9 + SR:20 + R:50 = 79. (초기 229 과도 → 9/20/50 결정. Non-SSR synthetic only, TG perf 최적.)
+   Later: drip new SSR releases (retention/FOMO). New SSR = high id (100+) to preserve existing 1-79 player META.owned. */
+
 const ARCHES = ["drone", "marksman", "guardian", "bruiser", "commander", "titan"];
 const ARCH_GLYPH = { drone: "🛸", marksman: "🎯", guardian: "🛡️", bruiser: "🤖", commander: "🧠", titan: "🐉" };
 // 유닛 시각 차별화 (도감·캔버스·UI): archetype 공유 glyph만으로는 부족 → SSR 고유 + faction/accent procedural
@@ -20,9 +22,9 @@ const PREFIX = ["강철", "그림자", "폭풍", "심연", "칠흑", "진홍", "
   "혈월", "은하", "절대", "광휘", "암흑", "신성", "야수", "냉혹", "불멸", "질풍",
   "공허", "성염", "흑풍", "백금", "흑철", "진월", "광란", "한설", "맹화", "패왕"];
 // 등급별 스탯 배율 (SSR이 가장 강함)
-const RARITY_MUL = { N: 1.0, R: 1.25, SR: 1.6, SSR: 2.2 };
-const RARITY_COUNT = { N: 85, R: 80, SR: 55, SSR: 9 };  // v3 Phase1 229: 9+55+80+85
-const RARITY_COLOR = { N: "#9ca3af", R: "#60a5fa", SR: "#c084fc", SSR: "#fbbf24" };
+const RARITY_MUL = { N: 1.0, R: 1.25, SR: 1.6, SSR: 2.2 }; // N reserved for future compat (currently unused)
+const RARITY_COUNT = { R: 50, SR: 20, SSR: 9 };  // Phase1 lean 79 (9/20/50). 9SSR god-tier unique + 70 fodder (R/SR archetype pool for team volume/synergy/hybrid). Later drip new SSR (high-id 100+ , no player id shift).
+const RARITY_COLOR = { N: "#9ca3af", R: "#60a5fa", SR: "#c084fc", SSR: "#fbbf24" }; // N for future
 
 // Faction for synergy (Strategist/Executor/Swarm/Guardian/Intel)
 const FACTIONS = ["Strategist", "Executor", "Swarm", "Guardian", "Intel"];
@@ -42,21 +44,20 @@ const SSR_CHARS = [
   { name: "Dominus",  title: "군단의 핵",   persona: "군림자. 군단의 정점", faction: "Guardian", trait: "팀 내 SSR 1체당 전군 스탯+5%(최대25%)" },
 ];
 
-// ── SR 25종: 이름+칭호 (아키타입 순환 순서와 일치) ──
+// ── SR 20종: 이름+칭호 (아키타입 순환 + faction 변형용 fodder) ──
 const SR_CHARS = [
   { name: "와스프", title: "독침의 정찰" }, { name: "헌터", title: "추격의 사수" }, { name: "불워크", title: "철벽의 수호" }, { name: "크래셔", title: "분쇄의 돌격" }, { name: "택틱스", title: "전술의 지휘" }, { name: "골렘", title: "거석의 파수" },
   { name: "글리치", title: "교란의 정찰" }, { name: "바이퍼", title: "맹독의 사격" }, { name: "타워", title: "거탑의 방벽" }, { name: "램페이지", title: "난동의 돌격" }, { name: "마샬", title: "원수의 통솔" }, { name: "베히모스", title: "거수의 진격" },
   { name: "호크아이", title: "감시의 비행" }, { name: "사일런서", title: "무음의 저격" }, { name: "램파트", title: "성루의 방어" }, { name: "브레이커", title: "파쇄의 강습" }, { name: "바이저", title: "책략의 군사" }, { name: "콜로서스", title: "거상의 군림" },
-  { name: "팬텀", title: "은신의 추적" }, { name: "아처", title: "정밀의 명사수" }, { name: "캐슬", title: "요새의 방패" }, { name: "슬래머", title: "강타의 파괴" }, { name: "워든", title: "통솔의 사령" }, { name: "와이번", title: "비룡의 강하" },
-  { name: "버즈", title: "군집의 비행" },
+  { name: "팬텀", title: "은신의 추적" }, { name: "아처", title: "정밀의 명사수" },
 ];
 
 function buildRoster() {
   const roster = [];
   let id = 0, ssrIdx = 0, srIdx = 0;
-  const order = ["SSR", "SR", "R", "N"];   // 상위부터
+  const order = ["SSR", "SR", "R"];   // Phase1 lean: no N. SSR 1-9 fixed god, SR/R procedural fodder id 10+
   order.forEach((rar) => {
-    const n = RARITY_COUNT[rar];
+    const n = RARITY_COUNT[rar] || 0;
     for (let i = 0; i < n; i++) {
       const arch = ARCHES[i % ARCHES.length];
       const fac = FACTIONS[i % FACTIONS.length];
@@ -69,7 +70,7 @@ function buildRoster() {
         const c = SR_CHARS[srIdx++]; u.name = c.name; u.title = c.title;
         u.vis = u.glyph; u.accent = FACTION_ACCENT[u.faction] || "";
       } else {
-        // 절차적 + 고유번호 (faction 일반 병사: 예 "Intel 정찰기-073")
+        // 절차적 fodder (R): faction 일반 병사 e.g. "Intel 정찰기-073". volume/synergy/hybrid comps용.
         const nouns = ARCH_NOUN[arch];
         u.name = fac + " " + nouns[i % nouns.length] + "-" + String(id).padStart(3, "0");
         u.vis = u.glyph; u.accent = FACTION_ACCENT[fac] || "";
@@ -79,4 +80,7 @@ function buildRoster() {
   });
   return roster;
 }
+// Future SSR drip (post 79): append SSR_CHARS (new fictional), but force id=100+ for new ones.
+// Update build: separate SSR pass with fixed low ids for 9, fodder from 10; extra SSR high-id to protect META.owned.
+
 const ROSTER = buildRoster();

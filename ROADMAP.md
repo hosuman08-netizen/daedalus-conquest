@@ -60,8 +60,10 @@
 ## 다음 한 걸음
 콘텐츠 모드(캠페인/무한탑/일일던전) **모드 허브**부터. 엔진 재활용이라 싸게 "사이클" 완성.
 
-## v2 기획안 패치 백로그 (6시간 논의 결과)
-Phase 1 현실 추가: 가챠 %/pity 상시표시 + 일일미션 UI/보상 + 1-2 제한 이벤트 배너(FOMO 타이머) + SSR 11종 기본 시각 강화(캔버스 glow/트레이트). basic variants는 enh/star 재사용. 369 풀 로스터·개별 uid 수동편성·완전 Bazaar 사행·web3는 Phase 2+ 지연. 리스크(밸런스/모바일 퍼프/신규 압도)로 과다 금지. dopamine 즉시 4개만. 기존 Phase 1 엄수.
+## v2 기획안 패치 백로그 (lean scope)
+Phase 1 현실 추가: 가챠 %/pity 상시표시 + 일일미션 UI/보상 + 1-2 제한 이벤트 배너(FOMO 타이머) + 9SSR god-tier 시각 강화(canvas glow/trait + lazy PNG). 
+lean 79 (9/20/50) 엄수 — 9SSR god "멋지게" must-collect + 70 fodder (archetype pool for hybrid/synergy volume). 
+Later drip new SSR releases (retention/FOMO).  full uid/manual 6slot / P2P Bazaar / 369+ 는 Phase2+ 지연. 리스크(퍼프/압도) 금지. dopamine 즉시 4개만. 기존 Phase1 lean + TG 3-8min + synthetic 우선 엄수.
 
 ## 🏟️ 아레나 설계 (Phase 3, 군주 구상 2026-06-14)
 **비동기 파워 랭킹 아레나** (실시간 X):
