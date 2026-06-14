@@ -41,6 +41,14 @@ h1::first-letter { color: var(--crimson); }
 .attcell.today { border-color: var(--gold); background: #2a2212; }
 #attend-claim { width: 100%; padding: 12px; font-size: 15px; font-weight: 800; border-radius: 10px; background: linear-gradient(135deg, #f5c451, #d97706); color: #1a1400; }
 #attend-claim:disabled { background: #2a2530; color: var(--dim); }
+.play-hint { font-size: 11px; color: var(--dim); margin: -2px 0 6px; }
+.playrow { display: flex; align-items: center; gap: 8px; background: #1c1620; border-radius: 9px; padding: 8px 10px; margin-bottom: 6px; border: 1.5px solid transparent; }
+.playrow.ready { border-color: var(--gold); background: #2a2212; }
+.playrow.done { opacity: .45; }
+.playrow .pm { font-size: 12px; font-weight: 800; color: var(--gold); min-width: 42px; }
+.playrow .pr { flex: 1; font-size: 13px; font-weight: 700; }
+.playrow .pclaim { padding: 6px 12px; font-size: 12px; font-weight: 800; border-radius: 8px; background: linear-gradient(135deg, #f5c451, #d97706); color: #1a1400; }
+.playrow .pclaim:disabled { background: #2a2530; color: var(--dim); }
 
 /* 상점 뽑기 버튼 + 시즌 */
 #shop-gacha { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 6px; }

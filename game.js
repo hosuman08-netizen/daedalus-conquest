@@ -93,7 +93,8 @@ function loadMeta() {
                 gems: 50, attend: { day: 0, last: "" }, codes: [],
                 enh: { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 },
                 star: { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 },
-                gear: [], equip: {}, gearSeq: 0, owned: [] };
+                gear: [], equip: {}, gearSeq: 0, owned: [],
+                play: { day: "", sec: 0, claimed: [] } };
   try {
     const m = JSON.parse(localStorage.getItem(META_KEY));
     if (m && typeof m === "object") {
@@ -108,6 +109,8 @@ function loadMeta() {
       if (!Array.isArray(merged.owned)) merged.owned = [];
       if (typeof merged.equip !== "object" || !merged.equip) merged.equip = {};
       if (typeof merged.gearSeq !== "number") merged.gearSeq = 0;
+      if (typeof merged.play !== "object" || !merged.play) merged.play = { day: "", sec: 0, claimed: [] };
+      if (!Array.isArray(merged.play.claimed)) merged.play.claimed = [];
       if (typeof merged.gems !== "number") merged.gems = 50;
       if (!merged.mode || merged.mode === "daily") merged.mode = "campaign";
       if (!merged.tower || merged.tower < 1) merged.tower = 1;
@@ -483,6 +486,17 @@ function finish(p, e) {
     setTimeout(() => { if (auto) { reset(); start(); } }, 1000);
     return;
   }
+  // 🗼 무한탑 폴백파밍: 자동 중 패배해도 멈추지 않고 한 층 내려가 계속 농사 (골드 지속)
+  if (auto && !win && m === "tower") {
+    const farm = bonus(Math.floor((30 + curLevel * 15) * 0.4));   // 패배 위로금 골드(다음판 보상의 40%)
+    META.gold += farm;
+    if (META.tower > 1) META.tower -= 1;                            // 깰 수 있던 이전 층으로 후퇴
+    saveMeta();
+    toast(t("tTowerFall", { n: META.tower, g: farm }), "#fbbf24");
+    updateMeta(); draw();
+    setTimeout(() => { if (auto) { reset(); start(); } }, 1000);
+    return;
+  }
   if (auto && (!win || !autoMode)) { auto = false; updateAutoBtn(); }
 
   let carried = "";
@@ -796,7 +810,60 @@ function openBox(tier) {
   const g = newGear(b.gear); META.gear.push(g);              // 장비
   return { color: b.color, text: "🔨 " + (SLOT_ICON[g.slot] || "") + " " + g.rarity + " 장비", rank: g.rarity };
 }
-function openEvent() { renderAttend(); renderSeason(); showPage("event"); }
+// ⏱️ 장시간 접속(플레이타임) 보상 — 골드는 후하게(faucet), 💎는 상위 구간만(daily 캡)
+const PLAYTIME = [
+  { sec: 180,  min: 3,  gold: 300,  gem: 0,  box: null },
+  { sec: 600,  min: 10, gold: 800,  gem: 0,  box: null },
+  { sec: 1200, min: 20, gold: 1500, gem: 0,  box: "common" },
+  { sec: 1800, min: 30, gold: 2500, gem: 5,  box: "rare" },
+  { sec: 3600, min: 60, gold: 5000, gem: 10, box: "epic" },
+];
+function playReset() {                                  // 날짜 바뀌면 누적·수령 초기화
+  if (META.play.day !== today()) { META.play.day = today(); META.play.sec = 0; META.play.claimed = []; }
+}
+function tickPlay() {                                   // 보이는 동안만 1초씩 적립
+  if (document.hidden) return;
+  playReset();
+  META.play.sec = (META.play.sec || 0) + 1;
+  if (META.play.sec % 10 === 0) { saveMeta(); if (curPage === "event") renderPlay(); }
+}
+function renderPlay() {
+  const box = $("play-list"); if (!box) return;
+  playReset();
+  const sec = META.play.sec || 0;
+  $("play-now") && ($("play-now").textContent = t("playNow", { m: Math.floor(sec / 60) }));
+  box.innerHTML = "";
+  PLAYTIME.forEach((r, i) => {
+    const done = META.play.claimed.indexOf(i) >= 0, ready = sec >= r.sec && !done;
+    const rw = "💰" + (r.gold >= 1000 ? Math.floor(r.gold / 1000) + "k" : r.gold)
+             + (r.gem ? "  💎" + r.gem : "")
+             + (r.box ? '  <span style="color:' + BOX[r.box].color + '">' + BOX[r.box].icon + "</span>" : "");
+    const row = document.createElement("div");
+    row.className = "playrow" + (done ? " done" : ready ? " ready" : "");
+    row.innerHTML = '<span class="pm">⏱️ ' + r.min + 'm</span><span class="pr">' + rw + '</span>'
+      + '<button class="pclaim" data-pi="' + i + '"' + (ready ? "" : " disabled") + '>'
+      + (done ? t("playGot") : ready ? t("playClaim") : t("playLock", { m: r.min })) + "</button>";
+    box.appendChild(row);
+  });
+  box.querySelectorAll(".pclaim").forEach(b => b.addEventListener("click", () => claimPlay(+b.dataset.pi)));
+}
+function claimPlay(i) {
+  playReset();
+  const r = PLAYTIME[i]; if (!r) return;
+  if ((META.play.sec || 0) < r.sec) { toast(t("playLock", { m: r.min }), "#8b93a7"); return; }
+  if (META.play.claimed.indexOf(i) >= 0) return;
+  META.play.claimed.push(i);
+  META.gold += r.gold;
+  if (r.gem) META.gems = (META.gems || 0) + r.gem;
+  let boxRes = null;
+  if (r.box) boxRes = openBox(r.box);
+  saveMeta(); updateMeta(); renderPlay();
+  haptic("medium"); SFX.claim();
+  const txt = "💰" + r.gold + (r.gem ? " 💎" + r.gem : "") + (boxRes ? " " + boxRes.text : "");
+  if (boxRes) setTimeout(() => showGacha({ key: boxRes.rank, color: boxRes.color }, boxRes.text), 400);
+  else toast(t("tPlay", { x: txt }), "#fbbf24");
+}
+function openEvent() { renderAttend(); renderPlay(); renderSeason(); showPage("event"); }
 function renderAttend() {
   const grid = $("attend-grid"); if (!grid) return;
   grid.innerHTML = "";
@@ -853,8 +920,8 @@ $("code-btn").addEventListener("click", redeemCode);
 // ── 캐시 상점 (별도, Stars 결제 자리 — 지금은 데모 지급) ─────────────────────
 const SHOP = [
   { id: "starter", starter: true, price: "₩990", tag: "BEST" },
-  { id: "vip", vip: true, price: "₩29,900", tag: "VIP·4x" },
-  { id: "ultra", ultra: true, price: "₩99,900", tag: "8x" },
+  { id: "vip", vip: true, price: "₩29,900", tag: "VIP·4x·💎600" },
+  { id: "ultra", ultra: true, price: "₩99,900", tag: "MAX·8x·SSR" },
   { id: "gem1", gem: 60, price: "₩1,100" },
   { id: "gem2", gem: 330, price: "₩5,500", tag: "+10%" },
   { id: "gem3", gem: 1180, price: "₩19,900", tag: "+18%" },
@@ -879,8 +946,21 @@ function buyPack(id) {
   const p = SHOP.find((x) => x.id === id); if (!p) return;
   // TODO: 실제 결제 = tg.openInvoice (Stars). 지금은 데모 지급.
   if (p.starter) { buyStarter(); return; }
-  if (p.vip) { META.vip = true; META.starter = true; META.gems = (META.gems || 0) + 300; saveMeta(); updateMeta(); toast(t("tVip"), "#fbbf24"); haptic("heavy"); return; }
-  if (p.ultra) { META.ultra = true; META.vip = true; META.starter = true; META.gems = (META.gems || 0) + 800; saveMeta(); updateMeta(); toast(t("tUltra"), "#fbbf24"); haptic("heavy"); return; }
+  if (p.vip) {                                         // 👑 VIP: 4x속도·골드+50%·💎600·SR유닛 1체
+    META.vip = true; META.starter = true; META.gems = (META.gems || 0) + 600;
+    const u = grantUnit("SR");
+    saveMeta(); updateMeta(); renderShop();
+    if (u) setTimeout(() => showGacha({ key: "SR", color: "#c084fc" }, "👑 " + u.name + " (SR)"), 300);
+    toast(t("tVip"), "#fbbf24"); haptic("heavy"); return;
+  }
+  if (p.ultra) {                                        // 🔱 울트라 끝판왕: 8x·VIP혜택·💎2000·💰50k·SSR유닛+SSR장비
+    META.ultra = true; META.vip = true; META.starter = true;
+    META.gems = (META.gems || 0) + 2000; META.gold += 50000;
+    const u = grantUnit("SSR"); const g = newGear("SSR"); META.gear.push(g);
+    saveMeta(); updateMeta(); renderShop();
+    if (u) setTimeout(() => showGacha({ key: "SSR", color: "#fbbf24" }, "🔱 " + u.name + " (SSR) + " + (SLOT_ICON[g.slot] || "") + "SSR장비"), 300);
+    toast(t("tUltra"), "#fbbf24"); haptic("heavy"); return;
+  }
   if (p.gem) META.gems = (META.gems || 0) + p.gem;
   if (p.g) META.gold += p.g;
   saveMeta(); updateMeta(); renderShop();
@@ -1049,7 +1129,9 @@ on("dash-protect", "click", () => { dashProtect = !dashProtect; renderDash(); })
 on("gear-craft", "click", craftGear);
 on("unit-close", "click", () => $("unit-pop").classList.add("hidden"));
 // ── 페이지 네비게이션 ──
+let curPage = "battle";
 function showPage(p) {
+  curPage = p;
   document.querySelectorAll(".page").forEach((el) => el.classList.add("hidden"));
   const pg = $("page-" + p); if (pg) pg.classList.remove("hidden");
   document.querySelectorAll(".navtab").forEach((b) => b.classList.toggle("sel", b.dataset.p === p));
@@ -1078,6 +1160,7 @@ document.querySelectorAll(".hbtn").forEach((b) => b.addEventListener("click", ()
 window.addEventListener("resize", () => { if (!running) reset(); });
 // lastSeen 하트비트 (방치 보상 정확도) + 이탈 시 저장
 setInterval(() => { try { META.lastSeen = nowMs(); localStorage.setItem(META_KEY, JSON.stringify(META)); } catch (e) {} }, 15000);
+setInterval(tickPlay, 1000);   // ⏱️ 플레이타임 보상 적립(보이는 동안만)
 document.addEventListener("visibilitychange", () => { if (document.hidden) saveMeta(); });
 window.addEventListener("beforeunload", saveMeta);
 

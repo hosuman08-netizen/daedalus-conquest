@@ -204,12 +204,12 @@ const VIP_I18N = {
   ru: { vipTitle: "VIP набор", tVip: "👑 VIP! Скорость 8x·+50% золота·💎300" },
 };
 for (const l in VIP_I18N) Object.assign(I18N[l], VIP_I18N[l]);
-Object.assign(I18N.ko, { vipTitle: "VIP 패키지", tVip: "👑 VIP! 속도4x·골드+50%·💎300", ultraTitle: "울트라 패키지", tUltra: "🔱 울트라! 속도8x·VIP혜택·💎800" });
-Object.assign(I18N.en, { vipTitle: "VIP Pack", tVip: "👑 VIP! 4x speed·+50% gold·💎300", ultraTitle: "Ultra Pack", tUltra: "🔱 Ultra! 8x speed·VIP perks·💎800" });
-Object.assign(I18N.ja, { vipTitle: "VIPパック", tVip: "👑 VIP! 速度4x·ゴールド+50%·💎300", ultraTitle: "ウルトラパック", tUltra: "🔱 ウルトラ! 速度8x·VIP特典·💎800" });
-Object.assign(I18N.zh, { vipTitle: "VIP礼包", tVip: "👑 VIP! 4倍速·金币+50%·💎300", ultraTitle: "至尊礼包", tUltra: "🔱 至尊! 8倍速·VIP特权·💎800" });
-Object.assign(I18N.hi, { vipTitle: "VIP पैक", tVip: "👑 VIP! 4x गति·+50% गोल्ड·💎300", ultraTitle: "अल्ट्रा पैक", tUltra: "🔱 अल्ट्रा! 8x गति·VIP·💎800" });
-Object.assign(I18N.ru, { vipTitle: "VIP набор", tVip: "👑 VIP! 4x скор.·+50% золота·💎300", ultraTitle: "Ультра набор", tUltra: "🔱 Ультра! 8x скор.·VIP·💎800" });
+Object.assign(I18N.ko, { vipTitle: "VIP 패키지", tVip: "👑 VIP! 4x속도·골드+50%·💎600·SR유닛", ultraTitle: "울트라 패키지", tUltra: "🔱 울트라! 8x속도·VIP혜택·💎2000·💰50k·SSR유닛+SSR장비" });
+Object.assign(I18N.en, { vipTitle: "VIP Pack", tVip: "👑 VIP! 4x speed·+50% gold·💎600·SR unit", ultraTitle: "Ultra Pack", tUltra: "🔱 Ultra! 8x speed·VIP perks·💎2000·💰50k·SSR unit+gear" });
+Object.assign(I18N.ja, { vipTitle: "VIPパック", tVip: "👑 VIP! 4x速度·金+50%·💎600·SRユニット", ultraTitle: "ウルトラパック", tUltra: "🔱 ウルトラ! 8x速度·VIP特典·💎2000·💰50k·SSRユニット+装備" });
+Object.assign(I18N.zh, { vipTitle: "VIP礼包", tVip: "👑 VIP! 4倍速·金币+50%·💎600·SR单位", ultraTitle: "至尊礼包", tUltra: "🔱 至尊! 8倍速·VIP特权·💎2000·💰50k·SSR单位+装备" });
+Object.assign(I18N.hi, { vipTitle: "VIP पैक", tVip: "👑 VIP! 4x गति·+50% गोल्ड·💎600·SR यूनिट", ultraTitle: "अल्ट्रा पैक", tUltra: "🔱 अल्ट्रा! 8x गति·VIP·💎2000·💰50k·SSR यूनिट+गियर" });
+Object.assign(I18N.ru, { vipTitle: "VIP набор", tVip: "👑 VIP! 4x скор.·+50% золота·💎600·SR юнит", ultraTitle: "Ультра набор", tUltra: "🔱 Ультра! 8x скор.·VIP·💎2000·💰50k·SSR юнит+снаряга" });
 
 // 게임명: LEGION (전 언어 공통 브랜드)
 for (const l in I18N) I18N[l].title = "⚔️ LEGION";
@@ -261,6 +261,17 @@ const STRAT = {
   ru: { legend4: "⚔️ Контры: 🛸▶🎯▶🛡️🤖▶🛸 (+30%) · 3+ типа синергия" },
 };
 for (const l in STRAT) Object.assign(I18N[l], STRAT[l]);
+
+// 무한탑 폴백파밍 + 장시간 접속(플레이타임) 보상
+const PLAY_I18N = {
+  ko: { tTowerFall: "🗼 {n}층으로 후퇴 — 위로금 💰{g}, 계속 농사", playTitle: "오늘의 플레이 보상", playHint: "접속해 플레이한 시간만큼 보상! (매일 0시 초기화)", playClaim: "받기", playGot: "✅ 받음", playLock: "🔒 {m}분", tPlay: "⏱️ 플레이 보상 획득! {x}", playNow: "현재 {m}분 플레이" },
+  en: { tTowerFall: "🗼 Fell to floor {n} — consolation 💰{g}, keep farming", playTitle: "Today's Playtime Rewards", playHint: "Rewards for time played! (resets daily)", playClaim: "Claim", playGot: "✅ Got", playLock: "🔒 {m}m", tPlay: "⏱️ Playtime reward! {x}", playNow: "{m} min played" },
+  ja: { tTowerFall: "🗼 {n}階に後退 — 見舞金 💰{g}、農場継続", playTitle: "本日のプレイ報酬", playHint: "プレイ時間で報酬! (毎日リセット)", playClaim: "受取", playGot: "✅ 完了", playLock: "🔒 {m}分", tPlay: "⏱️ プレイ報酬獲得! {x}", playNow: "{m}分プレイ中" },
+  zh: { tTowerFall: "🗼 退回第{n}层 — 慰问 💰{g}，继续刷", playTitle: "今日游玩奖励", playHint: "按游玩时长发奖! (每日重置)", playClaim: "领取", playGot: "✅ 已领", playLock: "🔒 {m}分", tPlay: "⏱️ 游玩奖励! {x}", playNow: "已玩{m}分" },
+  hi: { tTowerFall: "🗼 मंज़िल {n} पर वापस — 💰{g}, खेती जारी", playTitle: "आज के खेल इनाम", playHint: "खेले गए समय का इनाम! (रोज़ रीसेट)", playClaim: "लें", playGot: "✅ मिला", playLock: "🔒 {m}मि", tPlay: "⏱️ खेल इनाम! {x}", playNow: "{m} मिनट खेला" },
+  ru: { tTowerFall: "🗼 Откат на этаж {n} — 💰{g}, фарм продолжается", playTitle: "Награды за игру сегодня", playHint: "Награды за время в игре! (сброс ежедневно)", playClaim: "Забрать", playGot: "✅ Есть", playLock: "🔒 {m}м", tPlay: "⏱️ Награда за игру! {x}", playNow: "Сыграно {m} мин" },
+};
+for (const l in PLAY_I18N) Object.assign(I18N[l], PLAY_I18N[l]);
 
 let LANG = "ko";
 function detectLang() {
