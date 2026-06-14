@@ -429,3 +429,13 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 
 #page-gear .gear-note { font-size: 11px; margin-bottom: 8px; }
 .navtab { font-size: 16px; } .navtab span { font-size: 9px; }
+
+/* 캐릭 패널 성장 (강화·승급·각성) */
+#cp-grow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 12px; }
+#cp-grow button { padding: 7px 11px; font-size: 12px; font-weight: 800; border-radius: 8px; background: linear-gradient(135deg, #2a2348, #171130); color: var(--text); border: 1px solid #473a63; }
+#cp-grow #cp-enh { background: linear-gradient(135deg, #3a2f5e, #241b3a); }
+#cp-grow .cp-gold { background: linear-gradient(135deg, #f5c451, #d97706) !important; color: #1a1400 !important; }
+#cp-grow .cp-purple { background: linear-gradient(135deg, #a855f7, #6d28d9) !important; color: #fff !important; }
+#cp-grow .cp-gdim { font-size: 10.5px; color: var(--dim); }
+#cp-grow .cp-badge { font-size: 11px; font-weight: 900; color: var(--gold); background: #2a2212; padding: 2px 7px; border-radius: 6px; }
+#cp-grow .cp-badge.pur { color: #c084fc; background: #241a3a; }

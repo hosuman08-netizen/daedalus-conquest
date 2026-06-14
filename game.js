@@ -235,7 +235,8 @@ function loadMeta() {
                 ritualWin: "", // exact claim window seed for variable ritual bonuses
                 vanguard: "", // 24h FOMO Vanguard Focus god-VFX unlock
                 deployed: [], // 편성: 출전할 보유 캐릭터 id 배열 (이들이 곧 부대)
-                charLv: {}, charGear: {} }; // 캐릭별 레벨 / 캐릭별 장비 {charId:{slot:gearId}}
+                charLv: {}, charGear: {}, // 캐릭별 레벨 / 캐릭별 장비 {charId:{slot:gearId}}
+                charEnh: {}, charStar: {}, charAwak: {} }; // 캐릭별 강화/승급/각성
   if (!def.owned) def.owned = [];
   try {
     const m = JSON.parse(localStorage.getItem(META_KEY));
@@ -269,6 +270,9 @@ function loadMeta() {
       if (!Array.isArray(merged.deployed)) merged.deployed = [];
       if (typeof merged.charLv !== "object" || !merged.charLv) merged.charLv = {};
       if (typeof merged.charGear !== "object" || !merged.charGear) merged.charGear = {};
+      if (typeof merged.charEnh !== "object" || !merged.charEnh) merged.charEnh = {};
+      if (typeof merged.charStar !== "object" || !merged.charStar) merged.charStar = {};
+      if (typeof merged.charAwak !== "object" || !merged.charAwak) merged.charAwak = {};
       return merged;
     }
   } catch (e) {}
@@ -362,7 +366,8 @@ function squadPower() {                                 // 편성 전투력 (헤
   sq.forEach((u) => {
     const s = SPEC[u.arch] || SPEC.drone, lv = charLv(u.id);
     const gcs = charGearStats(u.id);
-    const base = (s.hp * 0.5 + (s.atk / s.atkCd) * 3) * u.mul * (1 + lv * 0.12);
+    const invest = (1 + cEnh(u.id) * 0.06) * (1 + cStar(u.id) * 0.25) * (1 + cAwak(u.id) * 0.35);
+    const base = (s.hp * 0.5 + (s.atk / s.atkCd) * 3) * u.mul * (1 + lv * 0.12) * invest;
     p += base + (gcs.str + gcs.int + gcs.agi + gcs.luk) * 5;
   });
   return Math.round(p * syn.atk);
@@ -396,8 +401,8 @@ function spawnArmy(side) {
       squad.forEach((u, si) => {
         const s = SPEC[u.arch] || SPEC.drone, lv = charLv(u.id);
         const gcs = charGearStats(u.id);
-        const aw = META.awak[u.arch] || 0, enh = META.enh[u.arch] || 0, star = META.star[u.arch] || 0;
-        const invest = (1 + enh * 0.06) * (1 + star * 0.25) * (1 + aw * 0.35);   // 아키타입 투자 반영
+        const aw = cAwak(u.id), enh = cEnh(u.id), star = cStar(u.id);            // 캐릭별 성장
+        const invest = (1 + enh * 0.06) * (1 + star * 0.25) * (1 + aw * 0.35);
         const cgAtk = 1 + gcs.str * 0.004, cgHp = 1 + gcs.int * 0.004;
         const cgSpd = 1 - Math.min(0.4, gcs.agi * 0.0035), cgCrit = Math.min(45, 10 + gcs.luk * 0.4);
         const lvK = 1 + lv * 0.12;
@@ -1501,33 +1506,10 @@ function awaken(type) {
 }
 function openDash() { showPage("char"); renderDash(); }
 function renderDash() {
-  if ($("dash-power")) $("dash-power").textContent = legionPower();
+  const sq = getDeployedUnits();
+  if ($("dash-power")) $("dash-power").textContent = sq.length ? squadPower() : legionPower();
   if ($("dash-div")) $("dash-div").textContent = dividendGold();
-  const box = $("dash-list"); if (box) {
-    box.innerHTML = "";
-    ORDER.forEach((type) => {
-      if (type === "titan" && !META.titanOwned) return;
-      const enh = META.enh[type] || 0, star = META.star[type] || 0, lv = META.lv[type] || 0, canAsc = enh >= 10;
-      const aw = META.awak[type] || 0;
-      const baseAi = SPEC[type].ai;
-      const hBonus = META.hero === "strategist" ? heroAiBonus(META.heroLv.strategist || 1) : 0;
-      const effAi = Math.min(3, baseAi + hBonus + aw);
-      const aiBadge = `<span class="dai ai${effAi}">🧠 AI Lv${effAi}${effAi > baseAi ? ` <em>↑${baseAi}</em>` : ""}</span>`;
-      const canAwk = star >= 3 && aw < AWAK_MAX;
-      const c = document.createElement("div"); c.className = "dcard";
-      c.innerHTML =
-        `<div class="dglyph">${SPEC[type].glyph}${star ? `<span class="dstar">★${star}</span>` : ""}${aw ? `<span class="dawk">✦${aw}</span>` : ""}</div>` +
-        `<div class="dinfo"><div class="dlv">Lv${lv} · <b>+${enh}</b> ${aiBadge}</div><div class="ddim">${t("dRate")} ${enhRate(type)}% · 💰${enhCost(type)}${canAwk ? ` · ✦🔮${awakCost(type)}` : ""}</div></div>` +
-        `<div class="dbtns"><button class="denh" data-t="${type}">${t("dEnhance")}</button>${canAsc ? `<button class="dasc" data-t="${type}">⭐</button>` : ""}${canAwk ? `<button class="dawkb" data-t="${type}">✦</button>` : ""}</div>`;
-      box.appendChild(c);
-    });
-    box.querySelectorAll(".denh").forEach((b) => b.addEventListener("click", () => enhance(b.dataset.t)));
-    box.querySelectorAll(".dasc").forEach((b) => b.addEventListener("click", () => ascend(b.dataset.t)));
-    box.querySelectorAll(".dawkb").forEach((b) => b.addEventListener("click", () => awaken(b.dataset.t)));
-  }
-
-  const pb = $("dash-protect"); if (pb) { pb.textContent = "💎 " + t("dProtect") + (dashProtect ? " ✓" : ""); pb.classList.toggle("on", dashProtect); }
-  renderSquad(); renderSoulAltar();
+  renderSquad();
 }
 
 // ── 편성 UI (출전 슬롯 + 보유 풀 + 시너지) ─────────────────────────────────────
@@ -1585,6 +1567,42 @@ function charLevelUp(id) {
   saveMeta(); updateMeta(); SFX.claim(); haptic("medium");
   openCharPanel(id); renderSquad(); if (!running) reset();
 }
+// ── 캐릭별 강화 · 승급 · 각성 ─────────────────────────────────────────────────
+function cEnh(id) { return (META.charEnh && META.charEnh[id]) || 0; }
+function cStar(id) { return (META.charStar && META.charStar[id]) || 0; }
+function cAwak(id) { return (META.charAwak && META.charAwak[id]) || 0; }
+function cEnhCost(id) { return 120 * (cEnh(id) + 1); }
+function cEnhRate(id) { return Math.max(35, 100 - cEnh(id) * 6); }
+function cAwakCost(id) { return 30 * Math.pow(2, cAwak(id)); }
+function charEnhance(id) {
+  if (running) return;
+  const e = cEnh(id), cost = cEnhCost(id);
+  if (META.gold < cost) { toast(t("tGoldShort", { n: cost }), "#ef4444"); return; }
+  META.gold -= cost; if (!META.charEnh) META.charEnh = {};
+  if (Math.random() * 100 < cEnhRate(id)) { META.charEnh[id] = e + 1; toast(t("dSuccess", { n: e + 1 }), "#a3e635"); SFX.claim(); haptic("medium"); }
+  else { if (e >= 5) { META.charEnh[id] = e - 1; toast(t("dFail") + " −1", "#ef4444"); } else toast(t("dFail"), "#ef4444"); SFX.lose(); haptic("heavy"); }
+  saveMeta(); updateMeta(); openCharPanel(id); renderSquad(); if (!running) reset();
+}
+function charAscend(id) {
+  if (running || cEnh(id) < 10) return;
+  const goldC = 5000, gemC = 50;
+  if (META.gold < goldC || (META.gems || 0) < gemC) { toast(t("tGemShort", { n: gemC }), "#ef4444"); return; }
+  META.gold -= goldC; META.gems -= gemC;
+  if (!META.charStar) META.charStar = {}; if (!META.charEnh) META.charEnh = {};
+  META.charStar[id] = cStar(id) + 1; META.charEnh[id] = 0;
+  saveMeta(); updateMeta(); openCharPanel(id); renderSquad(); if (!running) reset();
+  toast("⭐ ★" + cStar(id), "#fbbf24"); SFX.ssr(); haptic("heavy");
+}
+function charAwaken(id) {
+  if (running) return;
+  if (cStar(id) < 3) { toast(t("awNeedStar"), "#ef4444"); return; }
+  if (cAwak(id) >= AWAK_MAX) { toast(t("awMax"), "#8b93a7"); return; }
+  const cost = cAwakCost(id);
+  if ((META.soul || 0) < cost) { toast(t("awSoulShort", { n: cost }), "#ef4444"); return; }
+  META.soul -= cost; if (!META.charAwak) META.charAwak = {}; META.charAwak[id] = cAwak(id) + 1;
+  saveMeta(); updateMeta(); openCharPanel(id); renderSquad(); if (!running) reset();
+  toast("✦ " + t("awDone", { n: cAwak(id) }), "#c084fc"); SFX.ssr(); haptic("heavy");
+}
 function charEquip(id, gearId) {
   const g = META.gear.find((x) => x.id === gearId); if (!g) return;
   if (!META.charGear) META.charGear = {};
@@ -1606,9 +1624,23 @@ function openCharPanel(id) {
   if (head) head.innerHTML = `<div class="cp-art" style="border-color:${u.color}">${artHTML(u, "cpgly", "cpim")}</div>`
     + `<div class="cp-meta"><div class="cp-nm" style="color:${u.color}">${u.name}</div>`
     + `<div class="cp-ti">${u.title || u.arch} · ${u.rarity} · 🏷️${u.faction}</div>`
-    + `<div class="cp-st">⚡Lv${lv} · 💪${gcs.str} 🧠${gcs.int} 👟${gcs.agi} 🍀${gcs.luk}</div>`
+    + `<div class="cp-st">⚡Lv${lv}${cEnh(id) ? " +" + cEnh(id) : ""}${cStar(id) ? " ★" + cStar(id) : ""}${cAwak(id) ? " ✦" + cAwak(id) : ""} · 💪${gcs.str} 🧠${gcs.int} 👟${gcs.agi} 🍀${gcs.luk}</div>`
     + `<button id="cp-lvup">⬆️ 레벨업 Lv${lv + 1} · 💰${charLvCost(id)}</button></div>`;
   on("cp-lvup", "click", () => charLevelUp(id));
+  // 강화 · 승급 · 각성 (캐릭별)
+  const gw = $("cp-grow");
+  if (gw) {
+    const e = cEnh(id), st = cStar(id), aw = cAwak(id);
+    const canAsc = e >= 10, canAwk = st >= 3 && aw < AWAK_MAX;
+    gw.innerHTML =
+      `<button id="cp-enh">⚙️ ${t("dEnhance")} +${e} · ${cEnhRate(id)}% · 💰${cEnhCost(id)}</button>`
+      + (canAsc ? `<button id="cp-asc" class="cp-gold">⭐ ${t("dCombo")} 💰5k+💎50</button>` : `<span class="cp-gdim">⭐ +10강 시 ${t("dCombo")}</span>`)
+      + (canAwk ? `<button id="cp-awk" class="cp-purple">✦ 각성 🔮${cAwakCost(id)}</button>` : (st >= 3 && aw >= AWAK_MAX ? `<span class="cp-gdim">✦${aw} MAX</span>` : st < 3 ? `<span class="cp-gdim">✦ ★3↑ 각성</span>` : ""))
+      + (st ? `<span class="cp-badge">★${st}</span>` : "") + (aw ? `<span class="cp-badge pur">✦${aw}</span>` : "");
+    on("cp-enh", "click", () => charEnhance(id));
+    on("cp-asc", "click", () => charAscend(id));
+    on("cp-awk", "click", () => charAwaken(id));
+  }
   // 장착 슬롯
   const eq = (META.charGear && META.charGear[id]) || {};
   const gbox = $("cp-gear");
