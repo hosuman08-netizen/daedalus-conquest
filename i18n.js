@@ -220,6 +220,17 @@ const DASH_I18N = {
 for (const l in DASH_I18N) Object.assign(I18N[l], DASH_I18N[l]);
 Object.assign(I18N.ko, { dPerBattle: "전투" }); Object.assign(I18N.en, { dPerBattle: "battle" }); Object.assign(I18N.ja, { dPerBattle: "戦闘" }); Object.assign(I18N.zh, { dPerBattle: "战斗" }); Object.assign(I18N.hi, { dPerBattle: "युद्ध" }); Object.assign(I18N.ru, { dPerBattle: "бой" });
 
+// 장비 (힘·지능·민첩·운)
+const GEAR_I18N = {
+  ko: { gTitle: "장비", gCraft: "제작", gEquip: "장착", gEmpty: "장비 없음 — 제작하세요", gFull: "장비 가방 가득참(40)", gGot: "🔨 장비 제작: {x}", st_str: "힘", st_int: "지능", st_agi: "민첩", st_luk: "운" },
+  en: { gTitle: "Gear", gCraft: "Craft", gEquip: "Equip", gEmpty: "No gear — craft some", gFull: "Gear bag full (40)", gGot: "🔨 Crafted: {x}", st_str: "STR", st_int: "INT", st_agi: "AGI", st_luk: "LUK" },
+  ja: { gTitle: "装備", gCraft: "製作", gEquip: "装着", gEmpty: "装備なし — 製作を", gFull: "装備バッグ満杯(40)", gGot: "🔨 製作: {x}", st_str: "力", st_int: "知", st_agi: "敏", st_luk: "運" },
+  zh: { gTitle: "装备", gCraft: "制作", gEquip: "装备", gEmpty: "无装备 — 去制作", gFull: "装备包已满(40)", gGot: "🔨 制作: {x}", st_str: "力", st_int: "智", st_agi: "敏", st_luk: "运" },
+  hi: { gTitle: "गियर", gCraft: "बनाएं", gEquip: "पहनें", gEmpty: "कोई गियर नहीं", gFull: "बैग भरा (40)", gGot: "🔨 बनाया: {x}", st_str: "STR", st_int: "INT", st_agi: "AGI", st_luk: "LUK" },
+  ru: { gTitle: "Снаряжение", gCraft: "Создать", gEquip: "Надеть", gEmpty: "Нет снаряжения", gFull: "Сумка полна (40)", gGot: "🔨 Создано: {x}", st_str: "СИЛ", st_int: "ИНТ", st_agi: "ЛОВ", st_luk: "УДЧ" },
+};
+for (const l in GEAR_I18N) Object.assign(I18N[l], GEAR_I18N[l]);
+
 // 전략 상성 설명
 const STRAT = {
   ko: { legend4: "⚔️ 상성: 🛸▶🎯▶🛡️🤖▶🛸 (+30%) · 3종↑ 편성 시너지" },

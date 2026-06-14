@@ -92,7 +92,8 @@ function loadMeta() {
                 mode: "campaign", tower: 1, towerBest: 0, dailyDone: "", sound: true, haptic: true,
                 gems: 50, attend: { day: 0, last: "" }, codes: [],
                 enh: { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 },
-                star: { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 } };
+                star: { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 },
+                gear: [], equip: {}, gearSeq: 0 };
   try {
     const m = JSON.parse(localStorage.getItem(META_KEY));
     if (m && typeof m === "object") {
@@ -103,6 +104,9 @@ function loadMeta() {
       merged.attend = Object.assign({}, def.attend, m.attend || {});
       merged.enh = Object.assign({}, def.enh, m.enh || {});
       merged.star = Object.assign({}, def.star, m.star || {});
+      if (!Array.isArray(merged.gear)) merged.gear = [];
+      if (typeof merged.equip !== "object" || !merged.equip) merged.equip = {};
+      if (typeof merged.gearSeq !== "number") merged.gearSeq = 0;
       if (typeof merged.gems !== "number") merged.gems = 50;
       if (!merged.mode || merged.mode === "daily") merged.mode = "campaign";
       if (!merged.tower || merged.tower < 1) merged.tower = 1;
@@ -124,6 +128,28 @@ function lvMul(type, stat) {
 // 군단 전력 + 복리 배당 (컬렉션 쌓일수록 전투 보너스 골드 ↑)
 function legionPower() { let p = 0; for (const t of ORDER) p += (META.army[t] || 0) * ((META.lv[t] || 0) + (META.enh[t] || 0) * 2 + (META.star[t] || 0) * 12); return p; }
 function dividendGold() { return Math.floor(legionPower() * 0.6); }
+
+// ── 장비 시스템 (힘 STR·지능 INT·민첩 AGI·운 LUK) ─────────────────────────────
+const SLOTS = ["weapon", "armor", "acc", "relic"];
+const SLOT_ICON = { weapon: "⚔️", armor: "🛡️", acc: "👟", relic: "🍀" };
+const SLOT_MAIN = { weapon: "str", armor: "int", acc: "agi", relic: "luk" };
+const STAT_KEYS = ["str", "int", "agi", "luk"];
+const GEAR_RARITY = [{ k: "N", p: 0.5, base: 6, color: "#9ca3af" }, { k: "R", p: 0.32, base: 12, color: "#60a5fa" }, { k: "SR", p: 0.14, base: 22, color: "#c084fc" }, { k: "SSR", p: 0.04, base: 40, color: "#fbbf24" }];
+function rollGearRarity() { let r = Math.random(), a = 0; for (const x of GEAR_RARITY) { a += x.p; if (r <= a) return x; } return GEAR_RARITY[0]; }
+function makeGear() {
+  const slot = SLOTS[(Math.random() * 4) | 0], rar = rollGearRarity(), main = SLOT_MAIN[slot];
+  const g = { id: ++META.gearSeq, slot: slot, rarity: rar.k, color: rar.color, enh: 0, str: 0, int: 0, agi: 0, luk: 0 };
+  g[main] = Math.round(rar.base * (0.8 + Math.random() * 0.6));
+  const sub = STAT_KEYS[(Math.random() * 4) | 0];
+  g[sub] += Math.round(rar.base * 0.4 * (0.5 + Math.random()));
+  return g;
+}
+function gearStat(g, key) { return Math.round((g[key] || 0) * (1 + (g.enh || 0) * 0.1)); }
+function heroGearStats() {
+  const tot = { str: 0, int: 0, agi: 0, luk: 0 }, eq = META.equip[META.hero] || {};
+  for (const slot of SLOTS) { const id = eq[slot]; if (!id) continue; const g = META.gear.find((x) => x.id === id); if (!g) continue; for (const k of STAT_KEYS) tot[k] += gearStat(g, k); }
+  return tot;
+}
 
 const $ = (id) => document.getElementById(id);
 const $status = $("status"), $score = $("score"), $overlay = $("overlay"), $overlayMsg = $("overlay-msg");
@@ -162,6 +188,9 @@ function spawnArmy(side) {
   // 편성 다양성 시너지: 3종↑ +10% / 4종↑ +18% 공격 (다양한 상성 편성 유도)
   const distinct = ORDER.filter((tt) => (counts[side][tt] || 0) > 0).length;
   const synMul = distinct >= 4 ? 1.18 : distinct >= 3 ? 1.10 : 1;
+  // 장비 스탯 (아군 전군에 적용): 힘→공격 / 지능→체력 / 민첩→공속 / 운→치명타
+  const gs = side === "p" ? heroGearStats() : { str: 0, int: 0, agi: 0, luk: 0 };
+  const gAtk = 1 + gs.str * 0.004, gHp = 1 + gs.int * 0.004, gSpd = 1 - Math.min(0.4, gs.agi * 0.002), gCrit = Math.min(40, gs.luk * 0.3);
   let arr = [];
   ORDER.forEach((t) => { for (let i = 0; i < counts[side][t]; i++) arr.push(t); });
   // 성능: 유닛 수 상한 (초과 시 셔플·컷 + 전투력 보존 배율)
@@ -181,15 +210,16 @@ function spawnArmy(side) {
     // 아군: 가챠 레벨 + 영웅 패시브 / 적군: 레벨 스탯 배율 (+보스전 강화)
     const epm = side === "e" ? enemyPowerMul(curLevel) : 1;
     const es = side === "p" ? (1 + (META.enh[t] || 0) * 0.06) * (1 + (META.star[t] || 0) * 0.25) : 1;   // 강화·승급
-    let hpM = (side === "p" ? lvMul(t, "hp") : epm) * hb.hpMul * (1 + (hb.typeHp[t] || 0)) * powerComp * es;
-    let atkM = (side === "p" ? lvMul(t, "atk") : epm) * hb.atkMul * (1 + (hb.typeAtk[t] || 0)) * synMul * powerComp * es;
+    let hpM = (side === "p" ? lvMul(t, "hp") : epm) * hb.hpMul * (1 + (hb.typeHp[t] || 0)) * powerComp * es * gHp;
+    let atkM = (side === "p" ? lvMul(t, "atk") : epm) * hb.atkMul * (1 + (hb.typeAtk[t] || 0)) * synMul * powerComp * es * gAtk;
     const isBoss = side === "e" && bossFight;
     if (isBoss) { hpM *= 7; atkM *= 2.2; }
     const hp = Math.round(s.hp * hpM), atk = Math.round(s.atk * atkM);
     const ai = Math.min(3, s.ai + hb.aiBonus);
     units.push({
       t, side, x, y, hp: hp, maxHp: hp, atk: atk, range: s.range, speed: s.speed,
-      atkCd: s.atkCd, ai: ai, sight: s.sight, r: isBoss ? s.r * 1.8 : s.r, skill: s.skill, skillCd: s.skillCd, ranged: s.ranged, boss: isBoss,
+      atkCd: s.atkCd * (side === "p" ? gSpd : 1), crit: side === "p" ? gCrit : 0,
+      ai: ai, sight: s.sight, r: isBoss ? s.r * 1.8 : s.r, skill: s.skill, skillCd: s.skillCd, ranged: s.ranged, boss: isBoss,
       regen: side === "p" ? hb.regen : 0,
       atkT: Math.random() * 0.4, skT: s.skillCd * 0.5, shield: 0, buff: 0, buffT: 0, spd: 0, spdT: 0,
     });
@@ -346,6 +376,7 @@ function step(u, dt) {
 function dmg(target, amount, from) {
   if (target.hp <= 0) return;
   let a = amount, ctr = false;
+  if (from && from.crit && Math.random() * 100 < from.crit) { a *= 1.6; ctr = true; }                    // 운→치명타 ×1.6
   if (from && COUNTER[from.t] && COUNTER[from.t].indexOf(target.t) >= 0) { a *= CTR_MUL; ctr = true; }   // 상성 +30%
   if (target.shield > 0) a *= 0.5;
   target.hp -= a;
@@ -851,10 +882,54 @@ function renderDash() {
   const hbox = $("dash-heroes");
   if (hbox) hbox.innerHTML = HERO_ORDER.map((hk) => { const h = HEROES[hk], tr = tHero(hk); return '<div class="hrow">' + h.glyph + " <b>" + tr[0] + "</b> <span class=\"hcode\">" + h.rank + "</span> · 💥" + tUlt(h.ult) + "</div>"; }).join("");
   const pb = $("dash-protect"); if (pb) { pb.textContent = "💎 " + t("dProtect") + (dashProtect ? " ✓" : ""); pb.classList.toggle("on", dashProtect); }
+  renderGear();
+}
+// ── 장비: 제작 · 장착 · 강화 ──────────────────────────────────────────────────
+function craftGear() {
+  const cost = 300;
+  if (META.gold < cost) { toast(t("tGoldShort", { n: cost }), "#ef4444"); return; }
+  if (META.gear.length >= 40) { toast(t("gFull"), "#ef4444"); return; }
+  META.gold -= cost; const g = makeGear(); META.gear.push(g);
+  saveMeta(); updateMeta(); renderGear();
+  toast(t("gGot", { x: SLOT_ICON[g.slot] + " " + g.rarity }), g.color); SFX.gacha();
+}
+function equipGear(id) {
+  const g = META.gear.find((x) => x.id === id); if (!g) return;
+  if (!META.equip[META.hero]) META.equip[META.hero] = {};
+  if (META.equip[META.hero][g.slot] === id) delete META.equip[META.hero][g.slot]; else META.equip[META.hero][g.slot] = id;
+  saveMeta(); renderGear(); haptic("light");
+}
+function enhanceGear(id) {
+  const g = META.gear.find((x) => x.id === id); if (!g) return;
+  const cost = 200 * ((g.enh || 0) + 1);
+  if (META.gold < cost) { toast(t("tGoldShort", { n: cost }), "#ef4444"); return; }
+  META.gold -= cost;
+  if (Math.random() * 100 < Math.max(40, 100 - (g.enh || 0) * 8)) { g.enh = (g.enh || 0) + 1; toast(t("dSuccess", { n: g.enh }), "#a3e635"); SFX.claim(); }
+  else { toast(t("dFail"), "#ef4444"); SFX.lose(); }
+  saveMeta(); updateMeta(); renderGear();
+}
+function renderGear() {
+  const eq = META.equip[META.hero] || {};
+  const slotsBox = $("gear-slots");
+  if (slotsBox) {
+    slotsBox.innerHTML = SLOTS.map((s) => { const id = eq[s], g = id ? META.gear.find((x) => x.id === id) : null; return `<div class="gslot${g ? " on" : ""}">${SLOT_ICON[s]}${g ? `<span class="gmain" style="color:${g.color}">${g.rarity}${g.enh ? "+" + g.enh : ""}</span>` : ""}</div>`; }).join("");
+  }
+  const inv = $("gear-inv");
+  if (inv) {
+    if (!META.gear.length) { inv.innerHTML = `<div class="ddim" style="text-align:center;padding:8px 0">${t("gEmpty")}</div>`; return; }
+    inv.innerHTML = META.gear.slice().sort((a, b) => b.id - a.id).map((g) => {
+      const equipped = eq[g.slot] === g.id;
+      const stats = STAT_KEYS.filter((k) => g[k]).map((k) => t("st_" + k) + gearStat(g, k)).join(" ");
+      return `<div class="gitem" style="border-color:${g.color}66"><div class="gi-main">${SLOT_ICON[g.slot]} <b style="color:${g.color}">${g.rarity}</b>${g.enh ? " +" + g.enh : ""}</div><div class="gi-stat">${stats}</div><div class="gi-btns"><button class="geq${equipped ? " on" : ""}" data-id="${g.id}">${equipped ? "✓" : t("gEquip")}</button><button class="gup" data-id="${g.id}">🔨</button></div></div>`;
+    }).join("");
+    inv.querySelectorAll(".geq").forEach((b) => b.addEventListener("click", () => equipGear(+b.dataset.id)));
+    inv.querySelectorAll(".gup").forEach((b) => b.addEventListener("click", () => enhanceGear(+b.dataset.id)));
+  }
 }
 $("dash-btn").addEventListener("click", openDash);
 $("dash-close").addEventListener("click", () => $("dash").classList.add("hidden"));
 $("dash-protect").addEventListener("click", () => { dashProtect = !dashProtect; renderDash(); });
+$("gear-craft").addEventListener("click", craftGear);
 
 $("overlay-btn").addEventListener("click", reset);
 $("gacha-btn").addEventListener("click", gacha);
