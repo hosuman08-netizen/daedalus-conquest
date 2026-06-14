@@ -18,14 +18,11 @@
       <span class="meta gold">💰 <i id="gold">300</i></span>
       <span class="meta gem">💎 <i id="gems">50</i></span>
       <span class="meta ch">📖 <i id="chapter">1</i></span>
-      <button id="dash-btn">📋</button>
-      <button id="event-btn">🎁</button>
-      <button id="shop-btn">🛒</button>
-      <button id="settings-btn">⚙️</button>
       <button id="gacha-btn" data-i18n="gacha">🎰 뽑기 100</button>
       <button id="gacha10-btn" data-i18n="gacha10">💎 10연</button>
     </div>
 
+    <div id="page-battle" class="page">
     <div id="modes">
       <button class="modetab" data-m="campaign" data-i18n="mode.campaign">📖 캠페인</button>
       <button class="modetab" data-m="tower" data-i18n="mode.tower">🗼 무한탑</button>
@@ -83,6 +80,29 @@
       <b data-i18n="legend4"></b><br/>
       <b data-i18n="legend3"></b>
     </div>
+    </div><!-- /page-battle -->
+
+    <!-- 캐릭터 페이지 (도감·강화·승급·장비) -->
+    <div id="page-char" class="page hidden">
+      <div class="set-title">📋 <span data-i18n="dashTitle">군단 도감</span></div>
+      <div class="dpower">⚡ <span data-i18n="dPower">군단 전력</span> <b id="dash-power">0</b> &nbsp;·&nbsp; 💰<b id="dash-div">0</b>/<span data-i18n="dPerBattle">전투</span></div>
+      <button id="dash-protect" class="protectbtn">💎 보호</button>
+      <div id="dash-list"></div>
+      <div class="set-sec">⚔️ <span data-i18n="gTitle">장비</span> <button id="gear-craft">🔨 <span data-i18n="gCraft">제작</span> 300g</button></div>
+      <div id="gear-slots"></div>
+      <div id="gear-inv"></div>
+      <div class="set-sec">🦸 <span data-i18n="dUlt">궁극기</span></div>
+      <div id="dash-heroes"></div>
+    </div>
+
+    <!-- 하단 네비게이션 -->
+    <nav id="bnav">
+      <button class="navtab sel" data-p="battle">⚔️<span data-i18n="navBattle">전투</span></button>
+      <button class="navtab" data-p="char">👥<span data-i18n="navChar">캐릭터</span></button>
+      <button class="navtab" data-p="shop">🛒<span data-i18n="navShop">상점</span></button>
+      <button class="navtab" data-p="event">🎁<span data-i18n="navEvent">이벤트</span></button>
+      <button class="navtab" data-p="settings">⚙️<span data-i18n="navSet">설정</span></button>
+    </nav>
 
     <!-- 결과 -->
     <div id="overlay" class="hidden">
@@ -123,22 +143,6 @@
         <button id="attend-claim" data-i18n="evClaim">출석 보상 받기</button>
         <div class="set-ver" data-i18n="evMore">더 많은 이벤트가 곧 추가됩니다</div>
         <button id="event-close" class="ghost" data-i18n="confirm">확인</button>
-      </div>
-    </div>
-
-    <!-- 대시보드: 도감/강화/승급 -->
-    <div id="dash" class="hidden">
-      <div id="dash-card">
-        <div class="set-title">📋 <span data-i18n="dashTitle">군단 도감</span></div>
-        <div class="dpower">⚡ <span data-i18n="dPower">군단 전력</span> <b id="dash-power">0</b> &nbsp;·&nbsp; 💰<b id="dash-div">0</b>/<span data-i18n="dPerBattle">전투</span></div>
-        <button id="dash-protect" class="protectbtn">💎 보호</button>
-        <div id="dash-list"></div>
-        <div class="set-sec">⚔️ <span data-i18n="gTitle">장비</span> <button id="gear-craft">🔨 <span data-i18n="gCraft">제작</span> 300g</button></div>
-        <div id="gear-slots"></div>
-        <div id="gear-inv"></div>
-        <div class="set-sec">🦸 <span data-i18n="dUlt">궁극기</span></div>
-        <div id="dash-heroes"></div>
-        <button id="dash-close" class="ghost" data-i18n="confirm">확인</button>
       </div>
     </div>
 

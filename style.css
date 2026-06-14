@@ -8,7 +8,16 @@ html, body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", sans-serif;
   user-select: none; overscroll-behavior: none;
 }
-#app { max-width: 480px; margin: 0 auto; padding: 8px 9px 20px; position: relative; }
+#app { max-width: 480px; margin: 0 auto; padding: 8px 9px 70px; position: relative; }
+.page.hidden { display: none; }
+#page-char { padding-top: 4px; }
+/* 하단 네비 */
+#bnav { position: fixed; left: 0; right: 0; bottom: 0; max-width: 480px; margin: 0 auto; display: flex;
+  background: #100c14; border-top: 1px solid #2a1f28; z-index: 9; }
+.navtab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 9px 0 calc(9px + env(safe-area-inset-bottom));
+  background: transparent; color: var(--dim); border: none; font-size: 18px; }
+.navtab span { font-size: 10px; }
+.navtab.sel { color: var(--gold); }
 header { display: flex; align-items: center; justify-content: space-between; }
 h1 { font-size: 16px; margin: 2px 0; letter-spacing: .5px; }
 h1::first-letter { color: var(--crimson); }

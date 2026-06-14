@@ -230,6 +230,12 @@ const GEAR_I18N = {
   ru: { gTitle: "Снаряжение", gCraft: "Создать", gEquip: "Надеть", gEmpty: "Нет снаряжения", gFull: "Сумка полна (40)", gGot: "🔨 Создано: {x}", st_str: "СИЛ", st_int: "ИНТ", st_agi: "ЛОВ", st_luk: "УДЧ" },
 };
 for (const l in GEAR_I18N) Object.assign(I18N[l], GEAR_I18N[l]);
+Object.assign(I18N.ko, { navBattle: "전투", navChar: "캐릭터", navShop: "상점", navEvent: "이벤트", navSet: "설정" });
+Object.assign(I18N.en, { navBattle: "Battle", navChar: "Units", navShop: "Shop", navEvent: "Events", navSet: "Settings" });
+Object.assign(I18N.ja, { navBattle: "戦闘", navChar: "ユニット", navShop: "ショップ", navEvent: "イベント", navSet: "設定" });
+Object.assign(I18N.zh, { navBattle: "战斗", navChar: "角色", navShop: "商店", navEvent: "活动", navSet: "设置" });
+Object.assign(I18N.hi, { navBattle: "युद्ध", navChar: "यूनिट", navShop: "स्टोर", navEvent: "इवेंट", navSet: "सेटिंग" });
+Object.assign(I18N.ru, { navBattle: "Бой", navChar: "Юниты", navShop: "Магазин", navEvent: "События", navSet: "Настройки" });
 Object.assign(I18N.ko, { tBox: "🎁 선물상자: {x} 유닛!" }); Object.assign(I18N.en, { tBox: "🎁 Gift box: {x} unit!" }); Object.assign(I18N.ja, { tBox: "🎁 ギフト箱: {x}ユニット!" }); Object.assign(I18N.zh, { tBox: "🎁 礼盒: {x}单位!" }); Object.assign(I18N.hi, { tBox: "🎁 गिफ्ट: {x} यूनिट!" }); Object.assign(I18N.ru, { tBox: "🎁 Подарок: {x} юнит!" });
 
 // 전략 상성 설명

@@ -761,7 +761,6 @@ function resetProgress() {
   if (tg && tg.showConfirm) { tg.showConfirm(t("resetAsk"), (ok) => { if (ok) go(); }); }
   else if (confirm(t("resetAsk"))) go();
 }
-$("settings-btn").addEventListener("click", openSettings);
 $("settings-close").addEventListener("click", () => $("settings").classList.add("hidden"));
 $("set-sound").addEventListener("click", () => { META.sound = META.sound === false; saveMeta(); updateToggles(); });
 $("set-haptic").addEventListener("click", () => { META.haptic = META.haptic === false; saveMeta(); updateToggles(); });
@@ -803,7 +802,6 @@ function claimAttend() {
   toast(t("tAttend", { n: idx + 1 }), "#fbbf24"); haptic("medium"); SFX.claim();
   if (r.box) { const rar = boxPull(); saveMeta(); updateMeta(); $("event").classList.add("hidden"); setTimeout(() => showGacha(rar, t("tBox", { x: rar.key })), 450); }
 }
-$("event-btn").addEventListener("click", openEvent);
 $("event-close").addEventListener("click", () => $("event").classList.add("hidden"));
 $("attend-claim").addEventListener("click", claimAttend);
 
@@ -863,7 +861,6 @@ function buyPack(id) {
   saveMeta(); updateMeta(); renderShop();
   toast("🛒 " + (p.gem ? "💎+" + p.gem : "💰+" + p.g), "#fbbf24"); haptic("medium");
 }
-$("shop-btn").addEventListener("click", openShop);
 $("shop-close").addEventListener("click", () => $("shop").classList.add("hidden"));
 $("gacha10-btn").addEventListener("click", gacha10);
 
@@ -896,7 +893,7 @@ function ascend(type) {
   saveMeta(); updateMeta(); renderDash();
   toast("⭐ " + SPEC[type].glyph + " ★" + META.star[type], "#fbbf24"); SFX.ssr(); haptic("heavy");
 }
-function openDash() { renderDash(); $("dash").classList.remove("hidden"); }
+function openDash() { showPage("char"); renderDash(); }
 function renderDash() {
   if ($("dash-power")) $("dash-power").textContent = legionPower();
   if ($("dash-div")) $("dash-div").textContent = dividendGold();
@@ -962,10 +959,24 @@ function renderGear() {
     inv.querySelectorAll(".gup").forEach((b) => b.addEventListener("click", () => enhanceGear(+b.dataset.id)));
   }
 }
-$("dash-btn").addEventListener("click", openDash);
-$("dash-close").addEventListener("click", () => $("dash").classList.add("hidden"));
-$("dash-protect").addEventListener("click", () => { dashProtect = !dashProtect; renderDash(); });
-$("gear-craft").addEventListener("click", craftGear);
+// 안전 바인딩 헬퍼 (요소 없으면 무시 — null 크래시 방지)
+function on(id, ev, fn) { const e = $(id); if (e) e.addEventListener(ev, fn); }
+on("dash-protect", "click", () => { dashProtect = !dashProtect; renderDash(); });
+on("gear-craft", "click", craftGear);
+// ── 페이지 네비게이션 ──
+function showPage(p) {
+  document.querySelectorAll(".page").forEach((el) => el.classList.add("hidden"));
+  const pg = $("page-" + p); if (pg) pg.classList.remove("hidden");
+  document.querySelectorAll(".navtab").forEach((b) => b.classList.toggle("sel", b.dataset.p === p));
+}
+document.querySelectorAll(".navtab").forEach((b) => b.addEventListener("click", () => {
+  const p = b.dataset.p;
+  if (p === "char") { showPage("char"); renderDash(); }
+  else if (p === "shop") openShop();
+  else if (p === "event") openEvent();
+  else if (p === "settings") openSettings();
+  else showPage("battle");
+}));
 
 $("overlay-btn").addEventListener("click", reset);
 $("gacha-btn").addEventListener("click", gacha);
