@@ -762,13 +762,12 @@ function updateToggles() {
   if ($("set-sound")) { $("set-sound").textContent = META.sound === false ? "OFF" : "ON"; $("set-sound").classList.toggle("off", META.sound === false); }
   if ($("set-haptic")) { $("set-haptic").textContent = META.haptic === false ? "OFF" : "ON"; $("set-haptic").classList.toggle("off", META.haptic === false); }
 }
-function openSettings() { updateToggles(); $("settings").classList.remove("hidden"); }
+function openSettings() { updateToggles(); buildLangList(); showPage("settings"); }
 function resetProgress() {
-  const go = () => { try { localStorage.removeItem(META_KEY); } catch (e) {} META = loadMeta(); counts.p = META.army; applyStaticI18n(); updateHeroUI(); reset(); $("settings").classList.add("hidden"); toast(t("setResetOk"), "#fbbf24"); };
+  const go = () => { try { localStorage.removeItem(META_KEY); } catch (e) {} META = loadMeta(); counts.p = META.army; applyStaticI18n(); updateHeroUI(); reset(); showPage("battle"); toast(t("setResetOk"), "#fbbf24"); };
   if (tg && tg.showConfirm) { tg.showConfirm(t("resetAsk"), (ok) => { if (ok) go(); }); }
   else if (confirm(t("resetAsk"))) go();
 }
-$("settings-close").addEventListener("click", () => $("settings").classList.add("hidden"));
 $("set-sound").addEventListener("click", () => { META.sound = META.sound === false; saveMeta(); updateToggles(); });
 $("set-haptic").addEventListener("click", () => { META.haptic = META.haptic === false; saveMeta(); updateToggles(); });
 $("set-reset").addEventListener("click", resetProgress);
@@ -803,7 +802,7 @@ function openBox(tier) {
   const g = makeGear(b.gear); META.gear.push(g);              // 장비
   return { color: b.color, text: "🔨 " + (SLOT_ICON[g.slot] || "") + " " + g.rarity + " 장비", rank: g.rarity };
 }
-function openEvent() { renderAttend(); $("event").classList.remove("hidden"); }
+function openEvent() { renderAttend(); renderSeason(); showPage("event"); }
 function renderAttend() {
   const grid = $("attend-grid"); if (!grid) return;
   grid.innerHTML = "";
@@ -829,11 +828,9 @@ function claimAttend() {
   saveMeta(); updateMeta(); renderAttend();
   haptic("medium"); SFX.claim();
   if (boxRes) {
-    $("event").classList.add("hidden");
     setTimeout(() => showGacha({ key: boxRes.rank, color: boxRes.color }, boxRes.text), 400);
   } else toast(t("tAttend", { n: idx + 1 }), "#fbbf24");
 }
-$("event-close").addEventListener("click", () => $("event").classList.add("hidden"));
 $("attend-claim").addEventListener("click", claimAttend);
 
 // ── 이벤트/쿠폰 코드 (회원 배포용) ───────────────────────────────────────────
@@ -869,7 +866,7 @@ const SHOP = [
   { id: "gem3", gem: 1180, price: "₩19,900", tag: "+18%" },
   { id: "gold1", g: 6000, price: "₩1,100" },
 ];
-function openShop() { renderShop(); $("shop").classList.remove("hidden"); }
+function openShop() { renderShop(); showPage("shop"); }
 function renderShop() {
   const box = $("shop-list"); if (!box) return;
   box.innerHTML = "";
@@ -887,16 +884,34 @@ function renderShop() {
 function buyPack(id) {
   const p = SHOP.find((x) => x.id === id); if (!p) return;
   // TODO: 실제 결제 = tg.openInvoice (Stars). 지금은 데모 지급.
-  if (p.starter) { buyStarter(); $("shop").classList.add("hidden"); return; }
-  if (p.vip) { META.vip = true; META.starter = true; META.gems = (META.gems || 0) + 300; saveMeta(); updateMeta(); $("shop").classList.add("hidden"); toast(t("tVip"), "#fbbf24"); haptic("heavy"); return; }
-  if (p.ultra) { META.ultra = true; META.vip = true; META.starter = true; META.gems = (META.gems || 0) + 800; saveMeta(); updateMeta(); $("shop").classList.add("hidden"); toast(t("tUltra"), "#fbbf24"); haptic("heavy"); return; }
+  if (p.starter) { buyStarter(); return; }
+  if (p.vip) { META.vip = true; META.starter = true; META.gems = (META.gems || 0) + 300; saveMeta(); updateMeta(); toast(t("tVip"), "#fbbf24"); haptic("heavy"); return; }
+  if (p.ultra) { META.ultra = true; META.vip = true; META.starter = true; META.gems = (META.gems || 0) + 800; saveMeta(); updateMeta(); toast(t("tUltra"), "#fbbf24"); haptic("heavy"); return; }
   if (p.gem) META.gems = (META.gems || 0) + p.gem;
   if (p.g) META.gold += p.g;
   saveMeta(); updateMeta(); renderShop();
   toast("🛒 " + (p.gem ? "💎+" + p.gem : "💰+" + p.g), "#fbbf24"); haptic("medium");
 }
-$("shop-close").addEventListener("click", () => $("shop").classList.add("hidden"));
-$("gacha10-btn").addEventListener("click", gacha10);
+on("gacha10-btn", "click", gacha10);
+// 장비 뽑기 + 상점 뽑기 버튼 + 시즌 이벤트
+function gearGacha(count) {
+  const cost = count === 10 ? 250 : 30;
+  if ((META.gems || 0) < cost) { toast(t("tGemShort", { n: cost }), "#ef4444"); return; }
+  if (META.gear.length + count > 60) { toast(t("gFull"), "#ef4444"); return; }
+  META.gems -= cost;
+  const RK = { N: 0, R: 1, SR: 2, SSR: 3 }; let best = null;
+  for (let i = 0; i < count; i++) { const g = makeGear(); META.gear.push(g); if (!best || RK[g.rarity] > RK[best.rarity]) best = g; }
+  saveMeta(); updateMeta(); renderGear();
+  showGacha({ key: best.rarity, color: best.color }, "🔨 " + t("gTitle") + " ×" + count + " — best " + best.rarity);
+}
+function renderSeason() {
+  const box = $("season-list"); if (!box) return;
+  box.innerHTML = `<div class="seasoncard"><div class="sc-name">🏆 ${t("seasonSoon")}</div><div class="ddim">${t("seasonHint")}</div></div>`;
+}
+on("sg-char1", "click", gacha);
+on("sg-char10", "click", gacha10);
+on("sg-gear1", "click", () => gearGacha(1));
+on("sg-gear10", "click", () => gearGacha(10));
 
 // ── 대시보드: 도감 + 강화(실패확률·보호) + 승급(조합) ─────────────────────────
 const PROTECT_COST = 10;   // 💎
@@ -1055,7 +1070,7 @@ document.querySelectorAll(".navtab").forEach((b) => b.addEventListener("click", 
 }));
 
 $("overlay-btn").addEventListener("click", reset);
-$("gacha-btn").addEventListener("click", gacha);
+on("gacha-btn", "click", gacha);
 $("gacha-close").addEventListener("click", () => $("gacha").classList.add("hidden"));
 $("auto").addEventListener("click", toggleAuto);
 $("ult").addEventListener("click", doUlt);

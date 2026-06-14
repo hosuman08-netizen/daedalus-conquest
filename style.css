@@ -42,7 +42,15 @@ h1::first-letter { color: var(--crimson); }
 #attend-claim { width: 100%; padding: 12px; font-size: 15px; font-weight: 800; border-radius: 10px; background: linear-gradient(135deg, #f5c451, #d97706); color: #1a1400; }
 #attend-claim:disabled { background: #2a2530; color: var(--dim); }
 
-/* 캐시 상점 + 대시보드 */
+/* 상점 뽑기 버튼 + 시즌 */
+#shop-gacha { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 6px; }
+.gbig { padding: 14px 8px; font-size: 13px; font-weight: 800; border-radius: 10px; background: linear-gradient(135deg, #2a2f3d, #1a1f2a); color: var(--text); border: 1px solid #3a3550; }
+.gbig:active { transform: scale(.97); }
+#season-list { margin-bottom: 8px; }
+.seasoncard { background: #1c1620; border-radius: 10px; padding: 16px; text-align: center; border: 1px dashed #3a3550; }
+.sc-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+
+/* (구) 모달 — 일부 잔여 */
 #shop, #event, #dash { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 13; }
 #shop.hidden, #event.hidden, #dash.hidden { display: none; }
 #shop-card, #event-card, #dash-card { background: var(--panel); padding: 22px; border-radius: 16px; width: 340px; max-width: 92vw; max-height: 88vh; overflow-y: auto; border: 1px solid #3a1a1a; }

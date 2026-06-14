@@ -237,6 +237,12 @@ const GEAR_I18N = {
 };
 for (const l in GEAR_I18N) Object.assign(I18N[l], GEAR_I18N[l]);
 Object.assign(I18N.ko, { locked: "미보유", lockedHint: "뽑기로 획득하세요" }); Object.assign(I18N.en, { locked: "Locked", lockedHint: "Pull to unlock" }); Object.assign(I18N.ja, { locked: "未所持", lockedHint: "ガチャで入手" }); Object.assign(I18N.zh, { locked: "未拥有", lockedHint: "抽卡获得" }); Object.assign(I18N.hi, { locked: "लॉक", lockedHint: "गाचा से पाएं" }); Object.assign(I18N.ru, { locked: "Закрыто", lockedHint: "Откройте призывом" });
+Object.assign(I18N.ko, { evSeason: "시즌 이벤트", shopGacha: "뽑기", shopPack: "패키지 · 재화", seasonSoon: "시즌 이벤트 준비중", seasonHint: "곧 한정 이벤트·랭킹 보상이 열립니다" });
+Object.assign(I18N.en, { evSeason: "Season Event", shopGacha: "Summon", shopPack: "Packs · Currency", seasonSoon: "Season event soon", seasonHint: "Limited events & ranking rewards coming" });
+Object.assign(I18N.ja, { evSeason: "シーズンイベント", shopGacha: "ガチャ", shopPack: "パック · 通貨", seasonSoon: "シーズン準備中", seasonHint: "限定イベント・ランキング報酬が近日" });
+Object.assign(I18N.zh, { evSeason: "赛季活动", shopGacha: "抽卡", shopPack: "礼包 · 货币", seasonSoon: "赛季活动准备中", seasonHint: "限时活动与排名奖励即将开启" });
+Object.assign(I18N.hi, { evSeason: "सीज़न इवेंट", shopGacha: "समन", shopPack: "पैक · करेंसी", seasonSoon: "सीज़न इवेंट जल्द", seasonHint: "लिमिटेड इवेंट और रैंकिंग इनाम" });
+Object.assign(I18N.ru, { evSeason: "Сезонное событие", shopGacha: "Призыв", shopPack: "Наборы · Валюта", seasonSoon: "Сезон скоро", seasonHint: "Лимитные события и награды рейтинга" });
 Object.assign(I18N.ko, { navBattle: "전투", navChar: "캐릭터", navShop: "상점", navEvent: "이벤트", navSet: "설정" });
 Object.assign(I18N.en, { navBattle: "Battle", navChar: "Units", navShop: "Shop", navEvent: "Events", navSet: "Settings" });
 Object.assign(I18N.ja, { navBattle: "戦闘", navChar: "ユニット", navShop: "ショップ", navEvent: "イベント", navSet: "設定" });
