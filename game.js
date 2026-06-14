@@ -669,14 +669,7 @@ function showStarter() {
   if (META.starter) { toast(t("tOwned"), "#a3e635"); return; }
   $("starter").classList.remove("hidden");
 }
-function buyStarter() {
-  // TODO: 실제 결제는 텔레그램 Stars 연동 (tg.openInvoice). 지금은 데모 지급.
-  META.starter = true; META.gold += 3000;
-  for (let i = 0; i < 10; i++) { const u = ORDER[(Math.random() * 5) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; }  // 10연 효과
-  saveMeta(); updateMeta();
-  $("starter").classList.add("hidden");
-  toast(t("tStarter"), "#fbbf24");
-}
+function buyStarter() { buyPack("starter"); }   // 결제 경로 통일 (Stars 또는 데모)
 // ── 궁극기 (플레이어 직접 발동) ───────────────────────────────────────────────
 function updateUltBtn() {
   const b = $("ult"); if (!b) return;
@@ -989,10 +982,43 @@ function renderShop() {
     box.appendChild(c);
   });
 }
+// ── 💳 결제 (Telegram Stars) ─────────────────────────────────────────────────
+// PAY_BACKEND 비어있으면 데모 즉시지급. 채우면 봇 서버가 인보이스 발급 → tg.openInvoice → 결제확인 후 지급.
+const PAY_BACKEND = "";   // 예: "https://legion-pay.xxxx.workers.dev"
+const STARS = { starter: 50, weekly: 250, monthly: 750, vip: 1500, ultra: 5000, growth1: 500, growth2: 2500,
+                gem1: 55, gem2: 280, gem3: 1000, gem4: 2500, gold1: 55, gold2: 280, gold3: 1000 };
 function buyPack(id) {
   const p = SHOP.find((x) => x.id === id); if (!p) return;
-  // TODO: 실제 결제 = tg.openInvoice (Stars). 지금은 데모 지급.
-  if (p.starter) { buyStarter(); return; }
+  const stars = STARS[id] || 0;
+  if (!PAY_BACKEND || !tg || !tg.openInvoice || !stars) {   // 백엔드 미설정/텔레그램 밖 → 데모 지급
+    grantPack(id); if (!PAY_BACKEND) toast(t("payDemo"), "#8b93a7");
+    return;
+  }
+  payWithStars(id, stars);
+}
+function payWithStars(id, stars) {
+  let uid = 0; try { uid = ((tg.initDataUnsafe && tg.initDataUnsafe.user) || {}).id || 0; } catch (e) {}
+  toast(t("payOpening"), "#fbbf24");
+  fetch(PAY_BACKEND + "/invoice?item=" + encodeURIComponent(id) + "&stars=" + stars + "&uid=" + uid)
+    .then((r) => r.json())
+    .then((d) => {
+      if (!d || !d.link) throw new Error("no link");
+      tg.openInvoice(d.link, (status) => {
+        if (status === "paid") { grantPack(id); toast(t("payOk"), "#a3e635"); haptic("heavy"); }
+        else if (status === "failed") toast(t("payFail"), "#ef4444");
+        else toast(t("payCancel"), "#8b93a7");   // cancelled/pending
+      });
+    })
+    .catch(() => toast(t("payErr"), "#ef4444"));
+}
+function grantPack(id) {
+  const p = SHOP.find((x) => x.id === id); if (!p) return;
+  if (p.starter) {                                     // 💎 초심자: 골드3000 + 10연 효과
+    META.starter = true; META.gold += 3000;
+    for (let i = 0; i < 10; i++) { const u = ORDER[(Math.random() * 5) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; }
+    saveMeta(); updateMeta(); renderShop(); $("starter").classList.add("hidden");
+    toast(t("tStarter"), "#fbbf24"); haptic("heavy"); return;
+  }
   if (p.vip) {                                         // 👑 VIP: 4x속도·골드+50%·💎600·SR유닛 1체
     META.vip = true; META.starter = true; META.gems = (META.gems || 0) + 600;
     const u = grantUnit("SR");
