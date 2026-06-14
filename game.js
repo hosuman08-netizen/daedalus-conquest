@@ -1246,6 +1246,39 @@ function renderCodex() {
     return `<div class="cxc${has ? "" : " lock"}" data-id="${u.id}" style="border-color:${u.color}${has ? "" : "33"}"><div class="cxg">${has ? artHTML(u, "cxgly", "cxim") : "❔"}</div><div class="cxr" style="color:${u.color}">${u.rarity}</div></div>`;
   }).join("");
   grid.querySelectorAll(".cxc").forEach((c) => c.addEventListener("click", () => showUnit(+c.dataset.id)));
+  renderGearCodex();
+}
+let gdexFilter = "ALL";
+function renderGearCodex() {
+  const grid = $("gdex-grid"); if (!grid || typeof GEAR_ROSTER === "undefined") return;
+  const owned = new Set((META.gear || []).map((g) => g.tplId).filter((x) => x != null));
+  if ($("gdex-count")) $("gdex-count").textContent = owned.size + " / " + GEAR_ROSTER.length;
+  const fbar = $("gdex-filter");
+  if (fbar && !fbar.dataset.built) {
+    const opts = [["ALL", "ALL"], ["weapon", SLOT_ICON.weapon], ["armor", SLOT_ICON.armor], ["acc", SLOT_ICON.acc], ["relic", SLOT_ICON.relic], ["core", SLOT_ICON.core]];
+    fbar.innerHTML = opts.map(([k, lbl]) => `<button class="cfil" data-s="${k}">${lbl}</button>`).join("");
+    fbar.querySelectorAll(".cfil").forEach((b) => b.addEventListener("click", () => { gdexFilter = b.dataset.s; renderGearCodex(); }));
+    fbar.dataset.built = "1";
+  }
+  if (fbar) fbar.querySelectorAll(".cfil").forEach((b) => b.classList.toggle("on", b.dataset.s === gdexFilter));
+  const list = gdexFilter === "ALL" ? GEAR_ROSTER : GEAR_ROSTER.filter((g) => g.slot === gdexFilter);
+  grid.innerHTML = list.map((g) => {
+    const has = owned.has(g.id);
+    return `<div class="gxc${has ? "" : " lock"}" data-tid="${g.id}" style="border-color:${g.color}${has ? "" : "33"}"><div class="gxi">${has ? SLOT_ICON[g.slot] : "❔"}</div><div class="gxr" style="color:${g.color}">${g.rarity}</div></div>`;
+  }).join("");
+  grid.querySelectorAll(".gxc").forEach((c) => c.addEventListener("click", () => showGearDex(+c.dataset.tid)));
+}
+function showGearDex(tid) {
+  const g = GEAR_ROSTER.find((x) => x.id === tid); if (!g) return;
+  const has = new Set((META.gear || []).map((x) => x.tplId)).has(tid);
+  $("unit-card").style.borderColor = g.color;
+  $("unit-glyph").innerHTML = has ? SLOT_ICON[g.slot] : "❔";
+  $("unit-name").innerHTML = `<b style="color:${g.color}">[${g.rarity}]</b> ${has ? g.name : "???"}`;
+  $("unit-title").textContent = has ? t("st_" + SLOT_MAIN[g.slot]) || g.slot : t("locked");
+  $("unit-detail").innerHTML = has
+    ? STAT_KEYS.filter((k) => g[k]).map((k) => t("st_" + k) + " +" + g[k]).join(" · ")
+    : t("lockedHint");
+  $("unit-pop").classList.remove("hidden");
 }
 function showUnit(id) {
   const u = ROSTER.find((x) => x.id === id); if (!u) return;

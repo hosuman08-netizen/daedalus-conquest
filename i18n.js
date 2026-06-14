@@ -321,6 +321,10 @@ for (const l in PAY_I18N) Object.assign(I18N[l], PAY_I18N[l]);
 const MUSIC_I18N = { ko: "배경음악", en: "Music", ja: "BGM", zh: "背景音乐", hi: "संगीत", ru: "Музыка" };
 for (const l in MUSIC_I18N) I18N[l].setMusic = MUSIC_I18N[l];
 
+// 🛠️ 장비 도감 제목
+const GEARDEX_I18N = { ko: "장비 도감", en: "Gear Codex", ja: "装備図鑑", zh: "装备图鉴", hi: "गियर कोडेक्स", ru: "Кодекс снаряжения" };
+for (const l in GEARDEX_I18N) I18N[l].gearDexT = GEARDEX_I18N[l];
+
 let LANG = "ko";
 function detectLang() {
   let code = "";
