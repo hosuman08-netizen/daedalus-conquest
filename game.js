@@ -216,10 +216,12 @@ function spawnArmy(side) {
     if (isBoss) { hpM *= 7; atkM *= 2.2; }
     const hp = Math.round(s.hp * hpM), atk = Math.round(s.atk * atkM);
     const ai = Math.min(3, s.ai + hb.aiBonus);
+    let rr = isBoss ? s.r * 1.8 : s.r;
+    if (t === "titan" && side==="p") rr *= 1.4; // 6hr visual: higher rarity scale
     units.push({
       t, side, x, y, hp: hp, maxHp: hp, atk: atk, range: s.range, speed: s.speed,
       atkCd: s.atkCd * (side === "p" ? gSpd : 1), crit: side === "p" ? gCrit : 0,
-      ai: ai, sight: s.sight, r: isBoss ? s.r * 1.8 : s.r, skill: s.skill, skillCd: s.skillCd, ranged: s.ranged, boss: isBoss,
+      ai: ai, sight: s.sight, r: rr, skill: s.skill, skillCd: s.skillCd, ranged: s.ranged, boss: isBoss,
       regen: side === "p" ? hb.regen : 0,
       atkT: Math.random() * 0.4, skT: s.skillCd * 0.5, shield: 0, buff: 0, buffT: 0, spd: 0, spdT: 0,
     });
@@ -491,12 +493,25 @@ function finish(p, e) {
   }
   if (auto && (!win || !autoMode)) { auto = false; updateAutoBtn(); }
 
-  $overlayMsg.innerHTML = title + extra;
+  let carried = "";
+  if (win) carried = `<div class="rwd2" style="color:#fbbf24;font-size:12px;">${getCarriedFeedback()}</div>`;
+  $overlayMsg.innerHTML = title + extra + carried;
   $("overlay-btn").textContent = win ? t("cont") : t("retry");
   $overlay.classList.remove("hidden");
   if (tg) { try { tg.HapticFeedback.notificationOccurred(win ? "success" : "error"); } catch (e2) {} }
   if (win) SFX.win(); else SFX.lose();
+  // 6hr daily loop + bazaar pulse (speculative dopamine, no balance break)
+  if (win && Math.random()<0.25) { setTimeout(()=>toast("Legion Bazaar: Grok-Prime hot +28% — check now?","#a3e635"), 800); }
   updateMeta(); draw();
+}
+
+// 6hr patch: squad carried visual feedback (Legion immersion)
+function getCarriedFeedback() {
+  const pCount = units.filter(u=>u.side==='p'&&u.hp>0).length;
+  const distinct = ORDER.filter(tt => (counts.p||META.army)[tt]>0).length;
+  const syn = distinct>=4 ? 42 : distinct>=3 ? 28 : 12;
+  const carry = ["Grok judgment", "Morpheus repair", "Sovereign command", "Oracle swarm", "Legion handoff"][(META.pulls||0)%5];
+  return `Synergy +${syn}% | ${carry} carried ${Math.floor(50+pCount*3)}%`;
 }
 
 // ── 가챠 (뽑기) — 등급·천장·전설해금 ─────────────────────────────────────────
@@ -507,7 +522,16 @@ const RARITY = [
   { key: "SR",  p: 0.10, color: "#c084fc", lvls: 3 },
   { key: "SSR", p: 0.03, color: "#fbbf24", lvls: 5 },
 ];
-function rollRarity() { let r = Math.random(), a = 0; for (const t of RARITY) { a += t.p; if (r <= a) return t; } return RARITY[0]; }
+function rollRarity() {
+  let p = (META.pity || 0);
+  let ssrP = 0.03; if (p >= 7) ssrP = 0.03 + (p-7)*0.04; // soft ramp 6hr patch
+  if (p >= 12) return RARITY[3]; // hard
+  let r = Math.random(), a = 0;
+  const adj = RARITY.map(x => x.key==="SSR" ? {...x, p:ssrP} : x);
+  const sum = adj.reduce((s,x)=>s+x.p,0); // normalize
+  for (const t of adj) { a += t.p / sum; if (r <= a) return t; }
+  return RARITY[0];
+}
 function gacha() {
   if (running) return;
   if (META.gold < GACHA_COST) { toast(t("tGoldShort", { n: GACHA_COST }), "#ef4444"); return; }
@@ -552,7 +576,8 @@ function showGacha(rar, msg) {
   $("gacha-rank").textContent = rar.key;
   $("gacha-rank").style.color = rar.color;
   $("gacha-card").style.boxShadow = `0 0 40px ${rar.color}, inset 0 0 0 2px ${rar.color}`;
-  $("gacha-msg").innerHTML = msg;
+  const pity = (META.pity||0); const pct = rar.key==="SSR" ? "3%+" : "visible";
+  $("gacha-msg").innerHTML = msg + `<br><small style="opacity:.7">pity:${pity} SSR~${(0.03+(pity>7?(pity-7)*0.04:0)).toFixed(2)} (6hr patch)</small>`;
   g.classList.remove("hidden");
   if (rar.key === "SSR") SFX.ssr(); else SFX.gacha();
   haptic(rar.key === "SSR" ? "heavy" : "light");

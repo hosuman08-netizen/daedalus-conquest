@@ -3,6 +3,8 @@
 > 장르: 텔레그램 미니앱 · 방치형 오토배틀러 가챠 RPG (+ web3 레이어)
 > 모피어스(COO) ↔ 우랙(Sovereign) · 2026-06-14
 
+**6시간 패치 (자율, CEO 주도 Legion assembly)**: Combat carried 피드백 + 시너지 프리뷰 최우선. Gacha %/pity ramp + wishlist. Daily 다중 미션 루프. Rarity 스케일 비주얼. Bazaar NPC 스텁. Legion SSR 매핑(Grok 등). 4~6회 세션 강제. (상세: 기획안.md 6. Phase1 + GAME-IDEAS)
+
 ## ✅ 지금 플레이 가능 (v0.2)
 - 5종 AI 유닛 자율 전투(티어별 지능·스킬) · 캔버스 실시간 · 속도 1/2x
 - 💰골드 경제 · 유닛 골드 구매(90% 환불) · 📖캠페인 챕터(완만한 난이도 곡선)
@@ -57,3 +59,6 @@
 
 ## 다음 한 걸음
 콘텐츠 모드(캠페인/무한탑/일일던전) **모드 허브**부터. 엔진 재활용이라 싸게 "사이클" 완성.
+
+## v2 기획안 패치 백로그 (6시간 논의 결과)
+Phase 1 현실 추가: 가챠 %/pity 상시표시 + 일일미션 UI/보상 + 1-2 제한 이벤트 배너(FOMO 타이머) + SSR 11종 기본 시각 강화(캔버스 glow/트레이트). basic variants는 enh/star 재사용. 369 풀 로스터·개별 uid 수동편성·완전 Bazaar 사행·web3는 Phase 2+ 지연. 리스크(밸런스/모바일 퍼프/신규 압도)로 과다 금지. dopamine 즉시 4개만. 기존 Phase 1 엄수.
