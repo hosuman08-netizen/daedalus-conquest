@@ -294,6 +294,15 @@ const SOUL_I18N = {
   ru: { awNeedStar: "Пробуждение с ★3+", awMax: "Макс. пробуждение(✦3)", awSoulShort: "Мало душ! 🔮{n}", awDone: "Пробуждён ✦{n}! AI +1", soulShopT: "🔮 Алтарь душ", soulSSR: "Гарант. SSR", soulShort: "Мало душ! 🔮{n}", tSoulSSR: "🔮 Гарант. SSR: {x}!" },
 };
 for (const l in SOUL_I18N) Object.assign(I18N[l], SOUL_I18N[l]);
+const SOULHINT_I18N = {
+  ko: "🔮 소울은 보스만 드랍하는 희소 재화. 오직 ✦각성에만 사용 — 유닛 AI를 영리하게 만들고 초월(✦5)시킨다. 현질로 못 얻는 진짜 실력의 증표.",
+  en: "🔮 Souls drop only from bosses — rare. Used only for ✦Awakening: make units smarter (AI) and transcend (✦5). Can't be bought.",
+  ja: "🔮 ソウルはボス限定の希少素材。✦覚醒のみに使用 — AIを賢くし超越(✦5)。課金では入手不可。",
+  zh: "🔮 灵魂仅Boss掉落，稀有。只用于✦觉醒：让单位更聪明(AI)并超越(✦5)。无法购买。",
+  hi: "🔮 आत्मा केवल बॉस से — दुर्लभ। सिर्फ ✦जागृति हेतु: यूनिट को होशियार(AI) व पारलौकिक(✦5) बनाएँ। खरीदी नहीं जा सकती।",
+  ru: "🔮 Души падают только с боссов — редкость. Только для ✦Пробуждения: умнее (AI) и трансцендент (✦5). Нельзя купить.",
+};
+for (const l in SOULHINT_I18N) I18N[l].soulAwakHint = SOULHINT_I18N[l];
 
 // 캐시 상점 확장(패스·성장팩)
 const SHOP2_I18N = {
@@ -324,6 +333,17 @@ for (const l in MUSIC_I18N) I18N[l].setMusic = MUSIC_I18N[l];
 // 🛠️ 장비 도감 제목
 const GEARDEX_I18N = { ko: "장비 도감", en: "Gear Codex", ja: "装備図鑑", zh: "装备图鉴", hi: "गियर कोडेक्स", ru: "Кодекс снаряжения" };
 for (const l in GEARDEX_I18N) I18N[l].gearDexT = GEARDEX_I18N[l];
+
+// 🏆 챕터 마일스톤 해금
+const MS_I18N = {
+  ko: { ms_tower: "무한탑", ms_boss: "보스 모드", msReach: "{n}챕터 달성!", msUnlock: "해금", msCh: "챕터", msLocked: "🔒 {n}챕터에서 해금" },
+  en: { ms_tower: "Tower", ms_boss: "Boss Mode", msReach: "Chapter {n} reached!", msUnlock: "unlock", msCh: "ch", msLocked: "🔒 Unlocks at chapter {n}" },
+  ja: { ms_tower: "無限の塔", ms_boss: "ボスモード", msReach: "チャプター{n}達成!", msUnlock: "解放", msCh: "章", msLocked: "🔒 チャプター{n}で解放" },
+  zh: { ms_tower: "无限之塔", ms_boss: "Boss模式", msReach: "达成第{n}章!", msUnlock: "解锁", msCh: "章", msLocked: "🔒 第{n}章解锁" },
+  hi: { ms_tower: "मीनार", ms_boss: "बॉस मोड", msReach: "अध्याय {n} पूर्ण!", msUnlock: "अनलॉक", msCh: "अध्याय", msLocked: "🔒 अध्याय {n} पर अनलॉक" },
+  ru: { ms_tower: "Башня", ms_boss: "Босс", msReach: "Глава {n} достигнута!", msUnlock: "открытие", msCh: "гл", msLocked: "🔒 Открывается на главе {n}" },
+};
+for (const l in MS_I18N) Object.assign(I18N[l], MS_I18N[l]);
 
 let LANG = "ko";
 function detectLang() {

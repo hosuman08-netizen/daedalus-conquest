@@ -41,7 +41,16 @@ const SFX = {
   claim: () => { tone(196, 0.1, "triangle", 0.05); tone(700, 0.09, "square", 0.045); setTimeout(() => tone(1050, 0.13, "square", 0.055), 70); setTimeout(() => tone(1400, 0.1, "triangle", 0.04), 150); },
   hit:   () => tone(180 + Math.random() * 60, 0.05, "square", 0.025),
   equip: () => { tone(294, 0.08, "sawtooth", 0.04); setTimeout(() => tone(587, 0.1, "square", 0.045), 55); setTimeout(() => tone(880, 0.1, "triangle", 0.04), 120); },
+  // ⚔️ 전투 — 경쾌한 발사 "팡" + 묵직한 폭발 사망
+  shot:  () => tone(360 + Math.random() * 520, 0.045, "square", 0.018),
+  boom:  () => { tone(85, 0.14, "sawtooth", 0.045); tone(220 + Math.random() * 120, 0.08, "square", 0.03); },
 };
+let _popAt = 0;
+function combatPop() {                                  // 발사음 스로틀(과밀 방지)
+  const n = nowMs();
+  if (n - _popAt < 55) return;
+  _popAt = n; SFX.shot();
+}
 
 // ── 🎵 BGM (합성 루프, 에셋 없음) — A단조 4코드 아르페지오 + 베이스 ───────────────
 function ensureAudio() { try { if (!_actx) _actx = new (window.AudioContext || window.webkitAudioContext)(); if (_actx.state === "suspended") _actx.resume(); } catch (e) {} }
@@ -55,28 +64,51 @@ function bgmTone(freq, dur, type, vol) {
     o.stop(_actx.currentTime + dur);
   } catch (e) {}
 }
-const BGM_CHORDS = [[220.00, 261.63, 329.63], [174.61, 220.00, 261.63], [261.63, 329.63, 392.00], [196.00, 246.94, 293.66]];  // Am F C G (앤섬틱)
-const BGM_ARP = [0, 2, 1, 2];
+// 딥하우스 무드 코드 진행 (Am F G Em — 따뜻하고 그루비)
+const BGM_CHORDS = [[220.00, 261.63, 329.63], [174.61, 220.00, 261.63], [196.00, 246.94, 293.66], [164.81, 196.00, 246.94]];
 function bgmKick(vol) {   // 킥 드럼 — 주파수 급강하 펀치
   if (!_actx || (typeof META !== "undefined" && META && META.music === false)) return;
   try {
     const o = _actx.createOscillator(), g = _actx.createGain();
-    o.type = "sine"; o.frequency.setValueAtTime(150, _actx.currentTime); o.frequency.exponentialRampToValueAtTime(45, _actx.currentTime + 0.12);
-    g.gain.value = vol; g.gain.exponentialRampToValueAtTime(0.0001, _actx.currentTime + 0.17);
-    o.connect(g); g.connect(_actx.destination); o.start(); o.stop(_actx.currentTime + 0.18);
+    o.type = "sine"; o.frequency.setValueAtTime(155, _actx.currentTime); o.frequency.exponentialRampToValueAtTime(45, _actx.currentTime + 0.11);
+    g.gain.value = vol; g.gain.exponentialRampToValueAtTime(0.0001, _actx.currentTime + 0.18);
+    o.connect(g); g.connect(_actx.destination); o.start(); o.stop(_actx.currentTime + 0.19);
   } catch (e) {}
 }
-let bgmTimer = null, bgmStep = 0;
-function bgmTick() {
+function bgmHat(vol) {     // 하이햇 — 짧은 고음 틱
+  if (!_actx || (typeof META !== "undefined" && META && META.music === false)) return;
+  try {
+    const o = _actx.createOscillator(), g = _actx.createGain();
+    o.type = "square"; o.frequency.value = 7800; g.gain.value = vol;
+    g.gain.exponentialRampToValueAtTime(0.0001, _actx.currentTime + 0.035);
+    o.connect(g); g.connect(_actx.destination); o.start(); o.stop(_actx.currentTime + 0.04);
+  } catch (e) {}
+}
+let bgmTimer = null, bgmStep = 0, bgmAudio = null;
+function bgmTick() {       // 딥하우스: 4-on-floor 킥 + 오프비트 햇 + 딥 서브베이스 + 싱코페이션 코드 스탭
   const chord = BGM_CHORDS[(bgmStep >> 2) % BGM_CHORDS.length];
-  bgmTone(chord[BGM_ARP[bgmStep % 4]] * 2, 0.2, "sawtooth", 0.02);        // 밝은 쏘우 리드(옥타브 위)
-  if (bgmStep % 2 === 0) bgmTone(chord[0] / 2, 0.16, "triangle", 0.038);  // 드라이빙 8비트 베이스
-  if (bgmStep % 4 === 0) { bgmKick(0.07); bgmTone(chord[0], 0.42, "sine", 0.022); }   // 4-on-floor 킥 + 파워 루트
-  if (bgmStep % 8 === 2) bgmTone(chord[2] * 2, 0.18, "square", 0.012);    // 5도 보강 스월
+  if (bgmStep % 4 === 0) bgmKick(0.078);
+  if (bgmStep % 4 === 2) bgmHat(0.011);
+  if (bgmStep % 8 === 0) bgmTone(chord[0] / 2, 0.7, "sine", 0.04);                 // 딥 서브베이스
+  if (bgmStep % 4 === 1 || bgmStep % 4 === 3) bgmTone(chord[(bgmStep >> 1) % 3], 0.17, "triangle", 0.015);  // 코드 스탭
+  if (bgmStep % 16 === 10) bgmTone(chord[2] * 2, 0.5, "triangle", 0.012);          // 멜로딕 펜
   bgmStep = (bgmStep + 1) % 16;
 }
-function bgmStart() { if (bgmTimer || (META && META.music === false)) return; ensureAudio(); bgmStep = 0; bgmTimer = setInterval(bgmTick, 190); }
-function bgmStop() { if (bgmTimer) { clearInterval(bgmTimer); bgmTimer = null; } }
+function startSynthBgm() { if (bgmTimer || (META && META.music === false)) return; ensureAudio(); bgmStep = 0; bgmTimer = setInterval(bgmTick, 125); }  // ~120BPM
+function stopSynthBgm() { if (bgmTimer) { clearInterval(bgmTimer); bgmTimer = null; } }
+function bgmStart() {      // 실제 음원 audio/bgm.mp3 있으면 사용(로열티프리만!), 없으면 합성 딥하우스
+  if (META && META.music === false) return;
+  ensureAudio();
+  if (bgmAudio === null) {
+    try {
+      bgmAudio = new Audio("audio/bgm.mp3"); bgmAudio.loop = true; bgmAudio.volume = 0.45;
+      bgmAudio.addEventListener("error", () => { bgmAudio = false; startSynthBgm(); });
+    } catch (e) { bgmAudio = false; }
+  }
+  if (bgmAudio) { bgmAudio.play().then(() => stopSynthBgm()).catch(() => startSynthBgm()); }
+  else startSynthBgm();
+}
+function bgmStop() { stopSynthBgm(); if (bgmAudio && bgmAudio.pause) { try { bgmAudio.pause(); } catch (e) {} } }
 function audioUnlock() {
   ensureAudio();
   if (!(META && META.music === false)) bgmStart();
@@ -145,7 +177,8 @@ function loadMeta() {
                 gear: [], equip: {}, gearSeq: 0, owned: [],
                 play: { day: "", sec: 0, claimed: [] },
                 soul: 0, awak: { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 },
-                pass: { monthly: "", weekly: "" }, passClaim: { monthly: "", weekly: "" } };
+                pass: { monthly: "", weekly: "" }, passClaim: { monthly: "", weekly: "" },
+                milestones: [] };
   try {
     const m = JSON.parse(localStorage.getItem(META_KEY));
     if (m && typeof m === "object") {
@@ -166,6 +199,7 @@ function loadMeta() {
       merged.awak = Object.assign({}, def.awak, m.awak || {});
       merged.pass = Object.assign({}, def.pass, m.pass || {});
       merged.passClaim = Object.assign({}, def.passClaim, m.passClaim || {});
+      if (!Array.isArray(merged.milestones)) merged.milestones = [];
       if (typeof merged.gems !== "number") merged.gems = 50;
       if (!merged.mode || merged.mode === "daily") merged.mode = "campaign";
       if (!merged.tower || merged.tower < 1) merged.tower = 1;
@@ -190,8 +224,8 @@ function gearPower() {                                 // 장착 장비 전력 (
   return Math.round((gs.str + gs.int + gs.agi + gs.luk) * 5);
 }
 function legionPower() {
-  let p = 0; for (const t of ORDER) p += (META.army[t] || 0) * ((META.lv[t] || 0) + (META.enh[t] || 0) * 2 + (META.star[t] || 0) * 12 + (META.awak[t] || 0) * 30);
-  return p + gearPower();                              // ⚔️ 장비 + ✦각성 반영
+  let p = 0; for (const t of ORDER) p += (META.army[t] || 0) * ((META.lv[t] || 0) + (META.enh[t] || 0) * 2 + (META.star[t] || 0) * 12 + (META.awak[t] || 0) * 40);
+  return p + gearPower();                              // ⚔️ 장비 + ✦각성(40/✦) 반영
 }
 function dividendGold() { return Math.floor(legionPower() * 0.6); }
 
@@ -353,13 +387,52 @@ function updateMeta() {
 }
 
 // ── 모드 사이클 ───────────────────────────────────────────────────────────────
+// ── 🏆 챕터 마일스톤 (해금 + 보상) ────────────────────────────────────────────
+const MILESTONES = [
+  { ch: 2,  unlock: "tower", gem: 30 },
+  { ch: 5,  unlock: "boss",  gem: 50, box: "common" },
+  { ch: 8,  gem: 100 },
+  { ch: 12, gem: 120, box: "rare" },
+  { ch: 18, gem: 180 },
+  { ch: 25, gem: 250, box: "epic" },
+];
+const MODE_UNLOCK = { tower: 2, boss: 5 };               // 모드별 해금 챕터 (나머지는 항상)
+function modeUnlocked(m) { return !MODE_UNLOCK[m] || META.chapter >= MODE_UNLOCK[m]; }
+function checkMilestones() {
+  if (!Array.isArray(META.milestones)) META.milestones = [];
+  let any = false, delay = 600;
+  MILESTONES.forEach((ms) => {
+    if (META.chapter >= ms.ch && META.milestones.indexOf(ms.ch) < 0) {
+      META.milestones.push(ms.ch); any = true;
+      if (ms.gem) META.gems = (META.gems || 0) + ms.gem;
+      let boxRes = null; if (ms.box) boxRes = openBox(ms.box);
+      const rwd = (ms.unlock ? "🔓 " + t("ms_" + ms.unlock) + " " : "") + (ms.gem ? "💎" + ms.gem : "") + (boxRes ? " " + boxRes.text : "");
+      setTimeout(() => toast("🏆 " + t("msReach", { n: ms.ch }) + " · " + rwd, "#a855f7"), delay); delay += 1500;
+    }
+  });
+  if (any) { saveMeta(); updateMeta(); }
+}
+function renderMsHint() {
+  const el = $("ms-hint"); if (!el) return;
+  const next = MILESTONES.find((ms) => META.chapter < ms.ch);
+  if (!next) { el.style.display = "none"; return; }
+  el.style.display = "";
+  const rwd = (next.unlock ? t("ms_" + next.unlock) + " " + t("msUnlock") : "") + (next.gem ? (next.unlock ? " + " : "") + "💎" + next.gem : "");
+  el.innerHTML = "🎯 <b>" + next.ch + t("msCh") + "</b> · " + rwd;
+}
 function updateModeTabs() {
-  document.querySelectorAll(".modetab").forEach((b) => b.classList.toggle("sel", b.dataset.m === META.mode));
+  document.querySelectorAll(".modetab").forEach((b) => {
+    b.classList.toggle("sel", b.dataset.m === META.mode);
+    const locked = !modeUnlocked(b.dataset.m) || b.dataset.m === "turnbased" || b.dataset.m === "arena";
+    b.classList.toggle("locked", locked);
+  });
+  renderMsHint();
 }
 function setMode(m) {
   if (running) { toast(t("tNoSwitch"), "#ef4444"); return; }
   if (m === "turnbased") { toast(t("tComingTb"), "#a855f7"); return; }
   if (m === "arena") { toast(t("tComingAr"), "#a855f7"); return; }
+  if (!modeUnlocked(m)) { toast(t("msLocked", { n: MODE_UNLOCK[m] }), "#a855f7"); return; }
   META.mode = m; saveMeta(); reset();
 }
 
@@ -427,6 +500,7 @@ function step(u, dt) {
     dmg(tgt, u.atk + (u.buff || 0), u);
     u.atkT = u.atkCd;
     addFx(u.x, u.y, "shot", tgt.x, tgt.y, u.side);
+    combatPop();
   }
 }
 
@@ -438,7 +512,7 @@ function dmg(target, amount, from) {
   if (target.shield > 0) a *= 0.5;
   target.hp -= a;
   if (ctr) { addFx(target.x, target.y, "ctr"); if (Math.random() < 0.3) SFX.ctr(); }
-  if (target.hp <= 0) { addFx(target.x, target.y, "die", 0, 0, target.side); if (Math.random() < 0.5) SFX.die(); }
+  if (target.hp <= 0) { addFx(target.x, target.y, "die", 0, 0, target.side); if (Math.random() < 0.5) SFX.boom(); }
 }
 
 function addFx(x, y, kind, x2, y2, side) { fx.push({ x, y, kind, x2, y2, side, t: 0, life: kind === "shot" ? 0.12 : 0.45 }); }
@@ -466,18 +540,32 @@ function draw() {
 
   for (const u of units) {
     if (u.hp <= 0) continue;
-    ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 2, 0, 7);
-    ctx.fillStyle = u.side === "p" ? "#1e3a8a" : "#7f1d1d"; ctx.fill();
+    const teamEdge = u.side === "p" ? "#2950c0" : "#b02828";
+    const teamCore = u.side === "p" ? "#a9c8ff" : "#ffb4b4";
+    // 바닥 그림자 (입체감)
+    ctx.fillStyle = "rgba(0,0,0,0.32)"; ctx.beginPath(); ctx.ellipse(u.x, u.y + u.r + 2.5, u.r * 0.82, u.r * 0.32, 0, 0, 7); ctx.fill();
+    // 본체 — 방사형 그라데(왼쪽 위 하이라이트)
+    const grd = ctx.createRadialGradient(u.x - u.r * 0.35, u.y - u.r * 0.4, 1, u.x, u.y, u.r + 2.5);
+    grd.addColorStop(0, teamCore); grd.addColorStop(0.65, teamEdge); grd.addColorStop(1, u.side === "p" ? "#16265e" : "#5e1414");
+    ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 2.5, 0, 7); ctx.fillStyle = grd; ctx.fill();
     ctx.lineWidth = 2; ctx.strokeStyle = COL[u.side]; ctx.stroke();
-    if (u.shield > 0) { ctx.strokeStyle = "#67e8f9"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 4, 0, 7); ctx.stroke(); }
-    if (u.buff > 0)   { ctx.strokeStyle = "#a3e635"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 6, 0, 7); ctx.stroke(); }
+    if (u.boss)       { ctx.strokeStyle = "#fbbf24"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 5, 0, 7); ctx.stroke(); }
+    if (u.shield > 0) { ctx.strokeStyle = "#67e8f9"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 4.5, 0, 7); ctx.stroke(); }
+    if (u.buff > 0)   { ctx.strokeStyle = "#a3e635"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 6.5, 0, 7); ctx.stroke(); }
     ctx.font = (u.r + 5) + "px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.fillText(SPEC[u.t].glyph, u.x, u.y + 1);
-    const w = u.r * 2, hpw = w * Math.max(0, u.hp / u.maxHp);
-    ctx.fillStyle = "#000a"; ctx.fillRect(u.x - w / 2, u.y - u.r - 8, w, 4);
-    ctx.fillStyle = u.hp / u.maxHp > 0.4 ? "#4ade80" : "#f87171";
-    ctx.fillRect(u.x - w / 2, u.y - u.r - 8, hpw, 4);
+    // HP 바 — 둥근 배경 + 색상
+    const w = u.r * 2, hpr = Math.max(0, u.hp / u.maxHp), hpw = w * hpr, by = u.y - u.r - 8.5;
+    ctx.fillStyle = "rgba(0,0,0,0.55)"; rRect(u.x - w / 2 - 0.5, by - 0.5, w + 1, 4.5, 2); ctx.fill();
+    ctx.fillStyle = hpr > 0.5 ? "#4ade80" : hpr > 0.25 ? "#fbbf24" : "#f87171";
+    rRect(u.x - w / 2, by, hpw, 3.5, 1.6); ctx.fill();
   }
+}
+function rRect(x, y, w, h, r) {   // 둥근 사각형 path (HP바·UI)
+  r = Math.min(r, w / 2, h / 2); if (w < 0) w = 0;
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
 }
 
 function loop(ts) {
@@ -526,7 +614,7 @@ function finish(p, e) {
       reward = bonus(120 + META.chapter * 25);
       const gemR = 5 + Math.floor(META.chapter / 5);
       META.gems = (META.gems || 0) + gemR;
-      const soulR = 8 + Math.floor(META.chapter / 3);   // 난이도별 소울(각성 전용 재화)
+      const soulR = 2 + Math.floor(META.chapter / 6);   // 🔮 소울 — 희소(각성 전용 프리미엄)
       META.soul = (META.soul || 0) + soulR;
       const tier = META.chapter >= 25 ? "epic" : META.chapter >= 10 ? "rare" : "common";
       const bx = openBox(tier);
@@ -538,6 +626,7 @@ function finish(p, e) {
       if (META.chapter < 999) META.chapter += 1;
       title = t("rChapter");
       extra = `<div class="rwd">${t("rwGold", { n: reward })}` + (META.streak > 1 ? t("rwStreak", { n: META.streak }) : "") + `</div><div class="rwd2">${t("rwChapter", { n: META.chapter })}</div>`;
+      checkMilestones();                                 // 🏆 챕터 해금/보상
     }
     const div = dividendGold();                        // 복리 배당
     if (div > 0) { reward += div; extra += '<div class="rwd2">' + t("dDividend", { n: div }) + "</div>"; }
@@ -1163,26 +1252,13 @@ function ascend(type) {
   saveMeta(); updateMeta(); renderDash();
   toast("⭐ " + SPEC[type].glyph + " ★" + META.star[type], "#fbbf24"); SFX.ssr(); haptic("heavy");
 }
-const SOUL_SSR_COST = 500;
 function renderSoulAltar() {
   if ($("soul-have")) $("soul-have").textContent = "🔮 " + (META.soul || 0);
   const box = $("soul-altar"); if (!box) return;
-  const ok = (META.soul || 0) >= SOUL_SSR_COST;
-  box.innerHTML = '<button id="soul-ssr" class="gbig"' + (ok ? "" : " disabled") + '>💎 ' + t("soulSSR") + " · 🔮" + SOUL_SSR_COST + "</button>";
-  on("soul-ssr", "click", soulSSR);
+  box.innerHTML = '<div class="soulhint">' + t("soulAwakHint") + "</div>";
 }
-function soulSSR() {
-  if (running) return;
-  if ((META.soul || 0) < SOUL_SSR_COST) { toast(t("soulShort", { n: SOUL_SSR_COST }), "#ef4444"); return; }
-  META.soul -= SOUL_SSR_COST;
-  const gu = grantUnit("SSR");
-  saveMeta(); updateMeta(); renderDash();
-  haptic("heavy");
-  setTimeout(() => showGacha({ key: "SSR", color: "#fbbf24" }, "🔮 " + (gu ? gu.name : "SSR") + " (SSR)"), 200);
-  toast(t("tSoulSSR", { x: gu ? gu.name : "SSR" }), "#c084fc");
-}
-const AWAK_MAX = 3;
-function awakCost(type) { return 20 * ((META.awak[type] || 0) + 1); }   // 🔮 소울
+const AWAK_MAX = 5;                                                       // ✦5 초월
+function awakCost(type) { return 30 * Math.pow(2, META.awak[type] || 0); }   // 🔮 30·60·120·240·480 (급증)
 function awaken(type) {
   if (running) return;
   const aw = META.awak[type] || 0;
@@ -1256,7 +1332,7 @@ function renderCodex() {
   const list = codexFilter === "ALL" ? ROSTER : ROSTER.filter((u) => u.rarity === codexFilter);
   grid.innerHTML = list.map((u) => {
     const has = owned.has(u.id);
-    return `<div class="cxc${has ? "" : " lock"}" data-id="${u.id}" style="border-color:${u.color}${has ? "" : "33"}"><div class="cxg">${has ? artHTML(u, "cxgly", "cxim") : "❔"}</div><div class="cxr" style="color:${u.color}">${u.rarity}</div></div>`;
+    return `<div class="cxc r${u.rarity}${has ? "" : " lock"}" data-id="${u.id}" style="border-color:${u.color}${has ? "" : "33"}"><div class="cxg">${has ? artHTML(u, "cxgly", "cxim") : "❔"}</div><div class="cxr" style="color:${u.color}">${u.rarity}</div></div>`;
   }).join("");
   grid.querySelectorAll(".cxc").forEach((c) => c.addEventListener("click", () => showUnit(+c.dataset.id)));
   renderGearCodex();
@@ -1277,7 +1353,7 @@ function renderGearCodex() {
   const list = gdexFilter === "ALL" ? GEAR_ROSTER : GEAR_ROSTER.filter((g) => g.slot === gdexFilter);
   grid.innerHTML = list.map((g) => {
     const has = owned.has(g.id);
-    return `<div class="gxc${has ? "" : " lock"}" data-tid="${g.id}" style="border-color:${g.color}${has ? "" : "33"}"><div class="gxi">${has ? SLOT_ICON[g.slot] : "❔"}</div><div class="gxr" style="color:${g.color}">${g.rarity}</div></div>`;
+    return `<div class="gxc r${g.rarity}${has ? "" : " lock"}" data-tid="${g.id}" style="border-color:${g.color}${has ? "" : "33"}"><div class="gxi">${has ? SLOT_ICON[g.slot] : "❔"}</div><div class="gxr" style="color:${g.color}">${g.rarity}</div></div>`;
   }).join("");
   grid.querySelectorAll(".gxc").forEach((c) => c.addEventListener("click", () => showGearDex(+c.dataset.tid)));
 }
@@ -1406,4 +1482,5 @@ reset();
 checkIdle();
 checkDaily();
 checkPasses();
+checkMilestones();   // 🏆 기존 진행분 백필(해금/보상 누락 방지)
 updateAutoBtn();
