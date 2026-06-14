@@ -66,32 +66,43 @@ function bgmTone(freq, dur, type, vol) {
 }
 // 딥하우스 무드 코드 진행 (Am F G Em — 따뜻하고 그루비)
 const BGM_CHORDS = [[220.00, 261.63, 329.63], [174.61, 220.00, 261.63], [196.00, 246.94, 293.66], [164.81, 196.00, 246.94]];
-function bgmKick(vol) {   // 킥 드럼 — 주파수 급강하 펀치
+function bgmKick(vol) {   // 킥 — 폰 스피커에서도 들리게 미드 클릭 + 바디
   if (!_actx || (typeof META !== "undefined" && META && META.music === false)) return;
   try {
     const o = _actx.createOscillator(), g = _actx.createGain();
-    o.type = "sine"; o.frequency.setValueAtTime(155, _actx.currentTime); o.frequency.exponentialRampToValueAtTime(45, _actx.currentTime + 0.11);
-    g.gain.value = vol; g.gain.exponentialRampToValueAtTime(0.0001, _actx.currentTime + 0.18);
-    o.connect(g); g.connect(_actx.destination); o.start(); o.stop(_actx.currentTime + 0.19);
+    o.type = "triangle"; o.frequency.setValueAtTime(220, _actx.currentTime); o.frequency.exponentialRampToValueAtTime(55, _actx.currentTime + 0.1);
+    g.gain.value = vol; g.gain.exponentialRampToValueAtTime(0.0001, _actx.currentTime + 0.2);
+    o.connect(g); g.connect(_actx.destination); o.start(); o.stop(_actx.currentTime + 0.21);
   } catch (e) {}
 }
 function bgmHat(vol) {     // 하이햇 — 짧은 고음 틱
   if (!_actx || (typeof META !== "undefined" && META && META.music === false)) return;
   try {
     const o = _actx.createOscillator(), g = _actx.createGain();
-    o.type = "square"; o.frequency.value = 7800; g.gain.value = vol;
-    g.gain.exponentialRampToValueAtTime(0.0001, _actx.currentTime + 0.035);
-    o.connect(g); g.connect(_actx.destination); o.start(); o.stop(_actx.currentTime + 0.04);
+    o.type = "square"; o.frequency.value = 8200; g.gain.value = vol;
+    g.gain.exponentialRampToValueAtTime(0.0001, _actx.currentTime + 0.03);
+    o.connect(g); g.connect(_actx.destination); o.start(); o.stop(_actx.currentTime + 0.035);
+  } catch (e) {}
+}
+function bgmClap(vol) {    // 클랩/스네어 — 백비트 그루브 (다중 고음 버스트)
+  if (!_actx || (typeof META !== "undefined" && META && META.music === false)) return;
+  [0, 12, 24].forEach((ms) => setTimeout(() => { bgmHat(vol * 0.8); }, ms));
+  try {
+    const o = _actx.createOscillator(), g = _actx.createGain();
+    o.type = "square"; o.frequency.value = 1700; g.gain.value = vol;
+    g.gain.exponentialRampToValueAtTime(0.0001, _actx.currentTime + 0.07);
+    o.connect(g); g.connect(_actx.destination); o.start(); o.stop(_actx.currentTime + 0.08);
   } catch (e) {}
 }
 let bgmTimer = null, bgmStep = 0, bgmAudio = null;
-function bgmTick() {       // 딥하우스: 4-on-floor 킥 + 오프비트 햇 + 딥 서브베이스 + 싱코페이션 코드 스탭
+function bgmTick() {       // 딥하우스: 4-on-floor 킥 + 백비트 클랩 + 오프비트 햇 + 베이스 그루브 + 코드 스탭
   const chord = BGM_CHORDS[(bgmStep >> 2) % BGM_CHORDS.length];
-  if (bgmStep % 4 === 0) bgmKick(0.078);
-  if (bgmStep % 4 === 2) bgmHat(0.011);
-  if (bgmStep % 8 === 0) bgmTone(chord[0] / 2, 0.7, "sine", 0.04);                 // 딥 서브베이스
-  if (bgmStep % 4 === 1 || bgmStep % 4 === 3) bgmTone(chord[(bgmStep >> 1) % 3], 0.17, "triangle", 0.015);  // 코드 스탭
-  if (bgmStep % 16 === 10) bgmTone(chord[2] * 2, 0.5, "triangle", 0.012);          // 멜로딕 펜
+  if (bgmStep % 4 === 0) bgmKick(0.085);                                           // 킥 (매 박)
+  if (bgmStep % 8 === 4) bgmClap(0.02);                                            // 클랩 (2·4박)
+  if (bgmStep % 2 === 1) bgmHat(0.014);                                            // 오프비트 햇
+  if (bgmStep % 4 === 0) bgmTone(chord[0], 0.22, "sawtooth", 0.03);                // 들리는 베이스(루트)
+  if (bgmStep % 8 === 2 || bgmStep % 8 === 6) bgmTone(chord[(bgmStep >> 1) % 3], 0.16, "triangle", 0.02);  // 코드 스탭
+  if (bgmStep % 16 === 10) bgmTone(chord[2] * 2, 0.5, "triangle", 0.014);          // 멜로딕 펜
   bgmStep = (bgmStep + 1) % 16;
 }
 function startSynthBgm() { if (bgmTimer || (META && META.music === false)) return; ensureAudio(); bgmStep = 0; bgmTimer = setInterval(bgmTick, 125); }  // ~120BPM
@@ -1109,16 +1120,14 @@ function renderShop() {
   const box = $("shop-list"); if (!box) return;
   box.innerHTML = "";
   SHOP.forEach((p) => {
-    if (p.starter && META.starter) return;
-    if (p.vip && META.vip) return;
-    if (p.ultra && META.ultra) return;
-    const isPass = p.id === "monthly" || p.id === "weekly";
+    const owned = (p.starter && META.starter) || (p.vip && META.vip) || (p.ultra && META.ultra);
     const active = p.id === "monthly" ? passActive("monthly") : p.id === "weekly" ? passActive("weekly") : false;
-    const c = document.createElement("button"); c.className = "packcard" + (p.vip || p.ultra ? " vip" : "") + (p.k ? " grow" : "") + (active ? " active" : "");
+    const c = document.createElement("button"); c.className = "packcard" + (p.vip || p.ultra ? " vip" : "") + (p.k ? " grow" : "") + (active ? " active" : "") + (owned ? " owned" : "");
     const what = p.starter ? "💎 " + t("spTitle") : p.vip ? t("tVip") : p.ultra ? t("tUltra") : p.k ? t(p.k) : (p.gem ? "💎 " + p.gem : "💰 " + p.g);
     const sub = active ? '<div class="psub">✓ ~' + META.pass[p.id] + "</div>" : "";
-    c.innerHTML = (p.tag ? '<span class="ptag">' + p.tag + "</span>" : "") + '<div class="pwhat">' + what + "</div>" + sub + '<div class="pprice">' + p.price + "</div>";
-    c.addEventListener("click", () => buyPack(p.id));
+    const price = owned ? "✓ " + t("ownedShort") : p.price;  // 보유중이면 가격 대신 표시(사라지지 않게)
+    c.innerHTML = (p.tag ? '<span class="ptag">' + p.tag + "</span>" : "") + '<div class="pwhat">' + what + "</div>" + sub + '<div class="pprice">' + price + "</div>";
+    if (owned) c.disabled = true; else c.addEventListener("click", () => buyPack(p.id));
     box.appendChild(c);
   });
 }

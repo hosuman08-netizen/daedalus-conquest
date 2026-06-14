@@ -160,6 +160,8 @@ h1::first-letter { color: var(--crimson); }
 .packcard.vip { border-color: var(--gold); background: linear-gradient(135deg, #241a10, #1d1535); }
 .packcard.grow { border-color: #6d28d9; background: linear-gradient(135deg, #1e1626, #1d1535); }
 .packcard.active { border-color: #34d399; }
+.packcard.owned { opacity: .6; }
+.packcard.owned .pprice { color: #34d399; }
 .packcard .pwhat { flex: 1; text-align: left; margin-right: 8px; line-height: 1.3; }
 .packcard .psub { font-size: 10px; color: #34d399; font-weight: 700; margin-right: 8px; white-space: nowrap; }
 #settings-corner { flex: none; padding: 6px 9px; font-size: 15px; background: transparent; color: var(--dim); border: none; }
