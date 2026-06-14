@@ -56,6 +56,9 @@ h1::first-letter { color: var(--crimson); }
 .dai.ai2 { background: #1e2e3a; color: #67c2f5; }
 .dai.ai3 { background: #2e2410; color: var(--gold); }
 .dai em { font-style: normal; opacity: .8; font-size: 9px; }
+.dawk { font-size: 9px; font-weight: 800; color: #c084fc; margin-left: 3px; vertical-align: super; }
+.dawkb { background: linear-gradient(135deg, #a855f7, #6d28d9) !important; color: #fff !important; }
+.meta.soul i { color: #c084fc; }
 #dash-power.pop { animation: powerPop .45s ease; display: inline-block; }
 @keyframes powerPop { 0% { transform: scale(1); color: var(--gold); } 35% { transform: scale(1.5); color: #a3e635; text-shadow: 0 0 12px #a3e635; } 100% { transform: scale(1); } }
 .playrow { display: flex; align-items: center; gap: 8px; background: #1c1620; border-radius: 9px; padding: 8px 10px; margin-bottom: 6px; border: 1.5px solid transparent; }
@@ -131,6 +134,11 @@ h1::first-letter { color: var(--crimson); }
 .packcard .pwhat { font-size: 15px; font-weight: 700; }
 .packcard .pprice { font-size: 14px; font-weight: 800; color: var(--gold); }
 .packcard .ptag { position: absolute; top: -7px; left: 10px; font-size: 9px; font-weight: 900; background: var(--crimson); color: #fff; padding: 2px 6px; border-radius: 5px; }
+.packcard.vip { border-color: var(--gold); background: linear-gradient(135deg, #241a10, #1c1620); }
+.packcard.grow { border-color: #6d28d9; background: linear-gradient(135deg, #1e1626, #1c1620); }
+.packcard.active { border-color: #34d399; }
+.packcard .pwhat { flex: 1; text-align: left; margin-right: 8px; line-height: 1.3; }
+.packcard .psub { font-size: 10px; color: #34d399; font-weight: 700; margin-right: 8px; white-space: nowrap; }
 #settings-corner { flex: none; padding: 6px 9px; font-size: 15px; background: transparent; color: var(--dim); border: none; }
 #score { font-size: 15px; font-weight: 700; }
 #score .b { color: var(--blue); } #score .r { color: var(--red); }

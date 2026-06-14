@@ -284,6 +284,28 @@ const PROF_I18N = {
 };
 for (const l in PROF_I18N) Object.assign(I18N[l], PROF_I18N[l]);
 
+// 🔮 소울 / ✦ 각성 시스템
+const SOUL_I18N = {
+  ko: { awNeedStar: "★3 이상부터 각성 가능", awMax: "각성 최대치(✦3)", awSoulShort: "소울 부족! 🔮{n} 필요", awDone: "각성 ✦{n}! AI +1", soulShopT: "🔮 소울 제단", soulSSR: "확정 SSR 소환", soulShort: "소울 부족! 🔮{n}", tSoulSSR: "🔮 확정 SSR: {x}!" },
+  en: { awNeedStar: "Awaken needs ★3+", awMax: "Awaken maxed (✦3)", awSoulShort: "Not enough souls! 🔮{n}", awDone: "Awakened ✦{n}! AI +1", soulShopT: "🔮 Soul Altar", soulSSR: "Guaranteed SSR", soulShort: "Not enough souls! 🔮{n}", tSoulSSR: "🔮 Guaranteed SSR: {x}!" },
+  ja: { awNeedStar: "覚醒は★3以上", awMax: "覚醒最大(✦3)", awSoulShort: "ソウル不足! 🔮{n}", awDone: "覚醒 ✦{n}! AI +1", soulShopT: "🔮 ソウル祭壇", soulSSR: "確定SSR召喚", soulShort: "ソウル不足! 🔮{n}", tSoulSSR: "🔮 確定SSR: {x}!" },
+  zh: { awNeedStar: "觉醒需★3+", awMax: "觉醒已满(✦3)", awSoulShort: "灵魂不足! 🔮{n}", awDone: "觉醒 ✦{n}! AI +1", soulShopT: "🔮 灵魂祭坛", soulSSR: "保底SSR召唤", soulShort: "灵魂不足! 🔮{n}", tSoulSSR: "🔮 保底SSR: {x}!" },
+  hi: { awNeedStar: "जागृति ★3+ चाहिए", awMax: "जागृति पूर्ण(✦3)", awSoulShort: "आत्मा कम! 🔮{n}", awDone: "जागृत ✦{n}! AI +1", soulShopT: "🔮 आत्मा वेदी", soulSSR: "गारंटी SSR", soulShort: "आत्मा कम! 🔮{n}", tSoulSSR: "🔮 गारंटी SSR: {x}!" },
+  ru: { awNeedStar: "Пробуждение с ★3+", awMax: "Макс. пробуждение(✦3)", awSoulShort: "Мало душ! 🔮{n}", awDone: "Пробуждён ✦{n}! AI +1", soulShopT: "🔮 Алтарь душ", soulSSR: "Гарант. SSR", soulShort: "Мало душ! 🔮{n}", tSoulSSR: "🔮 Гарант. SSR: {x}!" },
+};
+for (const l in SOUL_I18N) Object.assign(I18N[l], SOUL_I18N[l]);
+
+// 캐시 상점 확장(패스·성장팩)
+const SHOP2_I18N = {
+  ko: { pkMonthly: "📅 월간 패스 · 즉시💎300 + 30일 매일💎100", pkWeekly: "📅 주간 패스 · 즉시💎100 + 7일 매일💎50", pkGrow1: "📦 성장 패키지 · 💰5만+💎200+SR장비×2", pkGrow2: "🎁 고급 성장팩 · 💰20만+💎800+SSR유닛+장비", passDaily: "패스 보상 💎+{n}", tMonthly: "📅 월간 패스 활성! 💎300 + 매일💎100", tWeekly: "📅 주간 패스 활성! 💎100 + 매일💎50", tGrowth: "🎁 성장 패키지 획득!" },
+  en: { pkMonthly: "📅 Monthly Pass · 💎300 now + 💎100/day×30", pkWeekly: "📅 Weekly Pass · 💎100 now + 💎50/day×7", pkGrow1: "📦 Growth Pack · 💰50k+💎200+2 SR gear", pkGrow2: "🎁 Premium Growth · 💰200k+💎800+SSR unit+gear", passDaily: "Pass reward 💎+{n}", tMonthly: "📅 Monthly Pass active! 💎300 + 💎100/day", tWeekly: "📅 Weekly Pass active! 💎100 + 💎50/day", tGrowth: "🎁 Growth pack acquired!" },
+  ja: { pkMonthly: "📅 月間パス · 即💎300 + 30日毎日💎100", pkWeekly: "📅 週間パス · 即💎100 + 7日毎日💎50", pkGrow1: "📦 成長パック · 💰5万+💎200+SR装備×2", pkGrow2: "🎁 上級成長パック · 💰20万+💎800+SSR", passDaily: "パス報酬 💎+{n}", tMonthly: "📅 月間パス有効! 💎300 + 毎日💎100", tWeekly: "📅 週間パス有効! 💎100 + 毎日💎50", tGrowth: "🎁 成長パック獲得!" },
+  zh: { pkMonthly: "📅 月卡 · 立即💎300 + 30天每日💎100", pkWeekly: "📅 周卡 · 立即💎100 + 7天每日💎50", pkGrow1: "📦 成长礼包 · 💰5万+💎200+SR装备×2", pkGrow2: "🎁 高级成长礼包 · 💰20万+💎800+SSR", passDaily: "通行证奖励 💎+{n}", tMonthly: "📅 月卡激活! 💎300 + 每日💎100", tWeekly: "📅 周卡激活! 💎100 + 每日💎50", tGrowth: "🎁 获得成长礼包!" },
+  hi: { pkMonthly: "📅 मासिक पास · तुरंत💎300 + 30दिन💎100/दिन", pkWeekly: "📅 साप्ताहिक पास · 💎100 + 7दिन💎50/दिन", pkGrow1: "📦 ग्रोथ पैक · 💰50k+💎200+2 SR गियर", pkGrow2: "🎁 प्रीमियम ग्रोथ · 💰200k+💎800+SSR", passDaily: "पास इनाम 💎+{n}", tMonthly: "📅 मासिक पास चालू! 💎300 + 💎100/दिन", tWeekly: "📅 साप्ताहिक पास चालू! 💎100 + 💎50/दिन", tGrowth: "🎁 ग्रोथ पैक मिला!" },
+  ru: { pkMonthly: "📅 Месячный пропуск · 💎300 + 💎100/день×30", pkWeekly: "📅 Недельный пропуск · 💎100 + 💎50/день×7", pkGrow1: "📦 Пакет роста · 💰50k+💎200+2 SR снаряги", pkGrow2: "🎁 Премиум рост · 💰200k+💎800+SSR", passDaily: "Награда пропуска 💎+{n}", tMonthly: "📅 Месячный активен! 💎300 + 💎100/день", tWeekly: "📅 Недельный активен! 💎100 + 💎50/день", tGrowth: "🎁 Пакет роста получен!" },
+};
+for (const l in SHOP2_I18N) Object.assign(I18N[l], SHOP2_I18N[l]);
+
 let LANG = "ko";
 function detectLang() {
   let code = "";

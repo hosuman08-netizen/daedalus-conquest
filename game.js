@@ -94,7 +94,9 @@ function loadMeta() {
                 enh: { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 },
                 star: { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 },
                 gear: [], equip: {}, gearSeq: 0, owned: [],
-                play: { day: "", sec: 0, claimed: [] } };
+                play: { day: "", sec: 0, claimed: [] },
+                soul: 0, awak: { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 },
+                pass: { monthly: "", weekly: "" }, passClaim: { monthly: "", weekly: "" } };
   try {
     const m = JSON.parse(localStorage.getItem(META_KEY));
     if (m && typeof m === "object") {
@@ -111,6 +113,10 @@ function loadMeta() {
       if (typeof merged.gearSeq !== "number") merged.gearSeq = 0;
       if (typeof merged.play !== "object" || !merged.play) merged.play = { day: "", sec: 0, claimed: [] };
       if (!Array.isArray(merged.play.claimed)) merged.play.claimed = [];
+      if (typeof merged.soul !== "number") merged.soul = 0;
+      merged.awak = Object.assign({}, def.awak, m.awak || {});
+      merged.pass = Object.assign({}, def.pass, m.pass || {});
+      merged.passClaim = Object.assign({}, def.passClaim, m.passClaim || {});
       if (typeof merged.gems !== "number") merged.gems = 50;
       if (!merged.mode || merged.mode === "daily") merged.mode = "campaign";
       if (!merged.tower || merged.tower < 1) merged.tower = 1;
@@ -135,8 +141,8 @@ function gearPower() {                                 // 장착 장비 전력 (
   return Math.round((gs.str + gs.int + gs.agi + gs.luk) * 5);
 }
 function legionPower() {
-  let p = 0; for (const t of ORDER) p += (META.army[t] || 0) * ((META.lv[t] || 0) + (META.enh[t] || 0) * 2 + (META.star[t] || 0) * 12);
-  return p + gearPower();                              // ⚔️ 장비 반영
+  let p = 0; for (const t of ORDER) p += (META.army[t] || 0) * ((META.lv[t] || 0) + (META.enh[t] || 0) * 2 + (META.star[t] || 0) * 12 + (META.awak[t] || 0) * 30);
+  return p + gearPower();                              // ⚔️ 장비 + ✦각성 반영
 }
 function dividendGold() { return Math.floor(legionPower() * 0.6); }
 
@@ -207,13 +213,14 @@ function spawnArmy(side) {
     const s = SPEC[t];
     // 아군: 가챠 레벨 + 영웅 패시브 / 적군: 레벨 스탯 배율 (+보스전 강화)
     const epm = side === "e" ? enemyPowerMul(curLevel) : 1;
-    const es = side === "p" ? (1 + (META.enh[t] || 0) * 0.06) * (1 + (META.star[t] || 0) * 0.25) : 1;   // 강화·승급
+    const aw = side === "p" ? (META.awak[t] || 0) : 0;                                                   // ✦ 각성(소울)
+    const es = side === "p" ? (1 + (META.enh[t] || 0) * 0.06) * (1 + (META.star[t] || 0) * 0.25) * (1 + aw * 0.35) : 1;   // 강화·승급·각성
     let hpM = (side === "p" ? lvMul(t, "hp") : epm) * hb.hpMul * (1 + (hb.typeHp[t] || 0)) * powerComp * es * gHp;
     let atkM = (side === "p" ? lvMul(t, "atk") : epm) * hb.atkMul * (1 + (hb.typeAtk[t] || 0)) * synMul * powerComp * es * gAtk;
     const isBoss = side === "e" && bossFight;
     if (isBoss) { hpM *= 7; atkM *= 2.2; }
     const hp = Math.round(s.hp * hpM), atk = Math.round(s.atk * atkM);
-    const ai = Math.min(3, s.ai + hb.aiBonus);
+    const ai = Math.min(3, s.ai + hb.aiBonus + aw);   // ✦ 각성마다 AI +1 (소울로만 가능)
     let rr = isBoss ? s.r * 1.8 : s.r;
     if (t === "titan" && side==="p") rr *= 1.4; // 6hr visual: higher rarity scale
     units.push({
@@ -281,6 +288,7 @@ function reset() {
 function updateMeta() {
   if ($("gold")) $("gold").textContent = META.gold;
   if ($("gems")) $("gems").textContent = META.gems || 0;
+  if ($("soul")) $("soul").textContent = META.soul || 0;
   if ($("chapter")) $("chapter").textContent = META.chapter;
   // 유닛 레벨 뱃지 + 타이탄 슬롯 노출
   ORDER.forEach((t) => {
@@ -465,14 +473,16 @@ function finish(p, e) {
       if (META.dailyDone !== today()) { reward = bonus(200 + META.chapter * 15); META.dailyDone = today(); extra = `<div class="rwd">${t("rwDailyBonus", { n: reward })}</div>`; }
       else { extra = `<div class="rwd2">${t("rwDailyDone")}</div>`; }
       title = t("rDaily");
-    } else if (m === "boss") {                          // 🐲 보스: 골드 + 난이도별 다이아 + 난이도별 박스
+    } else if (m === "boss") {                          // 🐲 보스: 골드 + 난이도별 다이아 + 박스 + 🔮소울
       reward = bonus(120 + META.chapter * 25);
       const gemR = 5 + Math.floor(META.chapter / 5);
       META.gems = (META.gems || 0) + gemR;
+      const soulR = 8 + Math.floor(META.chapter / 3);   // 난이도별 소울(각성 전용 재화)
+      META.soul = (META.soul || 0) + soulR;
       const tier = META.chapter >= 25 ? "epic" : META.chapter >= 10 ? "rare" : "common";
       const bx = openBox(tier);
       title = t("rBoss");
-      extra = `<div class="rwd">${t("rwBoss", { n: reward })} +💎${gemR}</div><div class="rwd2" style="color:${bx.color}">${BOX[tier].icon} ${bx.text}</div>`;
+      extra = `<div class="rwd">${t("rwBoss", { n: reward })} +💎${gemR} +🔮${soulR}</div><div class="rwd2" style="color:${bx.color}">${BOX[tier].icon} ${bx.text}</div>`;
     } else {                                            // 📖 캠페인: 다음 챕터
       META.streak = (META.streak || 0) + 1;
       reward = bonus(40 + META.chapter * 20 + Math.min(80, (META.streak - 1) * 10));
@@ -939,13 +949,28 @@ $("code-btn").addEventListener("click", redeemCode);
 // ── 캐시 상점 (별도, Stars 결제 자리 — 지금은 데모 지급) ─────────────────────
 const SHOP = [
   { id: "starter", starter: true, price: "₩990", tag: "BEST" },
+  { id: "monthly", k: "pkMonthly", price: "₩14,900", tag: "30일·💎" },
+  { id: "weekly", k: "pkWeekly", price: "₩4,900", tag: "7일·💎" },
   { id: "vip", vip: true, price: "₩29,900", tag: "VIP·4x·💎600" },
   { id: "ultra", ultra: true, price: "₩99,900", tag: "MAX·8x·SSR" },
+  { id: "growth1", k: "pkGrow1", price: "₩9,900", tag: "성장" },
+  { id: "growth2", k: "pkGrow2", price: "₩49,900", tag: "성장·SSR" },
   { id: "gem1", gem: 60, price: "₩1,100" },
   { id: "gem2", gem: 330, price: "₩5,500", tag: "+10%" },
   { id: "gem3", gem: 1180, price: "₩19,900", tag: "+18%" },
+  { id: "gem4", gem: 3200, price: "₩49,900", tag: "+25%" },
   { id: "gold1", g: 6000, price: "₩1,100" },
+  { id: "gold2", g: 35000, price: "₩5,500", tag: "+6%" },
+  { id: "gold3", g: 140000, price: "₩19,900", tag: "+18%" },
 ];
+function dayPlus(n) { try { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); } catch (e) { return ""; } }
+function passActive(kind) { return META.pass[kind] && today() <= META.pass[kind]; }
+function checkPasses() {                                // 활성 패스 = 매일 💎 자동 수령
+  let got = 0;
+  if (passActive("monthly") && META.passClaim.monthly !== today()) { META.gems = (META.gems || 0) + 100; META.passClaim.monthly = today(); got += 100; }
+  if (passActive("weekly") && META.passClaim.weekly !== today()) { META.gems = (META.gems || 0) + 50; META.passClaim.weekly = today(); got += 50; }
+  if (got) { saveMeta(); updateMeta(); toast("📅 " + t("passDaily", { n: got }), "#fbbf24"); }
+}
 function openShop() { renderShop(); showPage("shop"); }
 function renderShop() {
   const box = $("shop-list"); if (!box) return;
@@ -954,9 +979,12 @@ function renderShop() {
     if (p.starter && META.starter) return;
     if (p.vip && META.vip) return;
     if (p.ultra && META.ultra) return;
-    const c = document.createElement("button"); c.className = "packcard" + (p.vip || p.ultra ? " vip" : "");
-    const what = p.starter ? "💎 " + t("spTitle") : p.vip ? "👑 " + t("vipTitle") : p.ultra ? "🔱 " + t("ultraTitle") : (p.gem ? "💎 " + p.gem : "💰 " + p.g);
-    c.innerHTML = (p.tag ? '<span class="ptag">' + p.tag + "</span>" : "") + '<div class="pwhat">' + what + '</div><div class="pprice">' + p.price + "</div>";
+    const isPass = p.id === "monthly" || p.id === "weekly";
+    const active = p.id === "monthly" ? passActive("monthly") : p.id === "weekly" ? passActive("weekly") : false;
+    const c = document.createElement("button"); c.className = "packcard" + (p.vip || p.ultra ? " vip" : "") + (p.k ? " grow" : "") + (active ? " active" : "");
+    const what = p.starter ? "💎 " + t("spTitle") : p.vip ? "👑 " + t("vipTitle") : p.ultra ? "🔱 " + t("ultraTitle") : p.k ? t(p.k) : (p.gem ? "💎 " + p.gem : "💰 " + p.g);
+    const sub = active ? '<div class="psub">✓ ~' + META.pass[p.id] + "</div>" : "";
+    c.innerHTML = (p.tag ? '<span class="ptag">' + p.tag + "</span>" : "") + '<div class="pwhat">' + what + "</div>" + sub + '<div class="pprice">' + p.price + "</div>";
     c.addEventListener("click", () => buyPack(p.id));
     box.appendChild(c);
   });
@@ -979,6 +1007,29 @@ function buyPack(id) {
     saveMeta(); updateMeta(); renderShop();
     if (u) setTimeout(() => showGacha({ key: "SSR", color: "#fbbf24" }, "🔱 " + u.name + " (SSR) + " + (SLOT_ICON[g.slot] || "") + "SSR장비"), 300);
     toast(t("tUltra"), "#fbbf24"); haptic("heavy"); return;
+  }
+  if (p.id === "monthly") {                             // 📅 월간 패스: 즉시 💎300 + 30일 매일 💎100
+    META.pass.monthly = dayPlus(30); META.passClaim.monthly = ""; META.gems = (META.gems || 0) + 300;
+    saveMeta(); checkPasses(); updateMeta(); renderShop();
+    toast(t("tMonthly"), "#fbbf24"); haptic("heavy"); return;
+  }
+  if (p.id === "weekly") {                              // 📅 주간 패스: 즉시 💎100 + 7일 매일 💎50
+    META.pass.weekly = dayPlus(7); META.passClaim.weekly = ""; META.gems = (META.gems || 0) + 100;
+    saveMeta(); checkPasses(); updateMeta(); renderShop();
+    toast(t("tWeekly"), "#fbbf24"); haptic("heavy"); return;
+  }
+  if (p.id === "growth1") {                             // 📦 성장 패키지: 💰5만 + 💎200 + SR장비×2
+    META.gold += 50000; META.gems = (META.gems || 0) + 200;
+    for (let i = 0; i < 2; i++) { const g = newGear("SR"); META.gear.push(g); }
+    saveMeta(); updateMeta(); renderShop();
+    toast(t("tGrowth"), "#fbbf24"); haptic("heavy"); return;
+  }
+  if (p.id === "growth2") {                             // 🎁 고급 성장팩: 💰20만 + 💎800 + SSR유닛 + SSR장비
+    META.gold += 200000; META.gems = (META.gems || 0) + 800;
+    const u = grantUnit("SSR"); const g = newGear("SSR"); META.gear.push(g);
+    saveMeta(); updateMeta(); renderShop();
+    if (u) setTimeout(() => showGacha({ key: "SSR", color: "#fbbf24" }, "🎁 " + u.name + " (SSR) + " + (SLOT_ICON[g.slot] || "") + "SSR장비"), 300);
+    toast(t("tGrowth"), "#fbbf24"); haptic("heavy"); return;
   }
   if (p.gem) META.gems = (META.gems || 0) + p.gem;
   if (p.g) META.gold += p.g;
@@ -1035,6 +1086,37 @@ function ascend(type) {
   saveMeta(); updateMeta(); renderDash();
   toast("⭐ " + SPEC[type].glyph + " ★" + META.star[type], "#fbbf24"); SFX.ssr(); haptic("heavy");
 }
+const SOUL_SSR_COST = 500;
+function renderSoulAltar() {
+  if ($("soul-have")) $("soul-have").textContent = "🔮 " + (META.soul || 0);
+  const box = $("soul-altar"); if (!box) return;
+  const ok = (META.soul || 0) >= SOUL_SSR_COST;
+  box.innerHTML = '<button id="soul-ssr" class="gbig"' + (ok ? "" : " disabled") + '>💎 ' + t("soulSSR") + " · 🔮" + SOUL_SSR_COST + "</button>";
+  on("soul-ssr", "click", soulSSR);
+}
+function soulSSR() {
+  if (running) return;
+  if ((META.soul || 0) < SOUL_SSR_COST) { toast(t("soulShort", { n: SOUL_SSR_COST }), "#ef4444"); return; }
+  META.soul -= SOUL_SSR_COST;
+  const gu = grantUnit("SSR");
+  saveMeta(); updateMeta(); renderDash();
+  haptic("heavy");
+  setTimeout(() => showGacha({ key: "SSR", color: "#fbbf24" }, "🔮 " + (gu ? gu.name : "SSR") + " (SSR)"), 200);
+  toast(t("tSoulSSR", { x: gu ? gu.name : "SSR" }), "#c084fc");
+}
+const AWAK_MAX = 3;
+function awakCost(type) { return 20 * ((META.awak[type] || 0) + 1); }   // 🔮 소울
+function awaken(type) {
+  if (running) return;
+  const aw = META.awak[type] || 0;
+  if ((META.star[type] || 0) < 3) { toast(t("awNeedStar"), "#ef4444"); return; }
+  if (aw >= AWAK_MAX) { toast(t("awMax"), "#8b93a7"); return; }
+  const cost = awakCost(type);
+  if ((META.soul || 0) < cost) { toast(t("awSoulShort", { n: cost }), "#ef4444"); return; }
+  META.soul -= cost; META.awak[type] = aw + 1;
+  saveMeta(); updateMeta(); renderDash();
+  toast("✦ " + SPEC[type].glyph + " " + t("awDone", { n: aw + 1 }), "#c084fc"); SFX.ssr(); haptic("heavy");
+}
 function openDash() { showPage("char"); renderDash(); }
 function renderDash() {
   if ($("dash-power")) $("dash-power").textContent = legionPower();
@@ -1044,24 +1126,27 @@ function renderDash() {
     ORDER.forEach((type) => {
       if (type === "titan" && !META.titanOwned) return;
       const enh = META.enh[type] || 0, star = META.star[type] || 0, lv = META.lv[type] || 0, canAsc = enh >= 10;
+      const aw = META.awak[type] || 0;
       const baseAi = SPEC[type].ai;
       const hBonus = META.hero === "strategist" ? heroAiBonus(META.heroLv.strategist || 1) : 0;
-      const effAi = Math.min(3, baseAi + hBonus);
+      const effAi = Math.min(3, baseAi + hBonus + aw);
       const aiBadge = `<span class="dai ai${effAi}">🧠 AI Lv${effAi}${effAi > baseAi ? ` <em>↑${baseAi}</em>` : ""}</span>`;
+      const canAwk = star >= 3 && aw < AWAK_MAX;
       const c = document.createElement("div"); c.className = "dcard";
       c.innerHTML =
-        `<div class="dglyph">${SPEC[type].glyph}${star ? `<span class="dstar">★${star}</span>` : ""}</div>` +
-        `<div class="dinfo"><div class="dlv">Lv${lv} · <b>+${enh}</b> ${aiBadge}</div><div class="ddim">${t("dRate")} ${enhRate(type)}% · 💰${enhCost(type)}</div></div>` +
-        `<div class="dbtns"><button class="denh" data-t="${type}">${t("dEnhance")}</button>${canAsc ? `<button class="dasc" data-t="${type}">⭐</button>` : ""}</div>`;
+        `<div class="dglyph">${SPEC[type].glyph}${star ? `<span class="dstar">★${star}</span>` : ""}${aw ? `<span class="dawk">✦${aw}</span>` : ""}</div>` +
+        `<div class="dinfo"><div class="dlv">Lv${lv} · <b>+${enh}</b> ${aiBadge}</div><div class="ddim">${t("dRate")} ${enhRate(type)}% · 💰${enhCost(type)}${canAwk ? ` · ✦🔮${awakCost(type)}` : ""}</div></div>` +
+        `<div class="dbtns"><button class="denh" data-t="${type}">${t("dEnhance")}</button>${canAsc ? `<button class="dasc" data-t="${type}">⭐</button>` : ""}${canAwk ? `<button class="dawkb" data-t="${type}">✦</button>` : ""}</div>`;
       box.appendChild(c);
     });
     box.querySelectorAll(".denh").forEach((b) => b.addEventListener("click", () => enhance(b.dataset.t)));
     box.querySelectorAll(".dasc").forEach((b) => b.addEventListener("click", () => ascend(b.dataset.t)));
+    box.querySelectorAll(".dawkb").forEach((b) => b.addEventListener("click", () => awaken(b.dataset.t)));
   }
   const hbox = $("dash-heroes");
   if (hbox) hbox.innerHTML = HERO_ORDER.map((hk) => { const h = HEROES[hk], tr = tHero(hk); return '<div class="hrow">' + h.glyph + " <b>" + tr[0] + "</b> <span class=\"hcode\">" + h.rank + "</span> · 💥" + tUlt(h.ult) + "</div>"; }).join("");
   const pb = $("dash-protect"); if (pb) { pb.textContent = "💎 " + t("dProtect") + (dashProtect ? " ✓" : ""); pb.classList.toggle("on", dashProtect); }
-  renderGear(); renderCodex();
+  renderSoulAltar(); renderGear(); renderCodex();
 }
 // ── 캐릭터 도감 그리드 (229종 수집) ──────────────────────────────────────────
 let codexFilter = "ALL";
@@ -1204,4 +1289,5 @@ updateHeroUI();
 reset();
 checkIdle();
 checkDaily();
+checkPasses();
 updateAutoBtn();
