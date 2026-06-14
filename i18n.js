@@ -230,6 +230,7 @@ const GEAR_I18N = {
   ru: { gTitle: "Снаряжение", gCraft: "Создать", gEquip: "Надеть", gEmpty: "Нет снаряжения", gFull: "Сумка полна (40)", gGot: "🔨 Создано: {x}", st_str: "СИЛ", st_int: "ИНТ", st_agi: "ЛОВ", st_luk: "УДЧ" },
 };
 for (const l in GEAR_I18N) Object.assign(I18N[l], GEAR_I18N[l]);
+Object.assign(I18N.ko, { tBox: "🎁 선물상자: {x} 유닛!" }); Object.assign(I18N.en, { tBox: "🎁 Gift box: {x} unit!" }); Object.assign(I18N.ja, { tBox: "🎁 ギフト箱: {x}ユニット!" }); Object.assign(I18N.zh, { tBox: "🎁 礼盒: {x}单位!" }); Object.assign(I18N.hi, { tBox: "🎁 गिफ्ट: {x} यूनिट!" }); Object.assign(I18N.ru, { tBox: "🎁 Подарок: {x} юнит!" });
 
 // 전략 상성 설명
 const STRAT = {

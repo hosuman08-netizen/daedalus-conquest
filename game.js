@@ -743,7 +743,17 @@ $("set-haptic").addEventListener("click", () => { META.haptic = META.haptic === 
 $("set-reset").addEventListener("click", resetProgress);
 
 // ── 이벤트: 일일 출석 (7일 사이클, 골드+다이아) ──────────────────────────────
-const ATTEND = [{ g: 300 }, { g: 500 }, { gem: 30 }, { g: 1000 }, { g: 1500 }, { gem: 60 }, { g: 5000, gem: 150 }];
+const ATTEND = [{ g: 300 }, { g: 500 }, { gem: 30 }, { g: 1000 }, { g: 1500 }, { gem: 60 }, { g: 3000, gem: 100, box: 1 }];
+// 유닛 선물상자: 무료 랜덤 뽑기 1회
+function boxPull() {
+  META.pity = (META.pity || 0) + 1;
+  let rar = rollRarity();
+  if (META.pity >= 10) rar = RARITY[3];
+  if (rar.key === "SSR" || rar.key === "SR") META.pity = 0;
+  if (rar.key === "SSR" && !META.titanOwned) { META.titanOwned = true; counts.p.titan = 1; }
+  else { const pool = ORDER.filter((u) => u !== "titan" || META.titanOwned); for (let j = 0; j < rar.lvls; j++) { const u = pool[(Math.random() * pool.length) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; } }
+  return rar;
+}
 function openEvent() { renderAttend(); $("event").classList.remove("hidden"); }
 function renderAttend() {
   const grid = $("attend-grid"); if (!grid) return;
@@ -766,6 +776,7 @@ function claimAttend() {
   META.attend.day = (META.attend.day || 0) + 1; META.attend.last = today();
   saveMeta(); updateMeta(); renderAttend();
   toast(t("tAttend", { n: idx + 1 }), "#fbbf24"); haptic("medium"); SFX.claim();
+  if (r.box) { const rar = boxPull(); saveMeta(); updateMeta(); $("event").classList.add("hidden"); setTimeout(() => showGacha(rar, t("tBox", { x: rar.key })), 450); }
 }
 $("event-btn").addEventListener("click", openEvent);
 $("event-close").addEventListener("click", () => $("event").classList.add("hidden"));
@@ -939,7 +950,7 @@ $("ult").addEventListener("click", doUlt);
 $("hero-up").addEventListener("click", upgradeHero);
 $("starter-buy").addEventListener("click", buyStarter);
 $("starter-close").addEventListener("click", () => $("starter").classList.add("hidden"));
-$("starter-btn").addEventListener("click", showStarter);
+// (starter-btn은 상점으로 통합됨 — 더 이상 별도 버튼 없음)
 document.querySelectorAll(".modetab").forEach((b) => b.addEventListener("click", () => setMode(b.dataset.m)));
 document.querySelectorAll(".hbtn").forEach((b) => b.addEventListener("click", () => selectHero(b.dataset.h)));
 window.addEventListener("resize", () => { if (!running) reset(); });
