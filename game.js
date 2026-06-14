@@ -1223,6 +1223,12 @@ function grantUnit(rarity) {
   if (META.owned.indexOf(u.id) < 0) META.owned.push(u.id);
   return u;
 }
+// 캐릭터 아트: art/<slug>.png 있으면 표시, 없으면(404) 이모지 폴백 (onerror로 자동)
+function unitSlug(u) { return (u.name || u.arch || "").toLowerCase().replace(/[^a-z0-9가-힣]+/g, "-").replace(/^-|-$/g, ""); }
+function artHTML(u, glyphCls, imgCls) {
+  const g = `<span class="${glyphCls}">${u.glyph}</span>`;
+  return g + `<img class="${imgCls}" src="art/${unitSlug(u)}.png" alt="" loading="lazy" onerror="this.remove()">`;
+}
 function renderCodex() {
   const grid = $("codex-grid"); if (!grid || typeof ROSTER === "undefined") return;
   const owned = new Set(META.owned || []);
@@ -1237,7 +1243,7 @@ function renderCodex() {
   const list = codexFilter === "ALL" ? ROSTER : ROSTER.filter((u) => u.rarity === codexFilter);
   grid.innerHTML = list.map((u) => {
     const has = owned.has(u.id);
-    return `<div class="cxc${has ? "" : " lock"}" data-id="${u.id}" style="border-color:${u.color}${has ? "" : "33"}"><div class="cxg">${has ? u.glyph : "❔"}</div><div class="cxr" style="color:${u.color}">${u.rarity}</div></div>`;
+    return `<div class="cxc${has ? "" : " lock"}" data-id="${u.id}" style="border-color:${u.color}${has ? "" : "33"}"><div class="cxg">${has ? artHTML(u, "cxgly", "cxim") : "❔"}</div><div class="cxr" style="color:${u.color}">${u.rarity}</div></div>`;
   }).join("");
   grid.querySelectorAll(".cxc").forEach((c) => c.addEventListener("click", () => showUnit(+c.dataset.id)));
 }
@@ -1245,7 +1251,7 @@ function showUnit(id) {
   const u = ROSTER.find((x) => x.id === id); if (!u) return;
   const has = (META.owned || []).indexOf(id) >= 0;
   $("unit-card").style.borderColor = u.color;
-  $("unit-glyph").textContent = has ? u.glyph : "❔";
+  $("unit-glyph").innerHTML = has ? artHTML(u, "ucgly", "ucim") : "❔";
   $("unit-name").innerHTML = `<b style="color:${u.color}">[${u.rarity}]</b> ${has ? u.name : "???"}`;
   $("unit-title").textContent = has ? (u.title || u.arch) : t("locked");
   $("unit-detail").innerHTML = has

@@ -89,12 +89,16 @@ h1::first-letter { color: var(--crimson); }
 #codex-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 8px; max-height: 240px; overflow-y: auto; }
 .cxc { aspect-ratio: 1/1.2; background: #14101a; border: 1.5px solid; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
 .cxc.lock { opacity: .45; }
-.cxc .cxg { font-size: 22px; }
+.cxc .cxg { font-size: 22px; position: relative; width: 100%; flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 6px 6px 0 0; }
+.cxc .cxgly { line-height: 1; }
+.cxc .cxim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .cxc .cxr { font-size: 8px; font-weight: 900; }
 #unit-pop { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 15; }
 #unit-pop.hidden { display: none; }
 #unit-card { background: var(--panel); padding: 24px; border-radius: 16px; width: 280px; max-width: 88vw; text-align: center; border: 2px solid; animation: pop .3s ease-out; }
-#unit-glyph { font-size: 56px; }
+#unit-glyph { font-size: 56px; position: relative; width: 110px; height: 110px; margin: 0 auto; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 12px; }
+#unit-glyph .ucgly { line-height: 1; }
+#unit-glyph .ucim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
 #unit-name { font-size: 17px; font-weight: 800; margin: 6px 0 2px; }
 #unit-title { font-size: 13px; color: var(--dim); margin-bottom: 12px; }
 #unit-detail { font-size: 12.5px; color: var(--text); line-height: 1.7; text-align: left; margin-bottom: 14px; }
