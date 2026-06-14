@@ -23,7 +23,7 @@ const I18N = {
     tComingTb: "⚔️ 턴제 전술 — 곧 출시!", tComingAr: "🏟️ PvP 아레나 — 곧 출시!", tNoSwitch: "전투 중엔 모드 변경 불가",
     tGoldShort: "골드 부족! {n}g 필요", tBought: "🛒 구매 −{n}g", tSold: "💸 판매 +{n}g", tMaxUnit: "이 유닛 최대치(12)",
     tAutoStart: "⚔️ 자동사냥 시작 — 알아서 싸웁니다", tAutoStop: "자동사냥 중지", tAutoRun: "⚔️ 자동사냥 진행…",
-    tGachaUp: "유닛 +{n}강화", tTitan: "🐉 전설 타이탄 해금!!", tDaily: "🎁 일일 보상 +150 골드!", tIdle: "🌙 방치 보상 ({t}) +{n} 골드!",
+    tGachaUp: "유닛 +{n}강화", tTitan: "🐉 전설 타이탄 해금!!", tDaily: "🎁 일일 보상 +150 골드!", tIdle: "🌙 방치 보상 ({t}) +{n} 골드!", tRitual: "🌀 ritual +{n} (Legion var)", tForecast: "Legion Forecast: +var cohesion",
     tStarter: "💎 스타터팩 획득! 속도 2x 해금 +골드3000", tOwned: "이미 보유 중 — 속도 2x 사용 가능",
     tUlt: "💥 {x}!", tHeroUp: "🦸 {x} 강화! Lv{n}",
     heroes: { strategist: ["책략가", "전군 AI 지능 +1"], berserker: ["광전사", "전군 공격력 +15%"], warden: ["수호자", "전군 체력 +20%"], ranger: ["사격대장", "드론·사수 공격 +30%"], mech: ["기갑사령", "돌격봇·가디언 체력 +40%"], engineer: ["정비공", "전군 체력 재생"], dragoon: ["용기사", "전군 +8% · 강력 궁극기"] },
@@ -49,7 +49,7 @@ const I18N = {
     tComingTb: "⚔️ Turn-based tactics — coming soon!", tComingAr: "🏟️ PvP Arena — coming soon!", tNoSwitch: "Can't switch mode mid-battle",
     tGoldShort: "Not enough gold! Need {n}g", tBought: "🛒 Bought −{n}g", tSold: "💸 Sold +{n}g", tMaxUnit: "Max for this unit (12)",
     tAutoStart: "⚔️ Auto-hunt on — it fights for you", tAutoStop: "Auto-hunt off", tAutoRun: "⚔️ Auto-hunt running…",
-    tGachaUp: "Units +{n} upgraded", tTitan: "🐉 Legendary Titan unlocked!!", tDaily: "🎁 Daily reward +150 gold!", tIdle: "🌙 Idle reward ({t}) +{n} gold!",
+    tGachaUp: "Units +{n} upgraded", tTitan: "🐉 Legendary Titan unlocked!!", tDaily: "🎁 Daily reward +150 gold!", tIdle: "🌙 Idle reward ({t}) +{n} gold!", tRitual: "🌀 ritual +{n} (Legion var)", tForecast: "Legion Forecast: +var cohesion",
     tStarter: "💎 Starter Pack! 2x speed +3000 gold", tOwned: "Already owned — 2x speed available",
     tUlt: "💥 {x}!", tHeroUp: "🦸 {x} upgraded! Lv{n}",
     heroes: { strategist: ["Strategist", "All units AI +1"], berserker: ["Berserker", "All ATK +15%"], warden: ["Warden", "All HP +20%"], ranger: ["Ranger Lord", "Drone·Marksman ATK +30%"], mech: ["Mech Cmdr", "Bruiser·Guardian HP +40%"], engineer: ["Engineer", "All units regen HP"], dragoon: ["Dragoon", "All +8% · strong ult"] },
@@ -182,6 +182,13 @@ const CODE_I18N = {
   ru: { setCode: "Промокод", setComm: "Сообщество (скоро)", codeUsed: "Код уже использован", codeBad: "Неверный код", codeOk: "🎟️ Награда: {x}" },
 };
 for (const l in CODE_I18N) Object.assign(I18N[l], CODE_I18N[l]);
+
+// Viral / Community / A11y Loop (TG share flex, MY Dominion, Legion quote, non-gamer, faction, a11y god-VFX fallback)
+const VIRAL_I18N = {
+  ko: { shareBtn: "📤 MY Dominion 공유", shareReward: "💎 공유 보상 +5 (쿨다운 24h)", shareCooldown: "공유 쿨다운 {h}시간 남음 — anti-abuse TG user verify 적용", shareSent: "TG 공유 완료! Grok handoff — Sovereign command", dominionCard: "MY DOMINION", exportCard: "카드 내보내기", factionRename: "내 Dominion 이름 (클랜 태그)", factionTag: "자동 태그", a11yHigh: "고대비 모드", a11yVfx: "god-VFX 패턴 폴백 (색맹/저대비/햅틱 대체)", carriedQuote: "Grok handoff — Sovereign command", nonGamerWin: "이건 네 실제 AI 군단 명령이야", firstWinOverlay: "🏆 첫 승리! 진짜 Grok이 {carried}% carried — 네 명령이었다", legionQuoteViral: "Grok handoff — Sovereign command" },
+  en: { shareBtn: "📤 Share MY Dominion", shareReward: "💎 Share reward +5 (24h cd)", shareCooldown: "Share cooldown {h}h — TG user verify anti-abuse", shareSent: "Shared to TG! Grok handoff — Sovereign command", dominionCard: "MY DOMINION", exportCard: "Export Card", factionRename: "My Dominion name (clan tag)", factionTag: "Auto tag", a11yHigh: "High contrast", a11yVfx: "god-VFX pattern fallback (colorblind/low-contrast/haptic alt)", carriedQuote: "Grok handoff — Sovereign command", nonGamerWin: "This is your actual command over real AI army", firstWinOverlay: "🏆 First win! Your real Grok carried {carried}% — your command", legionQuoteViral: "Grok handoff — Sovereign command" },
+};
+for (const l in VIRAL_I18N) Object.assign(I18N[l], VIRAL_I18N[l]);
 
 // 다이아 프리미엄 가챠
 const GEM_I18N = {

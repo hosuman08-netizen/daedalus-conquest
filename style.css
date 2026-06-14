@@ -65,6 +65,8 @@ h1::first-letter { color: var(--crimson); }
 .dawk { font-size: 9px; font-weight: 800; color: #c084fc; margin-left: 3px; vertical-align: super; }
 .dawkb { background: linear-gradient(135deg, #a855f7, #6d28d9) !important; color: #fff !important; }
 .meta.soul i { color: #c084fc; }
+.meta.coh { color: #67e8f9; font-size: 12px; } .meta.coh i { color: #a5f3fc; }
+#ritual-orb { font-size:10px; }
 .soulhint { font-size: 11.5px; line-height: 1.5; color: #c4b5fd; background: linear-gradient(160deg, #241a3a, #16101f); border: 1px solid #3a2c5a; border-radius: 10px; padding: 10px 12px; }
 #dash-power.pop { animation: powerPop .45s ease; display: inline-block; }
 @keyframes powerPop { 0% { transform: scale(1); color: var(--gold); } 35% { transform: scale(1.5); color: #a3e635; text-shadow: 0 0 12px #a3e635; } 100% { transform: scale(1); } }
@@ -168,8 +170,8 @@ h1::first-letter { color: var(--crimson); }
 #score { font-size: 15px; font-weight: 700; }
 #score .b { color: var(--blue); } #score .r { color: var(--red); }
 
-#metabar { display: flex; align-items: center; gap: 8px; margin: 8px 0 4px; }
-.meta { background: var(--panel); border-radius: 8px; padding: 7px 10px; font-size: 13px; font-weight: 700; }
+#metabar { display: flex; align-items: center; gap: 5px; margin: 8px 0 4px; flex-wrap: wrap; }
+.meta { background: var(--panel); border-radius: 8px; padding: 6px 9px; font-size: 12.5px; font-weight: 700; flex: 1 1 auto; text-align: center; white-space: nowrap; }
 .meta.gold i { color: var(--gold); } .meta.ch i { color: #93c5fd; }
 #gacha-btn { flex: none; padding: 8px 12px; font-size: 13px; font-weight: 800;
   background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #2a1a00; border: none; border-radius: 9px; }
@@ -182,8 +184,8 @@ h1::first-letter { color: var(--crimson); }
 #settings { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 14; }
 #settings.hidden { display: none; }
 #settings-card { background: var(--panel); padding: 22px 22px; border-radius: 16px; width: 300px; max-width: 88vw; }
-.set-title { font-size: 19px; font-weight: 800; margin-bottom: 14px; }
-.set-sec { font-size: 13px; color: var(--dim); margin: 10px 0 6px; }
+.set-title { font-size: 19px; font-weight: 800; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #2c2142; }
+.set-sec { font-size: 13.5px; font-weight: 700; color: #cbbfe0; margin: 16px 0 8px; padding-left: 9px; border-left: 3px solid var(--purple); }
 #lang-list { display: flex; flex-wrap: wrap; gap: 6px; }
 .langbtn { flex: 0 0 auto; padding: 8px 12px; font-size: 13px; border-radius: 8px; background: #232838; color: var(--text); border: 1.5px solid transparent; }
 .langbtn.sel { border-color: var(--blue); background: #1e293b; color: #fff; }
@@ -196,6 +198,15 @@ h1::first-letter { color: var(--crimson); }
 .danger { width: 100%; margin-top: 12px; padding: 11px; background: #3a1414; color: #f87171; border-radius: 9px; font-size: 13px; }
 .set-ver { text-align: center; color: #6b7280; font-size: 11px; margin: 12px 0 8px; }
 #settings-card .ghost { width: 100%; background: transparent; color: var(--dim); padding: 8px; }
+
+/* A11y + Viral Reinforcement: god-VFX pattern fallback (colorblind/haptic alt/low contrast safe) + high contrast "멋지게" preserved (bold outline, stripes/dots not hue only) + Dominion profile card export style */
+.high-contrast { --text:#fff; --dim:#e2e8f0; --bg:#000; filter: contrast(1.25) brightness(1.1); }
+.high-contrast .cxc.rSSR, .high-contrast .gxc.rSSR { box-shadow: inset 0 0 0 3px #fff, 0 0 0 2px #fbbf24 !important; }
+.vfx-fallback .cxc.rSSR .cxgly, .vfx-fallback .gxc.rSSR .gxr, .vfx-fallback canvas { filter: none !important; background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.15) 0 4px, transparent 4px 10px); border: 3px solid #fff !important; outline: 2px solid #000; }
+.vfx-fallback .god-vfx { background: repeating-linear-gradient(135deg, #fbbf24 0 6px, #000 6px 12px); color:#fff; text-shadow: 0 0 0 #000, 1px 1px 0 #000; } /* pattern fallback "멋지게" preserved */
+.dominion-card { background: linear-gradient(160deg,#1a1330,#0b0714); border: 3px solid #fbbf24; border-radius:12px; padding:14px; text-align:center; font-weight:800; color:#fbbf24; box-shadow:0 0 18px rgba(245,196,81,.3); margin:8px 0; }
+.dominion-card .legion-quote { font-size:11px; color:#a3e635; margin-top:4px; border-top:1px dashed #473a63; padding-top:4px; }
+.share-toast { font-size:12px; }
 
 /* 스타터팩 모달 */
 #starter { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 12; }
@@ -263,7 +274,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 #65a30d88; } 50% { box-shadow: 0 0 0 4px #65a30d22; } }
 #controls button:active { transform: scale(.97); }
 
-#legend { margin-top: 9px; font-size: 10.5px; color: var(--dim); line-height: 1.6; text-align: center; }
+#legend { margin-top: 10px; font-size: 10px; color: #6f6685; line-height: 1.55; text-align: center; opacity: .8; }
 #legend small { color: #6b7280; font-size: 9.5px; } #legend b { color: var(--gold); }
 #heroes { margin: 6px 0 3px; padding: 6px 7px; }
 .hbtn { padding: 6px 0; font-size: 18px; }

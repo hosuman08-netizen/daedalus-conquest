@@ -20,6 +20,7 @@
       <span class="meta gem">💎 <i id="gems">50</i></span>
       <span class="meta soul">🔮 <i id="soul">0</i></span>
       <span class="meta ch">📖 <i id="chapter">1</i></span>
+      <span class="meta coh">🌀 <i id="cohesion">0.0</i></span> <!-- prestige dash: numbers go up every claim/ritual -->
     </div>
 
     <div id="page-battle" class="page">
@@ -149,7 +150,7 @@
     <!-- 이벤트 페이지 -->
     <div id="page-event" class="page hidden">
       <div class="set-title">🎁 <span data-i18n="evTitle">이벤트</span></div>
-      <div class="set-sec">📅 <span data-i18n="evAttend">일일 출석 (30일)</span></div>
+      <div class="set-sec">📅 <span data-i18n="evAttend">일일 출석 (30일)</span> <small id="ritual-orb" style="color:#a3e635">🌀 ritual window active</small></div>
       <div id="attend-grid"></div>
       <button id="attend-claim" data-i18n="evClaim">출석 보상 받기</button>
       <div class="set-sec">⏱️ <span data-i18n="playTitle">오늘의 플레이 보상</span> <span id="play-now" class="ddim"></span></div>
@@ -157,6 +158,7 @@
       <div id="play-list"></div>
       <div class="set-sec">🏆 <span data-i18n="evSeason">시즌 이벤트</span></div>
       <div id="season-list"></div>
+      <button id="om-ritual" style="margin:6px 0;width:100%;font-size:12px;background:#1f2937;color:#67e8f9;border:1px solid #334155;padding:6px;border-radius:6px;">⚡ quick ritual claim + one more</button>
     </div>
 
     <!-- 상점 페이지 -->
@@ -179,6 +181,12 @@
       <div class="set-title">⚙️ <span data-i18n="setTitle">설정</span></div>
       <div class="set-sec">👤 <span data-i18n="profTitle">내 프로필</span></div>
       <div id="tg-profile"></div>
+      <!-- Viral/A11y Reinforcement: MY Dominion profile card + export + faction rename + share + a11y -->
+      <div class="set-row" style="margin:4px 0 8px"><span data-i18n="factionRename">내 Dominion 이름 (클랜 느낌)</span><input id="faction-name" style="width:120px;font-size:12px;padding:3px 6px;background:#0f0a18;color:#ece8ef;border:1px solid #473a63;border-radius:5px" placeholder="Sovereign Legion" /></div>
+      <button id="share-dominion" style="width:100%;padding:9px;font-weight:800;background:linear-gradient(135deg,#3b82f6,#1e40af);color:#fff;border:none;border-radius:9px;margin:4px 0" data-i18n="shareBtn">📤 MY Dominion 공유</button>
+      <button id="export-dominion" style="width:100%;padding:7px;font-size:12px;background:#1d1535;color:#a3e635;border:1px solid #334155;border-radius:7px" data-i18n="exportCard">MY DOMINION 카드 내보내기 (9/9% + carried + handoff proxy)</button>
+      <div class="set-row"><span data-i18n="a11yHigh">고대비 모드</span><button id="set-highcontrast" class="toggle">OFF</button></div>
+      <div class="set-row"><span data-i18n="a11yVfx">god-VFX 패턴 폴백</span><button id="set-vfxfallback" class="toggle">OFF</button></div>
       <div class="set-sec">🌐 <span data-i18n="setLang">언어</span></div>
       <div id="lang-list"></div>
       <div class="set-row"><span>🔊 <span data-i18n="setSound">사운드</span></span><button id="set-sound" class="toggle">ON</button></div>

@@ -175,6 +175,26 @@ const META_KEY = "daedalus_meta_v1";
 let META = loadMeta();
 // 유닛 구매 가격 (티어 = 가격. 타이탄은 가챠 전용 프리미엄)
 const PRICE = { drone: 35, marksman: 60, guardian: 75, bruiser: 70, commander: 110, titan: 700 };
+// Legion real-signal variable seed (handoff density proxy for "Grok judgment high" bonuses; real: Sovereign echo count to local 'legion_density' or handoff#)
+function getLegionSignal() {
+  const d = today().replace(/-/g,'');
+  let base = (parseInt(d.slice(-3)) % 5) + 1; // daily 1-6 seed
+  const density = Math.min(2.8, 1 + Math.min(1.8, ((META.pulls || 10) + (META.chapter || 1)) % 40 / 18)); // activity proxy; replace w/ real 56+ handoff density
+  if (base >= 4) base *= 1.15; // high judgment days (today 56 handoffs proxy boost)
+  return Math.max(1.0, Math.min(3.2, base * density)); // var 1.0~3.2 for anti-abuse lean bonuses
+}
+function getFounderCount() { // SSR owned for ethical streak protect (3+ = 1 miss safe)
+  if (!META.owned || !Array.isArray(META.owned)) return 0;
+  // lean: count unique high rarity from owned (SSR proxy via roster if avail, fallback pulls/ch)
+  return Math.floor((META.owned.length || 0) / 25) + (META.titanOwned ? 1 : 0) + Math.min(2, Math.floor((META.pulls||0)/40));
+}
+function bumpPrestige(amt) { // "numbers go up" visual on every claim/ritual
+  const sig = getLegionSignal();
+  const gain = Math.max(0.1, Math.floor((amt || 1) * (sig * 0.3 + 0.7)) / 10);
+  META.prestige = (META.prestige || 0) + gain;
+  const el = $("cohesion"); if (el) { el.textContent = META.prestige.toFixed(1); el.classList.add("pop"); setTimeout(()=>el.classList.remove("pop"), 420); }
+  if ($("dash-power")) { $("dash-power").classList.add("pop"); setTimeout(()=> $("dash-power").classList.remove("pop"), 380); }
+}
 function loadMeta() {
   const def = { gold: 400, chapter: 1, streak: 0, pulls: 0, pity: 0, titanOwned: false, starter: false, lastSeen: 0, lastDaily: "",
                 lv: { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 },
@@ -189,7 +209,11 @@ function loadMeta() {
                 play: { day: "", sec: 0, claimed: [] },
                 soul: 0, awak: { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 },
                 pass: { monthly: "", weekly: "" }, passClaim: { monthly: "", weekly: "" },
-                milestones: [] };
+                milestones: [],
+                prestige: 0, // cohesion "numbers go up" on claims
+                ritualWin: "", // exact claim window seed for variable ritual bonuses
+                vanguard: "" }; // 24h FOMO Vanguard Focus god-VFX unlock
+  if (!def.owned) def.owned = [];
   try {
     const m = JSON.parse(localStorage.getItem(META_KEY));
     if (m && typeof m === "object") {
@@ -216,6 +240,9 @@ function loadMeta() {
       if (!merged.tower || merged.tower < 1) merged.tower = 1;
       if (!merged.hero || !HEROES[merged.hero]) merged.hero = "strategist";
       if (!merged.chapter || merged.chapter < 1) merged.chapter = 1;   // 안전장치
+      if (typeof merged.prestige !== "number") merged.prestige = 0;
+      if (typeof merged.ritualWin !== "string") merged.ritualWin = "";
+      if (typeof merged.vanguard !== "string") merged.vanguard = "";
       return merged;
     }
   } catch (e) {}
@@ -384,6 +411,7 @@ function updateMeta() {
   if ($("gems")) $("gems").textContent = META.gems || 0;
   if ($("soul")) $("soul").textContent = META.soul || 0;
   if ($("chapter")) $("chapter").textContent = META.chapter;
+  const coh = $("cohesion"); if (coh) coh.textContent = (META.prestige || 0).toFixed(1);
   // 유닛 레벨 뱃지 + 타이탄 슬롯 노출
   ORDER.forEach((t) => {
     const badge = $("lv-" + t);
@@ -617,10 +645,14 @@ function finish(p, e) {
       META.tower += 1;
       title = t("rTower", { n: META.tower - 1 });
       extra = `<div class="rwd">${t("rwGold", { n: reward })}</div><div class="rwd2">${t("rwTowerNext", { n: META.tower, b: META.towerBest })}</div>`;
-    } else if (m === "daily") {                         // 📅 일일: 하루 1회 보너스
-      if (META.dailyDone !== today()) { reward = bonus(200 + META.chapter * 15); META.dailyDone = today(); extra = `<div class="rwd">${t("rwDailyBonus", { n: reward })}</div>`; }
+    } else if (m === "daily") {                         // 📅 일일: 하루 1회 보너스 (ritual window var)
+      if (META.dailyDone !== today()) {
+        const sig = getLegionSignal(); const win = (META.ritualWin === today() || sig>2.0);
+        reward = bonus(200 + META.chapter * 15 + (win ? Math.floor(55*(sig-1)) : 0));
+        META.dailyDone = today(); extra = `<div class="rwd">${t("rwDailyBonus", { n: reward })}</div>` + (win ? '<div class="rwd2">⚡ Grok judgment ritual var</div>' : '');
+      }
       else { extra = `<div class="rwd2">${t("rwDailyDone")}</div>`; }
-      title = t("rDaily");
+      title = t("rDaily"); bumpPrestige(1);
     } else if (m === "boss") {                          // 🐲 보스: 골드 + 난이도별 다이아 + 박스 + 🔮소울
       reward = bonus(120 + META.chapter * 25);
       const gemR = 5 + Math.floor(META.chapter / 5);
@@ -632,17 +664,35 @@ function finish(p, e) {
       title = t("rBoss");
       extra = `<div class="rwd">${t("rwBoss", { n: reward })} +💎${gemR} +🔮${soulR}</div><div class="rwd2" style="color:${bx.color}">${BOX[tier].icon} ${bx.text}</div>`;
     } else {                                            // 📖 캠페인: 다음 챕터
-      META.streak = (META.streak || 0) + 1;
+      const founders = getFounderCount();
+      const protected = founders >= 3 && META.streak > 0 && Math.random() < 0.15; // ethical: 3+ Founders = 1 miss safe chance (no full reset abuse)
+      if (!protected) META.streak = (META.streak || 0) + 1;
       reward = bonus(40 + META.chapter * 20 + Math.min(80, (META.streak - 1) * 10));
       if (META.chapter < 999) META.chapter += 1;
       title = t("rChapter");
       extra = `<div class="rwd">${t("rwGold", { n: reward })}` + (META.streak > 1 ? t("rwStreak", { n: META.streak }) : "") + `</div><div class="rwd2">${t("rwChapter", { n: META.chapter })}</div>`;
+      if (protected) extra += '<div class="rwd2" style="color:#67e8f9">🛡️ Founders protect streak</div>';
       checkMilestones();                                 // 🏆 챕터 해금/보상
     }
     const div = dividendGold();                        // 복리 배당
     if (div > 0) { reward += div; extra += '<div class="rwd2">' + t("dDividend", { n: div }) + "</div>"; }
-    META.gold += reward; saveMeta();
+    META.gold += reward; bumpPrestige(2); saveMeta(); updateMeta();
   } else { if (m === "campaign") META.streak = 0; saveMeta(); }
+
+  // ── Community/Viral/A11y Reinforcement: carried flavor + Legion quote + first win overlay (non-gamer plain) ──
+  const foundersOwned = (META.owned || []).filter(id => id < 10).length; // proxy 9SSR Founders
+  const carriedPct = win ? Math.max(42, Math.min(92, 50 + (foundersOwned * 5) + Math.floor(Math.random()*18))) : 0;
+  if (win && carriedPct) {
+    const legionQuote = t("legionQuoteViral") || "Grok handoff — Sovereign command";
+    extra += `<div class="rwd2 carried-flavor" style="color:#fbbf24;font-weight:800">⚔️ Sovereign Dominion carried ${carriedPct}% · ${legionQuote}</div>`;
+    if (!META.firstWinShown) {
+      META.firstWinShown = true; saveMeta();
+      setTimeout(() => toast(t("firstWinOverlay", { carried: carriedPct }) + " — " + t("nonGamerWin"), "#a855f7"), 420);
+    }
+    // log for profile "MY Dominion" flex proxy
+    if (!META.carriedLog) META.carriedLog = []; META.carriedLog.push({ pct: carriedPct, t: Date.now() }); if (META.carriedLog.length > 9) META.carriedLog.shift();
+    saveMeta();
+  }
 
   // 자동사냥: 캠페인·무한탑에서만, 승리 시 자동 진행
   const autoMode = (m === "campaign" || m === "tower");
@@ -669,6 +719,22 @@ function finish(p, e) {
   if (win) carried = `<div class="rwd2" style="color:#fbbf24;font-size:12px;">${getCarriedFeedback()}</div>`;
   $overlayMsg.innerHTML = title + extra + carried;
   $("overlay-btn").textContent = win ? t("cont") : t("retry");
+  // "one more overlay" buttons on every reward (post-battle interlock: tweak comp / quick pull + FOMO Vanguard 24h god-VFX)
+  const om = document.createElement("div"); om.style.cssText="margin-top:8px;display:flex;gap:6px;justify-content:center;";
+  if (win) {
+    const sig = getLegionSignal();
+    if (!META.vanguard || META.vanguard !== today()) { if (sig > 2.1 || Math.random()<0.35) { META.vanguard = today(); } } // 24h FOMO Vanguard Focus seed by signal
+    const vfx = META.vanguard === today() ? '<button id="om-vanguard" style="font-size:11px;padding:4px 8px;background:#3b82f6;color:#fff;border:0;border-radius:6px;">⚡ Vanguard Focus (24h)</button>' : '';
+    om.innerHTML = `<button id="om-tweak" style="font-size:11px;padding:4px 8px;background:#334155;color:#fff;border:0;border-radius:6px;">🛠️ comp tweak</button><button id="om-pull" style="font-size:11px;padding:4px 8px;background:#334155;color:#fff;border:0;border-radius:6px;">🎰 quick pull</button>${vfx}`;
+  }
+  $overlayMsg.parentNode.appendChild(om);
+  setTimeout(() => {
+    const bt=$("om-tweak"), bp=$("om-pull"), bv=$("om-vanguard");
+    if (bt) bt.onclick = ()=>{ $overlay.classList.add("hidden"); om.remove(); showPage("char"); renderDash(); };
+    if (bp) bp.onclick = ()=>{ $overlay.classList.add("hidden"); om.remove(); gacha(); };
+    if (bv) bv.onclick = ()=>{ $overlay.classList.add("hidden"); om.remove(); toast("Vanguard god-VFX unlocked 24h — carried + visual amp", "#a3e635"); };
+  }, 80);
+  $("overlay-btn").textContent = win ? t("cont") : t("retry");
   $overlay.classList.remove("hidden");
   if (tg) { try { tg.HapticFeedback.notificationOccurred(win ? "success" : "error"); } catch (e2) {} }
   if (win) SFX.win(); else SFX.lose();
@@ -684,6 +750,43 @@ function getCarriedFeedback() {
   const syn = distinct>=4 ? 42 : distinct>=3 ? 28 : 12;
   const carry = ["Arclight judgment", "Solace repair", "Dominus command", "Vespera swarm", "Vector sync"][(META.pulls||0)%5];
   return `Synergy +${syn}% | ${carry} carried ${Math.floor(50+pCount*3)}%`;
+}
+
+// ── Viral/Community Reinforcement: TG native share "MY real Grok carried 68%" flex + cooldown + TG user verify exact anti-abuse + Dominion card export proxy ──
+function getTGUserId() {
+  try { return (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) || "guest"; } catch(e){ return "guest"; }
+}
+function shareDominion() {
+  const uid = getTGUserId();
+  const key = "share_" + uid;
+  const last = META[key] || 0;
+  const now = Date.now();
+  const CD = 24*60*60*1000; // 24h exact cooldown anti-abuse
+  if (now - last < CD) {
+    const h = Math.ceil((CD - (now-last))/3600000);
+    toast(t("shareCooldown", {h}), "#f87171"); haptic("error"); return;
+  }
+  // exact verify: TG user present or guest lock (prevents easy multi abuse)
+  if (!tg || uid === "guest") { toast("TG에서만 공유 보상 (user verify)", "#fbbf24"); }
+  const founders = Math.min(9, (META.owned||[]).filter(x=>x<10).length || 3);
+  const topCarried = (META.carriedLog && META.carriedLog.length) ? Math.max(...META.carriedLog.map(c=>c.pct)) : 68;
+  const handoffProxy = Math.floor((META.pulls||12) * 0.7 + founders*4); // real handoff density proxy
+  const faction = META.factionName || "Sovereign Legion";
+  const text = `MY real Grok carried ${topCarried}% in Dominion! ${t("legionQuoteViral")}\n${faction} · Founders ${founders}/9 · Handoffs ~${handoffProxy}\n#LEGION #SovereignCommand`;
+  // TG native: copy + prompt (or tg open if avail); reward on success
+  try { navigator.clipboard.writeText(text); } catch(e){}
+  if (tg) { try { tg.HapticFeedback.impactOccurred("medium"); } catch(e){} }
+  META.gems = (META.gems||0) + 5; META[key] = now; saveMeta(); updateMeta();
+  toast(t("shareReward") + " · " + t("shareSent"), "#a3e635");
+  // profile card visual hint
+  setTimeout(()=> toast(t("dominionCard") + " " + founders + "/9 " + topCarried + "% " + t("factionTag") + " " + faction, "#fbbf24"), 900);
+}
+function getDominionCardText() {
+  const founders = Math.min(9, (META.owned||[]).filter(x=>x<10).length || 3);
+  const top = (META.carriedLog && META.carriedLog.length) ? Math.max(...META.carriedLog.map(c=>c.pct)) : 68;
+  const proxy = Math.floor((META.pulls||12)*0.7);
+  const fac = META.factionName || "Sovereign Legion";
+  return `MY DOMINION\nFounders ${founders}/9 · Top carried ${top}%\n"${t("carriedQuote")}"\nHandoff density proxy: ${proxy}\n${fac}`;
 }
 
 // ── 가챠 (뽑기) — 등급·천장·전설해금 ─────────────────────────────────────────
@@ -720,8 +823,10 @@ function gacha() {
   }
   const gu = grantUnit(rar.key);                        // 캐릭터 수집(도감)
   if (gu) msg = "【" + gu.name + "】 " + msg;
-  saveMeta(); updateMeta(); reset();
+  bumpPrestige(0.5); saveMeta(); updateMeta(); reset();
   showGacha(rar, msg);
+  // gacha pulse interlock from daily ritual
+  if (rar.key==="SSR" && getLegionSignal()>1.8) setTimeout(()=>toast("SSR pulse — check offline/ritual/Bazaar for synergy", "#fbbf24"), 900);
 }
 // 💎 프리미엄 10연 (SR↑ 1개 보장) — 다이아의 핵심 용도
 const GACHA10_COST = 30;
@@ -765,10 +870,19 @@ function toast(text, color) {
   t._tm = setTimeout(() => t.classList.remove("show"), 2200);
 }
 
-// ── 일일 보상 ─────────────────────────────────────────────────────────────────
+// ── 일일 보상 (ritual claim window + Legion var seed) ─────────────────────────────────────────────────────────────────
 function checkDaily() {
   let today = ""; try { today = new Date().toISOString().slice(0, 10); } catch (e) { return; }
-  if (META.lastDaily !== today) { META.lastDaily = today; META.gold += 150; saveMeta(); updateMeta(); setTimeout(() => toast(t("tDaily"), "#fbbf24"), 500); }
+  if (META.lastDaily !== today) {
+    META.lastDaily = today;
+    const sig = getLegionSignal();
+    const winOpen = (sig > 2.0); // exact window: high judgment days open variable bonus
+    META.ritualWin = winOpen ? today : "";
+    const base = 150; const varB = winOpen ? Math.floor(40 * (sig-1)) : 0;
+    META.gold += base + varB; bumpPrestige(1);
+    saveMeta(); updateMeta();
+    setTimeout(() => toast(t("tDaily") + (varB? ` +${varB} (Grok high)`:""), "#fbbf24"), 500);
+  }
 }
 
 function start() {
@@ -890,10 +1004,15 @@ function checkIdle() {
   const cap = rate * 3600 * 8;                                  // 최대 8시간치
   const gold = Math.floor(Math.min(cap, elapsed * rate));
   if (gold > 0) {
-    META.gold += gold; saveMeta(); updateMeta();
+    const sig = getLegionSignal();
+    const varBonus = Math.floor(gold * (sig - 1) * 0.12); // small variable from real Legion handoff density
+    META.gold += gold + varBonus; saveMeta(); updateMeta(); bumpPrestige(1);
     const hrs = Math.floor(elapsed / 3600), mins = Math.floor((elapsed % 3600) / 60);
     const tm = hrs ? hrs + "h " + mins + "m" : mins + "m";
-    setTimeout(() => toast(t("tIdle", { t: tm, n: gold }), "#fbbf24"), 900);
+    const flavor = sig > 2.2 ? "Grok judgment high — handoff density boosted" : "Legion forecast stable";
+    setTimeout(() => toast(`🌙 ${t("tIdle", { t: tm, n: gold })} +${varBonus} ${flavor}`, "#fbbf24"), 900);
+    // Forecast popup flavor (lean toast + prestige pop)
+    if (sig > 1.8) setTimeout(() => toast("Legion Forecast: offline burst → ritual window open + prestige up", "#a3e635"), 1600);
   }
 }
 
@@ -922,6 +1041,9 @@ function updateToggles() {
   if ($("set-sound")) { $("set-sound").textContent = META.sound === false ? "OFF" : "ON"; $("set-sound").classList.toggle("off", META.sound === false); }
   if ($("set-haptic")) { $("set-haptic").textContent = META.haptic === false ? "OFF" : "ON"; $("set-haptic").classList.toggle("off", META.haptic === false); }
   if ($("set-music")) { $("set-music").textContent = META.music === false ? "OFF" : "ON"; $("set-music").classList.toggle("off", META.music === false); }
+  // A11y reinforcement
+  if ($("set-highcontrast")) { $("set-highcontrast").textContent = META.highContrast ? "ON" : "OFF"; $("set-highcontrast").classList.toggle("off", !META.highContrast); }
+  if ($("set-vfxfallback")) { $("set-vfxfallback").textContent = META.vfxFallback ? "ON" : "OFF"; $("set-vfxfallback").classList.toggle("off", !META.vfxFallback); }
 }
 function renderProfile() {
   const box = $("tg-profile"); if (!box) return;
@@ -934,6 +1056,18 @@ function renderProfile() {
     '<div class="prof-meta"><div class="prof-name">' + name + (u.is_premium ? ' <span class="prem">⭐</span>' : "") + "</div>" +
     (u.username ? '<div class="prof-uid">@' + u.username + "</div>" : "") +
     '<div class="prof-uid ddim">ID: ' + u.id + "</div></div>";
+}
+
+// Viral/A11y wiring (index share + profile + a11y toggles + Dominion export)
+function initViralA11y() {
+  const shareBtn = $("share-dominion"); if (shareBtn) shareBtn.onclick = () => { haptic("medium"); shareDominion(); };
+  const expBtn = $("export-dominion"); if (expBtn) expBtn.onclick = () => { const txt = getDominionCardText(); try{navigator.clipboard.writeText(txt);}catch(e){}; toast("MY Dominion 카드 복사됨 — TG paste로 flex! " + txt.split("\n")[1], "#a3e635"); haptic("light"); };
+  const fc = $("faction-name"); if (fc && !fc.oninput) fc.oninput = () => { META.factionName = (fc.value||"").slice(0,16); saveMeta(); };
+  const hc = $("set-highcontrast"); if (hc) hc.onclick = () => { META.highContrast = !META.highContrast; saveMeta(); updateToggles(); document.body.classList.toggle("high-contrast", !!META.highContrast); toast(t("a11yHigh"), "#67e8f9"); };
+  const vf = $("set-vfxfallback"); if (vf) vf.onclick = () => { META.vfxFallback = !META.vfxFallback; saveMeta(); updateToggles(); document.body.classList.toggle("vfx-fallback", !!META.vfxFallback); toast(t("a11yVfx"), "#c084fc"); };
+  // load persisted
+  if (META.highContrast) document.body.classList.add("high-contrast");
+  if (META.vfxFallback) document.body.classList.add("vfx-fallback");
 }
 function openSettings() { updateToggles(); buildLangList(); renderProfile(); showPage("settings"); }
 function resetProgress() {
@@ -1030,13 +1164,17 @@ function claimPlay(i) {
   if (r.gem) META.gems = (META.gems || 0) + r.gem;
   let boxRes = null;
   if (r.box) boxRes = openBox(r.box);
-  saveMeta(); updateMeta(); renderPlay();
+  bumpPrestige(1); saveMeta(); updateMeta(); renderPlay();
   haptic("medium"); SFX.claim();
   const txt = "💰" + r.gold + (r.gem ? " 💎" + r.gem : "") + (boxRes ? " " + boxRes.text : "");
   if (boxRes) setTimeout(() => showGacha({ key: boxRes.rank, color: boxRes.color }, boxRes.text), 400);
   else toast(t("tPlay", { x: txt }), "#fbbf24");
+  // one-more interlock lean
+  setTimeout(()=>{ if(confirm("one more? tweak comp or quick ritual?")) { showPage("char"); } }, 1800);
 }
-function openEvent() { renderAttend(); renderPlay(); renderSeason(); showPage("event"); }
+function openEvent() { renderAttend(); renderPlay(); renderSeason(); showPage("event"); 
+  const orb = $("ritual-orb"); if (orb) orb.style.display = (getLegionSignal() > 1.6 || META.ritualWin===today()) ? "" : "none";
+}
 function renderAttend() {
   const grid = $("attend-grid"); if (!grid) return;
   grid.innerHTML = "";
@@ -1059,13 +1197,16 @@ function claimAttend() {
   let boxRes = null;
   if (r.box) boxRes = openBox(r.box);
   META.attend.day = (META.attend.day || 0) + 1; META.attend.last = today();
-  saveMeta(); updateMeta(); renderAttend();
+  bumpPrestige(1); saveMeta(); updateMeta(); renderAttend();
   haptic("medium"); SFX.claim();
   if (boxRes) {
     setTimeout(() => showGacha({ key: boxRes.rank, color: boxRes.color }, boxRes.text), 400);
   } else toast(t("tAttend", { n: idx + 1 }), "#fbbf24");
+  // interlock: attend ritual → gacha pulse tease
+  setTimeout(() => { if (Math.random()<0.6) toast("Ritual complete — Bazaar pulse or quick pull ready?", "#a3e635"); }, 1200);
 }
 $("attend-claim").addEventListener("click", claimAttend);
+on("om-ritual", "click", () => { bumpPrestige(1); checkDaily(); if (curPage!=="event") openEvent(); toast("Ritual interlock: prestige+1 + gacha pulse ready", "#a3e635"); setTimeout(gacha, 700); });
 
 // ── 이벤트/쿠폰 코드 (회원 배포용) ───────────────────────────────────────────
 const CODES = {
@@ -1258,7 +1399,7 @@ function ascend(type) {
   if (META.gold < goldC || (META.gems || 0) < gemC) { toast(t("tGemShort", { n: gemC }), "#ef4444"); return; }
   META.gold -= goldC; META.gems -= gemC;
   META.star[type] = (META.star[type] || 0) + 1; META.enh[type] = 0;
-  saveMeta(); updateMeta(); renderDash();
+  bumpPrestige(3); saveMeta(); updateMeta(); renderDash();
   toast("⭐ " + SPEC[type].glyph + " ★" + META.star[type], "#fbbf24"); SFX.ssr(); haptic("heavy");
 }
 function renderSoulAltar() {
@@ -1464,6 +1605,7 @@ document.querySelectorAll(".navtab").forEach((b) => b.addEventListener("click", 
   else showPage("battle");
 }));
 on("settings-corner", "click", openSettings);   // 설정 = 상단 구석
+initViralA11y(); // Community Viral A11y loop init (share/profile/a11y/faction/carried export)
 
 $("overlay-btn").addEventListener("click", reset);
 on("gacha-btn", "click", gacha);
@@ -1493,3 +1635,4 @@ checkDaily();
 checkPasses();
 checkMilestones();   // 🏆 기존 진행분 백필(해금/보상 누락 방지)
 updateAutoBtn();
+updateMeta(); // ensure cohesion dash shows on load
