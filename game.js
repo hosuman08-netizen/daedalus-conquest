@@ -130,22 +130,9 @@ function lvMul(type, stat) {
 function legionPower() { let p = 0; for (const t of ORDER) p += (META.army[t] || 0) * ((META.lv[t] || 0) + (META.enh[t] || 0) * 2 + (META.star[t] || 0) * 12); return p; }
 function dividendGold() { return Math.floor(legionPower() * 0.6); }
 
-// ── 장비 시스템 (힘 STR·지능 INT·민첩 AGI·운 LUK) ─────────────────────────────
-const SLOTS = ["weapon", "armor", "acc", "relic"];
-const SLOT_ICON = { weapon: "⚔️", armor: "🛡️", acc: "👟", relic: "🍀" };
-const SLOT_MAIN = { weapon: "str", armor: "int", acc: "agi", relic: "luk" };
-const STAT_KEYS = ["str", "int", "agi", "luk"];
-const GEAR_RARITY = [{ k: "N", p: 0.5, base: 6, color: "#9ca3af" }, { k: "R", p: 0.32, base: 12, color: "#60a5fa" }, { k: "SR", p: 0.14, base: 22, color: "#c084fc" }, { k: "SSR", p: 0.04, base: 40, color: "#fbbf24" }];
-function rollGearRarity() { let r = Math.random(), a = 0; for (const x of GEAR_RARITY) { a += x.p; if (r <= a) return x; } return GEAR_RARITY[0]; }
-function makeGear(forceRar) {
-  const slot = SLOTS[(Math.random() * 4) | 0], rar = forceRar ? (GEAR_RARITY.find((x) => x.k === forceRar) || rollGearRarity()) : rollGearRarity(), main = SLOT_MAIN[slot];
-  const g = { id: ++META.gearSeq, slot: slot, rarity: rar.k, color: rar.color, enh: 0, str: 0, int: 0, agi: 0, luk: 0 };
-  g[main] = Math.round(rar.base * (0.8 + Math.random() * 0.6));
-  const sub = STAT_KEYS[(Math.random() * 4) | 0];
-  g[sub] += Math.round(rar.base * 0.4 * (0.5 + Math.random()));
-  return g;
-}
-function gearStat(g, key) { return Math.round((g[key] || 0) * (1 + (g.enh || 0) * 0.1)); }
+// ── 장비 시스템 (gear.js의 5슬롯·120종 카탈로그 사용) ────────────────────────
+// SLOTS/SLOT_ICON/SLOT_MAIN/STAT_KEYS/GEAR_RARITY/makeGear/gearStat 는 gear.js에 정의됨
+function newGear(forceRar) { const g = makeGear(forceRar); g.id = ++META.gearSeq; return g; }   // 보유 ID 부여
 function heroGearStats() {
   const tot = { str: 0, int: 0, agi: 0, luk: 0 }, eq = META.equip[META.hero] || {};
   for (const slot of SLOTS) { const id = eq[slot]; if (!id) continue; const g = META.gear.find((x) => x.id === id); if (!g) continue; for (const k of STAT_KEYS) tot[k] += gearStat(g, k); }
@@ -794,7 +781,7 @@ const BOX = {
 function openBox(tier) {
   if (tier === "legend") {                                    // 30일차 최고 보상: SSR 유닛 + SSR 장비 + 💎
     const gu = grantUnit("SSR");
-    const g = makeGear("SSR"); META.gear.push(g);
+    const g = newGear("SSR"); META.gear.push(g);
     META.gems = (META.gems || 0) + 100;
     return { color: "#fbbf24", text: (gu ? "【" + gu.name + "】 " : "") + "SSR + " + (SLOT_ICON[g.slot] || "") + "SSR장비 + 💎100", rank: "SSR" };
   }
@@ -806,7 +793,7 @@ function openBox(tier) {
     for (let j = 0; j < 2; j++) { const u = pool[(Math.random() * pool.length) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; }
     return { color: b.color, text: (gu ? "【" + gu.name + "】 " : "") + rar + " 유닛", rank: rar };
   }
-  const g = makeGear(b.gear); META.gear.push(g);              // 장비
+  const g = newGear(b.gear); META.gear.push(g);              // 장비
   return { color: b.color, text: "🔨 " + (SLOT_ICON[g.slot] || "") + " " + g.rarity + " 장비", rank: g.rarity };
 }
 function openEvent() { renderAttend(); renderSeason(); showPage("event"); }
@@ -907,7 +894,7 @@ function gearGacha(count) {
   if (META.gear.length + count > 60) { toast(t("gFull"), "#ef4444"); return; }
   META.gems -= cost;
   const RK = { N: 0, R: 1, SR: 2, SSR: 3 }; let best = null;
-  for (let i = 0; i < count; i++) { const g = makeGear(); META.gear.push(g); if (!best || RK[g.rarity] > RK[best.rarity]) best = g; }
+  for (let i = 0; i < count; i++) { const g = newGear(); META.gear.push(g); if (!best || RK[g.rarity] > RK[best.rarity]) best = g; }
   saveMeta(); updateMeta(); renderGear();
   showGacha({ key: best.rarity, color: best.color }, "🔨 " + t("gTitle") + " ×" + count + " — best " + best.rarity);
 }
@@ -1019,7 +1006,7 @@ function craftGear() {
   const cost = 300;
   if (META.gold < cost) { toast(t("tGoldShort", { n: cost }), "#ef4444"); return; }
   if (META.gear.length >= 40) { toast(t("gFull"), "#ef4444"); return; }
-  META.gold -= cost; const g = makeGear(); META.gear.push(g);
+  META.gold -= cost; const g = newGear(); META.gear.push(g);
   saveMeta(); updateMeta(); renderGear();
   toast(t("gGot", { x: SLOT_ICON[g.slot] + " " + g.rarity }), g.color); SFX.gacha();
 }
