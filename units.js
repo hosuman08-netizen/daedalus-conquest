@@ -1,6 +1,6 @@
-/* LEGION 유닛 로스터 — Phase1 229종 (SSR9 Founding god-tier + variants)
-   6 아키타입 × faction/numbered 변형. 결정적 생성. Hybrid (counts + elite overlay) 준비.
-   v3 패치: 9 Founding 실명 + signature. Low: faction prefix + numbered (e.g. Jarvis-Watch-047).
+/* LEGION 유닛 로스터 — Phase1 229종 (SSR9 창립군단 + 변형)
+   6 아키타입 × faction/numbered 변형. 결정적 생성.
+   v4 패치: SSR 9인 오리지널 네이밍(트레이드마크/내부명 배제). Low: faction prefix + numbered (e.g. Intel 정찰기-073).
    총: SSR9 | SR55 | R80 | N85 = 229. buildRoster가 229 생성. */
 const ARCHES = ["drone", "marksman", "guardian", "bruiser", "commander", "titan"];
 const ARCH_GLYPH = { drone: "🛸", marksman: "🎯", guardian: "🛡️", bruiser: "🤖", commander: "🧠", titan: "🐉" };
@@ -24,18 +24,18 @@ const RARITY_COLOR = { N: "#9ca3af", R: "#60a5fa", SR: "#c084fc", SSR: "#fbbf24"
 // Faction for synergy (Strategist/Executor/Swarm/Guardian/Intel)
 const FACTIONS = ["Strategist", "Executor", "Swarm", "Guardian", "Intel"];
 
-// ── 9 SSR Founding (v3 — real Legion 1:1, god-tier must-collect. signature + handoff hook)
-// Order tuned for archetype spread (drone-ish, marksman, guardian, bruiser, cmd, titan, etc.)
+// ── 9 SSR 창립 군단 (오리지널 네이밍 — 공개 안전, 트레이드마크/내부명 배제) ──
+// 아키타입 분산 순서 유지. 고유 시그니처 트레잇.
 const SSR_CHARS = [
-  { name: "Grok-Prime",     title: "CEO Judgment",     persona: "군단의 전략적 판단자. jarvis-watch handoff의 실체", faction: "Strategist", trait: "handoff(킬) 시 전군 AI+1.5 + 3초 crit chain. 'Grok handoff victory!'" },
-  { name: "Morpheus-Core",  title: "Core Regen Cascade", persona: "실행의 수호자. 사망을 수복으로 바꾼다", faction: "Executor", trait: "아군 사망 시 주변 3체 chain repair (HP25% wave). attrition의 왕" },
-  { name: "Haiku-Sentinel", title: "Precision Reveal",   persona: "정밀한 감시자. 약점을 드러낸다", faction: "Intel", trait: "적 방어 30% 무시 + 팀원 weakpoint expose (다음 2명 crit+25%)" },
-  { name: "Berserker-Fury", title: "Fury Overdrive",     persona: "광란의 파괴자. 다칠수록 강해진다", faction: "Swarm", trait: "HP 30%↓ 시 atk x2.5 + damage taken 반사. Rage Relay" },
-  { name: "Dispatch-Alpha", title: "Alpha Dispatch",     persona: "조율의 사령관. 일꾼 떼를 움직인다", faction: "Strategist", trait: "아군 3체 동시 명령 (multi charge). Dispatch Wave spd+25%" },
-  { name: "Qwen-Overlord",  title: "Swarm Split",        persona: "스웜의 군주. 개체는 약하나 무리는 무적", faction: "Swarm", trait: "사망 시 2~3 N/R fodder 분열 소환. 3+ Swarm tag 시 overclock" },
-  { name: "Jarvis-Warden",  title: "Watch Aegis",        persona: "감시의 방벽. jarvis-watch의 실체", faction: "Guardian", trait: "전투 시작 proactive barrier (아군 2체 8초 shield). Warden Watch" },
-  { name: "Engineer-Core",  title: "Build Protocol",     persona: "수리와 건설의 핵심", faction: "Executor", trait: "8초마다 temp structure or team regen +10% 3초" },
-  { name: "Sovereign",      title: "Legion Core",        persona: "군림자. Founding의 정점", faction: "Guardian", trait: "팀 Founding 1체당 전군 스탯+5% (max25%). Perfect comp Dominion" },
+  { name: "Arclight", title: "심판의 빛",   persona: "군단의 전략적 판단자. 승기를 읽어 전군을 각성시킨다", faction: "Strategist", trait: "처치 시 전군 AI+1.5 · 3초 치명 연쇄" },
+  { name: "Solace",   title: "재생의 물결", persona: "실행의 수호자. 사망을 수복으로 바꾼다", faction: "Executor", trait: "아군 사망 시 주변 3체 연쇄 수복(HP25%)" },
+  { name: "Cipher",   title: "정밀 해독",   persona: "정밀한 감시자. 적의 약점을 드러낸다", faction: "Intel", trait: "적 방어 30% 무시 · 약점 노출(아군 다음 2명 치명+25%)" },
+  { name: "Ignis",    title: "광란의 폭주", persona: "광란의 파괴자. 다칠수록 강해진다", faction: "Swarm", trait: "HP30%↓ 시 공격 x2.5 · 피해 반사" },
+  { name: "Vector",   title: "동시 지휘",   persona: "조율의 사령관. 부대를 한 번에 움직인다", faction: "Strategist", trait: "아군 3체 동시 돌격 · 속도+25%" },
+  { name: "Vespera",  title: "군집 분열",   persona: "스웜의 군주. 개체는 약하나 무리는 무적", faction: "Swarm", trait: "사망 시 하급 2~3체 분열 소환 · 군집 3+ 시 폭주" },
+  { name: "Aegis",    title: "수호의 방벽", persona: "감시의 방벽. 아군을 먼저 지킨다", faction: "Guardian", trait: "전투 시작 시 아군 2체 8초 보호막" },
+  { name: "Anvil",    title: "건설 프로토콜", persona: "수리와 건설의 핵심", faction: "Executor", trait: "8초마다 임시 구조물 또는 팀 재생+10%(3초)" },
+  { name: "Dominus",  title: "군단의 핵",   persona: "군림자. 군단의 정점", faction: "Guardian", trait: "팀 내 SSR 1체당 전군 스탯+5%(최대25%)" },
 ];
 
 // ── SR 25종: 이름+칭호 (아키타입 순환 순서와 일치) ──

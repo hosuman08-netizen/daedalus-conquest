@@ -30,14 +30,17 @@ const SFX = {
   ctr:   () => tone(900, 0.08, "triangle", 0.05),
   skill: () => { tone(420, 0.13, "sawtooth", 0.045); setTimeout(() => tone(620, 0.1, "sawtooth", 0.04), 60); },
   die:   () => tone(110, 0.12, "sine", 0.03),
-  win:   () => [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, 0.16, "square", 0.05), i * 110)),
-  lose:  () => [330, 247, 165].forEach((f, i) => setTimeout(() => tone(f, 0.22, "sawtooth", 0.05), i * 150)),
-  gacha: () => [660, 880].forEach((f, i) => setTimeout(() => tone(f, 0.1, "triangle", 0.05), i * 80)),
-  ssr:   () => [523, 659, 784, 1047, 1319].forEach((f, i) => setTimeout(() => tone(f, 0.18, "square", 0.06), i * 90)),
+  // 🎉 승리 팡파레 — 묵직한 저음 파워코드 + 상승 멜로디
+  win:   () => { tone(131, 0.28, "sawtooth", 0.045); tone(196, 0.28, "sawtooth", 0.03); [523, 659, 784, 1047, 1319].forEach((f, i) => setTimeout(() => tone(f, 0.2, "square", 0.055), i * 85)); },
+  lose:  () => [330, 247, 165].forEach((f, i) => setTimeout(() => tone(f, 0.24, "sawtooth", 0.05), i * 150)),
+  gacha: () => { tone(330, 0.12, "sawtooth", 0.035); [660, 880, 1100].forEach((f, i) => setTimeout(() => tone(f, 0.1, "square", 0.045), i * 70)); },
+  // 🌟 SSR — 묵직한 베이스 임팩트 + 상승 런 + 마무리 고음 샤인
+  ssr:   () => { tone(98, 0.55, "sawtooth", 0.05); tone(147, 0.55, "sawtooth", 0.03); [523, 659, 784, 1047, 1319, 1568].forEach((f, i) => setTimeout(() => tone(f, 0.2, "square", 0.06), i * 75)); setTimeout(() => { tone(2093, 0.35, "square", 0.05); tone(1568, 0.35, "triangle", 0.04); }, 520); },
   tap:   () => tone(440, 0.04, "sine", 0.02),
-  claim: () => { tone(700, 0.09, "triangle", 0.05); setTimeout(() => tone(1050, 0.1, "triangle", 0.05), 70); },
-  hit:   () => tone(180 + Math.random() * 60, 0.05, "square", 0.025),   // 타격
-  equip: () => { tone(520, 0.07, "triangle", 0.04); setTimeout(() => tone(780, 0.09, "triangle", 0.04), 60); },
+  // ✅ 보상 — 동전/파워업 느낌(저음 펀치 + 더블 상승)
+  claim: () => { tone(196, 0.1, "triangle", 0.05); tone(700, 0.09, "square", 0.045); setTimeout(() => tone(1050, 0.13, "square", 0.055), 70); setTimeout(() => tone(1400, 0.1, "triangle", 0.04), 150); },
+  hit:   () => tone(180 + Math.random() * 60, 0.05, "square", 0.025),
+  equip: () => { tone(294, 0.08, "sawtooth", 0.04); setTimeout(() => tone(587, 0.1, "square", 0.045), 55); setTimeout(() => tone(880, 0.1, "triangle", 0.04), 120); },
 };
 
 // ── 🎵 BGM (합성 루프, 에셋 없음) — A단조 4코드 아르페지오 + 베이스 ───────────────
@@ -52,17 +55,27 @@ function bgmTone(freq, dur, type, vol) {
     o.stop(_actx.currentTime + dur);
   } catch (e) {}
 }
-const BGM_CHORDS = [[220.00, 261.63, 329.63], [174.61, 220.00, 261.63], [261.63, 329.63, 392.00], [196.00, 246.94, 293.66]];  // Am F C G
-const BGM_ARP = [0, 1, 2, 1];
+const BGM_CHORDS = [[220.00, 261.63, 329.63], [174.61, 220.00, 261.63], [261.63, 329.63, 392.00], [196.00, 246.94, 293.66]];  // Am F C G (앤섬틱)
+const BGM_ARP = [0, 2, 1, 2];
+function bgmKick(vol) {   // 킥 드럼 — 주파수 급강하 펀치
+  if (!_actx || (typeof META !== "undefined" && META && META.music === false)) return;
+  try {
+    const o = _actx.createOscillator(), g = _actx.createGain();
+    o.type = "sine"; o.frequency.setValueAtTime(150, _actx.currentTime); o.frequency.exponentialRampToValueAtTime(45, _actx.currentTime + 0.12);
+    g.gain.value = vol; g.gain.exponentialRampToValueAtTime(0.0001, _actx.currentTime + 0.17);
+    o.connect(g); g.connect(_actx.destination); o.start(); o.stop(_actx.currentTime + 0.18);
+  } catch (e) {}
+}
 let bgmTimer = null, bgmStep = 0;
 function bgmTick() {
   const chord = BGM_CHORDS[(bgmStep >> 2) % BGM_CHORDS.length];
-  bgmTone(chord[BGM_ARP[bgmStep % 4]] * 2, 0.26, "triangle", 0.018);   // 멜로디(한 옥타브 위)
-  if (bgmStep % 4 === 0) bgmTone(chord[0] / 2, 0.55, "sine", 0.03);     // 베이스
-  if (bgmStep % 8 === 4) bgmTone(chord[2], 0.3, "triangle", 0.012);     // 화음 보강
+  bgmTone(chord[BGM_ARP[bgmStep % 4]] * 2, 0.2, "sawtooth", 0.02);        // 밝은 쏘우 리드(옥타브 위)
+  if (bgmStep % 2 === 0) bgmTone(chord[0] / 2, 0.16, "triangle", 0.038);  // 드라이빙 8비트 베이스
+  if (bgmStep % 4 === 0) { bgmKick(0.07); bgmTone(chord[0], 0.42, "sine", 0.022); }   // 4-on-floor 킥 + 파워 루트
+  if (bgmStep % 8 === 2) bgmTone(chord[2] * 2, 0.18, "square", 0.012);    // 5도 보강 스월
   bgmStep = (bgmStep + 1) % 16;
 }
-function bgmStart() { if (bgmTimer || (META && META.music === false)) return; ensureAudio(); bgmStep = 0; bgmTimer = setInterval(bgmTick, 250); }
+function bgmStart() { if (bgmTimer || (META && META.music === false)) return; ensureAudio(); bgmStep = 0; bgmTimer = setInterval(bgmTick, 190); }
 function bgmStop() { if (bgmTimer) { clearInterval(bgmTimer); bgmTimer = null; } }
 function audioUnlock() {
   ensureAudio();
@@ -560,7 +573,7 @@ function finish(p, e) {
   if (tg) { try { tg.HapticFeedback.notificationOccurred(win ? "success" : "error"); } catch (e2) {} }
   if (win) SFX.win(); else SFX.lose();
   // 6hr daily loop + bazaar pulse (speculative dopamine, no balance break)
-  if (win && Math.random()<0.25) { setTimeout(()=>toast("Legion Bazaar: Grok-Prime hot +28% — check now?","#a3e635"), 800); }
+  if (win && Math.random()<0.25) { setTimeout(()=>toast("Legion Bazaar: Arclight hot +28% — check now?","#a3e635"), 800); }
   updateMeta(); draw();
 }
 
@@ -569,7 +582,7 @@ function getCarriedFeedback() {
   const pCount = units.filter(u=>u.side==='p'&&u.hp>0).length;
   const distinct = ORDER.filter(tt => (counts.p||META.army)[tt]>0).length;
   const syn = distinct>=4 ? 42 : distinct>=3 ? 28 : 12;
-  const carry = ["Grok judgment", "Morpheus repair", "Sovereign command", "Oracle swarm", "Legion handoff"][(META.pulls||0)%5];
+  const carry = ["Arclight judgment", "Solace repair", "Dominus command", "Vespera swarm", "Vector sync"][(META.pulls||0)%5];
   return `Synergy +${syn}% | ${carry} carried ${Math.floor(50+pCount*3)}%`;
 }
 
