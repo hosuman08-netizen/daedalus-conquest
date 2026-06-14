@@ -341,6 +341,17 @@ for (const l in MUSIC_I18N) I18N[l].setMusic = MUSIC_I18N[l];
 const OWNED_I18N = { ko: "보유중", en: "Owned", ja: "保有中", zh: "已拥有", hi: "स्वामित्व", ru: "Есть" };
 for (const l in OWNED_I18N) I18N[l].ownedShort = OWNED_I18N[l];
 
+// ⚔️ 편성(스쿼드) 시스템
+const SQUAD_I18N = {
+  ko: { sqTitle: "출전 편성", sqPool: "📋 보유 캐릭터 — 탭해서 편성/해제", dArchNote: "(아키타입 공통)", cpInv: "🎒 보유 장비 — 탭해서 이 캐릭터에 장착", sqFull: "편성 가득 (최대 {n})", sqDeployed: "✅ 편성 완료 — 이 캐릭터가 전투에 출전", sqUndeploy: "편성 해제" },
+  en: { sqTitle: "Battle Squad", sqPool: "📋 Owned characters — tap to deploy/remove", dArchNote: "(archetype-wide)", cpInv: "🎒 Owned gear — tap to equip", sqFull: "Squad full (max {n})", sqDeployed: "✅ Deployed — fights in battle", sqUndeploy: "Removed from squad" },
+  ja: { sqTitle: "出撃編成", sqPool: "📋 所持キャラ — タップで編成/解除", dArchNote: "(共通)", cpInv: "🎒 所持装備 — タップで装着", sqFull: "編成満員 (最大{n})", sqDeployed: "✅ 編成完了 — 戦闘に出撃", sqUndeploy: "編成解除" },
+  zh: { sqTitle: "出战编成", sqPool: "📋 拥有角色 — 点击编成/解除", dArchNote: "(同类型)", cpInv: "🎒 拥有装备 — 点击装备", sqFull: "编成已满 (最多{n})", sqDeployed: "✅ 已编成 — 出战", sqUndeploy: "解除编成" },
+  hi: { sqTitle: "युद्ध दस्ता", sqPool: "📋 किरदार — टैप कर तैनात/हटाएँ", dArchNote: "(आर्किटाइप)", cpInv: "🎒 गियर — टैप कर लगाएँ", sqFull: "दस्ता भरा (अधि. {n})", sqDeployed: "✅ तैनात — युद्ध में", sqUndeploy: "हटाया" },
+  ru: { sqTitle: "Боевой отряд", sqPool: "📋 Персонажи — нажмите для отряда", dArchNote: "(по типу)", cpInv: "🎒 Снаряжение — нажмите чтобы надеть", sqFull: "Отряд полон (макс {n})", sqDeployed: "✅ В отряде — в бою", sqUndeploy: "Убран из отряда" },
+};
+for (const l in SQUAD_I18N) Object.assign(I18N[l], SQUAD_I18N[l]);
+
 // 🛠️ 장비 도감 제목
 const GEARDEX_I18N = { ko: "장비 도감", en: "Gear Codex", ja: "装備図鑑", zh: "装备图鉴", hi: "गियर कोडेक्स", ru: "Кодекс снаряжения" };
 for (const l in GEARDEX_I18N) I18N[l].gearDexT = GEARDEX_I18N[l];

@@ -177,7 +177,7 @@ const META_KEY = "daedalus_meta_v1";
 let META = loadMeta();
 // 유닛 구매 가격 (티어 = 가격. 타이탄은 가챠 전용 프리미엄)
 const PRICE = { drone: 35, marksman: 60, guardian: 75, bruiser: 70, commander: 110, titan: 700 };
-// Legion real-signal variable seed (handoff density proxy for "Grok judgment high" bonuses; real: Sovereign echo count to local 'legion_density' or handoff#)
+// Legion signal variable seed (handoff density proxy for "Founding judgment high" bonuses; abstracted internal flavor only, no public real mapping announcement)
 function getLegionSignal() {
   const d = today().replace(/-/g,'');
   let base = (parseInt(d.slice(-3)) % 5) + 1; // daily 1-6 seed
@@ -201,11 +201,11 @@ function toggleDeployUnit(id) {
   const idx = META.deployed.indexOf(id);
   if (idx >= 0) {
     META.deployed.splice(idx, 1);
-    toast("배치 해제", "#93c5fd");
+    toast(t("sqUndeploy"), "#93c5fd");
   } else {
-    if (META.deployed.length >= 8) { toast("최대 8개 (Phase1 hybrid)", "#ef4444"); return; }
+    if (META.deployed.length >= DEPLOY_MAX) { toast(t("sqFull", { n: DEPLOY_MAX }), "#ef4444"); return; }
     META.deployed.push(id);
-    toast("캐릭터 창 배치 완료 — 전투에서 개별 유닛 사용", "#a3e635");
+    toast(t("sqDeployed"), "#a3e635");
   }
   saveMeta(); renderDash(); if (!running) reset();
 }
@@ -234,7 +234,8 @@ function loadMeta() {
                 prestige: 0, // cohesion "numbers go up" on claims
                 ritualWin: "", // exact claim window seed for variable ritual bonuses
                 vanguard: "", // 24h FOMO Vanguard Focus god-VFX unlock
-                deployed: [] }; // specific unit ids from owned ROSTER — 캐릭터 창에서 배치할 개별 유닛 (hybrid collection comp)
+                deployed: [], // 편성: 출전할 보유 캐릭터 id 배열 (이들이 곧 부대)
+                charLv: {}, charGear: {} }; // 캐릭별 레벨 / 캐릭별 장비 {charId:{slot:gearId}}
   if (!def.owned) def.owned = [];
   try {
     const m = JSON.parse(localStorage.getItem(META_KEY));
@@ -266,6 +267,8 @@ function loadMeta() {
       if (typeof merged.ritualWin !== "string") merged.ritualWin = "";
       if (typeof merged.vanguard !== "string") merged.vanguard = "";
       if (!Array.isArray(merged.deployed)) merged.deployed = [];
+      if (typeof merged.charLv !== "object" || !merged.charLv) merged.charLv = {};
+      if (typeof merged.charGear !== "object" || !merged.charGear) merged.charGear = {};
       return merged;
     }
   } catch (e) {}
@@ -329,6 +332,41 @@ function heroBuffs() {
   return b;
 }
 
+// ── 편성(스쿼드) 시스템 ───────────────────────────────────────────────────────
+const DEPLOY_MAX = 8;
+function charLv(id) { return (META.charLv && META.charLv[id]) || 0; }
+function charGearStats(id) {                            // 캐릭별 장착 장비 합산
+  const tot = { str: 0, int: 0, agi: 0, luk: 0 }, eq = (META.charGear && META.charGear[id]) || {};
+  for (const slot of SLOTS) { const gid = eq[slot]; if (!gid) continue; const g = META.gear.find((x) => x.id === gid); if (!g) continue; for (const k of STAT_KEYS) tot[k] += gearStat(g, k); }
+  return tot;
+}
+function squadSynergy() {                               // 진영/아키타입 조합 시너지
+  const sq = getDeployedUnits();
+  const fac = {}; sq.forEach((u) => { fac[u.faction] = (fac[u.faction] || 0) + 1; });
+  let atk = 1, hp = 1; const bonuses = [];
+  for (const f in fac) {
+    const n = fac[f];
+    if (n >= 4) { atk += 0.30; bonuses.push("🏷️ " + f + " ×" + n + " 공격+30%"); }
+    else if (n >= 3) { atk += 0.18; bonuses.push("🏷️ " + f + " ×" + n + " 공격+18%"); }
+    else if (n >= 2) { atk += 0.08; bonuses.push("🏷️ " + f + " ×" + n + " 공격+8%"); }
+  }
+  const archs = new Set(sq.map((u) => u.arch)).size;
+  if (archs >= 5) { hp += 0.20; bonuses.push("🔀 다양성 ×" + archs + " 체력+20%"); }
+  else if (archs >= 3) { hp += 0.10; bonuses.push("🔀 다양성 ×" + archs + " 체력+10%"); }
+  return { atk, hp, bonuses, archs, count: sq.length };
+}
+function squadPower() {                                 // 편성 전투력 (헤더 표시용)
+  const sq = getDeployedUnits(); if (!sq.length) return 0;
+  const syn = squadSynergy();
+  let p = 0;
+  sq.forEach((u) => {
+    const s = SPEC[u.arch] || SPEC.drone, lv = charLv(u.id);
+    const gcs = charGearStats(u.id);
+    const base = (s.hp * 0.5 + (s.atk / s.atkCd) * 3) * u.mul * (1 + lv * 0.12);
+    p += base + (gcs.str + gcs.int + gcs.agi + gcs.luk) * 5;
+  });
+  return Math.round(p * syn.atk);
+}
 function spawnArmy(side) {
   const baseY = side === "p" ? H - 36 : 36;
   const dir = side === "p" ? -1 : 1;
@@ -350,21 +388,35 @@ function spawnArmy(side) {
     arr = arr.slice(0, MAX_UNITS);
   }
 
-  // 캐릭터 창 배치 지원: side p일 때 META.deployed specific units 먼저 스폰 (개별 유닛 고유 vis/name/trait)
+  // 🎖️ 편성(스쿼드): 출전 캐릭터가 있으면 그들이 곧 부대 — 제네릭 군대 대신 스폰하고 종료
   if (side === "p") {
-    const specifics = getDeployedUnits();
-    specifics.forEach((u, si) => {
-      const s = SPEC[u.arch] || SPEC.drone;
-      const hp = Math.round(s.hp * 1.8), atk = Math.round(s.atk * 1.6); // elite boost for collection
-      const x = W/2 + (si % 4 - 1.5)*50, y = baseY - 20;
-      units.push({
-        t: u.arch, side, x, y, hp, maxHp: hp, atk, range: s.range, speed: s.speed,
-        atkCd: s.atkCd, crit: 12, ai: Math.min(3, s.ai + 1), sight: s.sight, r: s.r * 1.15,
-        skill: s.skill, skillCd: s.skillCd, ranged: s.ranged,
-        regen: hb.regen, atkT: 0.1, skT: s.skillCd*0.4, shield:0, buff:0, buffT:0, spd:0, spdT:0,
-        name: u.name, vis: u.vis, isSpecific: true, trait: u.trait || ""
+    const squad = getDeployedUnits();
+    if (squad.length > 0) {
+      const syn = squadSynergy();
+      squad.forEach((u, si) => {
+        const s = SPEC[u.arch] || SPEC.drone, lv = charLv(u.id);
+        const gcs = charGearStats(u.id);
+        const aw = META.awak[u.arch] || 0, enh = META.enh[u.arch] || 0, star = META.star[u.arch] || 0;
+        const invest = (1 + enh * 0.06) * (1 + star * 0.25) * (1 + aw * 0.35);   // 아키타입 투자 반영
+        const cgAtk = 1 + gcs.str * 0.004, cgHp = 1 + gcs.int * 0.004;
+        const cgSpd = 1 - Math.min(0.4, gcs.agi * 0.0035), cgCrit = Math.min(45, 10 + gcs.luk * 0.4);
+        const lvK = 1 + lv * 0.12;
+        const hp = Math.round(s.hp * u.mul * lvK * invest * hb.hpMul * (1 + (hb.typeHp[u.arch] || 0)) * syn.hp * cgHp * 1.4);
+        const atk = Math.round(s.atk * u.mul * lvK * invest * hb.atkMul * (1 + (hb.typeAtk[u.arch] || 0)) * syn.atk * cgAtk * 1.3);
+        const perRow = 5, row = Math.floor(si / perRow), col = si % perRow;
+        const rowN = Math.min(perRow, squad.length - row * perRow);
+        const x = W / 2 + (col - (rowN - 1) / 2) * 46 + (Math.random() * 6 - 3);
+        const y = baseY + dir * row * 34;
+        units.push({
+          t: u.arch, side, x, y, hp, maxHp: hp, atk, range: s.range, speed: s.speed,
+          atkCd: s.atkCd * cgSpd, crit: cgCrit, ai: Math.min(3, s.ai + hb.aiBonus + aw),
+          sight: s.sight, r: s.r * 1.18, skill: s.skill, skillCd: s.skillCd, ranged: s.ranged,
+          regen: hb.regen, atkT: Math.random() * 0.3, skT: s.skillCd * 0.4, shield: 0, buff: 0, buffT: 0, spd: 0, spdT: 0,
+          name: u.name, vis: u.vis, color: u.color, isSpecific: true, rarity: u.rarity,
+        });
       });
-    });
+      return;   // 편성이 부대 — 제네릭 스폰 생략
+    }
   }
 
   arr.forEach((t, i) => {
@@ -1476,58 +1528,108 @@ function renderDash() {
     box.querySelectorAll(".dawkb").forEach((b) => b.addEventListener("click", () => awaken(b.dataset.t)));
   }
 
-  // 캐릭터 창에서 유닛 배치 — 유저가 보기 쉽게 (clear hierarchy, scannable cards, larger targets)
-  const formBox = document.createElement("div");
-  formBox.className = "set-sec";
-  formBox.innerHTML = `<div>📍 <b>현재 편성</b> <small style="color:#9ca3af">(캐릭터 창 배치 · specific elites + 일반 군단 볼륨)</small></div>`;
-
-  // 1. 현재 배치 미리보기 (큰 카드, 한눈에 보기 쉽게)
-  const preview = document.createElement("div");
-  preview.className = "deploy-preview";
-  const deployedSet = new Set(META.deployed || []);
-  const deployedList = (typeof ROSTER !== "undefined" ? ROSTER.filter(u => deployedSet.has(u.id)) : []);
-  if (deployedList.length === 0) {
-    preview.innerHTML = `<div class="ddim" style="font-size:12px;padding:4px 8px">배치된 특수 유닛 없음 — 아래 보유 목록에서 선택 (archetype 볼륨 + specific elite)</div>`;
-  } else {
-    deployedList.forEach(u => {
-      const p = document.createElement("div");
-      p.className = "deploy-card";
-      p.style.borderColor = u.color;
-      p.innerHTML = `${artHTML(u, "", "")} <span class="name" style="color:${u.color}">${u.name}</span> <span class="remove">✕</span>`;
-      p.onclick = () => { toggleDeployUnit(u.id); };
-      preview.appendChild(p);
-    });
-  }
-  formBox.appendChild(preview);
-
-  // 2. 보유 유닛 선택 (grid로 scannable, deployed 상태 명확)
-  const formList = document.createElement("div");
-  formList.className = "deploy-select";
-  const ownedSpecific = (typeof ROSTER !== "undefined" ? ROSTER.filter(u => (META.owned||[]).includes(u.id)) : []);
-  if (ownedSpecific.length === 0) {
-    const hint = document.createElement("div");
-    hint.className = "ddim";
-    hint.style.cssText = "font-size:12px;padding:4px;grid-column:1/-1";
-    hint.textContent = "가챠로 개별 유닛 수집 후 배치하세요.";
-    formList.appendChild(hint);
-  } else {
-    ownedSpecific.slice(0,12).forEach(u => {
-      const isDep = deployedSet.has(u.id);
-      const el = document.createElement("div");
-      el.className = "deploy-select-item" + (isDep ? " deployed" : "");
-      el.innerHTML = `${artHTML(u, "", "")} <span style="color:${u.color}">${u.name}</span> <span class="status">${isDep ? "✓배치됨" : "배치"}</span>`;
-      el.onclick = () => toggleDeployUnit(u.id);
-      formList.appendChild(el);
-    });
-  }
-  formBox.appendChild(formList);
-  box.appendChild(formBox);
-
-  const hbox = $("dash-heroes");
-  if (hbox) hbox.innerHTML = HERO_ORDER.map((hk) => { const h = HEROES[hk], tr = tHero(hk); return '<div class="hrow">' + h.glyph + " <b>" + tr[0] + "</b> <span class=\"hcode\">" + h.rank + "</span> · 💥" + tUlt(h.ult) + "</div>"; }).join("");
   const pb = $("dash-protect"); if (pb) { pb.textContent = "💎 " + t("dProtect") + (dashProtect ? " ✓" : ""); pb.classList.toggle("on", dashProtect); }
-  renderSoulAltar(); renderGear(); renderCodex();
-  renderDeploySpecificsPreview();
+  renderSquad(); renderSoulAltar(); renderGear(); renderCodex();
+}
+
+// ── 편성 UI (출전 슬롯 + 보유 풀 + 시너지) ─────────────────────────────────────
+function renderSquad() {
+  const slots = $("squad-slots"); if (!slots) return;
+  const sq = getDeployedUnits();
+  if ($("squad-info")) $("squad-info").textContent = sq.length + "/" + DEPLOY_MAX + " · ⚡" + squadPower();
+  // 시너지 칩
+  const synBox = $("squad-syn");
+  if (synBox) {
+    const syn = squadSynergy();
+    synBox.innerHTML = syn.bonuses.length ? syn.bonuses.map((b) => `<span class="syn-chip">${b}</span>`).join("")
+      : `<div class="ddim" style="font-size:11px">같은 진영 2+ / 다양한 아키타입으로 시너지 발동</div>`;
+  }
+  // 출전 슬롯
+  slots.innerHTML = "";
+  for (let i = 0; i < DEPLOY_MAX; i++) {
+    const u = sq[i];
+    const el = document.createElement("div");
+    el.className = "sq-slot" + (u ? " filled" : "");
+    if (u) {
+      el.style.borderColor = u.color;
+      el.innerHTML = `<div class="sq-art">${artHTML(u, "sqgly", "sqim")}</div><div class="sq-nm" style="color:${u.color}">${u.name}</div><div class="sq-lv">Lv${charLv(u.id)} · ${u.rarity}</div><span class="sq-x">✕</span>`;
+      el.querySelector(".sq-x").onclick = (e) => { e.stopPropagation(); toggleDeployUnit(u.id); };
+      el.onclick = () => openCharPanel(u.id);
+    } else {
+      el.innerHTML = `<span class="sq-empty">＋</span>`;
+    }
+    slots.appendChild(el);
+  }
+  // 보유 풀 (편성 안 된 캐릭터)
+  const pool = $("squad-pool"); if (!pool) return;
+  pool.innerHTML = "";
+  const owned = (typeof ROSTER !== "undefined" ? ROSTER.filter((u) => (META.owned || []).includes(u.id)) : []);
+  const depSet = new Set(META.deployed || []);
+  if (!owned.length) { pool.innerHTML = `<div class="ddim" style="font-size:12px;padding:4px">가챠로 캐릭터를 모아 편성하세요.</div>`; return; }
+  owned.forEach((u) => {
+    const isDep = depSet.has(u.id);
+    const el = document.createElement("div");
+    el.className = "sq-pool-item r" + u.rarity + (isDep ? " on" : "");
+    el.style.borderColor = u.color + (isDep ? "" : "55");
+    el.innerHTML = `<div class="sq-art">${artHTML(u, "sqgly", "sqim")}</div><div class="sq-pnm">${u.name}</div><div class="sq-prr" style="color:${u.color}">${u.rarity}${isDep ? " ✓" : ""}</div>`;
+    el.onclick = () => toggleDeployUnit(u.id);
+    pool.appendChild(el);
+  });
+}
+// ── 캐릭터 상세 패널 (레벨업 + 캐릭별 장비) ──────────────────────────────────
+let cpCharId = null;
+function charLvCost(id) { return 200 * (charLv(id) + 1); }
+function charLevelUp(id) {
+  if (running) return;
+  const cost = charLvCost(id);
+  if (META.gold < cost) { toast(t("tGoldShort", { n: cost }), "#ef4444"); return; }
+  META.gold -= cost; if (!META.charLv) META.charLv = {}; META.charLv[id] = charLv(id) + 1;
+  saveMeta(); updateMeta(); SFX.claim(); haptic("medium");
+  openCharPanel(id); renderSquad(); if (!running) reset();
+}
+function charEquip(id, gearId) {
+  const g = META.gear.find((x) => x.id === gearId); if (!g) return;
+  if (!META.charGear) META.charGear = {};
+  if (!META.charGear[id]) META.charGear[id] = {};
+  // 같은 슬롯이면 토글 해제, 아니면 장착(다른 캐릭에서 떼옴)
+  if (META.charGear[id][g.slot] === gearId) { delete META.charGear[id][g.slot]; }
+  else {
+    for (const cid in META.charGear) { if (META.charGear[cid][g.slot] === gearId) delete META.charGear[cid][g.slot]; }  // 중복 장착 방지
+    META.charGear[id][g.slot] = gearId;
+  }
+  saveMeta(); SFX.equip && SFX.equip(); haptic("light");
+  openCharPanel(id); renderSquad(); if (!running) reset();
+}
+function openCharPanel(id) {
+  const u = ROSTER.find((x) => x.id === id); if (!u) return;
+  cpCharId = id;
+  const lv = charLv(id), gcs = charGearStats(id);
+  const head = $("cp-head");
+  if (head) head.innerHTML = `<div class="cp-art" style="border-color:${u.color}">${artHTML(u, "cpgly", "cpim")}</div>`
+    + `<div class="cp-meta"><div class="cp-nm" style="color:${u.color}">${u.name}</div>`
+    + `<div class="cp-ti">${u.title || u.arch} · ${u.rarity} · 🏷️${u.faction}</div>`
+    + `<div class="cp-st">⚡Lv${lv} · 💪${gcs.str} 🧠${gcs.int} 👟${gcs.agi} 🍀${gcs.luk}</div>`
+    + `<button id="cp-lvup">⬆️ 레벨업 Lv${lv + 1} · 💰${charLvCost(id)}</button></div>`;
+  on("cp-lvup", "click", () => charLevelUp(id));
+  // 장착 슬롯
+  const eq = (META.charGear && META.charGear[id]) || {};
+  const gbox = $("cp-gear");
+  if (gbox) gbox.innerHTML = SLOTS.map((s) => {
+    const gid = eq[s], g = gid ? META.gear.find((x) => x.id === gid) : null;
+    return `<div class="cp-slot${g ? " on" : ""}" style="${g ? "border-color:" + g.color : ""}">${SLOT_ICON[s]}${g ? `<b style="color:${g.color}">${g.rarity}${g.enh ? "+" + g.enh : ""}</b>` : ""}</div>`;
+  }).join("");
+  // 보유 장비 (탭해서 장착)
+  const inv = $("cp-inv");
+  if (inv) {
+    if (!META.gear.length) inv.innerHTML = `<div class="ddim" style="font-size:11px;padding:4px">보유 장비 없음 — 상점/제작</div>`;
+    else inv.innerHTML = META.gear.slice().sort((a, b) => b.id - a.id).map((g) => {
+      const onThis = eq[g.slot] === g.id;
+      const stats = STAT_KEYS.filter((k) => g[k]).map((k) => t("st_" + k) + gearStat(g, k)).join(" ");
+      return `<div class="cp-gi${onThis ? " on" : ""}" data-gid="${g.id}" style="border-color:${g.color}66"><span>${SLOT_ICON[g.slot]} <b style="color:${g.color}">${g.rarity}</b>${g.enh ? "+" + g.enh : ""}</span><small>${stats}</small></div>`;
+    }).join("");
+    inv.querySelectorAll(".cp-gi").forEach((b) => b.onclick = () => charEquip(id, +b.dataset.gid));
+  }
+  $("char-panel").classList.remove("hidden");
 }
 
 // 유저가 보기 쉽게: battle deploy 영역 + char에서 specific deployed 미리보기 (distinct vis 사용)
@@ -1688,6 +1790,7 @@ function on(id, ev, fn) { const e = $(id); if (e) e.addEventListener(ev, fn); }
 on("dash-protect", "click", () => { dashProtect = !dashProtect; renderDash(); });
 on("gear-craft", "click", craftGear);
 on("unit-close", "click", () => $("unit-pop").classList.add("hidden"));
+on("cp-close", "click", () => $("char-panel").classList.add("hidden"));
 // ── 페이지 네비게이션 ──
 let curPage = "battle";
 function showPage(p) {

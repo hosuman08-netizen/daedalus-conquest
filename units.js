@@ -29,6 +29,7 @@ const FACTIONS = ["Strategist", "Executor", "Swarm", "Guardian", "Intel"];
 
 // ── 9 SSR 창립 군단 (오리지널 네이밍 — 공개 안전, 트레이드마크/내부명 배제) ──
 // 아키타입 분산 순서 유지. 고유 시그니처 트레잇.
+// SECURITY: Real 1:1 correspondence to internal Legion entities is 우리만 아는 보안. Code and all player text use only these fictional codenames. No leaks.
 const SSR_CHARS = [
   { name: "Arclight", title: "심판의 빛",   persona: "군단의 전략적 판단자. 승기를 읽어 전군을 각성시킨다", faction: "Strategist", trait: "처치 시 전군 AI+1.5 · 3초 치명 연쇄" },
   { name: "Solace",   title: "재생의 물결", persona: "실행의 수호자. 사망을 수복으로 바꾼다", faction: "Executor", trait: "아군 사망 시 주변 3체 연쇄 수복(HP25%)" },

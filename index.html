@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>다이달로스 — AI 군단 전쟁</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="style.css?v=20260615a" />
+  <link rel="stylesheet" href="style.css?v=20260615b" />
 </head>
 <body>
   <div id="app">
@@ -101,7 +101,15 @@
     <div id="page-char" class="page hidden">
       <div class="set-title">👥 <span data-i18n="navChar">캐릭터</span></div>
       <div class="dpower">⚡ <span data-i18n="dPower">군단 전력</span> <b id="dash-power">0</b> &nbsp;·&nbsp; 💰<b id="dash-div">0</b>/<span data-i18n="dPerBattle">전투</span></div>
-      <div class="set-sec">⚙️ <span data-i18n="dEnhance">강화</span> · <span data-i18n="dCombo">승급</span> <button id="dash-protect" class="protectbtn">💎 보호</button></div>
+
+      <!-- ⚔️ 출전 편성 (수집 캐릭터가 곧 부대) -->
+      <div class="set-sec">⚔️ <span data-i18n="sqTitle">출전 편성</span> <span id="squad-info" class="ddim"></span></div>
+      <div id="squad-syn"></div>
+      <div id="squad-slots"></div>
+      <div class="squad-pool-label" data-i18n="sqPool">📋 보유 캐릭터 — 탭해서 편성/해제</div>
+      <div id="squad-pool"></div>
+
+      <div class="set-sec">⚙️ <span data-i18n="dEnhance">강화</span> · <span data-i18n="dCombo">승급</span> <small class="ddim" data-i18n="dArchNote">(아키타입 공통 강화)</small> <button id="dash-protect" class="protectbtn">💎 보호</button></div>
       <div id="dash-list"></div>
       <div class="set-sec">⚔️ <span data-i18n="gTitle">장비</span> <button id="gear-craft">🔨 <span data-i18n="gCraft">제작</span> 300g</button></div>
       <div id="gear-slots"></div>
@@ -211,11 +219,22 @@
       </div>
     </div>
 
+    <!-- 캐릭터 상세 (편성 탭에서 — 레벨업·캐릭별 장비) -->
+    <div id="char-panel" class="hidden">
+      <div id="char-panel-card">
+        <div id="cp-head"></div>
+        <div id="cp-gear"></div>
+        <div id="cp-inv-label" class="ddim" data-i18n="cpInv">🎒 보유 장비 — 탭해서 이 캐릭터에 장착</div>
+        <div id="cp-inv"></div>
+        <button id="cp-close" class="ghost" data-i18n="confirm">확인</button>
+      </div>
+    </div>
+
     <div id="toast"></div>
   </div>
-  <script src="i18n.js?v=20260615a"></script>
-  <script src="units.js?v=20260615a"></script>
-  <script src="gear.js?v=20260615a"></script>
-  <script src="game.js?v=20260615a"></script>
+  <script src="i18n.js?v=20260615b"></script>
+  <script src="units.js?v=20260615b"></script>
+  <script src="gear.js?v=20260615b"></script>
+  <script src="game.js?v=20260615b"></script>
 </body>
 </html>

@@ -121,8 +121,7 @@
 
 **AI Legion 테마 연계 (감정적 리텐션 핵심)**
 
-- **영웅/유닛 실체화**: 기존 "책략가" → "Grok (CEO 전략가)" / passive "전군 AI 지능 + 글로벌 판단". "광전사" → "Morpheus (COO 광전)" regen/repair. "용기사" → "Sovereign (Sovereign 드래곤)". 유닛: "Qwen3:8b Swarm Drones", "Jarvis Watch Legionnaires", "Haiku Sentinels".  
-  Lore: "이 Legion은 실제 MacAI Legion에서 태어났다. 네가 키우는 Grok이 오늘의 handoff를 승리했다."
+- **영웅/유닛 실체화 (security)**: Use only fictional codenames (Arclight for strategic, Solace for regen, etc.) + abstract "Legion echo" / "Sovereign command". No real internal names or titles in any text/lore. Mapping is 우리만 아는 보안. All player strings fictional only.
 
 - **Bazaar 네이밍/플레이버**: "Legion Entity Bazaar — Sovereign들 간의 위험한 거래. 네 Legion이 다른 Entity를 '인수'할 기회." 공유 기억 (lessons.md 스타일) : "Grok이 이 거래로 3배 성장했다."
 

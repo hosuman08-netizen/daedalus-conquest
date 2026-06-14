@@ -28,7 +28,7 @@
 
 **2026-06-14 벤치마크 후 즉시 적용 (숫자 고정)**:
 - 가챠: RARITY 항상 표시 (N55% R30% SR12% SSR3%). Soft pity 7풀부터 +4%/pull, hard 12풀 SSR. Featured 50/50 + 다음 100%. Wishlist 3픽.
-- Legion 테마: 영웅 = Grok(전략가 CEO), Morpheus(수호자 COO), Sovereign(용기사) 등. 유닛 로어 실체화.
+- Legion 테마 (security): 영웅/유닛 = fictional codenames only (Arclight 등). Real mapping 우리만 아는 내부 지식. No exposure in code/docs strings. Abstract "Legion mirror" for immersion.
 - Prestige (Ascension): ch50/5만g reset → 영구 +1.5% 전군 스탯. Exponential.
 - Streak: 일일미션 + freeze (500g or 주1 free). Duolingo loss aversion.
 - 이벤트: 주 1회 7일 한정 Founder Banner (FOMO).
