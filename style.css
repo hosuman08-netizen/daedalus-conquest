@@ -32,10 +32,11 @@ h1::first-letter { color: var(--crimson); }
 .hcode { color: var(--crimson); font-weight: 900; font-size: 12px; padding: 1px 5px; border: 1px solid #7f1d1d; border-radius: 5px; }
 
 /* 출석 그리드 */
-#attend-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 8px 0 12px; }
-.attcell { background: #1c1620; border-radius: 9px; padding: 8px 4px; text-align: center; border: 1.5px solid transparent; }
-.attcell .ad { font-size: 10px; color: var(--dim); }
-.attcell .ar { font-size: 12px; font-weight: 700; margin-top: 3px; }
+#attend-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin: 8px 0 12px; max-height: 260px; overflow-y: auto; }
+.attcell { background: #1c1620; border-radius: 8px; padding: 6px 2px; text-align: center; border: 1.5px solid transparent; }
+.attcell .ad { font-size: 9px; color: var(--dim); }
+.attcell .ar { font-size: 11px; font-weight: 700; margin-top: 2px; }
+.attcell.box { background: #221826; } .attcell.box .ar { font-size: 16px; }
 .attcell.done { opacity: .4; }
 .attcell.today { border-color: var(--gold); background: #2a2212; }
 #attend-claim { width: 100%; padding: 12px; font-size: 15px; font-weight: 800; border-radius: 10px; background: linear-gradient(135deg, #f5c451, #d97706); color: #1a1400; }

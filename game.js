@@ -137,8 +137,8 @@ const SLOT_MAIN = { weapon: "str", armor: "int", acc: "agi", relic: "luk" };
 const STAT_KEYS = ["str", "int", "agi", "luk"];
 const GEAR_RARITY = [{ k: "N", p: 0.5, base: 6, color: "#9ca3af" }, { k: "R", p: 0.32, base: 12, color: "#60a5fa" }, { k: "SR", p: 0.14, base: 22, color: "#c084fc" }, { k: "SSR", p: 0.04, base: 40, color: "#fbbf24" }];
 function rollGearRarity() { let r = Math.random(), a = 0; for (const x of GEAR_RARITY) { a += x.p; if (r <= a) return x; } return GEAR_RARITY[0]; }
-function makeGear() {
-  const slot = SLOTS[(Math.random() * 4) | 0], rar = rollGearRarity(), main = SLOT_MAIN[slot];
+function makeGear(forceRar) {
+  const slot = SLOTS[(Math.random() * 4) | 0], rar = forceRar ? (GEAR_RARITY.find((x) => x.k === forceRar) || rollGearRarity()) : rollGearRarity(), main = SLOT_MAIN[slot];
   const g = { id: ++META.gearSeq, slot: slot, rarity: rar.k, color: rar.color, enh: 0, str: 0, int: 0, agi: 0, luk: 0 };
   g[main] = Math.round(rar.base * (0.8 + Math.random() * 0.6));
   const sub = STAT_KEYS[(Math.random() * 4) | 0];
@@ -770,27 +770,45 @@ $("set-haptic").addEventListener("click", () => { META.haptic = META.haptic === 
 $("set-reset").addEventListener("click", resetProgress);
 
 // ── 이벤트: 일일 출석 (7일 사이클, 골드+다이아) ──────────────────────────────
-const ATTEND = [{ g: 300 }, { g: 500 }, { gem: 30 }, { g: 1000 }, { g: 1500 }, { gem: 60 }, { g: 3000, gem: 100, box: 1 }];
-// 유닛 선물상자: 무료 랜덤 뽑기 1회
-function boxPull() {
-  META.pity = (META.pity || 0) + 1;
-  let rar = rollRarity();
-  if (META.pity >= 10) rar = RARITY[3];
-  if (rar.key === "SSR" || rar.key === "SR") META.pity = 0;
-  if (rar.key === "SSR" && !META.titanOwned) { META.titanOwned = true; counts.p.titan = 1; }
-  else { const pool = ORDER.filter((u) => u !== "titan" || META.titanOwned); for (let j = 0; j < rar.lvls; j++) { const u = pool[(Math.random() * pool.length) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; } }
-  grantUnit(rar.key);
-  return rar;
+// 30일 출석: 평소 골드/다이아, 7·15·30일차 색깔별 박스(장비/유닛 랜덤)
+const ATTEND = (function () {
+  const a = [];
+  for (let d = 1; d <= 30; d++) {
+    if (d === 7) a.push({ box: "common" });
+    else if (d === 15) a.push({ box: "rare" });
+    else if (d === 30) a.push({ box: "epic" });
+    else if (d % 3 === 0) a.push({ gem: 20 + Math.floor(d / 3) * 5 });
+    else a.push({ g: 200 + d * 50 });
+  }
+  return a;
+})();
+const BOX = {
+  common: { icon: "📦", color: "#60a5fa", unitR: ["R", "SR"], gear: "R" },
+  rare:   { icon: "🎁", color: "#c084fc", unitR: ["SR", "SSR"], gear: "SR" },
+  epic:   { icon: "💎", color: "#fbbf24", unitR: ["SSR"], gear: "SSR" },
+};
+function openBox(tier) {
+  const b = BOX[tier];
+  if (Math.random() < 0.5) {                                  // 유닛
+    const rar = b.unitR[(Math.random() * b.unitR.length) | 0];
+    const gu = grantUnit(rar);
+    const pool = ORDER.filter((u) => u !== "titan" || META.titanOwned);
+    for (let j = 0; j < 2; j++) { const u = pool[(Math.random() * pool.length) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; }
+    return { color: b.color, text: (gu ? "【" + gu.name + "】 " : "") + rar + " 유닛", rank: rar };
+  }
+  const g = makeGear(b.gear); META.gear.push(g);              // 장비
+  return { color: b.color, text: "🔨 " + (SLOT_ICON[g.slot] || "") + " " + g.rarity + " 장비", rank: g.rarity };
 }
 function openEvent() { renderAttend(); $("event").classList.remove("hidden"); }
 function renderAttend() {
   const grid = $("attend-grid"); if (!grid) return;
   grid.innerHTML = "";
-  const claimed = META.attend.last === today(), cur = (META.attend.day || 0) % 7;
+  const claimed = META.attend.last === today(), cur = (META.attend.day || 0) % 30;
   ATTEND.forEach((r, i) => {
     const d = document.createElement("div");
-    d.className = "attcell" + (i < cur ? " done" : "") + (i === cur && !claimed ? " today" : "");
-    d.innerHTML = '<div class="ad">' + t("evDay", { n: i + 1 }) + '</div><div class="ar">' + (r.gem ? "💎" + r.gem : "") + (r.g ? "💰" + r.g : "") + "</div>";
+    d.className = "attcell" + (i < cur ? " done" : "") + (i === cur && !claimed ? " today" : "") + (r.box ? " box" : "");
+    const rw = r.box ? '<span style="color:' + BOX[r.box].color + '">' + BOX[r.box].icon + "</span>" : (r.gem ? "💎" + r.gem : "💰" + (r.g >= 1000 ? Math.floor(r.g / 1000) + "k" : r.g));
+    d.innerHTML = '<div class="ad">' + (i + 1) + "</div><div class=\"ar\">" + rw + "</div>";
     grid.appendChild(d);
   });
   const btn = $("attend-claim");
@@ -798,13 +816,18 @@ function renderAttend() {
 }
 function claimAttend() {
   if (META.attend.last === today()) { toast(t("evDone"), "#8b93a7"); return; }
-  const idx = (META.attend.day || 0) % 7, r = ATTEND[idx];
+  const idx = (META.attend.day || 0) % 30, r = ATTEND[idx];
   if (r.g) META.gold += r.g;
   if (r.gem) META.gems = (META.gems || 0) + r.gem;
+  let boxRes = null;
+  if (r.box) boxRes = openBox(r.box);
   META.attend.day = (META.attend.day || 0) + 1; META.attend.last = today();
   saveMeta(); updateMeta(); renderAttend();
-  toast(t("tAttend", { n: idx + 1 }), "#fbbf24"); haptic("medium"); SFX.claim();
-  if (r.box) { const rar = boxPull(); saveMeta(); updateMeta(); $("event").classList.add("hidden"); setTimeout(() => showGacha(rar, t("tBox", { x: rar.key })), 450); }
+  haptic("medium"); SFX.claim();
+  if (boxRes) {
+    $("event").classList.add("hidden");
+    setTimeout(() => showGacha({ key: boxRes.rank, color: boxRes.color }, boxRes.text), 400);
+  } else toast(t("tAttend", { n: idx + 1 }), "#fbbf24");
 }
 $("event-close").addEventListener("click", () => $("event").classList.add("hidden"));
 $("attend-claim").addEventListener("click", claimAttend);
