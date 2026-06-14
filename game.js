@@ -130,7 +130,14 @@ function lvMul(type, stat) {
   return 1;
 }
 // 군단 전력 + 복리 배당 (컬렉션 쌓일수록 전투 보너스 골드 ↑)
-function legionPower() { let p = 0; for (const t of ORDER) p += (META.army[t] || 0) * ((META.lv[t] || 0) + (META.enh[t] || 0) * 2 + (META.star[t] || 0) * 12); return p; }
+function gearPower() {                                 // 장착 장비 전력 (1스탯 = +5, 확 보이게)
+  const gs = heroGearStats();
+  return Math.round((gs.str + gs.int + gs.agi + gs.luk) * 5);
+}
+function legionPower() {
+  let p = 0; for (const t of ORDER) p += (META.army[t] || 0) * ((META.lv[t] || 0) + (META.enh[t] || 0) * 2 + (META.star[t] || 0) * 12);
+  return p + gearPower();                              // ⚔️ 장비 반영
+}
 function dividendGold() { return Math.floor(legionPower() * 0.6); }
 
 // ── 장비 시스템 (gear.js의 5슬롯·120종 카탈로그 사용) ────────────────────────
@@ -1109,17 +1116,27 @@ function craftGear() {
 function equipGear(id) {
   const g = META.gear.find((x) => x.id === id); if (!g) return;
   if (!META.equip[META.hero]) META.equip[META.hero] = {};
+  const before = legionPower();
   if (META.equip[META.hero][g.slot] === id) delete META.equip[META.hero][g.slot]; else META.equip[META.hero][g.slot] = id;
-  saveMeta(); renderGear(); haptic("light");
+  saveMeta(); renderDash();                            // 전력 헤더까지 즉시 갱신
+  const d = legionPower() - before;
+  const pe = $("dash-power");
+  if (pe) { pe.classList.remove("pop"); void pe.offsetWidth; pe.classList.add("pop"); }
+  if (d > 0) { toast("⚡ " + t("dPower") + " +" + d, "#a3e635"); SFX.claim(); haptic("medium"); }
+  else if (d < 0) { toast("⚡ " + t("dPower") + " " + d, "#8b93a7"); haptic("light"); }
+  else haptic("light");
 }
 function enhanceGear(id) {
   const g = META.gear.find((x) => x.id === id); if (!g) return;
   const cost = 200 * ((g.enh || 0) + 1);
   if (META.gold < cost) { toast(t("tGoldShort", { n: cost }), "#ef4444"); return; }
   META.gold -= cost;
+  const eqd = (META.equip[META.hero] || {})[g.slot] === id;   // 장착 중이면 전력 변동
+  const before = legionPower();
   if (Math.random() * 100 < Math.max(40, 100 - (g.enh || 0) * 8)) { g.enh = (g.enh || 0) + 1; toast(t("dSuccess", { n: g.enh }), "#a3e635"); SFX.claim(); }
   else { toast(t("dFail"), "#ef4444"); SFX.lose(); }
-  saveMeta(); updateMeta(); renderGear();
+  saveMeta(); updateMeta(); renderDash();
+  if (eqd) { const d = legionPower() - before; const pe = $("dash-power"); if (d > 0 && pe) { pe.classList.remove("pop"); void pe.offsetWidth; pe.classList.add("pop"); } }
 }
 function renderGear() {
   const eq = META.equip[META.hero] || {};

@@ -56,6 +56,8 @@ h1::first-letter { color: var(--crimson); }
 .dai.ai2 { background: #1e2e3a; color: #67c2f5; }
 .dai.ai3 { background: #2e2410; color: var(--gold); }
 .dai em { font-style: normal; opacity: .8; font-size: 9px; }
+#dash-power.pop { animation: powerPop .45s ease; display: inline-block; }
+@keyframes powerPop { 0% { transform: scale(1); color: var(--gold); } 35% { transform: scale(1.5); color: #a3e635; text-shadow: 0 0 12px #a3e635; } 100% { transform: scale(1); } }
 .playrow { display: flex; align-items: center; gap: 8px; background: #1c1620; border-radius: 9px; padding: 8px 10px; margin-bottom: 6px; border: 1.5px solid transparent; }
 .playrow.ready { border-color: var(--gold); background: #2a2212; }
 .playrow.done { opacity: .45; }
