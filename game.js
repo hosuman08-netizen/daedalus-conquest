@@ -779,7 +779,7 @@ const ATTEND = (function () {
   for (let d = 1; d <= 30; d++) {
     if (d === 7) a.push({ box: "common" });
     else if (d === 15) a.push({ box: "rare" });
-    else if (d === 30) a.push({ box: "epic" });
+    else if (d === 30) a.push({ box: "legend" });
     else if (d % 3 === 0) a.push({ gem: 20 + Math.floor(d / 3) * 5 });
     else a.push({ g: 200 + d * 50 });
   }
@@ -789,8 +789,15 @@ const BOX = {
   common: { icon: "📦", color: "#60a5fa", unitR: ["R", "SR"], gear: "R" },
   rare:   { icon: "🎁", color: "#c084fc", unitR: ["SR", "SSR"], gear: "SR" },
   epic:   { icon: "💎", color: "#fbbf24", unitR: ["SSR"], gear: "SSR" },
+  legend: { icon: "🌟", color: "#fbbf24" },
 };
 function openBox(tier) {
+  if (tier === "legend") {                                    // 30일차 최고 보상: SSR 유닛 + SSR 장비 + 💎
+    const gu = grantUnit("SSR");
+    const g = makeGear("SSR"); META.gear.push(g);
+    META.gems = (META.gems || 0) + 100;
+    return { color: "#fbbf24", text: (gu ? "【" + gu.name + "】 " : "") + "SSR + " + (SLOT_ICON[g.slot] || "") + "SSR장비 + 💎100", rank: "SSR" };
+  }
   const b = BOX[tier];
   if (Math.random() < 0.5) {                                  // 유닛
     const rar = b.unitR[(Math.random() * b.unitR.length) | 0];
