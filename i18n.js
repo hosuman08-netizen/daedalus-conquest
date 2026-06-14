@@ -204,6 +204,12 @@ const VIP_I18N = {
   ru: { vipTitle: "VIP набор", tVip: "👑 VIP! Скорость 8x·+50% золота·💎300" },
 };
 for (const l in VIP_I18N) Object.assign(I18N[l], VIP_I18N[l]);
+Object.assign(I18N.ko, { vipTitle: "VIP 패키지", tVip: "👑 VIP! 속도4x·골드+50%·💎300", ultraTitle: "울트라 패키지", tUltra: "🔱 울트라! 속도8x·VIP혜택·💎800" });
+Object.assign(I18N.en, { vipTitle: "VIP Pack", tVip: "👑 VIP! 4x speed·+50% gold·💎300", ultraTitle: "Ultra Pack", tUltra: "🔱 Ultra! 8x speed·VIP perks·💎800" });
+Object.assign(I18N.ja, { vipTitle: "VIPパック", tVip: "👑 VIP! 速度4x·ゴールド+50%·💎300", ultraTitle: "ウルトラパック", tUltra: "🔱 ウルトラ! 速度8x·VIP特典·💎800" });
+Object.assign(I18N.zh, { vipTitle: "VIP礼包", tVip: "👑 VIP! 4倍速·金币+50%·💎300", ultraTitle: "至尊礼包", tUltra: "🔱 至尊! 8倍速·VIP特权·💎800" });
+Object.assign(I18N.hi, { vipTitle: "VIP पैक", tVip: "👑 VIP! 4x गति·+50% गोल्ड·💎300", ultraTitle: "अल्ट्रा पैक", tUltra: "🔱 अल्ट्रा! 8x गति·VIP·💎800" });
+Object.assign(I18N.ru, { vipTitle: "VIP набор", tVip: "👑 VIP! 4x скор.·+50% золота·💎300", ultraTitle: "Ультра набор", tUltra: "🔱 Ультра! 8x скор.·VIP·💎800" });
 
 // 게임명: LEGION (전 언어 공통 브랜드)
 for (const l in I18N) I18N[l].title = "⚔️ LEGION";

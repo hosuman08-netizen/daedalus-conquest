@@ -468,10 +468,14 @@ function finish(p, e) {
       if (META.dailyDone !== today()) { reward = bonus(200 + META.chapter * 15); META.dailyDone = today(); extra = `<div class="rwd">${t("rwDailyBonus", { n: reward })}</div>`; }
       else { extra = `<div class="rwd2">${t("rwDailyDone")}</div>`; }
       title = t("rDaily");
-    } else if (m === "boss") {                          // 🐲 보스: 큰 보상
+    } else if (m === "boss") {                          // 🐲 보스: 골드 + 난이도별 다이아 + 난이도별 박스
       reward = bonus(120 + META.chapter * 25);
+      const gemR = 5 + Math.floor(META.chapter / 5);
+      META.gems = (META.gems || 0) + gemR;
+      const tier = META.chapter >= 25 ? "epic" : META.chapter >= 10 ? "rare" : "common";
+      const bx = openBox(tier);
       title = t("rBoss");
-      extra = `<div class="rwd">${t("rwBoss", { n: reward })}</div>`;
+      extra = `<div class="rwd">${t("rwBoss", { n: reward })} +💎${gemR}</div><div class="rwd2" style="color:${bx.color}">${BOX[tier].icon} ${bx.text}</div>`;
     } else {                                            // 📖 캠페인: 다음 챕터
       META.streak = (META.streak || 0) + 1;
       reward = bonus(40 + META.chapter * 20 + Math.min(80, (META.streak - 1) * 10));
@@ -636,7 +640,7 @@ $("start").addEventListener("click", start);
 $("reset").addEventListener("click", reset);
 $("speed").addEventListener("click", () => {
   // 무료 1x·2x / 스타터 4x / VIP 8x — 팝업 없이 순환
-  const tiers = META.vip ? [1, 2, 4, 8] : (META.starter ? [1, 2, 4] : [1, 2]);
+  const tiers = META.ultra ? [1, 2, 4, 8] : META.vip ? [1, 2, 4] : [1, 2];   // VIP=4x · 울트라=8x
   const i = tiers.indexOf(speed);
   speed = tiers[(i + 1) % tiers.length];
   $("speed").textContent = t("speed", { n: speed });
@@ -858,7 +862,8 @@ $("code-btn").addEventListener("click", redeemCode);
 // ── 캐시 상점 (별도, Stars 결제 자리 — 지금은 데모 지급) ─────────────────────
 const SHOP = [
   { id: "starter", starter: true, price: "₩990", tag: "BEST" },
-  { id: "vip", vip: true, price: "₩29,900", tag: "VIP" },
+  { id: "vip", vip: true, price: "₩29,900", tag: "VIP·4x" },
+  { id: "ultra", ultra: true, price: "₩99,900", tag: "8x" },
   { id: "gem1", gem: 60, price: "₩1,100" },
   { id: "gem2", gem: 330, price: "₩5,500", tag: "+10%" },
   { id: "gem3", gem: 1180, price: "₩19,900", tag: "+18%" },
@@ -871,8 +876,9 @@ function renderShop() {
   SHOP.forEach((p) => {
     if (p.starter && META.starter) return;
     if (p.vip && META.vip) return;
-    const c = document.createElement("button"); c.className = "packcard" + (p.vip ? " vip" : "");
-    const what = p.starter ? "💎 " + t("spTitle") : p.vip ? "👑 " + t("vipTitle") : (p.gem ? "💎 " + p.gem : "💰 " + p.g);
+    if (p.ultra && META.ultra) return;
+    const c = document.createElement("button"); c.className = "packcard" + (p.vip || p.ultra ? " vip" : "");
+    const what = p.starter ? "💎 " + t("spTitle") : p.vip ? "👑 " + t("vipTitle") : p.ultra ? "🔱 " + t("ultraTitle") : (p.gem ? "💎 " + p.gem : "💰 " + p.g);
     c.innerHTML = (p.tag ? '<span class="ptag">' + p.tag + "</span>" : "") + '<div class="pwhat">' + what + '</div><div class="pprice">' + p.price + "</div>";
     c.addEventListener("click", () => buyPack(p.id));
     box.appendChild(c);
@@ -883,6 +889,7 @@ function buyPack(id) {
   // TODO: 실제 결제 = tg.openInvoice (Stars). 지금은 데모 지급.
   if (p.starter) { buyStarter(); $("shop").classList.add("hidden"); return; }
   if (p.vip) { META.vip = true; META.starter = true; META.gems = (META.gems || 0) + 300; saveMeta(); updateMeta(); $("shop").classList.add("hidden"); toast(t("tVip"), "#fbbf24"); haptic("heavy"); return; }
+  if (p.ultra) { META.ultra = true; META.vip = true; META.starter = true; META.gems = (META.gems || 0) + 800; saveMeta(); updateMeta(); $("shop").classList.add("hidden"); toast(t("tUltra"), "#fbbf24"); haptic("heavy"); return; }
   if (p.gem) META.gems = (META.gems || 0) + p.gem;
   if (p.g) META.gold += p.g;
   saveMeta(); updateMeta(); renderShop();
