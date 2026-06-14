@@ -165,6 +165,23 @@ function heroAiBonus(lv) { return 1 + Math.floor((lv - 1) / 2); }  // lv1→+1, 
 
 let cv, ctx, W, H, units, fx, running, gameOver, lastT, speed = 1, raf = 0, auto = false, ultT = 0;
 let curLevel = 1, bossFight = false;                 // 모드별 적 레벨/보스전 플래그
+
+// SSR god-tier battle portraits (preload the pretty arts so they appear "저대로" in canvas fight)
+// Only for the 9 Founding (u1~u9.png). Non-SSR stay synthetic for TG perf.
+let ssrPortraits = {};
+function preloadSSRPortraits() {
+  if (typeof ROSTER === "undefined") return;
+  ROSTER.filter(u => u.rarity === "SSR" && !ssrPortraits[u.id]).forEach(u => {
+    const img = new Image();
+    img.src = `art/u${u.id}.png`;
+    img.onload = () => {
+      ssrPortraits[u.id] = img;
+      if (running) draw(); // re-draw battle as soon as god art loads
+    };
+    ssrPortraits[u.id] = img;
+  });
+}
+preloadSSRPortraits(); // safe early call (ROSTER from units.js)
 function nowMs() { try { return Date.now(); } catch (e) { return 0; } }
 function today() { try { return new Date().toISOString().slice(0, 10); } catch (e) { return ""; } }
 const counts = {
@@ -498,6 +515,7 @@ function reset() {
   applyMode();                                       // 모드에 맞게 적군 구성
   units = []; fx = []; running = false; gameOver = false; lastT = 0; ultT = 0;
   spawnArmy("p"); spawnArmy("e");
+  preloadSSRPortraits(); // ensure god arts ready for battle
   $overlay.classList.add("hidden");
   $("start").textContent = t("start");
   updateMeta(); updateHeroUI(); updateUltBtn(); updateModeTabs(); draw(); updateScore();
@@ -676,6 +694,9 @@ function draw() {
     ctx.globalAlpha = 1;
   }
 
+  // ensure SSR portraits ready for battle (in case timing)
+  if (Object.keys(ssrPortraits).length === 0) preloadSSRPortraits();
+
   for (const u of units) {
     if (u.hp <= 0) continue;
     // 바닥 그림자 (그라운딩)
@@ -689,13 +710,30 @@ function draw() {
     if (u.boss)       { ctx.strokeStyle = "#fbbf24"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 5, 0, 7); ctx.stroke(); }
     if (u.shield > 0) { ctx.strokeStyle = "#67e8f9"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 4.5, 0, 7); ctx.stroke(); }
     if (u.buff > 0)   { ctx.strokeStyle = "#a3e635"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 6.5, 0, 7); ctx.stroke(); }
-    ctx.font = (u.r + 8) + "px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    const drawGlyph = (u.vis || SPEC[u.t].glyph || "●");
-    ctx.fillText(drawGlyph, u.x, u.y + 1);
-    // 시각 차별화: archetype별 미세 procedural (synthetic) + SSR god signatures (v2)
-    if (u.arch === "drone") { ctx.fillStyle = "rgba(255,255,255,0.55)"; ctx.beginPath(); ctx.arc(u.x + u.r * 0.55, u.y - u.r * 0.45, 1.4, 0, 7); ctx.fill(); ctx.beginPath(); ctx.arc(u.x - u.r * 0.45, u.y + u.r * 0.35, 1.1, 0, 7); ctx.fill(); }
-    else if (u.arch === "marksman") { ctx.strokeStyle = "rgba(253,224,71,0.45)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(u.x, u.y); ctx.lineTo(u.x + u.r * 1.7, u.y - 1); ctx.stroke(); }
-    else if (u.arch === "guardian") { ctx.strokeStyle = "rgba(103,232,249,0.35)"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(u.x, u.y, u.r * 1.05, 0, 7); ctx.stroke(); }
+    // Battle body: SSR uses the actual god-tier PNG portrait so they appear "저대로" in canvas fight
+    // (preloaded from art/u${id}.png). Non-SSR keep fast synthetic glyph for 70 fodder + TG perf.
+    if (u.rarity === "SSR" && ssrPortraits[u.id] && ssrPortraits[u.id].complete) {
+      const img = ssrPortraits[u.id];
+      const sz = u.r * 1.9;
+      ctx.save();
+      ctx.shadowColor = u.color || "#fbbf24";
+      ctx.shadowBlur = 14;
+      ctx.drawImage(img, u.x - sz/2, u.y - sz/2, sz, sz);
+      ctx.restore();
+      // god-tier rim lighting (feels like the splash art)
+      ctx.strokeStyle = "#fbbf24"; ctx.lineWidth = 2.4;
+      ctx.beginPath(); ctx.arc(u.x, u.y, u.r * 1.15, 0, 7); ctx.stroke();
+      ctx.strokeStyle = "rgba(255,255,255,0.35)"; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.arc(u.x, u.y, u.r * 1.02, 0, 7); ctx.stroke();
+    } else {
+      ctx.font = (u.r + 8) + "px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      const drawGlyph = (u.vis || SPEC[u.t].glyph || "●");
+      ctx.fillText(drawGlyph, u.x, u.y + 1);
+      // 시각 차별화: archetype별 미세 procedural (synthetic) + SSR god signatures (v2)
+      if (u.arch === "drone") { ctx.fillStyle = "rgba(255,255,255,0.55)"; ctx.beginPath(); ctx.arc(u.x + u.r * 0.55, u.y - u.r * 0.45, 1.4, 0, 7); ctx.fill(); ctx.beginPath(); ctx.arc(u.x - u.r * 0.45, u.y + u.r * 0.35, 1.1, 0, 7); ctx.fill(); }
+      else if (u.arch === "marksman") { ctx.strokeStyle = "rgba(253,224,71,0.45)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(u.x, u.y); ctx.lineTo(u.x + u.r * 1.7, u.y - 1); ctx.stroke(); }
+      else if (u.arch === "guardian") { ctx.strokeStyle = "rgba(103,232,249,0.35)"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(u.x, u.y, u.r * 1.05, 0, 7); ctx.stroke(); }
+    }
     if (u.rarity === "SSR" && u.name) {
       ctx.globalAlpha = 0.65 + Math.sin(Date.now() / 380) * 0.12;
       if (u.name === "Arclight") { ctx.fillStyle = "#fbbf24"; ctx.fillText("⚖", u.x + u.r * 0.65, u.y - u.r * 0.55); }
@@ -973,9 +1011,12 @@ function checkDaily() {
 function start() {
   if (gameOver) reset();
   if (running) { running = false; $("start").textContent = t("resume"); cancelAnimationFrame(raf); return; }
+  preloadSSRPortraits(); // 강제 로드 (GitHub Pages 타이밍 대응)
   running = true; lastT = 0; $("start").textContent = t("pause");
   $status.textContent = t("sFight");
   raf = requestAnimationFrame(loop);
+  // 첫 프레임 후 한 번 더 보장 (이미지 로드 대기)
+  setTimeout(() => { if (running) draw(); }, 280);
 }
 
 // ── 유닛 구매(+) / 판매(−, 50% 환불) ─────────────────────────────────────────

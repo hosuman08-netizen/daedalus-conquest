@@ -130,9 +130,9 @@ h1::first-letter { color: var(--crimson); }
 #unit-pop { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 15; }
 #unit-pop.hidden { display: none; }
 #unit-card { background: var(--panel); padding: 24px; border-radius: 16px; width: 280px; max-width: 88vw; text-align: center; border: 2px solid; animation: pop .3s ease-out; }
-#unit-glyph { font-size: 56px; position: relative; width: 110px; height: 110px; margin: 0 auto; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 12px; }
+#unit-glyph { font-size: 56px; position: relative; width: 140px; height: 140px; margin: 0 auto; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 12px; }
 #unit-glyph .ucgly { line-height: 1; }
-#unit-glyph .ucim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
+#unit-glyph .ucim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 12px; max-height: 140px; }
 #unit-name { font-size: 17px; font-weight: 800; margin: 6px 0 2px; }
 #unit-title { font-size: 13px; color: var(--dim); margin-bottom: 12px; }
 #unit-detail { font-size: 12.5px; color: var(--text); line-height: 1.7; text-align: left; margin-bottom: 14px; }
@@ -396,7 +396,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .sq-pool-item { position: relative; aspect-ratio: 1/1.3; background: #16101f; border: 1.5px solid; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer; overflow: hidden; padding: 2px; }
 .sq-pool-item.on { background: #241a3a; box-shadow: inset 0 0 0 1px var(--gold); }
 .sq-pool-item .sq-art { position: relative; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 22px; overflow: hidden; border-radius: 6px; }
-.sq-pool-item .sqim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.sq-pool-item .sqim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; max-height: 120px; }
 .sq-pnm { font-size: 9px; font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sq-prr { font-size: 8.5px; font-weight: 900; }
 .sq-pool-item.rSSR { box-shadow: inset 0 0 12px rgba(245,196,81,0.22); }
@@ -407,7 +407,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 #char-panel-card { background: var(--panel); border-radius: 16px; padding: 18px; width: 360px; max-width: 94vw; max-height: 88vh; overflow-y: auto; border: 1px solid #2c2142; }
 #cp-head { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
 .cp-art { position: relative; width: 64px; height: 64px; flex: 0 0 64px; border: 2px solid; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 34px; overflow: hidden; }
-.cp-art .cpim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cp-art .cpim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; max-height: 64px; }
 .cp-meta { min-width: 0; flex: 1; }
 .cp-nm { font-size: 17px; font-weight: 800; }
 .cp-ti { font-size: 11px; color: var(--dim); margin: 2px 0; }
