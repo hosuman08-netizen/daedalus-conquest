@@ -5,7 +5,7 @@
 > N은 최하 양산형 — 화려함 40%, 단색/투명 배경, 간결한 라인. 빠르게 배치 생성.
 
 ## 공통 접미
-`anime gacha common-rank splash art, original sci-fi mecha grunt unit, simple gray frame, soft lighting, vertical portrait, original design, no real brands`
+`anime gacha common-rank splash art, original sci-fi mecha grunt unit, simple gray frame, soft lighting, vertical portrait, original design, no real brands, NO stars or star rating, no rank numbers or rating text anywhere in the image`
 
 ## 아키타입별 베이스 (간결)
 drone=recon drone · marksman=sniper · guardian=shield unit · bruiser=charger · commander=tactician · titan=armored titan

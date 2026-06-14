@@ -5,7 +5,7 @@
 > R은 양산형 — 화려함 60%, 단색/투명 배경 OK, 연출 간결.
 
 ## 공통 접미
-`anime gacha R-rank splash art, original sci-fi mecha unit, blue R frame, clean rim lighting, vertical portrait, original design, no real brands`
+`anime gacha R-rank splash art, original sci-fi mecha unit, blue R frame, clean rim lighting, vertical portrait, original design, no real brands, NO stars or star rating, no rank numbers or rating text anywhere in the image`
 
 ## 아키타입별 베이스 (SR과 동일, R톤으로 간결하게)
 - drone: agile recon drone, slim hovering frame
