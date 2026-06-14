@@ -1057,11 +1057,12 @@ function showPage(p) {
 document.querySelectorAll(".navtab").forEach((b) => b.addEventListener("click", () => {
   const p = b.dataset.p;
   if (p === "char") { showPage("char"); renderDash(); }
+  else if (p === "codex") { showPage("codex"); renderCodex(); }
   else if (p === "shop") openShop();
   else if (p === "event") openEvent();
-  else if (p === "settings") openSettings();
   else showPage("battle");
 }));
+on("settings-corner", "click", openSettings);   // 설정 = 상단 구석
 
 $("overlay-btn").addEventListener("click", reset);
 on("gacha-btn", "click", gacha);

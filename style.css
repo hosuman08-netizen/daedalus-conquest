@@ -107,6 +107,7 @@ h1::first-letter { color: var(--crimson); }
 .packcard .pwhat { font-size: 15px; font-weight: 700; }
 .packcard .pprice { font-size: 14px; font-weight: 800; color: var(--gold); }
 .packcard .ptag { position: absolute; top: -7px; left: 10px; font-size: 9px; font-weight: 900; background: var(--crimson); color: #fff; padding: 2px 6px; border-radius: 5px; }
+#settings-corner { flex: none; padding: 6px 9px; font-size: 15px; background: transparent; color: var(--dim); border: none; }
 #score { font-size: 15px; font-weight: 700; }
 #score .b { color: var(--blue); } #score .r { color: var(--red); }
 
