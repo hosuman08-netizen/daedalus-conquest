@@ -93,7 +93,7 @@ function loadMeta() {
                 gems: 50, attend: { day: 0, last: "" }, codes: [],
                 enh: { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 },
                 star: { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 },
-                gear: [], equip: {}, gearSeq: 0 };
+                gear: [], equip: {}, gearSeq: 0, owned: [] };
   try {
     const m = JSON.parse(localStorage.getItem(META_KEY));
     if (m && typeof m === "object") {
@@ -105,6 +105,7 @@ function loadMeta() {
       merged.enh = Object.assign({}, def.enh, m.enh || {});
       merged.star = Object.assign({}, def.star, m.star || {});
       if (!Array.isArray(merged.gear)) merged.gear = [];
+      if (!Array.isArray(merged.owned)) merged.owned = [];
       if (typeof merged.equip !== "object" || !merged.equip) merged.equip = {};
       if (typeof merged.gearSeq !== "number") merged.gearSeq = 0;
       if (typeof merged.gems !== "number") merged.gems = 50;
@@ -546,6 +547,8 @@ function gacha() {
     for (let i = 0; i < rar.lvls; i++) { const u = pool[(Math.random() * pool.length) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; }
     msg = t("tGachaUp", { n: rar.lvls });
   }
+  const gu = grantUnit(rar.key);                        // 캐릭터 수집(도감)
+  if (gu) msg = "【" + gu.name + "】 " + msg;
   saveMeta(); updateMeta(); reset();
   showGacha(rar, msg);
 }
@@ -563,7 +566,7 @@ function gacha10() {
     if (META.pity >= 10) rar = RARITY[3];
     if (i === 9 && best < 2) rar = RARITY[2];          // 10연 SR↑ 보장
     if (rar.key === "SSR" || rar.key === "SR") META.pity = 0;
-    best = Math.max(best, RANK[rar.key]);
+    best = Math.max(best, RANK[rar.key]); grantUnit(rar.key);
     if (rar.key === "SSR" && !META.titanOwned) { META.titanOwned = true; counts.p.titan = 1; }
     else { const pool = ORDER.filter((u) => u !== "titan" || META.titanOwned); for (let j = 0; j < rar.lvls; j++) { const u = pool[(Math.random() * pool.length) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; } }
   }
@@ -776,6 +779,7 @@ function boxPull() {
   if (rar.key === "SSR" || rar.key === "SR") META.pity = 0;
   if (rar.key === "SSR" && !META.titanOwned) { META.titanOwned = true; counts.p.titan = 1; }
   else { const pool = ORDER.filter((u) => u !== "titan" || META.titanOwned); for (let j = 0; j < rar.lvls; j++) { const u = pool[(Math.random() * pool.length) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; } }
+  grantUnit(rar.key);
   return rar;
 }
 function openEvent() { renderAttend(); $("event").classList.remove("hidden"); }
@@ -915,7 +919,48 @@ function renderDash() {
   const hbox = $("dash-heroes");
   if (hbox) hbox.innerHTML = HERO_ORDER.map((hk) => { const h = HEROES[hk], tr = tHero(hk); return '<div class="hrow">' + h.glyph + " <b>" + tr[0] + "</b> <span class=\"hcode\">" + h.rank + "</span> · 💥" + tUlt(h.ult) + "</div>"; }).join("");
   const pb = $("dash-protect"); if (pb) { pb.textContent = "💎 " + t("dProtect") + (dashProtect ? " ✓" : ""); pb.classList.toggle("on", dashProtect); }
-  renderGear();
+  renderGear(); renderCodex();
+}
+// ── 캐릭터 도감 그리드 (229종 수집) ──────────────────────────────────────────
+let codexFilter = "ALL";
+function grantUnit(rarity) {
+  if (typeof ROSTER === "undefined") return null;
+  const pool = ROSTER.filter((u) => u.rarity === rarity);
+  if (!pool.length) return null;
+  const u = pool[(Math.random() * pool.length) | 0];
+  if (!META.owned) META.owned = [];
+  if (META.owned.indexOf(u.id) < 0) META.owned.push(u.id);
+  return u;
+}
+function renderCodex() {
+  const grid = $("codex-grid"); if (!grid || typeof ROSTER === "undefined") return;
+  const owned = new Set(META.owned || []);
+  if ($("codex-count")) $("codex-count").textContent = owned.size + " / " + ROSTER.length;
+  const fbar = $("codex-filter");
+  if (fbar && !fbar.dataset.built) {
+    fbar.innerHTML = ["ALL", "SSR", "SR", "R", "N"].map((r) => `<button class="cfil" data-r="${r}">${r}</button>`).join("");
+    fbar.querySelectorAll(".cfil").forEach((b) => b.addEventListener("click", () => { codexFilter = b.dataset.r; renderCodex(); }));
+    fbar.dataset.built = "1";
+  }
+  if (fbar) fbar.querySelectorAll(".cfil").forEach((b) => b.classList.toggle("on", b.dataset.r === codexFilter));
+  const list = codexFilter === "ALL" ? ROSTER : ROSTER.filter((u) => u.rarity === codexFilter);
+  grid.innerHTML = list.map((u) => {
+    const has = owned.has(u.id);
+    return `<div class="cxc${has ? "" : " lock"}" data-id="${u.id}" style="border-color:${u.color}${has ? "" : "33"}"><div class="cxg">${has ? u.glyph : "❔"}</div><div class="cxr" style="color:${u.color}">${u.rarity}</div></div>`;
+  }).join("");
+  grid.querySelectorAll(".cxc").forEach((c) => c.addEventListener("click", () => showUnit(+c.dataset.id)));
+}
+function showUnit(id) {
+  const u = ROSTER.find((x) => x.id === id); if (!u) return;
+  const has = (META.owned || []).indexOf(id) >= 0;
+  $("unit-card").style.borderColor = u.color;
+  $("unit-glyph").textContent = has ? u.glyph : "❔";
+  $("unit-name").innerHTML = `<b style="color:${u.color}">[${u.rarity}]</b> ${has ? u.name : "???"}`;
+  $("unit-title").textContent = has ? (u.title || u.arch) : t("locked");
+  $("unit-detail").innerHTML = has
+    ? `${u.faction ? "🏷️ " + u.faction + " · " : ""}${u.glyph} ${u.arch} ×${u.mul}<br>${u.persona ? "💬 " + u.persona + "<br>" : ""}${u.trait ? "✦ " + u.trait : ""}`
+    : t("lockedHint");
+  $("unit-pop").classList.remove("hidden");
 }
 // ── 장비: 제작 · 장착 · 강화 ──────────────────────────────────────────────────
 function craftGear() {
@@ -963,6 +1008,7 @@ function renderGear() {
 function on(id, ev, fn) { const e = $(id); if (e) e.addEventListener(ev, fn); }
 on("dash-protect", "click", () => { dashProtect = !dashProtect; renderDash(); });
 on("gear-craft", "click", craftGear);
+on("unit-close", "click", () => $("unit-pop").classList.add("hidden"));
 // ── 페이지 네비게이션 ──
 function showPage(p) {
   document.querySelectorAll(".page").forEach((el) => el.classList.add("hidden"));

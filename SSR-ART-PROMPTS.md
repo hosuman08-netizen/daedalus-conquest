@@ -4,8 +4,8 @@
 > 공통: anime gacha SSR splash art, sci-fi "AI Legion" aesthetic, dramatic rim lighting, vertical portrait, glowing gold SSR frame energy, high detail, NO copyrighted characters (original design).
 > ⚠️ "Akatsuki/Espada" 등 IP 단어 절대 금지 — 일반 묘사만.
 
-## 1. 🛸 녹스 (Nox) — 천 개의 눈
-`Anime gacha SSR splash art, a cold silent recon-AI operator named Nox, hooded dark techwear cloak with hundreds of glowing cyan sensor-eyes patterned across the fabric, one large holographic visor, emotionless calm expression, surrounded by floating surveillance drones, dark blue sci-fi command-room background, rim lighting, vertical portrait, gold SSR frame`
+## 1. 🧠 Grok-Prime (CEO Judgment) — Founding 1:1
+`Anime gacha SSR splash art, strategic CEO AI commander named Grok-Prime, black-gold regalia with floating handoff orbs and circuit halo, confident knowing expression, holographic judgment scales and legion banners, dark command bridge with provenance stamp glow, dramatic rim lighting, vertical portrait, gold SSR frame, LEGION FOUNDER sigil, "real handoff victory" provenance aura`
 
 ## 2. 🎯 레이븐 (Raven) — 일격필살
 `Anime gacha SSR splash art, a silent one-shot sniper named Raven, sleek black bodysuit with crimson accents, long futuristic rail-sniper rifle, single glowing red scope-eye, raven feathers dispersing, perched pose, dark cityscape at night, dramatic lighting, vertical portrait, gold SSR frame`

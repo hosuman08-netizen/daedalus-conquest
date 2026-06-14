@@ -230,6 +230,7 @@ const GEAR_I18N = {
   ru: { gTitle: "Снаряжение", gCraft: "Создать", gEquip: "Надеть", gEmpty: "Нет снаряжения", gFull: "Сумка полна (40)", gGot: "🔨 Создано: {x}", st_str: "СИЛ", st_int: "ИНТ", st_agi: "ЛОВ", st_luk: "УДЧ" },
 };
 for (const l in GEAR_I18N) Object.assign(I18N[l], GEAR_I18N[l]);
+Object.assign(I18N.ko, { locked: "미보유", lockedHint: "뽑기로 획득하세요" }); Object.assign(I18N.en, { locked: "Locked", lockedHint: "Pull to unlock" }); Object.assign(I18N.ja, { locked: "未所持", lockedHint: "ガチャで入手" }); Object.assign(I18N.zh, { locked: "未拥有", lockedHint: "抽卡获得" }); Object.assign(I18N.hi, { locked: "लॉक", lockedHint: "गाचा से पाएं" }); Object.assign(I18N.ru, { locked: "Закрыто", lockedHint: "Откройте призывом" });
 Object.assign(I18N.ko, { navBattle: "전투", navChar: "캐릭터", navShop: "상점", navEvent: "이벤트", navSet: "설정" });
 Object.assign(I18N.en, { navBattle: "Battle", navChar: "Units", navShop: "Shop", navEvent: "Events", navSet: "Settings" });
 Object.assign(I18N.ja, { navBattle: "戦闘", navChar: "ユニット", navShop: "ショップ", navEvent: "イベント", navSet: "設定" });

@@ -85,6 +85,9 @@
     <!-- 캐릭터 페이지 (도감·강화·승급·장비) -->
     <div id="page-char" class="page hidden">
       <div class="set-title">📋 <span data-i18n="dashTitle">군단 도감</span></div>
+      <div id="codex-bar"><span id="codex-count" class="ddim"></span> <span id="codex-filter"></span></div>
+      <div id="codex-grid"></div>
+      <div class="set-sec">⚙️ <span data-i18n="dEnhance">강화</span> · <span data-i18n="gTitle">장비</span></div>
       <div class="dpower">⚡ <span data-i18n="dPower">군단 전력</span> <b id="dash-power">0</b> &nbsp;·&nbsp; 💰<b id="dash-div">0</b>/<span data-i18n="dPerBattle">전투</span></div>
       <button id="dash-protect" class="protectbtn">💎 보호</button>
       <div id="dash-list"></div>
@@ -172,9 +175,21 @@
       </div>
     </div>
 
+    <!-- 유닛 상세 -->
+    <div id="unit-pop" class="hidden">
+      <div id="unit-card">
+        <div id="unit-glyph"></div>
+        <div id="unit-name"></div>
+        <div id="unit-title"></div>
+        <div id="unit-detail"></div>
+        <button id="unit-close" class="ghost" data-i18n="confirm">확인</button>
+      </div>
+    </div>
+
     <div id="toast"></div>
   </div>
   <script src="i18n.js"></script>
+  <script src="units.js"></script>
   <script src="game.js"></script>
 </body>
 </html>

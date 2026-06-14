@@ -45,6 +45,23 @@ h1::first-letter { color: var(--crimson); }
 #shop, #event, #dash { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 13; }
 #shop.hidden, #event.hidden, #dash.hidden { display: none; }
 #shop-card, #event-card, #dash-card { background: var(--panel); padding: 22px; border-radius: 16px; width: 340px; max-width: 92vw; max-height: 88vh; overflow-y: auto; border: 1px solid #3a1a1a; }
+/* 캐릭터 도감 그리드 */
+#codex-bar { display: flex; align-items: center; gap: 8px; margin: 4px 0; flex-wrap: wrap; }
+#codex-filter { display: flex; gap: 4px; }
+.cfil { width: auto; padding: 4px 9px; font-size: 11px; background: #1c1620; color: var(--dim); border-radius: 7px; }
+.cfil.on { background: #2a1418; color: var(--gold); }
+#codex-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 8px; max-height: 240px; overflow-y: auto; }
+.cxc { aspect-ratio: 1/1.2; background: #14101a; border: 1.5px solid; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.cxc.lock { opacity: .45; }
+.cxc .cxg { font-size: 22px; }
+.cxc .cxr { font-size: 8px; font-weight: 900; }
+#unit-pop { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 15; }
+#unit-pop.hidden { display: none; }
+#unit-card { background: var(--panel); padding: 24px; border-radius: 16px; width: 280px; max-width: 88vw; text-align: center; border: 2px solid; animation: pop .3s ease-out; }
+#unit-glyph { font-size: 56px; }
+#unit-name { font-size: 17px; font-weight: 800; margin: 6px 0 2px; }
+#unit-title { font-size: 13px; color: var(--dim); margin-bottom: 12px; }
+#unit-detail { font-size: 12.5px; color: var(--text); line-height: 1.7; text-align: left; margin-bottom: 14px; }
 .dpower { font-size: 13px; color: var(--dim); margin: 4px 0 8px; }
 .dpower b { color: var(--gold); }
 .protectbtn { width: auto; padding: 6px 12px; font-size: 12px; background: #1c1620; color: var(--dim); border: 1px solid #2a2530; border-radius: 8px; margin-bottom: 8px; }
