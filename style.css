@@ -42,6 +42,20 @@ h1::first-letter { color: var(--crimson); }
 #attend-claim { width: 100%; padding: 12px; font-size: 15px; font-weight: 800; border-radius: 10px; background: linear-gradient(135deg, #f5c451, #d97706); color: #1a1400; }
 #attend-claim:disabled { background: #2a2530; color: var(--dim); }
 .play-hint { font-size: 11px; color: var(--dim); margin: -2px 0 6px; }
+#tg-profile { display: flex; align-items: center; gap: 12px; background: #1c1620; border-radius: 11px; padding: 12px; margin-bottom: 4px; }
+.prof-img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; flex: 0 0 48px; }
+.prof-ph { display: flex; align-items: center; justify-content: center; font-size: 24px; background: #2a2530; }
+.prof-meta { min-width: 0; }
+.prof-name { font-size: 15px; font-weight: 800; }
+.prof-name .prem { color: var(--gold); }
+.prof-uid { font-size: 12px; color: var(--gold); }
+.prof-uid.ddim { color: var(--dim); }
+.prof-guest { font-size: 12px; color: var(--dim); padding: 4px 2px; }
+.dai { font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 6px; margin-left: 4px; white-space: nowrap; }
+.dai.ai1 { background: #2a2530; color: #8b93a7; }
+.dai.ai2 { background: #1e2e3a; color: #67c2f5; }
+.dai.ai3 { background: #2e2410; color: var(--gold); }
+.dai em { font-style: normal; opacity: .8; font-size: 9px; }
 .playrow { display: flex; align-items: center; gap: 8px; background: #1c1620; border-radius: 9px; padding: 8px 10px; margin-bottom: 6px; border: 1.5px solid transparent; }
 .playrow.ready { border-color: var(--gold); background: #2a2212; }
 .playrow.done { opacity: .45; }

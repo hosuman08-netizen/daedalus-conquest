@@ -763,7 +763,19 @@ function updateToggles() {
   if ($("set-sound")) { $("set-sound").textContent = META.sound === false ? "OFF" : "ON"; $("set-sound").classList.toggle("off", META.sound === false); }
   if ($("set-haptic")) { $("set-haptic").textContent = META.haptic === false ? "OFF" : "ON"; $("set-haptic").classList.toggle("off", META.haptic === false); }
 }
-function openSettings() { updateToggles(); buildLangList(); showPage("settings"); }
+function renderProfile() {
+  const box = $("tg-profile"); if (!box) return;
+  let u = null;
+  try { u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user; } catch (e) {}
+  if (!u) { box.innerHTML = '<div class="prof-guest">' + t("profGuest") + "</div>"; return; }
+  const name = [u.first_name, u.last_name].filter(Boolean).join(" ") || ("User" + u.id);
+  const photo = u.photo_url ? '<img class="prof-img" src="' + u.photo_url + '" alt="" referrerpolicy="no-referrer">' : '<div class="prof-img prof-ph">👤</div>';
+  box.innerHTML = photo +
+    '<div class="prof-meta"><div class="prof-name">' + name + (u.is_premium ? ' <span class="prem">⭐</span>' : "") + "</div>" +
+    (u.username ? '<div class="prof-uid">@' + u.username + "</div>" : "") +
+    '<div class="prof-uid ddim">ID: ' + u.id + "</div></div>";
+}
+function openSettings() { updateToggles(); buildLangList(); renderProfile(); showPage("settings"); }
 function resetProgress() {
   const go = () => { try { localStorage.removeItem(META_KEY); } catch (e) {} META = loadMeta(); counts.p = META.army; applyStaticI18n(); updateHeroUI(); reset(); showPage("battle"); toast(t("setResetOk"), "#fbbf24"); };
   if (tg && tg.showConfirm) { tg.showConfirm(t("resetAsk"), (ok) => { if (ok) go(); }); }
@@ -1025,10 +1037,14 @@ function renderDash() {
     ORDER.forEach((type) => {
       if (type === "titan" && !META.titanOwned) return;
       const enh = META.enh[type] || 0, star = META.star[type] || 0, lv = META.lv[type] || 0, canAsc = enh >= 10;
+      const baseAi = SPEC[type].ai;
+      const hBonus = META.hero === "strategist" ? heroAiBonus(META.heroLv.strategist || 1) : 0;
+      const effAi = Math.min(3, baseAi + hBonus);
+      const aiBadge = `<span class="dai ai${effAi}">🧠 AI Lv${effAi}${effAi > baseAi ? ` <em>↑${baseAi}</em>` : ""}</span>`;
       const c = document.createElement("div"); c.className = "dcard";
       c.innerHTML =
         `<div class="dglyph">${SPEC[type].glyph}${star ? `<span class="dstar">★${star}</span>` : ""}</div>` +
-        `<div class="dinfo"><div class="dlv">Lv${lv} · <b>+${enh}</b></div><div class="ddim">${t("dRate")} ${enhRate(type)}% · 💰${enhCost(type)}</div></div>` +
+        `<div class="dinfo"><div class="dlv">Lv${lv} · <b>+${enh}</b> ${aiBadge}</div><div class="ddim">${t("dRate")} ${enhRate(type)}% · 💰${enhCost(type)}</div></div>` +
         `<div class="dbtns"><button class="denh" data-t="${type}">${t("dEnhance")}</button>${canAsc ? `<button class="dasc" data-t="${type}">⭐</button>` : ""}</div>`;
       box.appendChild(c);
     });

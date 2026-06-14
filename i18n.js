@@ -273,6 +273,17 @@ const PLAY_I18N = {
 };
 for (const l in PLAY_I18N) Object.assign(I18N[l], PLAY_I18N[l]);
 
+// 텔레그램 프로필 (설정창)
+const PROF_I18N = {
+  ko: { profTitle: "내 프로필", profGuest: "텔레그램 앱으로 열면 프로필이 표시됩니다" },
+  en: { profTitle: "My Profile", profGuest: "Open in Telegram to see your profile" },
+  ja: { profTitle: "マイプロフィール", profGuest: "Telegramで開くとプロフィール表示" },
+  zh: { profTitle: "我的资料", profGuest: "在Telegram中打开以显示资料" },
+  hi: { profTitle: "मेरी प्रोफ़ाइल", profGuest: "प्रोफ़ाइल देखने हेतु Telegram में खोलें" },
+  ru: { profTitle: "Мой профиль", profGuest: "Откройте в Telegram, чтобы увидеть профиль" },
+};
+for (const l in PROF_I18N) Object.assign(I18N[l], PROF_I18N[l]);
+
 let LANG = "ko";
 function detectLang() {
   let code = "";
