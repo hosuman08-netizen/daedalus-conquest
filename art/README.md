@@ -1,23 +1,28 @@
-# 🎨 캐릭터 아트 폴더
+# 🎨 캐릭터 아트 폴더 (229종)
 
-여기에 `<slug>.png` 를 넣으면 도감·유닛 상세창에 자동으로 뜬다. **파일 없으면 이모지로 폴백**(에러 안 남).
+`art/u<id>.png` 를 넣으면 도감·유닛 상세창에 자동으로 뜬다. **파일 없으면 이모지/합성으로 폴백**(에러 안 남).
 
-- 규칙: 유닛 이름 → 소문자, 공백/특수문자 `-`, 예) `Arclight` → `arclight.png`
-- 권장: 정사각형(512×512 이상), 투명/단색 배경, 캐릭터 중앙. `object-fit: cover` 로 채워짐.
-- 우선순위: **SSR 9인 먼저** → SR → 나머지. (N/R은 이모지로 둬도 충분)
-- 이름은 전부 오리지널 창작(트레이드마크/내부명 없음).
+## 파일명 규칙 (중요)
+- **`u<번호>.png`** — 예: `u1.png`, `u2.png` … `u229.png`
+- 번호 ↔ 캐릭터 매핑은 **`MANIFEST.csv`** 참고 (id, 등급, 아키타입, 진영, 이름)
+- (구) 영문 슬러그(`arclight.png` 등)도 폴백으로 작동하지만, **숫자 방식이 안전·권장**
 
-## SSR 9인 파일명 (아트 프롬프트는 `../SSR-ART-PROMPTS.md`)
-| 캐릭터 | 파일명 |
-|---|---|
-| Arclight | `arclight.png` |
-| Solace | `solace.png` |
-| Cipher | `cipher.png` |
-| Ignis | `ignis.png` |
-| Vector | `vector.png` |
-| Vespera | `vespera.png` |
-| Aegis | `aegis.png` |
-| Anvil | `anvil.png` |
-| Dominus | `dominus.png` |
+## 등급별 번호 범위
+| 등급 | 번호 | 수 |
+|---|---|---|
+| **SSR** | u1 ~ u9 | 9 (이름: Arclight·Solace·Cipher·Ignis·Vector·Vespera·Aegis·Anvil·Dominus) |
+| **SR** | u10 ~ u64 | 55 |
+| **R** | u65 ~ u144 | 80 |
+| **N** | u145 ~ u229 | 85 |
 
-넣고 `git push` 하면 1분 뒤 라이브 반영.
+## 권장 스펙
+- 정사각형 **512×512 이상**, 캐릭터 중앙, **배경 투명/단색**
+- `object-fit: cover` 로 채워짐 → 가장자리 여백 살짝 두기
+- 같은 아키타입(드론/사수/가디언/돌격봇/지휘관/거신)은 **실루엣 톤 통일**하면 도감이 깔끔
+
+## 작업 순서 (효율)
+1. **SSR 9 (u1~u9)** — 가챠/도감에서 가장 눈에 띔. 최우선.
+2. **SR 55 (u10~u64)** — 수집 핵심.
+3. **R 80 / N 85** — 여유될 때. (이모지로 둬도 게임 멀쩡)
+
+넣고 `git push` → 1분 뒤 라이브. SSR 프롬프트는 `../SSR-ART-PROMPTS.md`.

@@ -142,6 +142,71 @@ h1::first-letter { color: var(--crimson); }
 .protectbtn.on { color: #67e8f9; border-color: #67e8f9; }
 #dash-list { display: flex; flex-direction: column; gap: 6px; }
 .dcard { display: flex; align-items: center; gap: 8px; background: #1d1535; border-radius: 10px; padding: 8px 10px; }
+
+/* Formation / Deploy UI - 유저가 보기 쉽게 (scannable, larger targets, clear state) */
+.deploy-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+  padding: 8px;
+  background: #16101f;
+  border-radius: 10px;
+  min-height: 60px;
+  border: 1px solid #473a63;
+}
+.deploy-card {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #1d1535;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 14px;
+  cursor: pointer;
+  border: 2px solid;
+  min-width: 140px;
+}
+.deploy-card .name { font-weight: 700; }
+.deploy-card .remove { color: #f87171; font-size: 12px; margin-left: 4px; }
+.deploy-select {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 6px;
+  margin-top: 6px;
+}
+.deploy-select-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #1d1535;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 13px;
+  cursor: pointer;
+  border: 1px solid #473a63;
+  min-height: 42px;
+}
+.deploy-select-item.deployed {
+  border-color: #a3e635;
+  background: #0f2a1f;
+}
+.deploy-select-item .status {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+}
+#deploy-specifics {
+  margin-top: 6px;
+  padding: 6px 8px;
+  background: #16101f;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #a3e635;
+  border: 1px solid #473a63;
+  min-height: 28px;
+  line-height: 1.3;
+}
 .dglyph { font-size: 22px; min-width: 30px; text-align: center; }
 .dstar { font-size: 10px; color: var(--gold); display: block; }
 .dinfo { flex: 1; font-size: 13px; }

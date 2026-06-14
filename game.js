@@ -190,6 +190,25 @@ function getFounderCount() { // SSR owned for ethical streak protect (3+ = 1 mis
   // lean: count unique high rarity from owned (SSR proxy via roster if avail, fallback pulls/ch)
   return Math.floor((META.owned.length || 0) / 25) + (META.titanOwned ? 1 : 0) + Math.min(2, Math.floor((META.pulls||0)/40));
 }
+
+function getDeployedUnits() {
+  if (!META.deployed || !Array.isArray(META.deployed)) return [];
+  return META.deployed.map(id => (typeof ROSTER !== "undefined" ? ROSTER.find(u => u.id === id) : null)).filter(Boolean);
+}
+
+function toggleDeployUnit(id) {
+  if (!META.deployed) META.deployed = [];
+  const idx = META.deployed.indexOf(id);
+  if (idx >= 0) {
+    META.deployed.splice(idx, 1);
+    toast("배치 해제", "#93c5fd");
+  } else {
+    if (META.deployed.length >= 8) { toast("최대 8개 (Phase1 hybrid)", "#ef4444"); return; }
+    META.deployed.push(id);
+    toast("캐릭터 창 배치 완료 — 전투에서 개별 유닛 사용", "#a3e635");
+  }
+  saveMeta(); renderDash(); if (!running) reset();
+}
 function bumpPrestige(amt) { // "numbers go up" visual on every claim/ritual
   const sig = getLegionSignal();
   const gain = Math.max(0.1, Math.floor((amt || 1) * (sig * 0.3 + 0.7)) / 10);
@@ -214,7 +233,8 @@ function loadMeta() {
                 milestones: [],
                 prestige: 0, // cohesion "numbers go up" on claims
                 ritualWin: "", // exact claim window seed for variable ritual bonuses
-                vanguard: "" }; // 24h FOMO Vanguard Focus god-VFX unlock
+                vanguard: "", // 24h FOMO Vanguard Focus god-VFX unlock
+                deployed: [] }; // specific unit ids from owned ROSTER — 캐릭터 창에서 배치할 개별 유닛 (hybrid collection comp)
   if (!def.owned) def.owned = [];
   try {
     const m = JSON.parse(localStorage.getItem(META_KEY));
@@ -245,6 +265,7 @@ function loadMeta() {
       if (typeof merged.prestige !== "number") merged.prestige = 0;
       if (typeof merged.ritualWin !== "string") merged.ritualWin = "";
       if (typeof merged.vanguard !== "string") merged.vanguard = "";
+      if (!Array.isArray(merged.deployed)) merged.deployed = [];
       return merged;
     }
   } catch (e) {}
@@ -328,6 +349,24 @@ function spawnArmy(side) {
     for (let i = arr.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; const tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp; }
     arr = arr.slice(0, MAX_UNITS);
   }
+
+  // 캐릭터 창 배치 지원: side p일 때 META.deployed specific units 먼저 스폰 (개별 유닛 고유 vis/name/trait)
+  if (side === "p") {
+    const specifics = getDeployedUnits();
+    specifics.forEach((u, si) => {
+      const s = SPEC[u.arch] || SPEC.drone;
+      const hp = Math.round(s.hp * 1.8), atk = Math.round(s.atk * 1.6); // elite boost for collection
+      const x = W/2 + (si % 4 - 1.5)*50, y = baseY - 20;
+      units.push({
+        t: u.arch, side, x, y, hp, maxHp: hp, atk, range: s.range, speed: s.speed,
+        atkCd: s.atkCd, crit: 12, ai: Math.min(3, s.ai + 1), sight: s.sight, r: s.r * 1.15,
+        skill: s.skill, skillCd: s.skillCd, ranged: s.ranged,
+        regen: hb.regen, atkT: 0.1, skT: s.skillCd*0.4, shield:0, buff:0, buffT:0, spd:0, spdT:0,
+        name: u.name, vis: u.vis, isSpecific: true, trait: u.trait || ""
+      });
+    });
+  }
+
   arr.forEach((t, i) => {
     const perRow = 5, row = Math.floor(i / perRow), col = i % perRow;
     const rowCount = Math.min(perRow, arr.length - row * perRow);
@@ -405,6 +444,7 @@ function reset() {
   $overlay.classList.add("hidden");
   $("start").textContent = t("start");
   updateMeta(); updateHeroUI(); updateUltBtn(); updateModeTabs(); draw(); updateScore();
+  renderDeploySpecificsPreview();  // char 배치 specific 유닛 쉽게 보이게
 }
 
 // ── 메타 UI 갱신 ──────────────────────────────────────────────────────────────
@@ -761,8 +801,14 @@ function getCarriedFeedback() {
   const pCount = units.filter(u=>u.side==='p'&&u.hp>0).length;
   const distinct = ORDER.filter(tt => (counts.p||META.army)[tt]>0).length;
   const syn = distinct>=4 ? 42 : distinct>=3 ? 28 : 12;
-  const carry = ["Arclight judgment", "Solace repair", "Dominus command", "Vespera swarm", "Vector sync"][(META.pulls||0)%5];
-  return `Synergy +${syn}% | ${carry} carried ${Math.floor(50+pCount*3)}%`;
+  const specifics = getDeployedUnits();
+  let carry = "volume swarm";
+  if (specifics.length) {
+    carry = specifics.slice(0,2).map(u=>u.name || u.vis).join(" + ") + " carried";
+  } else {
+    carry = ["Arclight judgment", "Solace repair", "Dominus command", "Vespera swarm", "Vector sync"][(META.pulls||0)%5];
+  }
+  return `Synergy +${syn}% | ${carry} ${Math.floor(50+pCount*3)}%`;
 }
 
 // ── Viral/Community Reinforcement: TG native share "MY real Grok carried 68%" flex + cooldown + TG user verify exact anti-abuse + Dominion card export proxy ──
@@ -926,6 +972,7 @@ function bindDeploy() {
       saveMeta();
       $("p-" + ty).textContent = META.army[ty];
       updateMeta(); reset();
+      renderDeploySpecificsPreview();  // archetype 조정 후에도 specific 배치 쉽게 확인
     });
   });
 }
@@ -1459,10 +1506,73 @@ function renderDash() {
     box.querySelectorAll(".dasc").forEach((b) => b.addEventListener("click", () => ascend(b.dataset.t)));
     box.querySelectorAll(".dawkb").forEach((b) => b.addEventListener("click", () => awaken(b.dataset.t)));
   }
+
+  // 캐릭터 창에서 유닛 배치 — 유저가 보기 쉽게 (clear hierarchy, scannable cards, larger targets)
+  const formBox = document.createElement("div");
+  formBox.className = "set-sec";
+  formBox.innerHTML = `<div>📍 <b>현재 편성</b> <small style="color:#9ca3af">(캐릭터 창 배치 · specific elites + 일반 군단 볼륨)</small></div>`;
+
+  // 1. 현재 배치 미리보기 (큰 카드, 한눈에 보기 쉽게)
+  const preview = document.createElement("div");
+  preview.className = "deploy-preview";
+  const deployedSet = new Set(META.deployed || []);
+  const deployedList = (typeof ROSTER !== "undefined" ? ROSTER.filter(u => deployedSet.has(u.id)) : []);
+  if (deployedList.length === 0) {
+    preview.innerHTML = `<div class="ddim" style="font-size:12px;padding:4px 8px">배치된 특수 유닛 없음 — 아래 보유 목록에서 선택 (archetype 볼륨 + specific elite)</div>`;
+  } else {
+    deployedList.forEach(u => {
+      const p = document.createElement("div");
+      p.className = "deploy-card";
+      p.style.borderColor = u.color;
+      p.innerHTML = `${artHTML(u, "", "")} <span class="name" style="color:${u.color}">${u.name}</span> <span class="remove">✕</span>`;
+      p.onclick = () => { toggleDeployUnit(u.id); };
+      preview.appendChild(p);
+    });
+  }
+  formBox.appendChild(preview);
+
+  // 2. 보유 유닛 선택 (grid로 scannable, deployed 상태 명확)
+  const formList = document.createElement("div");
+  formList.className = "deploy-select";
+  const ownedSpecific = (typeof ROSTER !== "undefined" ? ROSTER.filter(u => (META.owned||[]).includes(u.id)) : []);
+  if (ownedSpecific.length === 0) {
+    const hint = document.createElement("div");
+    hint.className = "ddim";
+    hint.style.cssText = "font-size:12px;padding:4px;grid-column:1/-1";
+    hint.textContent = "가챠로 개별 유닛 수집 후 배치하세요.";
+    formList.appendChild(hint);
+  } else {
+    ownedSpecific.slice(0,12).forEach(u => {
+      const isDep = deployedSet.has(u.id);
+      const el = document.createElement("div");
+      el.className = "deploy-select-item" + (isDep ? " deployed" : "");
+      el.innerHTML = `${artHTML(u, "", "")} <span style="color:${u.color}">${u.name}</span> <span class="status">${isDep ? "✓배치됨" : "배치"}</span>`;
+      el.onclick = () => toggleDeployUnit(u.id);
+      formList.appendChild(el);
+    });
+  }
+  formBox.appendChild(formList);
+  box.appendChild(formBox);
+
   const hbox = $("dash-heroes");
   if (hbox) hbox.innerHTML = HERO_ORDER.map((hk) => { const h = HEROES[hk], tr = tHero(hk); return '<div class="hrow">' + h.glyph + " <b>" + tr[0] + "</b> <span class=\"hcode\">" + h.rank + "</span> · 💥" + tUlt(h.ult) + "</div>"; }).join("");
   const pb = $("dash-protect"); if (pb) { pb.textContent = "💎 " + t("dProtect") + (dashProtect ? " ✓" : ""); pb.classList.toggle("on", dashProtect); }
   renderSoulAltar(); renderGear(); renderCodex();
+  renderDeploySpecificsPreview();
+}
+
+// 유저가 보기 쉽게: battle deploy 영역 + char에서 specific deployed 미리보기 (distinct vis 사용)
+function renderDeploySpecificsPreview() {
+  const el = $("deploy-specifics");
+  if (!el) return;
+  const specs = getDeployedUnits();
+  if (specs.length === 0) {
+    el.innerHTML = "특수 유닛 없음 (일반 군단으로 자동 배치)";
+    el.style.opacity = "0.6";
+    return;
+  }
+  el.style.opacity = "1";
+  el.innerHTML = `<b>특수 배치 (${specs.length})</b>: ` + specs.map(u => `${artHTML(u, "", "")}<span style="color:${u.color}">${u.name}</span>`).join(" · ");
 }
 // ── 캐릭터 도감 그리드 (229종 수집) ──────────────────────────────────────────
 let codexFilter = "ALL";
@@ -1481,8 +1591,9 @@ function artHTML(u, glyphCls, imgCls) {
   const base = u.vis || u.glyph || "●";
   const acc = u.accent ? `<span class="acc" style="font-size:0.55em;opacity:0.7;margin-left:-2px;">${u.accent}</span>` : "";
   const g = `<span class="${glyphCls}">${base}${acc}</span>`;
-  // PNG (SSR art/ only) 있으면 overlay, 없으면 synthetic (vis+accent로 이미 archetype 공유 탈피)
-  return g + `<img class="${imgCls}" src="art/${unitSlug(u)}.png" alt="" loading="lazy" onerror="this.remove()">`;
+  // PNG: 1차 art/u<id>.png (ASCII·안전) → 실패 시 art/<slug>.png → 그래도 없으면 synthetic(vis+accent)
+  const slug = unitSlug(u);
+  return g + `<img class="${imgCls}" src="art/u${u.id}.png" alt="" loading="lazy" onerror="if(this.dataset.f){this.remove()}else{this.dataset.f='1';this.src='art/${slug}.png'}">`;
 }
 function renderCodex() {
   const grid = $("codex-grid"); if (!grid || typeof ROSTER === "undefined") return;
