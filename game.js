@@ -1250,8 +1250,6 @@ function claimPlay(i) {
   const txt = "💰" + r.gold + (r.gem ? " 💎" + r.gem : "") + (boxRes ? " " + boxRes.text : "");
   if (boxRes) setTimeout(() => showGacha({ key: boxRes.rank, color: boxRes.color }, boxRes.text), 400);
   else toast(t("tPlay", { x: txt }), "#fbbf24");
-  // one-more interlock lean
-  setTimeout(()=>{ if(confirm("one more? tweak comp or quick ritual?")) { showPage("char"); } }, 1800);
 }
 function openEvent() { renderAttend(); renderPlay(); renderSeason(); showPage("event"); 
   const orb = $("ritual-orb"); if (orb) orb.style.display = (getLegionSignal() > 1.6 || META.ritualWin===today()) ? "" : "none";
@@ -1529,7 +1527,7 @@ function renderDash() {
   }
 
   const pb = $("dash-protect"); if (pb) { pb.textContent = "💎 " + t("dProtect") + (dashProtect ? " ✓" : ""); pb.classList.toggle("on", dashProtect); }
-  renderSquad(); renderSoulAltar(); renderGear(); renderCodex();
+  renderSquad(); renderSoulAltar();
 }
 
 // ── 편성 UI (출전 슬롯 + 보유 풀 + 시너지) ─────────────────────────────────────
@@ -1685,7 +1683,6 @@ function renderCodex() {
     return `<div class="cxc r${u.rarity}${has ? "" : " lock"}${archCls}${facCls}" data-id="${u.id}" style="border-color:${u.color}${has ? "" : "33"}"><div class="cxg">${has ? artHTML(u, "cxgly", "cxim") : "❔"}</div><div class="cxr" style="color:${u.color}">${u.rarity}</div></div>`;
   }).join("");
   grid.querySelectorAll(".cxc").forEach((c) => c.addEventListener("click", () => showUnit(+c.dataset.id)));
-  renderGearCodex();
 }
 let gdexFilter = "ALL";
 function renderGearCodex() {
@@ -1759,12 +1756,10 @@ function enhanceGear(id) {
   const cost = 200 * ((g.enh || 0) + 1);
   if (META.gold < cost) { toast(t("tGoldShort", { n: cost }), "#ef4444"); return; }
   META.gold -= cost;
-  const eqd = (META.equip[META.hero] || {})[g.slot] === id;   // 장착 중이면 전력 변동
-  const before = legionPower();
   if (Math.random() * 100 < Math.max(40, 100 - (g.enh || 0) * 8)) { g.enh = (g.enh || 0) + 1; toast(t("dSuccess", { n: g.enh }), "#a3e635"); SFX.claim(); }
   else { toast(t("dFail"), "#ef4444"); SFX.lose(); }
-  saveMeta(); updateMeta(); renderDash();
-  if (eqd) { const d = legionPower() - before; const pe = $("dash-power"); if (d > 0 && pe) { pe.classList.remove("pop"); void pe.offsetWidth; pe.classList.add("pop"); } }
+  saveMeta(); updateMeta(); renderGear();
+  if (!running) reset();   // 장착 중인 캐릭 전력 반영
 }
 function renderGear() {
   const eq = META.equip[META.hero] || {};
@@ -1776,14 +1771,18 @@ function renderGear() {
   if (inv) {
     if (!META.gear.length) { inv.innerHTML = `<div class="ddim" style="text-align:center;padding:8px 0">${t("gEmpty")}</div>`; return; }
     inv.innerHTML = META.gear.slice().sort((a, b) => b.id - a.id).map((g) => {
-      const equipped = eq[g.slot] === g.id;
       const stats = STAT_KEYS.filter((k) => g[k]).map((k) => t("st_" + k) + gearStat(g, k)).join(" ");
+      const owner = gearOwnerName(g.id);
       const v = g.vis || SLOT_ICON[g.slot];
-      return `<div class="gitem" style="border-color:${g.color}66"><div class="gi-main">${v} <b style="color:${g.color}">${g.rarity}</b>${g.enh ? " +" + g.enh : ""}</div><div class="gi-stat">${stats}</div><div class="gi-btns"><button class="geq${equipped ? " on" : ""}" data-id="${g.id}">${equipped ? "✓" : t("gEquip")}</button><button class="gup" data-id="${g.id}">🔨</button></div></div>`;
+      return `<div class="gitem" style="border-color:${g.color}66"><div class="gi-main">${v} <b style="color:${g.color}">${g.rarity}</b>${g.enh ? " +" + g.enh : ""}${owner ? ` <small style="color:#a3e635">🎽${owner}</small>` : ""}</div><div class="gi-stat">${stats}</div><div class="gi-btns"><button class="gup" data-id="${g.id}">🔨 ${t("dEnhance")}</button></div></div>`;
     }).join("");
-    inv.querySelectorAll(".geq").forEach((b) => b.addEventListener("click", () => equipGear(+b.dataset.id)));
     inv.querySelectorAll(".gup").forEach((b) => b.addEventListener("click", () => enhanceGear(+b.dataset.id)));
   }
+}
+function gearOwnerName(gearId) {                        // 이 장비를 장착한 캐릭터 이름 (없으면 null)
+  const cg = META.charGear || {};
+  for (const cid in cg) { const slots = cg[cid]; for (const s in slots) { if (slots[s] === gearId) { const u = (typeof ROSTER !== "undefined") ? ROSTER.find((x) => x.id === +cid) : null; return u ? u.name : null; } } }
+  return null;
 }
 // 안전 바인딩 헬퍼 (요소 없으면 무시 — null 크래시 방지)
 function on(id, ev, fn) { const e = $(id); if (e) e.addEventListener(ev, fn); }
@@ -1791,6 +1790,7 @@ on("dash-protect", "click", () => { dashProtect = !dashProtect; renderDash(); })
 on("gear-craft", "click", craftGear);
 on("unit-close", "click", () => $("unit-pop").classList.add("hidden"));
 on("cp-close", "click", () => $("char-panel").classList.add("hidden"));
+on("legend-toggle", "click", () => { const l = $("legend"); if (l) l.classList.toggle("hidden"); });
 // ── 페이지 네비게이션 ──
 let curPage = "battle";
 function showPage(p) {
@@ -1802,6 +1802,7 @@ function showPage(p) {
 document.querySelectorAll(".navtab").forEach((b) => b.addEventListener("click", () => {
   const p = b.dataset.p;
   if (p === "char") { showPage("char"); renderDash(); }
+  else if (p === "gear") { showPage("gear"); renderGear(); renderGearCodex(); }
   else if (p === "codex") { showPage("codex"); renderCodex(); }
   else if (p === "shop") openShop();
   else if (p === "event") openEvent();

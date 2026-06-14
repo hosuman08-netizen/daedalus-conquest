@@ -423,3 +423,9 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .cp-gi.on { background: #241a3a; box-shadow: inset 0 0 0 1px var(--gold); }
 .cp-gi small { color: var(--dim); font-weight: 600; font-size: 10px; }
 #cp-close { width: 100%; margin-top: 4px; }
+
+.legend-toggle { display:block; margin: 10px auto 0; padding: 4px 12px; font-size: 11px; color: var(--dim); background: transparent; border: 1px solid #2c2142; border-radius: 8px; }
+#legend.hidden { display: none; }
+
+#page-gear .gear-note { font-size: 11px; margin-bottom: 8px; }
+.navtab { font-size: 16px; } .navtab span { font-size: 9px; }

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>다이달로스 — AI 군단 전쟁</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="style.css?v=20260615b" />
+  <link rel="stylesheet" href="style.css?v=20260615c" />
 </head>
 <body>
   <div id="app">
@@ -78,7 +78,8 @@
       <button id="reset" data-i18n="reset">↻ 다시</button>
     </div>
 
-    <div id="legend">
+    <button id="legend-toggle" class="legend-toggle">ℹ️ <span data-i18n="legendHelp">유닛·상성 정보</span></button>
+    <div id="legend" class="hidden">
       <span data-i18n="legend1"></span><br/>
       <span data-i18n="legend2"></span><br/>
       <b data-i18n="legend4"></b><br/>
@@ -92,9 +93,6 @@
       <div class="set-title">📋 <span data-i18n="dashTitle">군단 도감</span></div>
       <div id="codex-bar"><span id="codex-count" class="ddim"></span> <span id="codex-filter"></span></div>
       <div id="codex-grid"></div>
-      <div class="set-sec">🛠️ <span data-i18n="gearDexT">장비 도감</span> <span id="gdex-count" class="ddim"></span></div>
-      <div id="gdex-filter"></div>
-      <div id="gdex-grid"></div>
     </div>
 
     <!-- 캐릭터 페이지 (강화·장비·궁극기 육성) -->
@@ -111,17 +109,26 @@
 
       <div class="set-sec">⚙️ <span data-i18n="dEnhance">강화</span> · <span data-i18n="dCombo">승급</span> <small class="ddim" data-i18n="dArchNote">(아키타입 공통 강화)</small> <button id="dash-protect" class="protectbtn">💎 보호</button></div>
       <div id="dash-list"></div>
-      <div class="set-sec">⚔️ <span data-i18n="gTitle">장비</span> <button id="gear-craft">🔨 <span data-i18n="gCraft">제작</span> 300g</button></div>
-      <div id="gear-slots"></div>
-      <div id="gear-inv"></div>
       <div class="set-sec">🔮 <span data-i18n="soulShopT">소울 제단</span> <span id="soul-have" class="ddim"></span></div>
       <div id="soul-altar"></div>
+    </div>
+
+    <!-- 장비 페이지 (제작·인벤·도감) -->
+    <div id="page-gear" class="page hidden">
+      <div class="set-title">⚔️ <span data-i18n="gTitle">장비</span></div>
+      <div class="gear-note ddim" data-i18n="gearNote">장착은 캐릭터 탭 → 캐릭터 → 장비 슬롯에서</div>
+      <div class="set-sec">🔨 <span data-i18n="gCraft">제작</span> <button id="gear-craft">🔨 <span data-i18n="gCraft">제작</span> 300g</button></div>
+      <div id="gear-inv"></div>
+      <div class="set-sec">🛠️ <span data-i18n="gearDexT">장비 도감</span> <span id="gdex-count" class="ddim"></span></div>
+      <div id="gdex-filter"></div>
+      <div id="gdex-grid"></div>
     </div>
 
     <!-- 하단 네비게이션 (설정은 상단 구석으로) -->
     <nav id="bnav">
       <button class="navtab sel" data-p="battle">⚔️<span data-i18n="navBattle">전투</span></button>
       <button class="navtab" data-p="char">👥<span data-i18n="navChar">캐릭터</span></button>
+      <button class="navtab" data-p="gear">⚔️<span data-i18n="gTitle">장비</span></button>
       <button class="navtab" data-p="codex">📋<span data-i18n="navCodex">도감</span></button>
       <button class="navtab" data-p="shop">🛒<span data-i18n="navShop">상점</span></button>
       <button class="navtab" data-p="event">🎁<span data-i18n="navEvent">이벤트</span></button>
@@ -160,7 +167,7 @@
     <!-- 이벤트 페이지 -->
     <div id="page-event" class="page hidden">
       <div class="set-title">🎁 <span data-i18n="evTitle">이벤트</span></div>
-      <div class="set-sec">📅 <span data-i18n="evAttend">일일 출석 (30일)</span> <small id="ritual-orb" style="color:#a3e635">🌀 ritual window active</small></div>
+      <div class="set-sec">📅 <span data-i18n="evAttend">일일 출석 (30일)</span></div>
       <div id="attend-grid"></div>
       <button id="attend-claim" data-i18n="evClaim">출석 보상 받기</button>
       <div class="set-sec">⏱️ <span data-i18n="playTitle">오늘의 플레이 보상</span> <span id="play-now" class="ddim"></span></div>
@@ -168,7 +175,6 @@
       <div id="play-list"></div>
       <div class="set-sec">🏆 <span data-i18n="evSeason">시즌 이벤트</span></div>
       <div id="season-list"></div>
-      <button id="om-ritual" style="margin:6px 0;width:100%;font-size:12px;background:#1f2937;color:#67e8f9;border:1px solid #334155;padding:6px;border-radius:6px;">⚡ quick ritual claim + one more</button>
     </div>
 
     <!-- 상점 페이지 -->
@@ -232,9 +238,9 @@
 
     <div id="toast"></div>
   </div>
-  <script src="i18n.js?v=20260615b"></script>
-  <script src="units.js?v=20260615b"></script>
-  <script src="gear.js?v=20260615b"></script>
-  <script src="game.js?v=20260615b"></script>
+  <script src="i18n.js?v=20260615c"></script>
+  <script src="units.js?v=20260615c"></script>
+  <script src="gear.js?v=20260615c"></script>
+  <script src="game.js?v=20260615c"></script>
 </body>
 </html>
