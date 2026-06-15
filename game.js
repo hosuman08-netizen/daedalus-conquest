@@ -256,9 +256,9 @@ function bumpPrestige(amt) { // "numbers go up" visual on every claim/ritual
   if ($("dash-power")) { $("dash-power").classList.add("pop"); setTimeout(()=> $("dash-power").classList.remove("pop"), 380); }
 }
 function loadMeta() {
-  const def = { gold: 400, chapter: 1, streak: 0, pulls: 0, pity: 0, titanOwned: false, starter: false, lastSeen: 0, lastDaily: "",
+  const def = { gold: 550, chapter: 1, streak: 0, pulls: 0, pity: 0, titanOwned: false, starter: false, lastSeen: 0, lastDaily: "",
                 lv: { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 },
-                army: { drone: 4, marksman: 2, guardian: 1, bruiser: 1, commander: 0, titan: 0 },
+                army: { drone: 5, marksman: 3, guardian: 1, bruiser: 1, commander: 0, titan: 0 }, // 초반 접근성: 조금 더 관대하게 시작 (빠른 첫 승 + 구매 유도)
                 hero: "strategist",
                 heroLv: { strategist: 1, berserker: 1, warden: 1, ranger: 1, mech: 1, engineer: 1, dragoon: 1 },
                 mode: "campaign", tower: 1, towerBest: 0, dailyDone: "", sound: true, haptic: true, music: true,
@@ -396,14 +396,20 @@ function isBestForChar(g, charId) {
 }
 
 function gearArt(g) {
-  return gearSynthHTML(g);   // 장비 PNG 미존재 — 합성 렌더(아이콘+등급색). art/gear/ 생기면 확장
+  if (!g) return gearSynthHTML(null);
+  const tplId = g.tplId || g.id;
+  // PNG 우선 (art/gear/g{tplId}.png drop 시 즉시 "간지" premium) — onerror 로 synth (veins+shards+layered shadow로 badass fallback)
+  return `<img class="g-art" src="art/gear/g${tplId}.png" alt="" loading="lazy" onerror="this.outerHTML=gearSynthHTML(${JSON.stringify(g).replace(/"/g,'&quot;')});">`;
 }
 function gearSynthHTML(g) {
   if (!g) return `<div class="gear-synth">?</div>`;
   const icon = SLOT_ICON[g.slot] || "⚙️";
   const r = g.rarity || "N";
   const s = g.slot || "";
-  return `<div class="gear-synth r${r} slot-${s}">${icon}<span class="gear-r">${r}</span></div>`;
+  // 간지 업그레이드 synth: layered depth (bevel + veins + shards) — PNG 없을 때도 premium feel
+  const veins = (r === "SSR" || r === "SR") ? `<span class="gear-vein"></span><span class="gear-vein2"></span>` : "";
+  const shards = (r === "SSR") ? `<span class="gear-shard"></span><span class="gear-shard2"></span>` : "";
+  return `<div class="gear-synth r${r} slot-${s}">${icon}${veins}${shards}<span class="gear-r">${r}</span></div>`;
 }
 function squadSynergy() {                               // 진영/아키타입 조합 시너지
   const sq = getDeployedUnits();
@@ -519,6 +525,11 @@ function spawnArmy(side) {
     const es = side === "p" ? (1 + (META.enh[t] || 0) * 0.06) * (1 + (META.star[t] || 0) * 0.25) * (1 + aw * 0.35) : 1;   // 강화·승급·각성
     let hpM = (side === "p" ? lvMul(t, "hp") : epm) * hb.hpMul * (1 + (hb.typeHp[t] || 0)) * powerComp * es * gHp;
     let atkM = (side === "p" ? lvMul(t, "atk") : epm) * hb.atkMul * (1 + (hb.typeAtk[t] || 0)) * synMul * powerComp * es * gAtk;
+    // 초반 완전 초보 구간(ch<=8)만 강한 보너스 — 그 이후부터는 제대로 된 투자(가챠·강화·편성) 없으면 바로 벽
+    if (side === "p" && curLevel <= 8) {
+      hpM *= 1.4;
+      atkM *= 1.3;
+    }
     const isBoss = side === "e" && bossFight;
     if (isBoss) { hpM *= 7; atkM *= 2.2; }
     const hp = Math.round(s.hp * hpM), atk = Math.round(s.atk * atkM);
@@ -547,18 +558,48 @@ function spawnArmy(side) {
 // ── 챕터별 적군 편성 (챕터 오를수록 강해짐) ──────────────────────────────────
 function enemyForChapter(ch) {
   ch = Math.max(1, ch | 0);                          // 숫자 보장 (NaN 방지)
-  // 초반은 아주 쉽게, 새 적 유닛은 천천히 해금, 수는 완만히 증가
+  // 클래식 가챠 커브: 초반 매우 쉽다 → 중반 투자 필요 → 후반 급격히 어려워져 과금/노력 유도
+  // ch1-8: 초보자 완전 승리 구간 (접근성)
+  // ch9-20: 시스템(가챠·강화·편성·기어) 맛보는 구간
+  // ch21+: 본격 벽 (Founding SSR나 중투자 없으면 시간+돈 필요)
+  if (ch <= 8) {
+    return {
+      drone:     1 + Math.floor((ch - 1) / 2),   // ch1:1 ~ ch8:4 (아주 관대)
+      marksman:  ch >= 5 ? 1 : 0,
+      guardian:  0,
+      bruiser:   0,
+      commander: 0,
+      titan:     0,
+    };
+  }
+  // 9~20: 완만하지만 점점 압박
+  if (ch <= 20) {
+    return {
+      drone:     2 + Math.floor((ch - 8) / 2),
+      marksman:  1 + Math.floor((ch - 9) / 5),
+      guardian:  ch >= 12 ? 1 + Math.floor((ch - 12) / 6) : 0,
+      bruiser:   ch >= 16 ? 1 : 0,
+      commander: 0,
+      titan:     0,
+    };
+  }
+  // 21+ : 가파른 증가 (다른 게임들처럼 여기서부터 "벽" 느낌)
   return {
-    drone:     2 + Math.floor((ch - 1) / 2),         // ch1:2 · ch11:7 · ch51:27
-    marksman:  ch >= 4  ? 1 + Math.floor((ch - 4) / 7)  : 0,   // 4챕터 해금
-    guardian:  ch >= 9  ? 1 + Math.floor((ch - 9) / 10) : 0,   // 9챕터
-    bruiser:   ch >= 14 ? 1 + Math.floor((ch - 14) / 9) : 0,   // 14챕터
-    commander: ch >= 25 ? 1 + Math.floor((ch - 25) / 20) : 0,  // 25챕터
-    titan:     ch >= 50 ? 1 + Math.floor((ch - 50) / 40) : 0,  // 50챕터(보스급)
+    drone:     4 + Math.floor((ch - 20) / 2),
+    marksman:  3 + Math.floor((ch - 20) / 4),
+    guardian:  2 + Math.floor((ch - 20) / 5),
+    bruiser:   1 + Math.floor((ch - 20) / 4),
+    commander: ch >= 30 ? 1 + Math.floor((ch - 30) / 8) : 0,
+    titan:     ch >= 50 ? 1 + Math.floor((ch - 50) / 30) : 0,
   };
 }
-// 적 스탯 배율: 25챕터까지 그대로, 이후 완만히 상승 (후반 난이도 — 투자 보상 확실하게)
-function enemyPowerMul(ch) { return 1 + Math.max(0, (ch | 0) - 25) * 0.02; }
+// 적 스탯 배율: 초반(10챕 이하) 약화 + 25챕터까지 base, 이후 완만 상승 (유저 접근성 + 후반 투자 보상)
+function enemyPowerMul(ch) {
+  ch = ch | 0;
+  if (ch <= 8) return 0.7;                      // 초초반 매우 약함 (신규 유저 완전 승리)
+  if (ch <= 20) return 1.0;                     // 중반까지 base (시스템 투자 유도)
+  return 1 + Math.max(0, ch - 20) * 0.028;      // 21챕부터 가파른 램프 — 과금/강화/가챠로 벽 돌파 유도 (고전 가챠 커브)
+}
 
 // ── 모드별 전투 셋업 (사이클의 핵심) ─────────────────────────────────────────
 function applyMode() {
@@ -579,7 +620,10 @@ function applyMode() {
   } else {                                            // campaign
     curLevel = META.chapter;
     counts.e = enemyForChapter(META.chapter);
-    $status.textContent = t("sDeploy", { n: META.chapter });
+    let st = t("sDeploy", { n: META.chapter });
+    if (META.chapter <= 8) st += " · 초보자 모드 (쉽게 시작!)";
+    else if (META.chapter > 20) st += " · 본격 난이도 ↑ (강한 Legion 유닛/강화 필요)";
+    $status.textContent = st;
   }
 }
 

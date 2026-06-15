@@ -448,20 +448,31 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .gear-card .act-on { font-size: 9px; color: var(--gold); }
 .gear-card .best { font-size: 9px; color: #a3e635; margin-left: 4px; }
 
-/* Gear art premium (not toy) - synthetic fallback looks illustrated */
+/* Gear art premium "간지" (not toy) — synthetic fallback also looks illustrated & badass (research: layered plating, veins, shards, volumetric contrast) */
 .gear-art, .slot-art {
   width: 48px; height: 48px; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 22px;
-  background: linear-gradient(135deg, #2a2f42, #1a1f2e); box-shadow: inset 0 0 8px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.4);
-  border: 1px solid #3a4055;
+  background: linear-gradient(135deg, #2a2f42, #1a1f2e); box-shadow: inset 0 0 12px rgba(0,0,0,0.65), 0 2px 6px rgba(0,0,0,0.5), 0 0 4px rgba(255,255,255,0.08);
+  border: 1.5px solid #3a4055;
 }
-.gear-art img, .slot-art img { width: 100%; height: 100%; object-fit: contain; }
-.gear-synth { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
-.gear-synth.rSSR { background: linear-gradient(135deg, #3a2a1a, #5a4630); border-color: #fbbf24; }
-.gear-synth.rSR { background: linear-gradient(135deg, #2a1a3a, #46305a); border-color: #c084fc; }
-.gear-synth.rR { background: linear-gradient(135deg, #1a2a3a, #30465a); border-color: #60a5fa; }
-.gear-synth.rN { background: linear-gradient(135deg, #2a2f42, #1a1f2e); border-color: #9ca3af; }
-.gear-synth .gear-r { position: absolute; bottom: 2px; right: 2px; font-size: 8px; font-weight: 900; opacity: 0.8; }
-.slot-art { width: 42px; height: 42px; font-size: 20px; }
+.gear-art img, .slot-art img { width: 100%; height: 100%; object-fit: contain; filter: contrast(1.12) saturate(1.2) brightness(1.02); }
+.gear-synth { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative;
+  border: 1.5px solid; border-radius: 6px; box-shadow: 0 3px 10px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -3px 6px rgba(0,0,0,0.55);
+}
+.gear-synth.rSSR { background: linear-gradient(145deg, #3a2a1a 0%, #5a4630 38%, #2f2418 100%); border-color: #fbbf24; box-shadow: 0 0 16px rgba(251,191,36,0.4), inset 0 0 12px rgba(251,191,36,0.25); }
+.gear-synth.rSR { background: linear-gradient(145deg, #2a1a3a 0%, #46305a 38%, #1f1628 100%); border-color: #c084fc; box-shadow: 0 0 12px rgba(192,132,252,0.35); }
+.gear-synth.rR { background: linear-gradient(145deg, #1a2a3a 0%, #30465a 38%, #14202e 100%); border-color: #60a5fa; }
+.gear-synth.rN { background: linear-gradient(145deg, #2a2f42 0%, #1a1f2e 100%); border-color: #9ca3af; }
+.gear-synth .gear-r { position: absolute; bottom: 2px; right: 2px; font-size: 8px; font-weight: 900; opacity: 0.85; text-shadow: 0 1px 2px rgba(0,0,0,0.85); }
+/* 간지 veins (에너지 라인) + floating shards (부유 파편) — PNG 없을 때도 depth */
+.gear-synth .gear-vein, .gear-synth .gear-vein2 { position:absolute; background: linear-gradient(transparent, rgba(255,255,255,0.4), transparent); pointer-events:none; }
+.gear-synth .gear-vein { width: 145%; height: 2.2px; top: 34%; left: -22%; transform: rotate(-14deg); box-shadow: 0 0 5px currentColor; opacity: .55; }
+.gear-synth .gear-vein2 { width: 115%; height: 1.6px; top: 57%; left: -6%; transform: rotate(17deg); opacity: .38; }
+.gear-synth.rSSR .gear-vein, .gear-synth.rSSR .gear-vein2 { color:#fbbf24; }
+.gear-synth.rSR .gear-vein, .gear-synth.rSR .gear-vein2 { color:#c084fc; }
+.gear-synth .gear-shard, .gear-synth .gear-shard2 { position:absolute; width:4.5px; height:4.5px; background:rgba(255,255,255,.95); border-radius:50%; box-shadow:0 0 4px #fff; pointer-events:none; animation:gearShardFloat 2.6s ease-in-out infinite alternate; }
+.gear-synth .gear-shard { top:21%; right:17%; }
+.gear-synth .gear-shard2 { top:61%; left:20%; animation-delay:1.05s; }
+@keyframes gearShardFloat { 0%{transform:translateY(0) scale(1);} 100%{transform:translateY(-3.5px) scale(.68);} }
 
 .legend-toggle { display:block; margin: 10px auto 0; padding: 4px 12px; font-size: 11px; color: var(--dim); background: transparent; border: 1px solid #2c2142; border-radius: 8px; }
 #legend.hidden { display: none; }

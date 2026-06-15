@@ -3,8 +3,8 @@
 > 파일명: art/gear/g{id}.png (tpl.id 순)
 > 스타일: units와 통일 (anime gacha sci-fi), premium not toy-like, rarity별 accent.
 
-## 공통 접미 (모든 프롬프트 뒤)
-`anime gacha gear splash art, original sci-fi mecha Legion equipment, detailed metallic textures, energy glows, dramatic rim lighting, vertical composition for UI, high detail, original design, no real brands or logos`
+## 공통 접미 (모든 프롬프트 뒤) — 연구 기반 업그레이드 (간지 프리미엄, toy-like 방지)
+`anime gacha gear splash art, original sci-fi mecha-fantasy Legion equipment, intricate metallic engravings with micro-filigree etched runes and abstract circuits, layered brushed titanium obsidian inlays iridescent energy plasma veins, volumetric god-ray cinematic lighting deep shadows razor-sharp specular reflections highlights, floating modular energy shards orbiting arcane crystal runes, premium collectible item render with heroic menacing silhouette weight and grandeur, subsurface scattering on glowing elements hyper-detailed material depth, sci-fi mecha plating fused ornate fantasy motifs no toy plastic flat sheen, dramatic rim lighting, vertical composition for UI, high detail, original design, no real brands or logos`
 
 ## 개별 프롬프트
 

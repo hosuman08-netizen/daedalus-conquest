@@ -18,10 +18,11 @@ Later: drip new SSR releases 시 신규 art 추가 (u10+ 또는 ssr/ slug).
 | **SR/R** | 없음 (synthetic) | 70 | procedural fodder volume. PNG 불필요 |
 | **Enemy** | art/enemy/*.png (소수) + rich canvas synthetic | 6 arches + boss variants | 적 시각화 (ENEMY-ART-PROMPTS.md). 보스/엘리트 PNG 우선. 나머지 aggressive procedural (spikes, red corruption, level scale)로 "할말 나는" 위협감. TG perf 유지. |
 
-## 권장 (9SSR만 해당)
-- 정사각형 **512×512 이상**, 캐릭터 중앙, **배경 투명/단색**, dramatic rim/gold frame (SSR-ART common suffix).
-- gear/pose variants: base + equip 장비 포함 버전 (image_gen 시 prompt 확장).
-- `object-fit: cover`.
+## 권장 (gear 포함)
+- 정사각형 **512×512+**, 중앙, 투명/단색 배경, dramatic rim + volumetric god-ray (업그레이드 common suffix 적용).
+- gear: art/gear/g{id}.png (tpl.id). PNG drop 즉시 gearArt() / .g-art / .slot-art / cp-inv / page-gear / gdex 자동 사용. Synth fallback은 이제 veins+shards+layered shadow로 "간지" (PNG 없을 때도 premium).
+- 연구 (에이전트 전부 서치): HSR/Genshin/E7/AFK (volumetric + etched runes + heroic weight), Warframe/Destiny/AC (layered plating, energy conduits, particle exhaust), Diablo/PoE/MH/Arknights (dark metal + bone + inner-glow crystal + subsurface refraction + intricate filigree). 모방 스타일만, 완전 original 디자인. "모방 OK, 카피 NO" 엄수.
+- `object-fit: contain; filter: contrast(1.1) saturate(1.15)` 적용 (CSS).
 
 ## 작업 순서
 1. **SSR 9 god-tier** (SSR-ART-PROMPTS.md tailored prompts + gear) — image_gen → art/ drop → lazy integrate game.js artHTML.
