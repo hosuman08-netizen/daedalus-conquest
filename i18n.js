@@ -351,7 +351,7 @@ const SQUAD_I18N = {
   ru: { sqTitle: "Боевой отряд", sqPool: "📋 Персонажи — нажмите для отряда", dArchNote: "(по типу)", cpInv: "🎒 Снаряжение — нажмите чтобы надеть", sqFull: "Отряд полон (макс {n})", sqDeployed: "✅ В отряде — в бою", sqUndeploy: "Убран из отряда" },
 };
 for (const l in SQUAD_I18N) Object.assign(I18N[l], SQUAD_I18N[l]);
-const GN_I18N={ko:"장착은 캐릭터 탭 → 캐릭터 선택 → 장비 슬롯에서",en:"Equip via Characters tab → pick character → gear slots",ja:"装着はキャラタブから",zh:"装备在角色页签中进行",hi:"लगाना: किरदार टैब से",ru:"Экипировка во вкладке Персонажи"};for(const l in GN_I18N)I18N[l].gearNote=GN_I18N[l];
+const GN_I18N={ko:"🔨 장비를 탭하면 강화 · 장착은 캐릭터 탭에서",en:"🔨 Tap gear to enhance · equip in Characters tab",ja:"装着はキャラタブから",zh:"装备在角色页签中进行",hi:"लगाना: किरदार टैब से",ru:"Экипировка во вкладке Персонажи"};for(const l in GN_I18N)I18N[l].gearNote=GN_I18N[l];
 const LH_I18N={ko:"유닛·상성 정보",en:"Units & counters",ja:"ユニット·相性",zh:"单位·克制",hi:"यूनिट·काउंटर",ru:"Юниты·контры"};for(const l in LH_I18N)I18N[l].legendHelp=LH_I18N[l];
 
 // 🛠️ 장비 도감 제목

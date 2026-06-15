@@ -123,10 +123,17 @@ h1::first-letter { color: var(--crimson); }
 .cxc .cxgly .acc { vertical-align: super; }
 #gdex-filter { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; }
 #gdex-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
-.gxc { aspect-ratio: 1/1.15; background: #16101f; border: 1.5px solid; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; }
+.gxc { aspect-ratio: 1/1.15; background: #16101f; border: 1.5px solid; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer; padding: 2px; }
 .gxc.lock { opacity: .45; }
 .gxc .gxi { font-size: 20px; }
-.gxc .gxr { font-size: 8px; font-weight: 900; }
+.gxc .gxr { font-size: 7px; font-weight: 900; }
+.gxc .gxn { font-size: 5.5px; opacity: 0.65; text-align: center; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 92%; margin-top: -1px; }
+/* Gear codex now uses full "간지" synth/art (veins, shards, heavy shadows) instead of tiny emoji/? — looks like proper images immediately */
+.gxc .gxi.gear-codex-art { display: flex; align-items: center; justify-content: center; width: 100%; }
+.gxc .gxi.gear-codex-art .gear-synth,
+.gxc .gxi.gear-codex-art .g-art,
+.gxc .gxi.gear-codex-art img { width: 28px; height: 28px; font-size: 13px; }
+.gxc .gxi.gear-codex-art .gear-synth .gear-r { font-size: 6px; }
 #unit-pop { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 15; }
 #unit-pop.hidden { display: none; }
 #unit-card { background: var(--panel); padding: 24px; border-radius: 16px; width: 280px; max-width: 88vw; text-align: center; border: 2px solid; animation: pop .3s ease-out; }
@@ -494,3 +501,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .hbtn .him { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
 .hbtn .rk { z-index: 2; }
 .hbtn.sel .him { outline: 2px solid var(--crimson); outline-offset: -2px; }
+
+.gitem { cursor: pointer; transition: transform .08s; }
+.gitem:active { transform: scale(.985); }
+.gitem .gi-up { font-size: 12px; font-weight: 800; color: var(--gold); white-space: nowrap; padding-left: 8px; }

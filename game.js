@@ -2052,8 +2052,11 @@ function renderGearCodex() {
   const list = gdexFilter === "ALL" ? GEAR_ROSTER : GEAR_ROSTER.filter((g) => g.slot === gdexFilter);
   grid.innerHTML = list.map((g) => {
     const has = owned.has(g.id);
-    const vis = has ? (g.vis || SLOT_ICON[g.slot]) : "❔";
-    return `<div class="gxc r${g.rarity}${has ? "" : " lock"}" data-tid="${g.id}" style="border-color:${g.color}${has ? "" : "33"}"><div class="gxi">${vis}</div><div class="gxr" style="color:${g.color}">${g.rarity}</div></div>`;
+    // Use full gearArt (PNG if exists, else the upgraded "간지" synth with veins/shards/shadows)
+    // This makes the gear codex look like proper images even before all PNGs are dropped
+    const art = gearArt(g);
+    const nm = g.name || '';
+    return `<div class="gxc r${g.rarity}${has ? "" : " lock"}" data-tid="${g.id}" style="border-color:${g.color}${has ? "" : "33"}"><div class="gxi gear-codex-art">${art}</div><div class="gxr" style="color:${g.color}">${g.rarity}</div><div class="gxn">${nm}</div></div>`;
   }).join("");
   grid.querySelectorAll(".gxc").forEach((c) => c.addEventListener("click", () => showGearDex(+c.dataset.tid)));
 }
@@ -2126,18 +2129,11 @@ function renderGear() {
       const stats = STAT_KEYS.filter((k) => g[k]).map((k) => t("st_" + k) + gearStat(g, k)).join(" ");
       const owner = gearOwnerName(g.id);
       const v = g.vis || SLOT_ICON[g.slot];
-      return `<div class="gitem" data-id="${g.id}" style="border-color:${g.color}66"><div class="gi-main">${v} <b style="color:${g.color}">${g.rarity}</b>${g.enh ? " +" + g.enh : ""}${owner ? ` <small style="color:#a3e635">🎽${owner}</small>` : ""}</div><div class="gi-stat">${stats}</div><div class="gi-btns"><button class="gup" data-id="${g.id}">🔨 ${t("dEnhance")}</button></div></div>`;
+      const cost = 200 * ((g.enh || 0) + 1);
+      return `<div class="gitem" data-id="${g.id}" style="border-color:${g.color}66"><div class="gi-main">${v} <b style="color:${g.color}">${g.rarity}</b>${g.enh ? " +" + g.enh : ""}${owner ? ` <small style="color:#a3e635">🎽${owner}</small>` : ""}</div><div class="gi-stat">${stats}</div><div class="gi-up">🔨 💰${cost}</div></div>`;
     }).join("");
-    inv.querySelectorAll(".gup").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); enhanceGear(+b.dataset.id); }));
-    // Tap the gear row itself → same-tier 제작 (사용자가 보고 있는 등급으로 제작 유도)
-    inv.querySelectorAll(".gitem").forEach((row) => {
-      row.addEventListener("click", (e) => {
-        if (e.target.closest("button")) return; // 강화 버튼은 제외
-        const gid = +row.dataset.id;
-        const g = META.gear.find((x) => x.id === gid);
-        craftGear(g ? g.rarity : null); // 탭한 장비와 같은 희귀도로 제작
-      });
-    });
+    // 줄 전체 탭 → 강화 (버튼 없이 깔끔)
+    inv.querySelectorAll(".gitem").forEach((row) => row.addEventListener("click", () => enhanceGear(+row.dataset.id)));
   }
 }
 function gearOwnerName(gearId) {                        // 이 장비를 장착한 캐릭터 이름 (없으면 null)
