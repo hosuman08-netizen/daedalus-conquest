@@ -16,6 +16,7 @@ Later: drip new SSR releases 시 신규 art 추가 (u10+ 또는 ssr/ slug).
 |---|---|---|---|
 | **SSR** | u1~u9 또는 art/ssr/*.png | 9 (Arclight·Solace·Cipher·Ignis·Vector·Vespera·Aegis·Anvil·Dominus) | god-tier "멋지게" must-collect 최우선 |
 | **SR/R** | 없음 (synthetic) | 70 | procedural fodder volume. PNG 불필요 |
+| **Enemy** | art/enemy/*.png (소수) + rich canvas synthetic | 6 arches + boss variants | 적 시각화 (ENEMY-ART-PROMPTS.md). 보스/엘리트 PNG 우선. 나머지 aggressive procedural (spikes, red corruption, level scale)로 "할말 나는" 위협감. TG perf 유지. |
 
 ## 권장 (9SSR만 해당)
 - 정사각형 **512×512 이상**, 캐릭터 중앙, **배경 투명/단색**, dramatic rim/gold frame (SSR-ART common suffix).

@@ -222,7 +222,9 @@ h1::first-letter { color: var(--crimson); }
 .gslot.on { border-style: solid; border-color: #5a4a6a; background: #1d1535; }
 .gslot .gmain { font-size: 9px; font-weight: 800; margin-top: 1px; }
 #gear-inv { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
-.gitem { display: flex; align-items: center; gap: 8px; background: #1d1535; border: 1px solid; border-radius: 9px; padding: 6px 9px; }
+.gitem { display: flex; align-items: center; gap: 8px; background: #1d1535; border: 1px solid; border-radius: 9px; padding: 6px 9px; cursor: pointer; transition: background .1s, transform .05s; }
+.gitem:active { background: #2a2348; transform: scale(0.985); }
+.gitem:hover { background: #241a3a; }
 .gi-main { font-size: 13px; min-width: 60px; }
 .gi-stat { flex: 1; font-size: 10.5px; color: var(--dim); }
 .gi-btns { display: flex; gap: 4px; }

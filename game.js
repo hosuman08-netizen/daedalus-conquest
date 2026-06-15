@@ -189,6 +189,21 @@ function loadPortrait(id) {   // 편성된 캐릭 일러스트 lazy 로드 (전 
   img.onload = () => { if (running) draw(); };
   ssrPortraits[id] = img;
 }
+
+// Enemy visuals: small set of hostile portraits (art/enemy/*.png) for bosses/elites only (TG perf).
+// All other enemies = rich synthetic procedural (aggressive red, spikes, level scaling) so battles feel worthy vs beautiful player army.
+let enemyPortraits = {};
+function preloadEnemyPortraits() {
+  const keys = ["titan", "boss", "drone", "marksman", "guardian", "bruiser", "commander", "elite-drone", "corrupted-titan"];
+  keys.forEach(k => {
+    if (enemyPortraits[k]) return;
+    const img = new Image();
+    img.src = `art/enemy/${k}.png`;
+    img.onload = () => { enemyPortraits[k] = img; if (running) draw(); };
+    enemyPortraits[k] = img; // placeholder until load
+  });
+}
+preloadEnemyPortraits();
 function nowMs() { try { return Date.now(); } catch (e) { return 0; } }
 function today() { try { return new Date().toISOString().slice(0, 10); } catch (e) { return ""; } }
 const counts = {
@@ -510,12 +525,21 @@ function spawnArmy(side) {
     const ai = Math.min(3, s.ai + hb.aiBonus + aw);   // ✦ 각성마다 AI +1 (소울로만 가능)
     let rr = isBoss ? s.r * 1.8 : s.r;
     if (t === "titan" && side==="p") rr *= 1.4; // 6hr visual: higher rarity scale
+    // Enemy flavor: portraitKey for rare PNG (boss priority), eName for "할말 나는" immersion (vs cool threat)
+    let portraitKey = null, eName = null;
+    if (side === "e") {
+      if (isBoss || t === "titan") { portraitKey = "titan"; eName = "타락 거신"; }
+      else if (curLevel >= 40) { portraitKey = "corrupted-titan"; eName = "타락 " + (SPEC[t].name || t); }
+      else if (curLevel >= 25 && (i % 3 === 0)) { portraitKey = "elite-drone"; eName = "망령 " + (SPEC[t].name || t); }
+      else if (t === "commander" && curLevel > 15) { eName = "그림자 지휘"; }
+    }
     units.push({
       t, side, x, y, hp: hp, maxHp: hp, atk: atk, range: s.range, speed: s.speed,
       atkCd: s.atkCd * (side === "p" ? gSpd : 1), crit: side === "p" ? gCrit : 0,
       ai: ai, sight: s.sight, r: rr, skill: s.skill, skillCd: s.skillCd, ranged: s.ranged, boss: isBoss,
       regen: side === "p" ? hb.regen : 0,
       atkT: Math.random() * 0.4, skT: s.skillCd * 0.5, shield: 0, buff: 0, buffT: 0, spd: 0, spdT: 0,
+      portraitKey, eName,
     });
   });
 }
@@ -567,6 +591,7 @@ function reset() {
   units = []; fx = []; running = false; gameOver = false; lastT = 0; ultT = 0;
   spawnArmy("p"); spawnArmy("e");
   preloadSSRPortraits(); // ensure god arts ready for battle
+  if (typeof preloadEnemyPortraits === "function") preloadEnemyPortraits();
   $overlay.classList.add("hidden");
   $("start").textContent = t("start");
   updateMeta(); updateHeroUI(); updateUltBtn(); updateModeTabs(); draw(); updateScore();
@@ -764,32 +789,110 @@ function draw() {
     if (u.boss)       { ctx.strokeStyle = "#fbbf24"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 5, 0, 7); ctx.stroke(); }
     if (u.shield > 0) { ctx.strokeStyle = "#67e8f9"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 4.5, 0, 7); ctx.stroke(); }
     if (u.buff > 0)   { ctx.strokeStyle = "#a3e635"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 6.5, 0, 7); ctx.stroke(); }
-    // Battle body: SSR uses the actual god-tier PNG portrait so they appear "저대로" in canvas fight
-    // (preloaded from art/u${id}.png). Non-SSR keep fast synthetic glyph for 70 fodder + TG perf.
-    if (u.id && ssrPortraits[u.id] && ssrPortraits[u.id].complete && ssrPortraits[u.id].naturalWidth > 0) {
-      const img = ssrPortraits[u.id];
-      const clipR = 20;   // 고정 god-tier 크기 (모든 SSR 동일하게 "멋지게" 통일)
-      const sz = 46;
+    // Battle body: player SSR PNG or enemy hostile PNG (small set) — or rich synthetic
+    const hasPlayerPortrait = u.id && ssrPortraits[u.id] && ssrPortraits[u.id].complete && ssrPortraits[u.id].naturalWidth > 0;
+    const hasEnemyPortrait = u.side === "e" && u.portraitKey && enemyPortraits[u.portraitKey] && enemyPortraits[u.portraitKey].complete && enemyPortraits[u.portraitKey].naturalWidth > 0;
+    if (hasPlayerPortrait || hasEnemyPortrait) {
+      const img = hasPlayerPortrait ? ssrPortraits[u.id] : enemyPortraits[u.portraitKey];
+      const clipR = hasPlayerPortrait ? 20 : Math.min(22, u.r + 4);
+      const sz = hasPlayerPortrait ? 46 : 48;
       ctx.save();
       ctx.beginPath(); ctx.arc(u.x, u.y, clipR, 0, 7); ctx.clip();
       ctx.drawImage(img, u.x - sz / 2, u.y - sz * 0.42, sz, sz);
       ctx.restore();
-      ctx.strokeStyle = "#fbbf24"; ctx.lineWidth = 3;   // god gold rim
-      ctx.beginPath(); ctx.arc(u.x, u.y, clipR + 1, 0, 7); ctx.stroke();
+      if (hasPlayerPortrait) {
+        ctx.strokeStyle = "#fbbf24"; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(u.x, u.y, clipR + 1, 0, 7); ctx.stroke();
+      } else {
+        // Hostile red jagged rim for enemy portraits (위협감)
+        ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 3.5;
+        ctx.beginPath(); ctx.arc(u.x, u.y, clipR + 2, 0, 7); ctx.stroke();
+        // extra aggression lines
+        ctx.strokeStyle = "rgba(239,68,68,0.6)"; ctx.lineWidth = 1.5;
+        for (let k=0; k<5; k++) {
+          const ang = (k*1.2) % 6.28;
+          ctx.beginPath();
+          ctx.moveTo(u.x + Math.cos(ang)*(clipR+1), u.y + Math.sin(ang)*(clipR+1));
+          ctx.lineTo(u.x + Math.cos(ang)*(clipR+6), u.y + Math.sin(ang)*(clipR+6));
+          ctx.stroke();
+        }
+      }
     } else {
       ctx.font = (u.r + 8) + "px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
       const drawGlyph = (u.vis || SPEC[u.t].glyph || "●");
       ctx.fillText(drawGlyph, u.x, u.y + 1);
-      // 시각 차별화: archetype별 미세 procedural (synthetic) + SSR god signatures (v2)
-      if (u.arch === "drone") { ctx.fillStyle = "rgba(255,255,255,0.55)"; ctx.beginPath(); ctx.arc(u.x + u.r * 0.55, u.y - u.r * 0.45, 1.4, 0, 7); ctx.fill(); ctx.beginPath(); ctx.arc(u.x - u.r * 0.45, u.y + u.r * 0.35, 1.1, 0, 7); ctx.fill(); }
-      else if (u.arch === "marksman") { ctx.strokeStyle = "rgba(253,224,71,0.45)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(u.x, u.y); ctx.lineTo(u.x + u.r * 1.7, u.y - 1); ctx.stroke(); }
-      else if (u.arch === "guardian") { ctx.strokeStyle = "rgba(103,232,249,0.35)"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(u.x, u.y, u.r * 1.05, 0, 7); ctx.stroke(); }
-      // invested regulars (SR/R specifics) get prestige glow — "my elites" visual meaning even w/o SSR god art
-      if (u.isSpecific && u.rarity !== "SSR" && u.id) {
-        const inv = (cStar(u.id) || 0) + (cAwak(u.id) || 0) + (charGearStats(u.id).str + charGearStats(u.id).int + charGearStats(u.id).agi + charGearStats(u.id).luk > 12 ? 1 : 0);
-        if (inv > 0) {
-          ctx.strokeStyle = "rgba(163,230,53,0.45)"; ctx.lineWidth = 1.5 + Math.min(2, inv * 0.6);
-          ctx.beginPath(); ctx.arc(u.x, u.y, u.r * 1.12, 0, 7); ctx.stroke();
+      if (u.side === "e") {
+        // === 적 전용 rich synthetic (glyph + aggression + level scaling) ===
+        // redder, spikier, pulsing for high chapter/boss — "할말 나는" 위협적 적
+        const ch = (typeof curLevel === "number" ? curLevel : 1);
+        const intensity = Math.min(1.0, 0.4 + (ch / 60) + (u.boss ? 0.5 : 0));
+        const er = u.r * (u.boss ? 1.15 : 1.0);
+        // base red glow stronger
+        ctx.strokeStyle = `rgba(239,68,68,${0.35 + intensity*0.25})`;
+        ctx.lineWidth = 1.5 + intensity * 1.5;
+        ctx.beginPath(); ctx.arc(u.x, u.y, er * 1.08, 0, 7); ctx.stroke();
+        // arch aggressive details
+        if (u.t === "drone" || u.arch === "drone") {
+          ctx.fillStyle = `rgba(239,68,68,${0.5 + intensity*0.3})`;
+          ctx.beginPath(); ctx.arc(u.x + er*0.6, u.y - er*0.5, 2, 0, 7); ctx.fill();
+          // red trail wings
+          ctx.strokeStyle = `rgba(239,68,68,0.6)`; ctx.lineWidth=1.2;
+          ctx.beginPath(); ctx.moveTo(u.x-er*0.4, u.y); ctx.lineTo(u.x-er*1.1, u.y-er*0.6); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(u.x-er*0.4, u.y); ctx.lineTo(u.x-er*1.1, u.y+er*0.6); ctx.stroke();
+        } else if (u.t === "marksman" || u.arch === "marksman") {
+          ctx.strokeStyle = "#f87171"; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(u.x, u.y); ctx.lineTo(u.x + er*1.9, u.y - 1); ctx.stroke();
+          if (intensity > 0.6) { ctx.fillStyle="rgba(248,113,113,0.7)"; ctx.fillRect(u.x+er*1.2, u.y-2, 4, 4); }
+        } else if (u.t === "guardian" || u.arch === "guardian") {
+          ctx.strokeStyle = `rgba(248,113,113,${0.6 + intensity*0.3})`; ctx.lineWidth=2.2;
+          ctx.beginPath(); ctx.arc(u.x, u.y, er*1.12, 0, 7); ctx.stroke();
+          // shield spikes
+          for (let k=-1; k<=1; k+=1) {
+            ctx.beginPath(); ctx.moveTo(u.x + k*5, u.y - er*1.1); ctx.lineTo(u.x + k*5, u.y - er*1.35); ctx.stroke();
+          }
+        } else if (u.t === "bruiser" || u.arch === "bruiser") {
+          ctx.fillStyle = `rgba(239,68,68,${0.4 + intensity*0.35})`;
+          ctx.fillRect(u.x - er*0.3, u.y - er*0.3, er*0.6, er*0.6);
+          // fist spikes
+          ctx.strokeStyle="#f87171"; ctx.lineWidth=1.5;
+          ctx.beginPath(); ctx.moveTo(u.x+er*0.5, u.y); ctx.lineTo(u.x+er*0.9, u.y-3); ctx.stroke();
+        } else if (u.t === "commander" || u.arch === "commander") {
+          ctx.strokeStyle = "rgba(248,113,113,0.7)"; ctx.lineWidth = 1.8;
+          ctx.beginPath(); ctx.moveTo(u.x-er*0.7, u.y-er*0.4); ctx.lineTo(u.x+er*0.7, u.y+er*0.4); ctx.stroke();
+        } else if (u.t === "titan" || u.arch === "titan") {
+          ctx.strokeStyle = `rgba(239,68,68,${0.7 + intensity*0.2})`; ctx.lineWidth=3;
+          ctx.beginPath(); ctx.arc(u.x, u.y, er*1.25, 0, 7); ctx.stroke();
+          // dragon horns
+          ctx.beginPath(); ctx.moveTo(u.x-er*0.4, u.y-er*0.7); ctx.lineTo(u.x-er*0.7, u.y-er*1.1); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(u.x+er*0.4, u.y-er*0.7); ctx.lineTo(u.x+er*0.7, u.y-er*1.1); ctx.stroke();
+        }
+        // corruption / level lines (고챕터 적일수록 더 "타락" 느낌)
+        if (ch > 10 && intensity > 0.5) {
+          ctx.strokeStyle = `rgba(239,68,68,${0.25 + intensity*0.2})`; ctx.lineWidth = 1;
+          for (let k=0; k < Math.floor(2+ch/15); k++) {
+            const ox = (k%3-1) * er * 0.3 + Math.sin(Date.now()/200 + k)*1;
+            ctx.beginPath(); ctx.moveTo(u.x + ox - er*0.15, u.y - er*0.2); ctx.lineTo(u.x + ox + er*0.15, u.y + er*0.2); ctx.stroke();
+          }
+        }
+        // eName label (할말 나오는 적)
+        if (u.eName) {
+          ctx.font = "9px sans-serif"; ctx.fillStyle = "#f87171"; ctx.textAlign="center";
+          ctx.fillText(u.eName, u.x, u.y - u.r - 10);
+          ctx.textAlign="center";
+        }
+      } else {
+        // 기존 플레이어 synthetic (invest glow 포함)
+        // 시각 차별화: archetype별 미세 procedural (synthetic) + SSR god signatures (v2)
+        if (u.arch === "drone") { ctx.fillStyle = "rgba(255,255,255,0.55)"; ctx.beginPath(); ctx.arc(u.x + u.r * 0.55, u.y - u.r * 0.45, 1.4, 0, 7); ctx.fill(); ctx.beginPath(); ctx.arc(u.x - u.r * 0.45, u.y + u.r * 0.35, 1.1, 0, 7); ctx.fill(); }
+        else if (u.arch === "marksman") { ctx.strokeStyle = "rgba(253,224,71,0.45)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(u.x, u.y); ctx.lineTo(u.x + u.r * 1.7, u.y - 1); ctx.stroke(); }
+        else if (u.arch === "guardian") { ctx.strokeStyle = "rgba(103,232,249,0.35)"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(u.x, u.y, u.r * 1.05, 0, 7); ctx.stroke(); }
+        // invested regulars (SR/R specifics) get prestige glow — "my elites" visual meaning even w/o SSR god art
+        if (u.isSpecific && u.rarity !== "SSR" && u.id) {
+          const inv = (cStar(u.id) || 0) + (cAwak(u.id) || 0) + (charGearStats(u.id).str + charGearStats(u.id).int + charGearStats(u.id).agi + charGearStats(u.id).luk > 12 ? 1 : 0);
+          if (inv > 0) {
+            ctx.strokeStyle = "rgba(163,230,53,0.45)"; ctx.lineWidth = 1.5 + Math.min(2, inv * 0.6);
+            ctx.beginPath(); ctx.arc(u.x, u.y, u.r * 1.12, 0, 7); ctx.stroke();
+          }
         }
       }
     }
@@ -908,7 +1011,12 @@ function finish(p, e) {
   if (auto && (!win || !autoMode)) { auto = false; updateAutoBtn(); }
 
   let carried = "";
-  if (win) carried = `<div class="rwd2" style="color:#fbbf24;font-size:12px;">${getCarriedFeedback()}</div>`;
+  if (win) {
+    let extraEnemy = "";
+    const eNames = units.filter(u=>u.side==="e" && u.eName).map(u=>u.eName);
+    if (eNames.length) extraEnemy = ` · ${eNames[0]} 격파`;
+    carried = `<div class="rwd2" style="color:#fbbf24;font-size:12px;">${getCarriedFeedback()}${extraEnemy}</div>`;
+  }
   $overlayMsg.innerHTML = title + extra + carried;
   $("overlay-btn").textContent = win ? t("cont") : t("retry");
   $overlay.classList.remove("hidden");
@@ -1294,12 +1402,6 @@ $("set-sound").addEventListener("click", () => { META.sound = META.sound === fal
 $("set-haptic").addEventListener("click", () => { META.haptic = META.haptic === false; saveMeta(); updateToggles(); });
 on("set-music", "click", () => { META.music = META.music === false; saveMeta(); updateToggles(); if (META.music === false) bgmStop(); else bgmStart(); });
 $("set-reset").addEventListener("click", resetProgress);
-on("set-unlockall", "click", () => {   // 검토용: 도감 전체 해금 (전 유닛 보유 처리)
-  if (typeof ROSTER === "undefined") return;
-  META.owned = ROSTER.map((u) => u.id);
-  saveMeta(); renderCodex(); updateMeta();
-  toast("🔓 전체 해금 — 도감 " + META.owned.length + "종 확인 가능", "#a3e635"); haptic("medium");
-});
 
 // ── 이벤트: 일일 출석 (7일 사이클, 골드+다이아) ──────────────────────────────
 // 30일 출석: 평소 골드/다이아, 7·15·30일차 색깔별 박스(장비/유닛 랜덤)
@@ -1446,6 +1548,10 @@ function redeemCode() {
   const inp = $("code-input"); if (!inp) return;
   const code = (inp.value || "").trim().toUpperCase();
   if (!code) return;
+  if (code === "REVIEWALL") {            // 🔒 군주 전용 검토 코드 (공개 X, 도감 전체 해금)
+    if (typeof ROSTER !== "undefined") { META.owned = ROSTER.map((u) => u.id); saveMeta(); renderCodex(); updateMeta(); }
+    inp.value = ""; toast("🔓 검토 모드 — 전체 해금 (" + (META.owned || []).length + "종)", "#a3e635"); haptic("medium"); return;
+  }
   if (!META.codes) META.codes = [];
   if (META.codes.indexOf(code) >= 0) { toast(t("codeUsed"), "#ef4444"); return; }
   const r = CODES[code];
@@ -1932,11 +2038,11 @@ function showUnit(id) {
   $("unit-pop").classList.remove("hidden");
 }
 // ── 장비: 제작 · 장착 · 강화 ──────────────────────────────────────────────────
-function craftGear() {
+function craftGear(forceRar) {
   const cost = 300;
   if (META.gold < cost) { toast(t("tGoldShort", { n: cost }), "#ef4444"); return; }
   if (META.gear.length >= 40) { toast(t("gFull"), "#ef4444"); return; }
-  META.gold -= cost; const g = newGear(); META.gear.push(g);
+  META.gold -= cost; const g = newGear(forceRar); META.gear.push(g);
   saveMeta(); updateMeta(); renderGear();
   toast(t("gGot", { x: SLOT_ICON[g.slot] + " " + g.rarity }), g.color); SFX.gacha();
 }
@@ -1976,9 +2082,18 @@ function renderGear() {
       const stats = STAT_KEYS.filter((k) => g[k]).map((k) => t("st_" + k) + gearStat(g, k)).join(" ");
       const owner = gearOwnerName(g.id);
       const v = g.vis || SLOT_ICON[g.slot];
-      return `<div class="gitem" style="border-color:${g.color}66"><div class="gi-main">${v} <b style="color:${g.color}">${g.rarity}</b>${g.enh ? " +" + g.enh : ""}${owner ? ` <small style="color:#a3e635">🎽${owner}</small>` : ""}</div><div class="gi-stat">${stats}</div><div class="gi-btns"><button class="gup" data-id="${g.id}">🔨 ${t("dEnhance")}</button></div></div>`;
+      return `<div class="gitem" data-id="${g.id}" style="border-color:${g.color}66"><div class="gi-main">${v} <b style="color:${g.color}">${g.rarity}</b>${g.enh ? " +" + g.enh : ""}${owner ? ` <small style="color:#a3e635">🎽${owner}</small>` : ""}</div><div class="gi-stat">${stats}</div><div class="gi-btns"><button class="gup" data-id="${g.id}">🔨 ${t("dEnhance")}</button></div></div>`;
     }).join("");
-    inv.querySelectorAll(".gup").forEach((b) => b.addEventListener("click", () => enhanceGear(+b.dataset.id)));
+    inv.querySelectorAll(".gup").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); enhanceGear(+b.dataset.id); }));
+    // Tap the gear row itself → same-tier 제작 (사용자가 보고 있는 등급으로 제작 유도)
+    inv.querySelectorAll(".gitem").forEach((row) => {
+      row.addEventListener("click", (e) => {
+        if (e.target.closest("button")) return; // 강화 버튼은 제외
+        const gid = +row.dataset.id;
+        const g = META.gear.find((x) => x.id === gid);
+        craftGear(g ? g.rarity : null); // 탭한 장비와 같은 희귀도로 제작
+      });
+    });
   }
 }
 function gearOwnerName(gearId) {                        // 이 장비를 장착한 캐릭터 이름 (없으면 null)
