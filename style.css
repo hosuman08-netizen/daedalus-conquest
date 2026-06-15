@@ -418,11 +418,48 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .cp-slot.on { border-style: solid; }
 .cp-slot b { font-size: 9px; }
 #cp-inv-label { font-size: 11px; margin-bottom: 6px; }
-#cp-inv { display: flex; flex-direction: column; gap: 5px; max-height: 200px; overflow-y: auto; margin-bottom: 12px; }
+#cp-inv { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; max-height: 220px; overflow-y: auto; margin-bottom: 12px; }
 .cp-gi { display: flex; justify-content: space-between; align-items: center; gap: 8px; background: #16101f; border: 1px solid; border-radius: 8px; padding: 7px 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
 .cp-gi.on { background: #241a3a; box-shadow: inset 0 0 0 1px var(--gold); }
 .cp-gi small { color: var(--dim); font-weight: 600; font-size: 10px; }
 #cp-close { width: 100%; margin-top: 4px; }
+
+/* 장비 창 개선 — scannable cards, premium (toy 느낌 제거) */
+#cp-gear { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 10px; }
+.cp-slot { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #16101f; border: 1.5px solid #2c2142; border-radius: 8px; padding: 6px 4px; font-size: 13px; min-height: 52px; }
+.cp-slot.on { border-color: #fbbf24; background: #1d1535; }
+.cp-slot .slot-vis { font-size: 18px; line-height: 1; }
+.cp-slot .slot-info { text-align: center; margin-top: 2px; }
+.cp-slot .slot-name { font-size: 10px; font-weight: 800; }
+.cp-slot .slot-stats { font-size: 8px; color: var(--dim); }
+.cp-slot .slot-x { position: absolute; top: 1px; right: 3px; font-size: 10px; color: #f87171; cursor: pointer; }
+.cp-slot .slot-empty { font-size: 9px; color: #3a3550; }
+
+.gear-card { display: flex; align-items: center; gap: 6px; background: #16101f; border: 1.5px solid; border-radius: 8px; padding: 6px 8px; font-size: 11px; cursor: pointer; }
+.gear-card.on { border-color: var(--gold); background: #241a3a; }
+.gear-card .g-icon { font-size: 18px; }
+.gear-card .g-info { flex: 1; min-width: 0; }
+.gear-card .g-name { font-weight: 700; }
+.gear-card .g-stats { font-size: 9px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gear-card .g-act { margin-left: auto; }
+.gear-card .g-equip { font-size: 10px; padding: 3px 8px; background: #2a2348; color: var(--gold); border: 1px solid #473a63; border-radius: 5px; }
+.gear-card .act-on { font-size: 9px; color: var(--gold); }
+.gear-card .best { font-size: 9px; color: #a3e635; margin-left: 4px; }
+
+/* Gear art premium (not toy) - synthetic fallback looks illustrated */
+.gear-art, .slot-art {
+  width: 48px; height: 48px; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 22px;
+  background: linear-gradient(135deg, #2a2f42, #1a1f2e); box-shadow: inset 0 0 8px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.4);
+  border: 1px solid #3a4055;
+}
+.gear-art img, .slot-art img { width: 100%; height: 100%; object-fit: contain; }
+.gear-synth { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
+.gear-synth.rSSR { background: linear-gradient(135deg, #3a2a1a, #5a4630); border-color: #fbbf24; }
+.gear-synth.rSR { background: linear-gradient(135deg, #2a1a3a, #46305a); border-color: #c084fc; }
+.gear-synth.rR { background: linear-gradient(135deg, #1a2a3a, #30465a); border-color: #60a5fa; }
+.gear-synth.rN { background: linear-gradient(135deg, #2a2f42, #1a1f2e); border-color: #9ca3af; }
+.gear-synth .gear-r { position: absolute; bottom: 2px; right: 2px; font-size: 8px; font-weight: 900; opacity: 0.8; }
+.slot-art { width: 42px; height: 42px; font-size: 20px; }
 
 .legend-toggle { display:block; margin: 10px auto 0; padding: 4px 12px; font-size: 11px; color: var(--dim); background: transparent; border: 1px solid #2c2142; border-radius: 8px; }
 #legend.hidden { display: none; }

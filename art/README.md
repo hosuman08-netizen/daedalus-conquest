@@ -1,4 +1,4 @@
-# 🎨 캐릭터 아트 폴더 (Phase1 lean 79종: 9 god-tier SSR 우선)
+# 🎨 캐릭터 아트 폴더 (Phase1 120종: 9 god-tier SSR 우선, 일단 120 for volume)
 
 Phase1: **non-SSR는 synthetic(canvas glyph + RARITY_COLOR/glow + gear tint)** — TG perf/zero heavy asset. 
 **9 SSR Founding (Arclight 등)만 god-tier PNG** (lazy load codex/gacha/unit-pop, onerror synthetic fallback). 
