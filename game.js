@@ -538,6 +538,8 @@ function reset() {
   $overlay.classList.add("hidden");
   $("start").textContent = t("start");
   updateMeta(); updateHeroUI(); updateUltBtn(); updateModeTabs(); draw(); updateScore();
+  // 편성이 부대 → generic 골드구매 배치는 편성 비었을 때만(폴백). 편성 있으면 숨김
+  const dep = $("deploy"); if (dep) dep.style.display = getDeployedUnits().length ? "none" : "";
   renderDeploySpecificsPreview();  // char 배치 specific 유닛 쉽게 보이게
 }
 
@@ -1114,7 +1116,7 @@ function updateHeroUI() {
   HERO_ORDER.forEach((hk) => {
     const b = document.querySelector('.hbtn[data-h="' + hk + '"]'); if (!b) return;
     b.classList.toggle("sel", hk === META.hero);
-    if (!b.dataset.dec) { b.innerHTML = HEROES[hk].glyph + '<i class="rk">' + HEROES[hk].rank + '</i>'; b.dataset.dec = "1"; }
+    if (!b.dataset.dec) { b.innerHTML = '<span class="hgly">' + HEROES[hk].glyph + '</span><img class="him" src="art/hero-' + hk + '.png" alt="" onerror="this.remove()"><i class="rk">' + HEROES[hk].rank + '</i>'; b.dataset.dec = "1"; }
   });
   const h = HEROES[META.hero], lv = META.heroLv[META.hero] || 1, tr = tHero(META.hero);
   if ($("hero-name")) $("hero-name").innerHTML = h.glyph + ' <span class="hcode">RANK ' + h.rank + '</span> ' + tr[0] + " Lv" + lv;
