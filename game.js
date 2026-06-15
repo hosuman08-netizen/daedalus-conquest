@@ -182,6 +182,13 @@ function preloadSSRPortraits() {
   });
 }
 preloadSSRPortraits(); // safe early call (ROSTER from units.js)
+function loadPortrait(id) {   // 편성된 캐릭 일러스트 lazy 로드 (전 등급 — art/u<id>.png)
+  if (!id || ssrPortraits[id]) return;
+  const img = new Image();
+  img.src = `art/u${id}.png`;
+  img.onload = () => { if (running) draw(); };
+  ssrPortraits[id] = img;
+}
 function nowMs() { try { return Date.now(); } catch (e) { return 0; } }
 function today() { try { return new Date().toISOString().slice(0, 10); } catch (e) { return ""; } }
 const counts = {
@@ -445,8 +452,9 @@ function spawnArmy(side) {
           atkCd: s.atkCd * cgSpd, crit: cgCrit, ai: Math.min(3, s.ai + hb.aiBonus + aw),
           sight: s.sight, r: s.r * 1.18, skill: s.skill, skillCd: s.skillCd, ranged: s.ranged,
           regen: hb.regen, atkT: Math.random() * 0.3, skT: s.skillCd * 0.4, shield: 0, buff: 0, buffT: 0, spd: 0, spdT: 0,
-          name: u.name, vis: u.vis, color: u.color, isSpecific: true, rarity: u.rarity,
+          id: u.id, name: u.name, vis: u.vis, color: u.color, isSpecific: true, rarity: u.rarity,
         });
+        loadPortrait(u.id);   // 편성 캐릭 일러스트 캔버스용 로드 (전 등급)
       });
       return;   // 편성이 부대 — 제네릭 스폰 생략
     }
@@ -723,19 +731,15 @@ function draw() {
     if (u.buff > 0)   { ctx.strokeStyle = "#a3e635"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 6.5, 0, 7); ctx.stroke(); }
     // Battle body: SSR uses the actual god-tier PNG portrait so they appear "저대로" in canvas fight
     // (preloaded from art/u${id}.png). Non-SSR keep fast synthetic glyph for 70 fodder + TG perf.
-    if (u.rarity === "SSR" && ssrPortraits[u.id] && ssrPortraits[u.id].complete) {
+    if (u.id && ssrPortraits[u.id] && ssrPortraits[u.id].complete && ssrPortraits[u.id].naturalWidth > 0) {
       const img = ssrPortraits[u.id];
-      const sz = u.r * 1.9;
+      const sz = u.r * 2.2;
       ctx.save();
-      ctx.shadowColor = u.color || "#fbbf24";
-      ctx.shadowBlur = 14;
-      ctx.drawImage(img, u.x - sz/2, u.y - sz/2, sz, sz);
+      ctx.beginPath(); ctx.arc(u.x, u.y, u.r * 1.05, 0, 7); ctx.clip();   // 원형 클립 — 사각 프레임 가림
+      ctx.drawImage(img, u.x - sz / 2, u.y - sz * 0.42, sz, sz);          // 상단(얼굴) 쪽 보이게 오프셋
       ctx.restore();
-      // god-tier rim lighting (feels like the splash art)
-      ctx.strokeStyle = "#fbbf24"; ctx.lineWidth = 2.4;
-      ctx.beginPath(); ctx.arc(u.x, u.y, u.r * 1.15, 0, 7); ctx.stroke();
-      ctx.strokeStyle = "rgba(255,255,255,0.35)"; ctx.lineWidth = 1.2;
-      ctx.beginPath(); ctx.arc(u.x, u.y, u.r * 1.02, 0, 7); ctx.stroke();
+      ctx.strokeStyle = u.color || "#fbbf24"; ctx.lineWidth = 2.2;        // 등급색 림
+      ctx.beginPath(); ctx.arc(u.x, u.y, u.r * 1.05, 0, 7); ctx.stroke();
     } else {
       ctx.font = (u.r + 8) + "px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
       const drawGlyph = (u.vis || SPEC[u.t].glyph || "●");
@@ -1740,7 +1744,7 @@ function renderDeploySpecificsPreview() {
     return;
   }
   el.style.opacity = "1";
-  el.innerHTML = `<b>특수 배치 (${specs.length})</b>: ` + specs.map(u => `${artHTML(u, "", "")}<span style="color:${u.color}">${u.name}</span>`).join(" · ");
+  el.innerHTML = `<b>⚔️ 출전 ${specs.length}</b>: ` + specs.map(u => `<span style="color:${u.color}">${u.name}</span>`).join(" · ");
 }
 // ── 캐릭터 도감 그리드 (79종 lean 수집: 9SSR god-tier + 70 fodder) ──────────────────────────────────────────
 let codexFilter = "ALL";
