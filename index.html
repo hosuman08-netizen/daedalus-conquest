@@ -114,12 +114,15 @@
     <!-- 장비 페이지 (제작·인벤·도감) -->
     <div id="page-gear" class="page hidden">
       <div class="set-title">⚔️ <span data-i18n="gTitle">장비</span></div>
-      <div class="gear-note ddim" data-i18n="gearNote">장착은 캐릭터 탭 → 캐릭터 → 장비 슬롯에서</div>
-      <div class="set-sec">🔨 <span data-i18n="gCraft">제작</span> <button id="gear-craft">🔨 <span data-i18n="gCraft">제작</span> 300g</button></div>
+      <button id="gear-craft" class="craft-big">🔨 <span data-i18n="gCraft">제작</span> · 300g</button>
+      <div class="gear-note ddim" data-i18n="gearNote">🔨 장비를 탭하면 강화 · 장착은 캐릭터 탭에서</div>
+      <div class="set-sec">🎒 <span data-i18n="gOwned">보유 장비</span> <span id="gear-count" class="ddim"></span></div>
       <div id="gear-inv"></div>
-      <div class="set-sec">🛠️ <span data-i18n="gearDexT">장비 도감</span> <span id="gdex-count" class="ddim"></span></div>
-      <div id="gdex-filter"></div>
-      <div id="gdex-grid"></div>
+      <button id="gdex-toggle" class="legend-toggle">🛠️ <span data-i18n="gearDexT">장비 도감</span> <span id="gdex-count" class="ddim"></span> ▾</button>
+      <div id="gdex-wrap" class="hidden">
+        <div id="gdex-filter"></div>
+        <div id="gdex-grid"></div>
+      </div>
     </div>
 
     <!-- 하단 네비게이션 (설정은 상단 구석으로) -->

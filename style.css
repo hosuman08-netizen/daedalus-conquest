@@ -96,12 +96,11 @@ h1::first-letter { color: var(--crimson); }
 .cfil { width: auto; padding: 4px 9px; font-size: 11px; background: #1d1535; color: var(--dim); border-radius: 7px; }
 .cfil.on { background: #2a1418; color: var(--gold); }
 #codex-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 8px; }
-.cxc { aspect-ratio: 1/1.2; background: #16101f; border: 1.5px solid; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.cxc { aspect-ratio: 1/1.2; border: none; background: transparent; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
 .cxc.lock { opacity: .45; }
 .cxc .cxg { font-size: 22px; position: relative; width: 100%; flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 6px 6px 0 0; }
 .cxc .cxgly { line-height: 1; }
 .cxc .cxim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.cxc .cxr { font-size: 8px; font-weight: 900; padding-bottom: 2px; }
 /* 등급별 프리미엄 타일 (유닛·장비 공용) */
 .cxc.rR, .gxc.rR   { background: linear-gradient(160deg, #16213e 0%, #16101f 100%); }
 .cxc.rSR, .gxc.rSR { background: linear-gradient(160deg, #2a1c44 0%, #16101f 100%); }
@@ -115,11 +114,7 @@ h1::first-letter { color: var(--crimson); }
 .cxc.arch-bruiser .cxg { background: linear-gradient(180deg, #2a1f1f 0%, transparent 70%); }
 .cxc.arch-commander .cxg { background: linear-gradient(180deg, #2a2233 0%, transparent 70%); }
 .cxc.arch-titan .cxg { background: linear-gradient(180deg, #3a2a12 0%, transparent 70%); box-shadow: inset 0 0 12px rgba(251,191,36,0.15); }
-.cxc.fac-strategist { border-color: #6366f1 !important; }
-.cxc.fac-executor { border-color: #22c55e !important; }
-.cxc.fac-swarm { border-color: #ef4444 !important; }
-.cxc.fac-guardian { border-color: #67e8f9 !important; }
-.cxc.fac-intel { border-color: #a855f7 !important; }
+/* fac- border colors removed per request for clean codex (no red circles) */
 .cxc .cxgly .acc { vertical-align: super; }
 #gdex-filter { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; }
 #gdex-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
@@ -328,23 +323,84 @@ h1::first-letter { color: var(--crimson); }
   border: 1px solid #3a2c5a; border-radius: 8px; padding: 6px 10px; margin: 6px 0 2px; text-align: center; }
 .ms-hint b { color: var(--gold); }
 
-/* 영웅 선택 */
-#heroes { margin: 8px 0 4px; background: var(--panel); border-radius: 10px; padding: 7px 8px; }
-.herorow { display: flex; gap: 5px; justify-content: space-between; }
-.hbtn { flex: 1; padding: 7px 0; font-size: 20px; border: 2px solid transparent; border-radius: 9px; background: #241b3a; }
-.hbtn.sel { border-color: var(--gold); background: #2a2f1a; }
-#hero-info { margin-top: 6px; font-size: 12px; }
-#hero-info b { font-size: 13px; color: var(--gold); }
-#hero-desc { color: var(--dim); margin-top: 2px; font-size: 11.5px; }
-#hero-up { flex: none; display: inline-block; width: auto; padding: 4px 10px; font-size: 11px; background: #65a30d; color: #f0fdf4; border-radius: 7px; margin-left: 6px; }
+/* 영웅 선택 - 궁극기 느낌 강하게 업그레이드 (간지 버전) */
+#heroes { margin: 6px 0 4px; background: linear-gradient(145deg, #16101f, #0f0a18); border: 1px solid #2c2442; border-radius: 12px; padding: 8px 6px; box-shadow: inset 0 2px 6px rgba(0,0,0,0.6); }
+.herorow { display: flex; gap: 4px; justify-content: space-between; }
+.hbtn { 
+  flex: 1; 
+  min-height: 44px; 
+  padding: 6px 2px; 
+  font-size: 22px; 
+  border: 2px solid #3a2f5e; 
+  border-radius: 10px; 
+  background: linear-gradient(160deg, #1f1a2e, #16101f); 
+  position: relative; 
+  overflow: hidden; 
+  transition: all 0.12s cubic-bezier(0.2, 0, 0.2, 1);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(255,255,255,0.06);
+}
+.hbtn:active { transform: scale(0.95); }
+.hbtn.sel { 
+  border-color: #fbbf24; 
+  background: linear-gradient(160deg, #2a2f1a, #1f2512); 
+  box-shadow: 0 0 16px #fbbf2466, 0 4px 10px rgba(0,0,0,0.6), inset 0 -1px 0 rgba(255,255,255,0.1);
+  transform: scale(1.04);
+}
+.hbtn .rk { 
+  position: absolute; 
+  top: 2px; 
+  right: 3px; 
+  font-size: 8px; 
+  font-weight: 900; 
+  color: #f87171; 
+  background: #1a1400; 
+  padding: 1px 4px; 
+  border-radius: 3px; 
+  line-height: 1; 
+  z-index: 3;
+  border: 1px solid #3a2a00;
+}
+#hero-info { margin-top: 5px; font-size: 11.5px; padding: 0 4px; }
+#hero-info b { font-size: 12.5px; color: #fbbf24; text-shadow: 0 1px 2px #000; }
+#hero-desc { color: #a3a3c2; margin-top: 1px; font-size: 10.5px; }
+#hero-up { 
+  flex: none; display: inline-block; width: auto; padding: 3px 8px; font-size: 10px; 
+  background: linear-gradient(135deg, #65a30d, #4a7c0a); color: #f0fdf4; 
+  border-radius: 5px; margin-left: 5px; border: 1px solid #3a5c08;
+}
 
-/* 궁극기 버튼 */
-#ult { width: 100%; margin-top: 8px; padding: 13px; font-size: 16px; font-weight: 800; border-radius: 11px;
-  background: #3a2a00; color: #fde047; opacity: .5; }
-#ult.ready { opacity: 1; background: linear-gradient(135deg, #f59e0b, #dc2626); color: #fff;
-  animation: ultpulse 1s infinite; }
-#ult:disabled { opacity: .4; }
-@keyframes ultpulse { 0%,100% { box-shadow: 0 0 0 0 #f59e0b66; } 50% { box-shadow: 0 0 14px 2px #f59e0b66; } }
+/* 궁극기 버튼 - 훨씬 멋지게 (궁극기 느낌 풀업) */
+#ult { 
+  width: 100%; 
+  margin-top: 6px; 
+  padding: 14px 12px; 
+  font-size: 15px; 
+  font-weight: 900; 
+  letter-spacing: 0.5px;
+  border-radius: 12px;
+  background: #1a1400; 
+  color: #fde047; 
+  border: 2px solid #4a3a00;
+  opacity: .55; 
+  box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+  transition: all .15s cubic-bezier(0.2,0,0.2,1);
+  text-shadow: 0 1px 3px #000;
+}
+#ult.ready { 
+  opacity: 1; 
+  background: linear-gradient(145deg, #f59e0b 0%, #b91c1c 45%, #7f1d1d 100%); 
+  color: #fff; 
+  border-color: #fbbf24;
+  box-shadow: 0 0 22px #f59e0bcc, 0 6px 14px rgba(0,0,0,0.5);
+  animation: ultpulse 0.9s infinite ease-in-out;
+  text-shadow: 0 0 6px #fff3, 0 2px 4px #000;
+}
+#ult:disabled { opacity: .35; }
+#ult:active { transform: scale(0.97); }
+@keyframes ultpulse { 
+  0%,100% { box-shadow: 0 0 22px #f59e0bcc, 0 6px 14px rgba(0,0,0,0.5); transform: scale(1); } 
+  50% { box-shadow: 0 0 32px #fbbf24ee, 0 6px 14px rgba(0,0,0,0.5); transform: scale(1.01); } 
+}
 
 #deploy { margin-top: 8px; }
 .army { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; background: var(--panel); border-radius: 10px; padding: 7px 8px; box-shadow: inset 3px 0 0 var(--blue); }
@@ -367,13 +423,17 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 
 #legend { margin-top: 10px; font-size: 10px; color: #6f6685; line-height: 1.55; text-align: center; opacity: .8; }
 #legend small { color: #6b7280; font-size: 9.5px; } #legend b { color: var(--gold); }
-#heroes { margin: 6px 0 3px; padding: 6px 7px; }
-.hbtn { padding: 6px 0; font-size: 18px; }
-#hero-info { font-size: 11.5px; }
-#controls { margin-top: 7px; }
-#controls button { padding: 11px; font-size: 14px; }
-#ult { margin-top: 7px; padding: 12px; font-size: 15px; }
-#deploy .tag { margin-bottom: 3px; }
+/* keep the new premium hero/ult look on small screens too */
+#heroes { margin: 5px 0 3px; padding: 5px 4px; }
+.herorow { gap: 3px; }
+.hbtn { min-height: 36px; padding: 4px 1px; font-size: 17px; }
+.hbtn .rk { font-size: 6.5px; padding: 0 2px; }
+#hero-info { font-size: 10px; margin-top: 3px; }
+#hero-up { padding: 1px 5px; font-size: 8.5px; }
+#controls { margin-top: 5px; }
+#controls button { padding: 10px; font-size: 13px; }
+#ult { margin-top: 4px; padding: 10px 6px; font-size: 13px; }
+#deploy .tag { margin-bottom: 2px; }
 
 #overlay, #gacha { position: fixed; inset: 0; background: #000b; display: flex; align-items: center; justify-content: center; z-index: 10; }
 #overlay.hidden, #gacha.hidden { display: none; }
@@ -517,3 +577,16 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 
 .gpop-enh { margin-top: 12px; padding: 10px 20px; font-size: 14px; font-weight: 800; border-radius: 10px; background: linear-gradient(135deg, #f5c451, #d97706); color: #1a1400; border: none; }
 .gi-up { color: var(--dim); font-size: 16px; font-weight: 700; padding-left: 8px; }
+
+/* 장비 탭 통합 UI */
+.craft-big { width: 100%; padding: 13px; font-size: 15px; font-weight: 800; border-radius: 11px; background: linear-gradient(135deg, #f5c451, #d97706); color: #1a1400; border: none; margin-bottom: 6px; }
+.craft-big:active { transform: scale(.985); }
+#gear-inv { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 10px; }
+.ginv-tile { position: relative; aspect-ratio: 1/1.15; background: #16101f; border: 1.5px solid; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; overflow: hidden; }
+.ginv-tile:active { transform: scale(.95); }
+.ginv-tile .gt-art { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+.ginv-tile .gt-art .g-art { width: 100%; height: 100%; object-fit: contain; }
+.ginv-tile .gt-rr { font-size: 9px; font-weight: 900; }
+.ginv-tile .gt-eq { position: absolute; top: 2px; right: 3px; font-size: 10px; }
+.ginv-tile.rSSR { box-shadow: inset 0 0 12px rgba(245,196,81,0.22); }
+#gdex-wrap.hidden { display: none; }

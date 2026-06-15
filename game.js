@@ -1369,7 +1369,7 @@ function updateHeroUI() {
   });
   const h = HEROES[META.hero], lv = META.heroLv[META.hero] || 1, tr = tHero(META.hero);
   if ($("hero-name")) $("hero-name").innerHTML = h.glyph + ' <span class="hcode">RANK ' + h.rank + '</span> ' + tr[0] + " Lv" + lv;
-  if ($("hero-desc")) $("hero-desc").textContent = tr[1] + " · " + tUlt(h.ult);
+  if ($("hero-desc")) $("hero-desc").innerHTML = tr[1] + ' <span style="color:#f59e0b;font-weight:700">· ULT: ' + tUlt(h.ult) + '</span>';
   if ($("hero-up")) $("hero-up").textContent = t("upgrade") + " " + heroUpCost() + "g";
 }
 function selectHero(h) { if (running || !HEROES[h]) return; META.hero = h; saveMeta(); updateHeroUI(); reset(); }
@@ -2083,7 +2083,7 @@ function renderCodex() {
     const has = owned.has(u.id);
     const archCls = u.arch ? ` arch-${u.arch}` : "";
     const facCls = u.faction ? ` fac-${u.faction.toLowerCase()}` : "";
-    return `<div class="cxc r${u.rarity}${has ? "" : " lock"}${archCls}${facCls}" data-id="${u.id}" style="border-color:${u.color}${has ? "" : "33"}"><div class="cxg">${has ? artHTML(u, "cxgly", "cxim") : "❔"}</div><div class="cxr" style="color:${u.color}">${u.rarity}</div></div>`;
+    return `<div class="cxc r${u.rarity}${has ? "" : " lock"}${archCls}${facCls}" data-id="${u.id}"><div class="cxg">${has ? artHTML(u, "cxgly", "cxim") : "❔"}</div></div>`;
   }).join("");
   grid.querySelectorAll(".cxc").forEach((c) => c.addEventListener("click", () => showUnit(+c.dataset.id)));
 }
@@ -2193,18 +2193,16 @@ function renderGear() {
       return `<div class="gslot${g ? " on" : ""}">${art}${badge}</div>`;
     }).join("");
   }
+  if ($("gear-count")) $("gear-count").textContent = (META.gear || []).length + "개";
   const inv = $("gear-inv");
   if (inv) {
-    if (!META.gear.length) { inv.innerHTML = `<div class="ddim" style="text-align:center;padding:8px 0">${t("gEmpty")}</div>`; return; }
+    if (!META.gear.length) { inv.innerHTML = `<div class="ddim" style="text-align:center;padding:12px 0">${t("gEmpty")}</div>`; return; }
     inv.innerHTML = META.gear.slice().sort((a, b) => b.id - a.id).map((g) => {
-      const stats = STAT_KEYS.filter((k) => g[k]).map((k) => t("st_" + k) + gearStat(g, k)).join(" ");
       const owner = gearOwnerName(g.id);
-      const art = g ? gearArt(g).replace('class="g-art"', 'class="g-art" style="width:18px;height:18px;display:inline-block;vertical-align:middle"') : (g.vis || SLOT_ICON[g.slot]);
-      const cost = 200 * ((g.enh || 0) + 1);
-      return `<div class="gitem" data-id="${g.id}" style="border-color:${g.color}66"><div class="gi-main">${art} <b style="color:${g.color}">${g.rarity}</b>${g.enh ? " +" + g.enh : ""}${owner ? ` <small style="color:#a3e635">🎽${owner}</small>` : ""}</div><div class="gi-stat">${stats}</div><div class="gi-up">›</div></div>`;
+      return `<div class="ginv-tile r${g.rarity}" data-id="${g.id}" style="border-color:${g.color}"><div class="gt-art">${gearArt(g)}</div><div class="gt-rr" style="color:${g.color}">${g.rarity}${g.enh ? "+" + g.enh : ""}</div>${owner ? '<span class="gt-eq">🎽</span>' : ""}</div>`;
     }).join("");
-    // 줄 탭 → 상세 팝업(그 안에서 강화)
-    inv.querySelectorAll(".gitem").forEach((row) => row.addEventListener("click", () => openGearItem(+row.dataset.id)));
+    // 타일 탭 → 상세 팝업(그 안에서 강화)
+    inv.querySelectorAll(".ginv-tile").forEach((tile) => tile.addEventListener("click", () => openGearItem(+tile.dataset.id)));
   }
 }
 function gearOwnerName(gearId) {                        // 이 장비를 장착한 캐릭터 이름 (없으면 null)
@@ -2216,6 +2214,7 @@ function gearOwnerName(gearId) {                        // 이 장비를 장착�
 function on(id, ev, fn) { const e = $(id); if (e) e.addEventListener(ev, fn); }
 on("dash-protect", "click", () => { dashProtect = !dashProtect; renderDash(); });
 on("gear-craft", "click", craftGear);
+on("gdex-toggle", "click", () => { const w = $("gdex-wrap"); if (w) { w.classList.toggle("hidden"); renderGearCodex(); } });
 on("unit-close", "click", () => $("unit-pop").classList.add("hidden"));
 on("cp-close", "click", () => $("char-panel").classList.add("hidden"));
 on("legend-toggle", "click", () => { const l = $("legend"); if (l) l.classList.toggle("hidden"); });
