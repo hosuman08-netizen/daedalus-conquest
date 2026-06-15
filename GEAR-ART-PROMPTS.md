@@ -20,3 +20,34 @@
 art/gear/weapon-n.png ... weapon-ssr.png · armor-n..ssr · acc-n..ssr · relic-n..ssr · core-n..ssr
 
 프롬프트 예: `sci-fi game gear icon, glowing energy sword, SSR gold tier, ornate golden glow and particles, centered, dark transparent background, no text, original`
+
+## 명시 프롬프트 20종 (5슬롯 × 4등급, 2026-06-15 간소화)
+> image_gen용. aspect 1:1, 512x512 스타일. 모든 장비는 slot+rarity로 매핑 (tpl 변형은 synth로). Priority: SSR 5 → SR 5 먼저 gen.
+
+### SSR (gold, 화려 발광·파티클·최고급)
+- weapon-ssr: sci-fi game gear icon, ornate golden greatsword with glowing energy blade, intricate filigree runes and particle sparks, SSR gold tier premium, dramatic volumetric lighting rim, centered, dark transparent background, no text, original sci-fi design (Warframe/Destiny inspiration, unique)
+- armor-ssr: sci-fi game gear icon, ornate golden heavy power armor chestplate with embedded energy conduits and heroic etched filigree, SSR gold tier, metallic sheen glowing highlights, centered, dark transparent background, no text, original
+- acc-ssr: sci-fi game gear icon, elegant golden acceleration cloak with thruster wings and jet elements emitting trails, SSR gold tier ornate dynamic aura, flow lines, centered, dark transparent background, no text, original
+- relic-ssr: sci-fi game gear icon, radiant golden holy relic floating orb with inscribed ancient runes and ethereal light beams, SSR gold tier mystical particles, centered, dark transparent background, no text, original
+- core-ssr: sci-fi game gear icon, luminous golden energy core heart with pulsing plasma and faceted crystalline shards, SSR gold tier intense inner glow effects, centered, dark transparent background, no text, original power source
+
+### SR (purple, 오라/룬 디테일)
+- weapon-sr: sci-fi game gear icon, sleek purple energy sword with rune-etched blade and subtle aura, SR purple tier, dynamic glow and particles, centered, dark transparent background, no text, original
+- armor-sr: sci-fi game gear icon, reinforced purple chest armor with energy lines and rune accents, SR purple tier, layered plating with aura, centered, dark transparent background, no text, original
+- acc-sr: sci-fi game gear icon, purple acceleration boots or cloak with glowing thrusters and speed runes, SR purple tier, motion trails, centered, dark transparent background, no text, original
+- relic-sr: sci-fi game gear icon, purple arcane relic orb with floating runes and mystical aura, SR purple tier, subtle particles, centered, dark transparent background, no text, original
+- core-sr: sci-fi game gear icon, pulsing purple energy core with crystalline facets and inner light, SR purple tier, controlled glow, centered, dark transparent background, no text, original
+
+### R (blue, 약간 발광)
+- weapon-r: sci-fi game gear icon, solid blue steel sword with faint energy glow, R blue tier, clean lines, centered, dark transparent background, no text, original
+- armor-r: sci-fi game gear icon, blue reinforced armor plating with minor energy seams, R blue tier, functional design, centered, dark transparent background, no text, original
+- acc-r: sci-fi game gear icon, blue accel boots/cloak with light glow accents, R blue tier, simple tech, centered, dark transparent background, no text, original
+- relic-r: sci-fi game gear icon, blue rune stone relic with soft glow, R blue tier, modest details, centered, dark transparent background, no text, original
+- core-r: sci-fi game gear icon, blue energy core crystal with steady pulse, R blue tier, clean sci-fi, centered, dark transparent background, no text, original
+
+### N (gray, 단순 양산형)
+- weapon-n: sci-fi game gear icon, basic gray steel sword, N gray tier, mass-produced simple, centered, dark transparent background, no text, original
+- armor-n: sci-fi game gear icon, basic gray chest plate armor, N gray tier, plain functional, centered, dark transparent background, no text, original
+- acc-n: sci-fi game gear icon, basic gray boots or simple cloak, N gray tier, utilitarian, centered, dark transparent background, no text, original
+- relic-n: sci-fi game gear icon, plain gray relic talisman or rune, N gray tier, minimal, centered, dark transparent background, no text, original
+- core-n: sci-fi game gear icon, basic gray energy core module, N gray tier, standard power unit, centered, dark transparent background, no text, original

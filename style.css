@@ -225,9 +225,11 @@ h1::first-letter { color: var(--crimson); }
 /* 장비 */
 #gear-craft { width: auto; padding: 4px 10px; font-size: 11px; background: var(--gold); color: #1a1400; border-radius: 7px; font-weight: 800; margin-left: 6px; }
 #gear-slots { display: flex; gap: 6px; margin: 4px 0 8px; }
-.gslot { flex: 1; aspect-ratio: 1.4/1; background: #0f0a18; border: 1.5px dashed #2c2442; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 18px; }
+.gslot { flex: 1; aspect-ratio: 1.4/1; background: #0f0a18; border: 1.5px dashed #2c2442; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 18px; overflow:hidden; }
 .gslot.on { border-style: solid; border-color: #5a4a6a; background: #1d1535; }
 .gslot .gmain { font-size: 9px; font-weight: 800; margin-top: 1px; }
+/* gear window premium: slots use scaled art when images added (png or synth), no ? */
+.gslot .g-art, .gslot .gear-synth, .gslot .gear-synth.empty { width:22px; height:22px; font-size:14px; }
 #gear-inv { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
 .gitem { display: flex; align-items: center; gap: 8px; background: #1d1535; border: 1px solid; border-radius: 9px; padding: 6px 9px; cursor: pointer; transition: background .1s, transform .05s; }
 .gitem:active { background: #2a2348; transform: scale(0.985); }
@@ -282,7 +284,9 @@ h1::first-letter { color: var(--crimson); }
 .coderow { display: flex; gap: 6px; margin: 6px 0 4px; }
 #code-input { flex: 1; padding: 9px 10px; border-radius: 8px; border: 1px solid #2c2442; background: #0f0a18; color: var(--text); font-size: 14px; text-transform: uppercase; }
 #code-btn { flex: none; width: auto; padding: 9px 14px; background: var(--gold); color: #1a1400; border-radius: 8px; font-size: 13px; font-weight: 800; }
-.danger { width: 100%; margin-top: 12px; padding: 11px; background: #3a1414; color: #f87171; border-radius: 9px; font-size: 13px; }
+.danger { width: 100%; margin-top: 12px; padding: 14px 12px; background: #3a1414; color: #f87171; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; transition: transform .05s, background .1s; }
+.danger:active { transform: scale(0.97); background: #4a1a1a; }
+.danger:hover { background: #4a2222; }
 .set-ver { text-align: center; color: #6b7280; font-size: 11px; margin: 12px 0 8px; }
 #settings-card .ghost { width: 100%; background: transparent; color: var(--dim); padding: 8px; }
 
@@ -427,7 +431,10 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .cp-slot.on { border-style: solid; }
 .cp-slot b { font-size: 9px; }
 #cp-inv-label { font-size: 11px; margin-bottom: 6px; }
-#cp-inv { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; max-height: 220px; overflow-y: auto; margin-bottom: 12px; }
+#cp-inv { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.gear-card { width: 100%; box-sizing: border-box; }
+.gear-card .g-stats { white-space: normal !important; }
+.gear-card .g-act { flex: 0 0 auto; }
 .cp-gi { display: flex; justify-content: space-between; align-items: center; gap: 8px; background: #16101f; border: 1px solid; border-radius: 8px; padding: 7px 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
 .cp-gi.on { background: #241a3a; box-shadow: inset 0 0 0 1px var(--gold); }
 .cp-gi small { color: var(--dim); font-weight: 600; font-size: 10px; }
@@ -454,6 +461,8 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .gear-card .g-equip { font-size: 10px; padding: 3px 8px; background: #2a2348; color: var(--gold); border: 1px solid #473a63; border-radius: 5px; }
 .gear-card .act-on { font-size: 9px; color: var(--gold); }
 .gear-card .best { font-size: 9px; color: #a3e635; margin-left: 4px; }
+/* gear-inv list premium art scale (after images) */
+.gitem .g-art, .gitem .gear-synth { width:18px; height:18px; display:inline-block; vertical-align:middle; margin-right:2px; font-size:11px; }
 
 /* Gear art premium "간지" (not toy) — synthetic fallback also looks illustrated & badass (research: layered plating, veins, shards, volumetric contrast) */
 .gear-art, .slot-art {
@@ -505,3 +514,6 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .gitem { cursor: pointer; transition: transform .08s; }
 .gitem:active { transform: scale(.985); }
 .gitem .gi-up { font-size: 12px; font-weight: 800; color: var(--gold); white-space: nowrap; padding-left: 8px; }
+
+.gpop-enh { margin-top: 12px; padding: 10px 20px; font-size: 14px; font-weight: 800; border-radius: 10px; background: linear-gradient(135deg, #f5c451, #d97706); color: #1a1400; border: none; }
+.gi-up { color: var(--dim); font-size: 16px; font-weight: 700; padding-left: 8px; }

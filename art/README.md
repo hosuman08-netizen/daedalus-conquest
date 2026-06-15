@@ -20,7 +20,7 @@ Later: drip new SSR releases 시 신규 art 추가 (u10+ 또는 ssr/ slug).
 
 ## 권장 (gear 포함)
 - 정사각형 **512×512+**, 중앙, 투명/단색 배경, dramatic rim + volumetric god-ray (업그레이드 common suffix 적용).
-- gear: art/gear/g{id}.png (tpl.id). PNG drop 즉시 gearArt() / .g-art / .slot-art / cp-inv / page-gear / gdex 자동 사용. Synth fallback은 이제 veins+shards+layered shadow로 "간지" (PNG 없을 때도 premium).
+- gear: art/gear/<slot>-<rarity>.png (e.g. weapon-ssr.png). 5×4=20 files cover all via slot+rarity (GEAR-ART-PROMPTS simplified). gearArt() auto prefer; synth (cooler veins/shards/rim) for missing N/R. PNG drop 즉시 codex/slots/inv proper images (no ?).
 - 연구 (에이전트 전부 서치): HSR/Genshin/E7/AFK (volumetric + etched runes + heroic weight), Warframe/Destiny/AC (layered plating, energy conduits, particle exhaust), Diablo/PoE/MH/Arknights (dark metal + bone + inner-glow crystal + subsurface refraction + intricate filigree). 모방 스타일만, 완전 original 디자인. "모방 OK, 카피 NO" 엄수.
 - `object-fit: contain; filter: contrast(1.1) saturate(1.15)` 적용 (CSS).
 

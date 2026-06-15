@@ -397,19 +397,21 @@ function isBestForChar(g, charId) {
 
 function gearArt(g) {
   if (!g) return gearSynthHTML(null);
-  const tplId = g.tplId || g.id;
-  // PNG 우선 (art/gear/g{tplId}.png drop 시 즉시 "간지" premium) — onerror 로 synth (veins+shards+layered shadow로 badass fallback)
-  return `<img class="g-art" src="art/gear/g${tplId}.png" alt="" loading="lazy" onerror="this.outerHTML=gearSynthHTML(${JSON.stringify(g).replace(/"/g,'&quot;')});">`;
+  const slot = g.slot || 'weapon';
+  const rar = (g.rarity || 'N').toLowerCase();
+  // NEW: slot-rarity 20 PNG 우선 (art/gear/weapon-ssr.png 등, 5x4 간소화). onerror: synth fallback (veins/shards/volumetric badass)
+  return `<img class="g-art" src="art/gear/${slot}-${rar}.png" alt="" loading="lazy" onerror="this.outerHTML=gearSynthHTML(${JSON.stringify(g).replace(/"/g,'&quot;')});">`;
 }
 function gearSynthHTML(g) {
-  if (!g) return `<div class="gear-synth">?</div>`;
+  if (!g) return `<div class="gear-synth empty" style="opacity:.55">⚙️</div>`; // no broken "?", premium icon even for empty/fallback
   const icon = SLOT_ICON[g.slot] || "⚙️";
   const r = g.rarity || "N";
   const s = g.slot || "";
-  // 간지 업그레이드 synth: layered depth (bevel + veins + shards) — PNG 없을 때도 premium feel
-  const veins = (r === "SSR" || r === "SR") ? `<span class="gear-vein"></span><span class="gear-vein2"></span>` : "";
-  const shards = (r === "SSR") ? `<span class="gear-shard"></span><span class="gear-shard2"></span>` : "";
-  return `<div class="gear-synth r${r} slot-${s}">${icon}${veins}${shards}<span class="gear-r">${r}</span></div>`;
+  // EVEN COOLER synth fallback (for N/R + missing PNGs): layered depth, veins on SSR/SR/R, shards SSR/SR, extra rim for SSR. Premium volumetric even without art. (after image adds → img wins in codex/panels)
+  const veins = (r === "SSR" || r === "SR" || r === "R") ? `<span class="gear-vein"></span><span class="gear-vein2"></span>` : "";
+  const shards = (r === "SSR" || r === "SR") ? `<span class="gear-shard"></span><span class="gear-shard2"></span>` : "";
+  const rim = (r === "SSR") ? `<span class="gear-rim" style="position:absolute;inset:0;border:1.5px solid #fbbf24;opacity:0.3;border-radius:3px;pointer-events:none;"></span>` : "";
+  return `<div class="gear-synth r${r} slot-${s}">${icon}${veins}${shards}${rim}<span class="gear-r">${r}</span></div>`;
 }
 function squadSynergy() {                               // 진영/아키타입 조합 시너지
   const sq = getDeployedUnits();
@@ -494,8 +496,10 @@ function spawnArmy(side) {
         const cgAtk = 1 + gcs.str * 0.004, cgHp = 1 + gcs.int * 0.004;
         const cgSpd = 1 - Math.min(0.4, gcs.agi * 0.0035), cgCrit = Math.min(45, 10 + gcs.luk * 0.4);
         const lvK = 1 + lv * 0.12;
-        const hp = Math.round(s.hp * u.mul * lvK * invest * hb.hpMul * (1 + (hb.typeHp[u.arch] || 0)) * syn.hp * cgHp * 1.4);
-        const atk = Math.round(s.atk * u.mul * lvK * invest * hb.atkMul * (1 + (hb.typeAtk[u.arch] || 0)) * syn.atk * cgAtk * 1.3);
+        let hp = Math.round(s.hp * u.mul * lvK * invest * hb.hpMul * (1 + (hb.typeHp[u.arch] || 0)) * syn.hp * cgHp);
+        let atk = Math.round(s.atk * u.mul * lvK * invest * hb.atkMul * (1 + (hb.typeAtk[u.arch] || 0)) * syn.atk * cgAtk);
+        // ch1-8 trivial (squad/편성 경로에도 동일 적용 — 쉬운 시작)
+        if (side === "p" && curLevel <= 8) { hp = Math.round(hp * 1.4); atk = Math.round(atk * 1.3); }
         const perRow = 5, row = Math.floor(si / perRow), col = si % perRow;
         const rowN = Math.min(perRow, squad.length - row * perRow);
         const x = W / 2 + (col - (rowN - 1) / 2) * 46 + (Math.random() * 6 - 3);
@@ -525,7 +529,7 @@ function spawnArmy(side) {
     const es = side === "p" ? (1 + (META.enh[t] || 0) * 0.06) * (1 + (META.star[t] || 0) * 0.25) * (1 + aw * 0.35) : 1;   // 강화·승급·각성
     let hpM = (side === "p" ? lvMul(t, "hp") : epm) * hb.hpMul * (1 + (hb.typeHp[t] || 0)) * powerComp * es * gHp;
     let atkM = (side === "p" ? lvMul(t, "atk") : epm) * hb.atkMul * (1 + (hb.typeAtk[t] || 0)) * synMul * powerComp * es * gAtk;
-    // 초반 완전 초보 구간(ch<=8)만 강한 보너스 — 그 이후부터는 제대로 된 투자(가챠·강화·편성) 없으면 바로 벽
+    // 초반 완전 초보 구간(ch<=8)만 강한 보너스 — 그 이후부터는 제대로 된 투자(가챠·강화·편성·기어) 없으면 자연 벽 (squad/편성에도 동일)
     if (side === "p" && curLevel <= 8) {
       hpM *= 1.4;
       atkM *= 1.3;
@@ -536,11 +540,14 @@ function spawnArmy(side) {
     const ai = Math.min(3, s.ai + hb.aiBonus + aw);   // ✦ 각성마다 AI +1 (소울로만 가능)
     let rr = isBoss ? s.r * 1.8 : s.r;
     if (t === "titan" && side==="p") rr *= 1.4; // 6hr visual: higher rarity scale
-    // Enemy flavor: portraitKey for rare PNG (boss priority), eName for "할말 나는" immersion (vs cool threat)
+    // Enemy flavor: portraitKey for rare PNG (bosses/elites use art/enemy/*.png like titan/corrupted-titan/drone/marksman)
+    // non-PNG enemies stay rich synthetic. Red hostile frame + dark overlay applied in draw for cool vs player army.
     let portraitKey = null, eName = null;
     if (side === "e") {
       if (isBoss || t === "titan") { portraitKey = "titan"; eName = "타락 거신"; }
       else if (curLevel >= 40) { portraitKey = "corrupted-titan"; eName = "타락 " + (SPEC[t].name || t); }
+      else if (t === "drone" && (curLevel >= 18 || (curLevel >= 10 && (i % 2 === 0)))) { portraitKey = "drone"; eName = "적 정찰기"; }
+      else if (t === "marksman" && curLevel >= 14) { portraitKey = "marksman"; eName = "적 저격수"; }
       else if (curLevel >= 25 && (i % 3 === 0)) { portraitKey = "elite-drone"; eName = "망령 " + (SPEC[t].name || t); }
       else if (t === "commander" && curLevel > 15) { eName = "그림자 지휘"; }
     }
@@ -848,18 +855,44 @@ function draw() {
         ctx.strokeStyle = "#fbbf24"; ctx.lineWidth = 3;
         ctx.beginPath(); ctx.arc(u.x, u.y, clipR + 1, 0, 7); ctx.stroke();
       } else {
-        // Hostile red jagged rim for enemy portraits (위협감)
-        ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 3.5;
-        ctx.beginPath(); ctx.arc(u.x, u.y, clipR + 2, 0, 7); ctx.stroke();
-        // extra aggression lines
-        ctx.strokeStyle = "rgba(239,68,68,0.6)"; ctx.lineWidth = 1.5;
-        for (let k=0; k<5; k++) {
-          const ang = (k*1.2) % 6.28;
+        // Hostile red jagged (톱니) rim + dark overlay for enemyPortraits (bosses/elites: titan, corrupted-titan, drone, marksman etc)
+        // Makes battle enemies look cool & threatening vs beautiful player army (gold frames). Per ENEMY-ART-PROMPTS.
+        // dark overlay first (hostile corrupted feel)
+        ctx.save();
+        ctx.beginPath(); ctx.arc(u.x, u.y, clipR, 0, 7); ctx.clip();
+        ctx.fillStyle = "rgba(20,5,5,0.48)";
+        ctx.fillRect(u.x - sz/2 - 2, u.y - sz * 0.42 - 2, sz + 4, sz + 4);
+        ctx.restore();
+        // jagged serrated red hostile frame (톱니 테두리)
+        ctx.strokeStyle = "#ef4444";
+        ctx.lineWidth = 3.8;
+        ctx.beginPath();
+        const n = 10;
+        for (let k = 0; k <= n; k++) {
+          const ang = (k / n) * Math.PI * 2 - 0.08;
+          const radJ = clipR + 2 + ((k % 2 === 0) ? 5.5 : -0.8);
+          const jx = u.x + Math.cos(ang) * radJ;
+          const jy = u.y + Math.sin(ang) * radJ;
+          if (k === 0) ctx.moveTo(jx, jy); else ctx.lineTo(jx, jy);
+        }
+        ctx.closePath();
+        ctx.stroke();
+        // extra red energy aggression spikes
+        ctx.strokeStyle = "rgba(239,68,68,0.78)";
+        ctx.lineWidth = 1.9;
+        for (let k = 0; k < 7; k++) {
+          const ang = (k * 0.95) % 6.28;
+          const r1 = clipR + 1.8;
+          const r2 = clipR + 8.5 + ((k % 2) * 2.5);
           ctx.beginPath();
-          ctx.moveTo(u.x + Math.cos(ang)*(clipR+1), u.y + Math.sin(ang)*(clipR+1));
-          ctx.lineTo(u.x + Math.cos(ang)*(clipR+6), u.y + Math.sin(ang)*(clipR+6));
+          ctx.moveTo(u.x + Math.cos(ang) * r1, u.y + Math.sin(ang) * r1);
+          ctx.lineTo(u.x + Math.cos(ang) * r2, u.y + Math.sin(ang) * r2);
           ctx.stroke();
         }
+        // subtle outer hostile pulse
+        ctx.strokeStyle = "rgba(239,68,68,0.32)";
+        ctx.lineWidth = 2.2;
+        ctx.beginPath(); ctx.arc(u.x, u.y, clipR + 9.5, 0, 7); ctx.stroke();
       }
     } else {
       ctx.font = (u.r + 8) + "px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
@@ -1438,14 +1471,30 @@ function initViralA11y() {
 }
 function openSettings() { updateToggles(); buildLangList(); renderProfile(); showPage("settings"); }
 function resetProgress() {
-  const go = () => { try { localStorage.removeItem(META_KEY); } catch (e) {} META = loadMeta(); counts.p = META.army; applyStaticI18n(); updateHeroUI(); reset(); showPage("battle"); toast(t("setResetOk"), "#fbbf24"); };
-  if (tg && tg.showConfirm) { tg.showConfirm(t("resetAsk"), (ok) => { if (ok) go(); }); }
-  else if (confirm(t("resetAsk"))) go();
+  const btn = $("set-reset");
+  if (btn) { btn.disabled = true; btn.textContent = "초기화 중..."; }
+  const go = () => {
+    try {
+      // 안전 백업 (LS 영구 삭제 방지, _bak 키로 복구 가능 — 휴지통 원칙)
+      const cur = localStorage.getItem(META_KEY);
+      if (cur) localStorage.setItem(META_KEY + "_bak", cur);
+      localStorage.removeItem(META_KEY);
+    } catch (e) {}
+    META = loadMeta(); counts.p = META.army; applyStaticI18n(); updateHeroUI(); reset(); showPage("battle"); toast(t("setResetOk"), "#fbbf24");
+  };
+  const done = () => { if (btn) { btn.disabled = false; btn.textContent = t("setReset"); } };
+  if (tg && tg.showConfirm) {
+    tg.showConfirm(t("resetAsk"), (ok) => { if (ok) go(); done(); });
+  } else if (confirm(t("resetAsk"))) {
+    go(); done();
+  } else {
+    done();
+  }
 }
 $("set-sound").addEventListener("click", () => { META.sound = META.sound === false; saveMeta(); updateToggles(); if (META.sound !== false) SFX.tap(); });
 $("set-haptic").addEventListener("click", () => { META.haptic = META.haptic === false; saveMeta(); updateToggles(); });
 on("set-music", "click", () => { META.music = META.music === false; saveMeta(); updateToggles(); if (META.music === false) bgmStop(); else bgmStart(); });
-$("set-reset").addEventListener("click", resetProgress);
+on("set-reset", "click", resetProgress);
 
 // ── 이벤트: 일일 출석 (7일 사이클, 골드+다이아) ──────────────────────────────
 // 30일 출석: 평소 골드/다이아, 7·15·30일차 색깔별 박스(장비/유닛 랜덤)
@@ -2011,10 +2060,12 @@ function artHTML(u, glyphCls, imgCls) {
   const base = u.vis || u.glyph || "●";
   const acc = u.accent ? `<span class="acc" style="font-size:0.55em;opacity:0.7;margin-left:-2px;">${u.accent}</span>` : "";
   const g = `<span class="${glyphCls}">${base}${acc}</span>`;
-  // PNG: 1차 art/u<id>.png (ASCII·안전) → 실패 시 art/<slug>.png → 그래도 없으면 synthetic(vis+accent)
+  // PNG 우선 (u{id}.png for R "간지" art 76+ 포함) → slug → synth fallback (cool border+color "간지" placeholder)
   const slug = unitSlug(u);
-  // 3단 폴백: art/u<id>.png → art/ssr/<slug>.png → art/<slug>.png → 이모지/합성
-  return g + `<img class="${imgCls}" src="art/u${u.id}.png" alt="" loading="lazy" onerror="var s=(+this.dataset.s||0)+1;this.dataset.s=s;if(s===1){this.src='art/ssr/${slug}.png'}else if(s===2){this.src='art/${slug}.png'}else{this.remove()}">`;
+  const col = (u.color || '#60a5fa').replace(/"/g, '');
+  const b64 = (base + (u.accent || '')).replace(/"/g, '&quot;');
+  // 3단 + synth: art/u{id} (R 76-90+ cool PNG) → ssr/slug → slug → colored synth fallback (no remove, grid always fills "간지" visual)
+  return g + `<img class="${imgCls}" src="art/u${u.id}.png" alt="" loading="lazy" data-c="${col}" data-b="${b64}" onerror="var s=(+this.dataset.s||0)+1;this.dataset.s=s;if(s===1){this.src='art/ssr/${slug}.png'}else if(s===2){this.src='art/${slug}.png'}else{var c=this.dataset.c||'#60a5fa';var bb=this.dataset.b||'●';this.outerHTML='<span class=\\''+this.className+' synth\\'' style=\\'display:inline-block;border:1px solid '+c+';background:#0b111f;color:#e2e8f0;padding:1px 3px;border-radius:2px;font-size:0.95em;opacity:0.9;\\'>'+bb+'</span>'}">`;
 }
 function renderCodex() {
   const grid = $("codex-grid"); if (!grid || typeof ROSTER === "undefined") return;
@@ -2052,8 +2103,7 @@ function renderGearCodex() {
   const list = gdexFilter === "ALL" ? GEAR_ROSTER : GEAR_ROSTER.filter((g) => g.slot === gdexFilter);
   grid.innerHTML = list.map((g) => {
     const has = owned.has(g.id);
-    // Use full gearArt (PNG if exists, else the upgraded "간지" synth with veins/shards/shadows)
-    // This makes the gear codex look like proper images even before all PNGs are dropped
+    // gearArt now prefers art/gear/<slot>-<rarity>.png (SSR/SR real images, N/R synth). Codex shows proper art not ? for priority.
     const art = gearArt(g);
     const nm = g.name || '';
     return `<div class="gxc r${g.rarity}${has ? "" : " lock"}" data-tid="${g.id}" style="border-color:${g.color}${has ? "" : "33"}"><div class="gxi gear-codex-art">${art}</div><div class="gxr" style="color:${g.color}">${g.rarity}</div><div class="gxn">${nm}</div></div>`;
@@ -2064,12 +2114,28 @@ function showGearDex(tid) {
   const g = GEAR_ROSTER.find((x) => x.id === tid); if (!g) return;
   const has = new Set((META.gear || []).map((x) => x.tplId)).has(tid);
   $("unit-card").style.borderColor = g.color;
-  $("unit-glyph").innerHTML = has ? (g.vis || SLOT_ICON[g.slot]) : "❔";
+  // premium: always show icon/art (no broken ❔/? even for locked) — codex teasers + panels use full when images added
+  $("unit-glyph").innerHTML = (g.vis || SLOT_ICON[g.slot] || "⚙️");
   $("unit-name").innerHTML = `<b style="color:${g.color}">[${g.rarity}]</b> ${has ? g.name : "???"}`;
   $("unit-title").textContent = has ? t("st_" + SLOT_MAIN[g.slot]) || g.slot : t("locked");
   $("unit-detail").innerHTML = has
     ? STAT_KEYS.filter((k) => g[k]).map((k) => t("st_" + k) + " +" + g[k]).join(" · ")
     : t("lockedHint");
+  $("unit-pop").classList.remove("hidden");
+}
+// 보유 장비 상세 팝업 — 이 안에서 강화 (군주 요청)
+function openGearItem(id) {
+  const g = META.gear.find((x) => x.id === id); if (!g) return;
+  const owner = gearOwnerName(id), cost = 200 * ((g.enh || 0) + 1);
+  const stats = STAT_KEYS.filter((k) => g[k]).map((k) => t("st_" + k) + " +" + gearStat(g, k)).join(" · ");
+  $("unit-card").style.borderColor = g.color;
+  $("unit-glyph").innerHTML = g.vis || SLOT_ICON[g.slot] || "⚙️";
+  $("unit-name").innerHTML = `<b style="color:${g.color}">[${g.rarity}${g.enh ? "+" + g.enh : ""}]</b> ${g.name}`;
+  $("unit-title").textContent = (t("st_" + SLOT_MAIN[g.slot]) || g.slot);
+  $("unit-detail").innerHTML = stats
+    + (owner ? `<br><small style="color:#a3e635">🎽 ${owner} 착용중</small>` : "")
+    + `<br><button id="gpop-enh" class="gpop-enh">🔨 ${t("dEnhance")} · 💰${cost}</button>`;
+  on("gpop-enh", "click", () => { const before = g.enh || 0; enhanceGear(id); setTimeout(() => openGearItem(id), 50); });
   $("unit-pop").classList.remove("hidden");
 }
 function showUnit(id) {
@@ -2120,7 +2186,12 @@ function renderGear() {
   const eq = META.equip[META.hero] || {};
   const slotsBox = $("gear-slots");
   if (slotsBox) {
-    slotsBox.innerHTML = SLOTS.map((s) => { const id = eq[s], g = id ? META.gear.find((x) => x.id === id) : null; const v = g ? (g.vis || SLOT_ICON[s]) : SLOT_ICON[s]; return `<div class="gslot${g ? " on" : ""}">${v}${g ? `<span class="gmain" style="color:${g.color}">${g.rarity}${g.enh ? "+" + g.enh : ""}</span>` : ""}</div>`; }).join("");
+    slotsBox.innerHTML = SLOTS.map((s) => {
+      const id = eq[s], g = id ? META.gear.find((x) => x.id === id) : null;
+      const art = g ? gearArt(g) : SLOT_ICON[s];
+      const badge = g ? `<span class="gmain" style="color:${g.color}">${g.rarity}${g.enh ? "+" + g.enh : ""}</span>` : "";
+      return `<div class="gslot${g ? " on" : ""}">${art}${badge}</div>`;
+    }).join("");
   }
   const inv = $("gear-inv");
   if (inv) {
@@ -2128,12 +2199,12 @@ function renderGear() {
     inv.innerHTML = META.gear.slice().sort((a, b) => b.id - a.id).map((g) => {
       const stats = STAT_KEYS.filter((k) => g[k]).map((k) => t("st_" + k) + gearStat(g, k)).join(" ");
       const owner = gearOwnerName(g.id);
-      const v = g.vis || SLOT_ICON[g.slot];
+      const art = g ? gearArt(g).replace('class="g-art"', 'class="g-art" style="width:18px;height:18px;display:inline-block;vertical-align:middle"') : (g.vis || SLOT_ICON[g.slot]);
       const cost = 200 * ((g.enh || 0) + 1);
-      return `<div class="gitem" data-id="${g.id}" style="border-color:${g.color}66"><div class="gi-main">${v} <b style="color:${g.color}">${g.rarity}</b>${g.enh ? " +" + g.enh : ""}${owner ? ` <small style="color:#a3e635">🎽${owner}</small>` : ""}</div><div class="gi-stat">${stats}</div><div class="gi-up">🔨 💰${cost}</div></div>`;
+      return `<div class="gitem" data-id="${g.id}" style="border-color:${g.color}66"><div class="gi-main">${art} <b style="color:${g.color}">${g.rarity}</b>${g.enh ? " +" + g.enh : ""}${owner ? ` <small style="color:#a3e635">🎽${owner}</small>` : ""}</div><div class="gi-stat">${stats}</div><div class="gi-up">›</div></div>`;
     }).join("");
-    // 줄 전체 탭 → 강화 (버튼 없이 깔끔)
-    inv.querySelectorAll(".gitem").forEach((row) => row.addEventListener("click", () => enhanceGear(+row.dataset.id)));
+    // 줄 탭 → 상세 팝업(그 안에서 강화)
+    inv.querySelectorAll(".gitem").forEach((row) => row.addEventListener("click", () => openGearItem(+row.dataset.id)));
   }
 }
 function gearOwnerName(gearId) {                        // 이 장비를 장착한 캐릭터 이름 (없으면 null)
