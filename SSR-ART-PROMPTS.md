@@ -80,3 +80,16 @@
 - Solace: ... + "regen veil exploding in MY LEGION ULT command, volumetric god-rays, Host Weave effervescence overlay"
 (전체 9인 동일 패턴 적용. image_gen 재drop art/ 로, synth fallback 유지. "도파민 터지게" visual + "MY real army" belonging. TG perf/ethical/fictional 엄수. Jordan clean gallery + Alex gacha/ULT theater tie-in.)
 
+## Alex Voss + Jordan Kael 20260616 최고전문가 ULT power fantasy full variants (all 9 SSR)
+Append for god-pose + volumetric god-ray burst + Host Weave fusion tethers overlay + premium etched filigree + energy conduit + dramatic rim. Per-founder "MY LEGION ULT" cinematic (HSR/AFK/E7 benchmark). PNG lazy art/ult-<key>.png or reuse u*. No text/stars. Original sci-fi Legion. Vertical canvas takeover ready.
+- Arclight: "MY LEGION ULT judgment light god-pose, volumetric god-ray exploding from crown, golden Host Weave tethers to 3+ drone silhouettes, premium etched filigree regalia, energy conduit pulse, dramatic black-gold rim, high contrast cinematic gacha ultimate, original not copy"
+- Solace: "MY LEGION ULT regen veil command god-pose, volumetric god-rays + life energy burst, Host Weave effervescence golden tethers overlay, filigree + conduit, dramatic rim, sci-fi healer commander ultimate"
+- Cipher: "MY LEGION ULT intel breach god-pose, data-god-ray volumetric burst, Host Weave tether lines to shadow operatives, etched filigree cloak, energy conduit hack aura, dramatic rim"
+- Ignis: "MY LEGION ULT swarm ignition god-pose, fire/volumetric god-ray explosion, Host Weave fusion tethers to drone swarm, filigree armor veins, conduit heat, dramatic rim"
+- Vector: "MY LEGION ULT precision vector god-pose, analytic god-ray lines, Host Weave tactical tethers, filigree + conduit, dramatic rim"
+- Vespera: "MY LEGION ULT shadow surge god-pose, dark god-ray + pulse, Host Weave tether web, filigree stealth, conduit, dramatic rim"
+- Aegis: "MY LEGION ULT iron aegis god-pose, shield god-ray burst, Host Weave guardian tethers, filigree shield rim, conduit, dramatic rim"
+- Anvil: "MY LEGION ULT forge anvil god-pose, hammer god-ray impact, Host Weave construction tethers, filigree anvil, conduit, dramatic rim"
+- Dominus: "MY LEGION ULT dominion god-pose, absolute god-ray crown explosion, Host Weave full fusion tethers to entire squad, premium filigree + conduit, ultimate dramatic black-gold rim"
+(9 variants. image_gen 1:1 square or vertical crop safe. Drop to art/ + lazy load in gacha/ult/codex. Synth fallback volumetric god-ray always. "터지게" premium + "MY Founding" endowment. Alex gacha theater + Jordan visual + Psych fusion exact tie.)
+

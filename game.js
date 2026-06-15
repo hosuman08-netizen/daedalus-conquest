@@ -1545,15 +1545,23 @@ function initViralA11y() {
   if (META.highContrast) document.body.classList.add("high-contrast");
   if (META.vfxFallback) document.body.classList.add("vfx-fallback");
 }
-function openSettings() { updateToggles(); buildLangList(); renderProfile(); showPage("settings"); }
+function openSettings() { updateToggles(); buildLangList(); renderProfile(); renderPrestige(); showPage("settings"); }
 // 🔄 환생 보상 — 진행을 소울(특별 매개체)+골드+다이아로 환산. 소울은 환생해도 유지+적립
 function prestigeReward() {
   const ch = META.chapter || 1, tower = META.towerBest || 0;
   let ssr = 0; if (typeof ROSTER !== "undefined") ssr = (META.owned || []).filter((id) => { const u = ROSTER.find((x) => x.id === id); return u && u.rarity === "SSR"; }).length;
   return { soul: Math.floor(ch * 2 + ssr * 12 + tower / 2), gem: Math.floor(ch * 3 + ssr * 15), gold: Math.floor(ch * 800 + 2000) };
 }
+function renderPrestige() {
+  const box = $("prestige-box"); if (!box) return;
+  const rw = prestigeReward();
+  box.innerHTML = `<div class="prestige-desc">${t("prestigeDesc")}</div>`
+    + `<div class="prestige-rw">${t("prestigeNow")} 🔮 <b>+${rw.soul}</b> · 💎 +${rw.gem} · 💰 +${rw.gold}</div>`
+    + `<button id="prestige-go" class="prestige-btn">🔄 ${t("prestigeTitle")}</button>`;
+  on("prestige-go", "click", resetProgress);
+}
 function resetProgress() {
-  const btn = $("set-reset");
+  const btn = $("prestige-go");
   const rw = prestigeReward();
   const ask = t("prestigeAsk", { soul: rw.soul, gem: rw.gem, gold: rw.gold });
   const go = () => {
@@ -1580,7 +1588,6 @@ function resetProgress() {
 $("set-sound").addEventListener("click", () => { META.sound = META.sound === false; saveMeta(); updateToggles(); if (META.sound !== false) SFX.tap(); });
 $("set-haptic").addEventListener("click", () => { META.haptic = META.haptic === false; saveMeta(); updateToggles(); });
 on("set-music", "click", () => { META.music = META.music === false; saveMeta(); updateToggles(); if (META.music === false) bgmStop(); else bgmStart(); });
-on("set-reset", "click", resetProgress);
 
 // ── 이벤트: 일일 출석 (7일 사이클, 골드+다이아) ──────────────────────────────
 // 30일 출석: 평소 골드/다이아, 7·15·30일차 색깔별 박스(장비/유닛 랜덤)

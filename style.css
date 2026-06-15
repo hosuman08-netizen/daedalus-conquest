@@ -638,3 +638,11 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .gear-card img { width: 34px !important; height: 34px !important; object-fit: contain !important; }
 .gear-card .g-art { flex: 0 0 34px !important; width: 34px !important; height: 34px !important; overflow: hidden !important; }
 .cp-slot img { width: 22px !important; height: 22px !important; object-fit: contain !important; }
+
+/* 🔄 환생(프레스티지) 박스 */
+#prestige-box { background: linear-gradient(160deg, #241a3a, #16101f); border: 1px solid #3a2c5a; border-radius: 11px; padding: 12px; }
+.prestige-desc { font-size: 11.5px; line-height: 1.55; color: #c4b5fd; margin-bottom: 8px; }
+.prestige-rw { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+.prestige-rw b { color: #c084fc; font-size: 15px; }
+.prestige-btn { width: 100%; padding: 12px; font-size: 15px; font-weight: 800; border-radius: 10px; background: linear-gradient(135deg, #a855f7, #6d28d9); color: #fff; border: none; }
+.prestige-btn:active { transform: scale(.98); }
