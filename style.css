@@ -38,7 +38,7 @@ h1::first-letter { color: var(--crimson); }
 .hcode { color: var(--crimson); font-weight: 900; font-size: 12px; padding: 1px 5px; border: 1px solid #7f1d1d; border-radius: 5px; }
 
 /* 출석 그리드 */
-#attend-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin: 8px 0 12px; max-height: 260px; overflow-y: auto; }
+#attend-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin: 8px 0 12px; }
 .attcell { background: #1d1535; border-radius: 8px; padding: 6px 2px; text-align: center; border: 1.5px solid transparent; }
 .attcell .ad { font-size: 9px; color: var(--dim); }
 .attcell .ar { font-size: 11px; font-weight: 700; margin-top: 2px; }
@@ -95,7 +95,7 @@ h1::first-letter { color: var(--crimson); }
 #codex-filter { display: flex; gap: 4px; }
 .cfil { width: auto; padding: 4px 9px; font-size: 11px; background: #1d1535; color: var(--dim); border-radius: 7px; }
 .cfil.on { background: #2a1418; color: var(--gold); }
-#codex-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 8px; max-height: 240px; overflow-y: auto; }
+#codex-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 8px; }
 .cxc { aspect-ratio: 1/1.2; background: #16101f; border: 1.5px solid; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
 .cxc.lock { opacity: .45; }
 .cxc .cxg { font-size: 22px; position: relative; width: 100%; flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 6px 6px 0 0; }
@@ -221,7 +221,7 @@ h1::first-letter { color: var(--crimson); }
 .gslot { flex: 1; aspect-ratio: 1.4/1; background: #0f0a18; border: 1.5px dashed #2c2442; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 18px; }
 .gslot.on { border-style: solid; border-color: #5a4a6a; background: #1d1535; }
 .gslot .gmain { font-size: 9px; font-weight: 800; margin-top: 1px; }
-#gear-inv { display: flex; flex-direction: column; gap: 5px; max-height: 180px; overflow-y: auto; margin-bottom: 8px; }
+#gear-inv { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
 .gitem { display: flex; align-items: center; gap: 8px; background: #1d1535; border: 1px solid; border-radius: 9px; padding: 6px 9px; }
 .gi-main { font-size: 13px; min-width: 60px; }
 .gi-stat { flex: 1; font-size: 10.5px; color: var(--dim); }
@@ -392,7 +392,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .sq-x { position: absolute; top: 2px; right: 4px; font-size: 11px; color: #f87171; }
 .sq-empty { font-size: 24px; color: #3a3550; }
 .squad-pool-label { font-size: 12px; color: var(--dim); margin: 4px 0 6px; }
-#squad-pool { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; max-height: 220px; overflow-y: auto; margin-bottom: 8px; }
+#squad-pool { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px; }
 .sq-pool-item { position: relative; aspect-ratio: 1/1.3; background: #16101f; border: 1.5px solid; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer; overflow: hidden; padding: 2px; }
 .sq-pool-item.on { background: #241a3a; box-shadow: inset 0 0 0 1px var(--gold); }
 .sq-pool-item .sq-art { position: relative; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 22px; overflow: hidden; border-radius: 6px; }
