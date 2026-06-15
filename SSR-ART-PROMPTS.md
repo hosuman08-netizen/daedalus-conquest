@@ -13,7 +13,7 @@
 6. 우리 캐릭터 이름은 전부 자체 창작이라 안전.
 
 ## 공통 접미 (모든 프롬프트 뒤에 붙이기)
-`anime gacha SSR splash art, original sci-fi "AI Legion" character, dramatic rim lighting, vertical portrait, glowing gold SSR frame, high detail, original design, no real brands or logos, NO stars or star rating at bottom`
+`anime gacha SSR splash art, original sci-fi "AI Legion" character, dramatic rim lighting, vertical portrait, glowing gold SSR frame, high detail, original design, no real brands or logos, NO stars, no star rating, no rank numbers/text anywhere in image (game adds ★ via ascend/awaken UI)`
 
 ---
 
@@ -59,7 +59,7 @@
 `builder engineer AI named Anvil, rugged utility frame with a glowing forge-hammer, sparks and structure-assembly particles, focused craftsman expression, half-built energy structures around`
 
 ## 9. 🧠 Dominus — 군림자 (최고 등급)
-`the supreme ruler of the Legion named Dominus, regal black-and-gold commander regalia with a glowing crown-circuit halo, absolute authoritative aura, banners behind, all-army buff energy radiating, majestic throne-room, golden god-rays, the most prestigious unit`
+`the supreme ruler of the Legion named Dominus, regal black-and-gold commander regalia with a glowing crown-circuit halo, absolute authoritative aura, banners behind, all-army buff energy radiating, majestic throne-room, golden god-rays, the most prestigious unit; add subtle will-flame or eros-threads or host-weave overlay variants for §21 secular sacred (will to power / platonic eros / durkheim effervescence) without extra stars/logos`
 
 ---
 
