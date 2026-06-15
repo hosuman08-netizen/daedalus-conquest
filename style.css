@@ -95,49 +95,90 @@ h1::first-letter { color: var(--crimson); }
 #codex-filter { display: flex; gap: 4px; }
 .cfil { width: auto; padding: 4px 9px; font-size: 11px; background: #1d1535; color: var(--dim); border-radius: 7px; }
 .cfil.on { background: #2a1418; color: var(--gold); }
-#codex-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 8px; }
-.cxc { aspect-ratio: 1/1.2; border: none; background: transparent; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
-.cxc.lock { opacity: .45; }
-.cxc .cxg { font-size: 22px; position: relative; width: 100%; flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 6px 6px 0 0; }
+#codex-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 6px; }
+/* Jordan: Ultra clean modern icon gallery (user exact: "빨간색 동그라미 지우고 글자 지워 없는게나아"). No red borders/fac-swarm circles, no rarity letters (.cxr), no names/text under icons in grid. Pure icon-focused high-end collection (E7 clean gallery + HSR icon pop pride). Subtle variety ONLY via arch tints/glows + SSR gold rim. Tap scale pop dopamine. Premium, no clutter on 5-col tiny TG. */
+.cxc { aspect-ratio: 1/1.02; border: none; background: transparent; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 2px; transition: transform .07s, box-shadow .1s; cursor: pointer; }
+.cxc.lock { opacity: .32; }
+.cxc:active { transform: scale(0.93); box-shadow: 0 0 0 1.5px #fbbf2488; }
+.cxc .cxg { font-size: 16px; position: relative; width: 100%; flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 7px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03); border: none; }
 .cxc .cxgly { line-height: 1; }
-.cxc .cxim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-/* 등급별 프리미엄 타일 (유닛·장비 공용) */
+.cxc .cxim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.cxc .cxg img { max-height: 100%; }
+.cxc.rSSR:not(.lock) { box-shadow: 0 0 0 1.5px rgba(251,191,36,0.38); }
+.cxc:not(.lock):hover { transform: scale(1.015); }
+.cxc:not(.lock):active { transform: scale(0.94); box-shadow: 0 0 0 2px #fbbf24cc; }
+.cxc.rSSR:not(.lock):active { box-shadow: 0 0 0 2.5px #fbbf24, 0 0 16px #fbbf2488; }
+.cxc.rSSR:not(.lock) { box-shadow: 0 0 0 1.5px rgba(251,191,36,0.42), inset 0 0 0 1px rgba(251,191,36,0.18); }
+.gxc.rSSR { box-shadow: inset 0 0 0 1px rgba(251,191,36,0.38), 0 0 0 1px rgba(251,191,36,0.18); }
+/* 등급별 프리미엄 타일 */
 .cxc.rR, .gxc.rR   { background: linear-gradient(160deg, #16213e 0%, #16101f 100%); }
 .cxc.rSR, .gxc.rSR { background: linear-gradient(160deg, #2a1c44 0%, #16101f 100%); }
 .cxc.rSSR, .gxc.rSSR { background: linear-gradient(160deg, #3a2c12 0%, #1a1330 100%); box-shadow: inset 0 0 16px rgba(245,196,81,0.28), 0 0 8px rgba(245,196,81,0.18); }
 .cxc.rSSR:not(.lock) .cxgly, .cxc.rSR:not(.lock) .cxgly { filter: drop-shadow(0 0 6px currentColor); }
-.cxc.rSSR .cxr, .gxc.rSSR .gxr { text-shadow: 0 0 6px rgba(245,196,81,0.7); }
-/* 유닛 도감 시각 차별화 (arch + faction으로 "다 다르게" synthetic feel; codex grid 5열에서 즉시 구분) */
+/* codex clean gallery enforcement: ZERO text/rarity/borders/clutter in grid (user req). Arch tints ONLY for variety (no fac- red circles). Pure modern visual. */
+.cxc .cxr, .gxc .gxr, .cxc .cxr, .cxc .cxn { display: none !important; }
+.cxc .cxg, .gxc .gxi { border: none !important; background: none; }
+/* 유닛 도감 시각 차별화 — subtle arch tints for "다 다르게" premium feel in 5-col grid (no text) */
 .cxc.arch-drone .cxg { background: linear-gradient(180deg, #1a2333 0%, transparent 70%); }
 .cxc.arch-marksman .cxg { background: linear-gradient(180deg, #2a2a1a 0%, transparent 70%); }
 .cxc.arch-guardian .cxg { background: linear-gradient(180deg, #1f2a3a 0%, transparent 70%); }
 .cxc.arch-bruiser .cxg { background: linear-gradient(180deg, #2a1f1f 0%, transparent 70%); }
 .cxc.arch-commander .cxg { background: linear-gradient(180deg, #2a2233 0%, transparent 70%); }
 .cxc.arch-titan .cxg { background: linear-gradient(180deg, #3a2a12 0%, transparent 70%); box-shadow: inset 0 0 12px rgba(251,191,36,0.15); }
-/* fac- border colors removed per request for clean codex (no red circles) */
 .cxc .cxgly .acc { vertical-align: super; }
 #gdex-filter { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; }
-#gdex-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
-.gxc { aspect-ratio: 1/1.15; background: #16101f; border: 1.5px solid; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer; padding: 2px; }
-.gxc.lock { opacity: .45; }
-.gxc .gxi { font-size: 20px; }
-.gxc .gxr { font-size: 7px; font-weight: 900; }
-.gxc .gxn { font-size: 5.5px; opacity: 0.65; text-align: center; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 92%; margin-top: -1px; }
-/* Gear codex now uses full "간지" synth/art (veins, shards, heavy shadows) instead of tiny emoji/? — looks like proper images immediately */
-.gxc .gxi.gear-codex-art { display: flex; align-items: center; justify-content: center; width: 100%; }
+#gdex-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+.gxc { aspect-ratio: 1/1.02; background: #16101f; border: none; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 3px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05); transition: transform .06s, box-shadow .1s; }
+.gxc.lock { opacity: .42; }
+.gxc:active { transform: scale(0.94); box-shadow: 0 0 0 2px #fbbf24cc; }
+.gxc .gxi { font-size: 22px; }
+/* Ultra clean codex (no text/rarity in grid — icon gallery. PNG + synth 간지 full pop. No borders/text per user. Premium rim only via shadow. */
+.gxc .gxr, .gxc .gxn { display: none; }
+.gxc.rSSR { box-shadow: inset 0 0 0 1px rgba(251,191,36,0.35), 0 0 0 1px rgba(251,191,36,0.15); }
+.gxc .gxi.gear-codex-art { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
 .gxc .gxi.gear-codex-art .gear-synth,
 .gxc .gxi.gear-codex-art .g-art,
-.gxc .gxi.gear-codex-art img { width: 28px; height: 28px; font-size: 13px; }
+.gxc .gxi.gear-codex-art img { width: 32px; height: 32px; font-size: 14px; filter: contrast(1.15) saturate(1.22) brightness(1.03); box-shadow: 0 1px 5px rgba(0,0,0,0.55); }
 .gxc .gxi.gear-codex-art .gear-synth .gear-r { font-size: 6px; }
-#unit-pop { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 15; }
 #unit-pop.hidden { display: none; }
-#unit-card { background: var(--panel); padding: 24px; border-radius: 16px; width: 280px; max-width: 88vw; text-align: center; border: 2px solid; animation: pop .3s ease-out; }
-#unit-glyph { font-size: 56px; position: relative; width: 140px; height: 140px; margin: 0 auto; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 12px; }
+#unit-card { 
+  background: var(--panel); 
+  padding: 5px 7px 8px; 
+  border-radius: 10px; 
+  width: 92vw; max-width: 262px; 
+  max-height: 78vh; 
+  overflow-y: auto; 
+  text-align: center; 
+  border: 2px solid; 
+  animation: pop .3s ease-out; 
+  box-shadow: 0 8px 28px rgba(0,0,0,0.6);
+}
+/* Alex Rivera: Illust ALWAYS FITS — STRICT 24-28vh max contain (mobile TG priority, user "일러스트 줄여 화면에 맞게" "화면 이게 뭐야" 완전 해결). HSR/Genshin elegant contained splash + E7 compact. No cut-off, premium frame, object-fit contain strict. Compact header/stats/controls. char-panel sync. Gear/unit shared. */
+#unit-glyph { font-size: 11px; position: relative; width: 100%; max-width: 110px; height: auto; max-height: 27vh; max-height: 118px; margin: 0 auto 2px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 7px; border: 1px solid rgba(255,255,255,0.07); box-shadow: inset 0 0 12px rgba(0,0,0,0.82); background: #0a0812; padding: 2px; }
 #unit-glyph .ucgly { line-height: 1; }
-#unit-glyph .ucim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 12px; max-height: 140px; }
-#unit-name { font-size: 17px; font-weight: 800; margin: 6px 0 2px; }
-#unit-title { font-size: 13px; color: var(--dim); margin-bottom: 12px; }
-#unit-detail { font-size: 12.5px; color: var(--text); line-height: 1.7; text-align: left; margin-bottom: 14px; }
+#unit-glyph .ucim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; border-radius: 5px; } 
+#unit-card img,
+#unit-card .gear-art,
+#unit-card .g-art,
+#unit-card .slot-art,
+#unit-card .cxim,
+#unit-card .ucim,
+#unit-card .cpim,
+#char-panel-card img,
+#char-panel-card .cpim {
+  max-height: 26vh; max-height: 112px;
+  width: auto; max-width: 58%; height: auto;
+  object-fit: contain; display: block; margin: 0 auto;
+  filter: contrast(1.14) saturate(1.2) brightness(1.03);
+}
+#unit-card .gear-synth {
+  max-width: 64px;
+  max-height: 64px;
+  font-size: 9px;
+}
+#unit-name { font-size: 11px; font-weight: 800; margin: 0 0 0px; }
+#unit-title { font-size: 8px; color: var(--dim); margin-bottom: 1px; }
+#unit-detail { font-size: 9px; color: var(--text); line-height: 1.32; text-align: left; margin-bottom: 1px; max-height: 38vh; overflow-y: auto; }
 .dpower { font-size: 13px; color: var(--dim); margin: 4px 0 8px; }
 .dpower b { color: var(--gold); }
 .protectbtn { width: auto; padding: 6px 12px; font-size: 12px; background: #1d1535; color: var(--dim); border: 1px solid #2c2442; border-radius: 8px; margin-bottom: 8px; }
@@ -220,11 +261,12 @@ h1::first-letter { color: var(--crimson); }
 /* 장비 */
 #gear-craft { width: auto; padding: 4px 10px; font-size: 11px; background: var(--gold); color: #1a1400; border-radius: 7px; font-weight: 800; margin-left: 6px; }
 #gear-slots { display: flex; gap: 6px; margin: 4px 0 8px; }
-.gslot { flex: 1; aspect-ratio: 1.4/1; background: #0f0a18; border: 1.5px dashed #2c2442; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 18px; overflow:hidden; }
+.gslot { flex: 1; aspect-ratio: 1.35/1; background: #0f0a18; border: 1.5px dashed #2c2442; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 16px; overflow:hidden; transition: transform .05s; }
 .gslot.on { border-style: solid; border-color: #5a4a6a; background: #1d1535; }
-.gslot .gmain { font-size: 9px; font-weight: 800; margin-top: 1px; }
-/* gear window premium: slots use scaled art when images added (png or synth), no ? */
-.gslot .g-art, .gslot .gear-synth, .gslot .gear-synth.empty { width:22px; height:22px; font-size:14px; }
+.gslot:active { transform: scale(0.96); }
+.gslot .gmain { font-size: 8px; font-weight: 800; margin-top: 0; }
+/* gear window premium: slots use scaled art when images added (png or synth), no ? — 간지 full */
+.gslot .g-art, .gslot .gear-synth, .gslot .gear-synth.empty { width:20px; height:20px; font-size:13px; }
 #gear-inv { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
 .gitem { display: flex; align-items: center; gap: 8px; background: #1d1535; border: 1px solid; border-radius: 9px; padding: 6px 9px; cursor: pointer; transition: background .1s, transform .05s; }
 .gitem:active { background: #2a2348; transform: scale(0.985); }
@@ -323,84 +365,53 @@ h1::first-letter { color: var(--crimson); }
   border: 1px solid #3a2c5a; border-radius: 8px; padding: 6px 10px; margin: 6px 0 2px; text-align: center; }
 .ms-hint b { color: var(--gold); }
 
-/* 영웅 선택 - 궁극기 느낌 강하게 업그레이드 (간지 버전) */
-#heroes { margin: 6px 0 4px; background: linear-gradient(145deg, #16101f, #0f0a18); border: 1px solid #2c2442; border-radius: 12px; padding: 8px 6px; box-shadow: inset 0 2px 6px rgba(0,0,0,0.6); }
-.herorow { display: flex; gap: 4px; justify-content: space-between; }
+/* Alex Rivera (Top Lead GD LiveOps): ABSOLUTE PREMIUM LEGION COMMAND CENTER — AFK Arena ultimate power fantasy release + HSR cinematic "MY HERO" identity fusion + Epic Seven prestige. 7 commanders = direct ULT control over MY army. Per-tint god-glow + dramatic scale on sel = "이게 내 진짜 힘이다". Header elite, subtle energy, no clutter. TG mobile-first (safe, one-thumb, 3-8min sessions). Dopamine from visual pop + "MY POWER" framing. Builds on prior + psych §21 (endowment, will-to-power). */
+#heroes { margin: 4px 0 3px; background: linear-gradient(145deg, #07050f, #110e1c); border: 3.5px solid #3f365f; border-radius: 21px; padding: 9px 6px 7px; box-shadow: inset 0 7px 18px rgba(0,0,0,0.96), 0 0 0 1.5px #2c2648, 0 5px 14px rgba(0,0,0,0.82); position: relative; }
+#heroes::before { content: "LEGION COMMAND CENTER • MY POWER • ULT"; position: absolute; top: -1px; left: 11px; font-size: 6.5px; font-weight: 900; letter-spacing: 1.6px; color: #5a5278; opacity: .88; }
+.herorow { display: flex; gap: 3px; justify-content: space-between; }
 .hbtn { 
-  flex: 1; 
-  min-height: 44px; 
-  padding: 6px 2px; 
-  font-size: 22px; 
-  border: 2px solid #3a2f5e; 
-  border-radius: 10px; 
+  flex: 1; min-height: 44px; padding: 5px 3px; font-size: 22px; 
+  border: 2.5px solid #3a2f5e; border-radius: 14px; 
   background: linear-gradient(160deg, #1f1a2e, #16101f); 
-  position: relative; 
-  overflow: hidden; 
-  transition: all 0.12s cubic-bezier(0.2, 0, 0.2, 1);
-  box-shadow: 0 2px 5px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(255,255,255,0.06);
+  position: relative; overflow: hidden; transition: transform .13s cubic-bezier(0.2,0,0.1,1), box-shadow .12s, border-color .1s, filter .1s;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.75), inset 0 -1px 0 rgba(255,255,255,0.07);
+  display: flex; align-items: center; justify-content: center;
 }
-.hbtn:active { transform: scale(0.95); }
+.hbtn .hgly { position:relative; z-index:3; filter: drop-shadow(0 1px 3px #000); font-size: 22px; }
+.hbtn .him { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; opacity:.78; }
+.hbtn:active { transform: scale(0.9); }
 .hbtn.sel { 
-  border-color: #fbbf24; 
-  background: linear-gradient(160deg, #2a2f1a, #1f2512); 
-  box-shadow: 0 0 16px #fbbf2466, 0 4px 10px rgba(0,0,0,0.6), inset 0 -1px 0 rgba(255,255,255,0.1);
-  transform: scale(1.04);
+  border-color: #fbbf24; transform: scale(1.32); z-index:7;
+  box-shadow: 0 0 82px #fbbf24ee, 0 0 36px currentColor, 0 16px 30px rgba(0,0,0,0.94), inset 0 0 26px rgba(255,255,255,0.22);
+  filter: saturate(1.52) brightness(1.18) contrast(1.08);
+  animation: hselpop .28s cubic-bezier(0.2,0.85,0.15,1);
 }
-.hbtn .rk { 
-  position: absolute; 
-  top: 2px; 
-  right: 3px; 
-  font-size: 8px; 
-  font-weight: 900; 
-  color: #f87171; 
-  background: #1a1400; 
-  padding: 1px 4px; 
-  border-radius: 3px; 
-  line-height: 1; 
-  z-index: 3;
-  border: 1px solid #3a2a00;
-}
-#hero-info { margin-top: 5px; font-size: 11.5px; padding: 0 4px; }
-#hero-info b { font-size: 12.5px; color: #fbbf24; text-shadow: 0 1px 2px #000; }
-#hero-desc { color: #a3a3c2; margin-top: 1px; font-size: 10.5px; }
-#hero-up { 
-  flex: none; display: inline-block; width: auto; padding: 3px 8px; font-size: 10px; 
-  background: linear-gradient(135deg, #65a30d, #4a7c0a); color: #f0fdf4; 
-  border-radius: 5px; margin-left: 5px; border: 1px solid #3a5c08;
-}
+@keyframes hselpop { 0% { transform: scale(1.0); } 38% { transform: scale(1.38); } 100% { transform: scale(1.32); } }
+/* Per-hero distinct identity — world-class tint/glow on sel screams "MY POWER" (AFK ultimate release + HSR cinematic wow + E7 prestige). Glyph + frame bleed hero color. No clutter, pure visual dopamine. */
+.hbtn[data-h="strategist"] { color:#c4b5fd; } .hbtn[data-h="strategist"].sel { background: linear-gradient(160deg,#2a243f,#1f1a2e); box-shadow:0 0 62px #c4b5fdcc,0 0 28px #c4b5fd, inset 0 0 18px #c4b5fd55; }
+.hbtn[data-h="berserker"] { color:#f87171; } .hbtn[data-h="berserker"].sel { background: linear-gradient(160deg,#3a1f22,#25171a); box-shadow:0 0 62px #f87171cc,0 0 28px #f87171, inset 0 0 18px #f8717155; }
+.hbtn[data-h="warden"] { color:#67e8f9; } .hbtn[data-h="warden"].sel { background: linear-gradient(160deg,#1f2a33,#162026); box-shadow:0 0 62px #67e8f9cc,0 0 28px #67e8f9, inset 0 0 18px #67e8f955; }
+.hbtn[data-h="ranger"] { color:#a3e635; } .hbtn[data-h="ranger"].sel { background: linear-gradient(160deg,#25331f,#1a2517); box-shadow:0 0 62px #a3e635cc,0 0 28px #a3e635, inset 0 0 18px #a3e63555; }
+.hbtn[data-h="mech"] { color:#94a3b8; } .hbtn[data-h="mech"].sel { background: linear-gradient(160deg,#262b38,#1c202b); box-shadow:0 0 62px #94a3b8cc,0 0 28px #94a3b8, inset 0 0 18px #94a3b855; }
+.hbtn[data-h="engineer"] { color:#f0abfc; } .hbtn[data-h="engineer"].sel { background: linear-gradient(160deg,#2f2539,#241c2c); box-shadow:0 0 62px #f0abfccc,0 0 28px #f0abfc, inset 0 0 18px #f0abfc55; }
+.hbtn[data-h="dragoon"] { color:#fbbf24; } .hbtn[data-h="dragoon"].sel { background: linear-gradient(160deg,#332a17,#251f12); box-shadow:0 0 68px #fbbf24ee,0 0 30px #fbbf24, inset 0 0 20px #fbbf2455; }
+.hbtn .rk { position:absolute; top:1px; right:2px; font-size:6.5px; font-weight:900; color:#f87171; background:#1a1400; padding:0 3px; border-radius:2px; z-index:4; border:1px solid #3a2a00; }
+#hero-info { margin-top:3px; font-size:10.5px; padding:0 3px; }
+#hero-info b { font-size:11.5px; color:#fbbf24; text-shadow:0 1px 2px #000; }
+#hero-desc { color:#a3a3c2; margin-top:0; font-size:9.5px; }
+#hero-up { flex:none; width:auto; padding:2px 6px; font-size:9px; background:linear-gradient(135deg,#65a30d,#4a7c0a); color:#f0fdf4; border-radius:4px; margin-left:4px; border:1px solid #3a5c08; }
 
-/* 궁극기 버튼 - 훨씬 멋지게 (궁극기 느낌 풀업) */
-#ult { 
-  width: 100%; 
-  margin-top: 6px; 
-  padding: 14px 12px; 
-  font-size: 15px; 
-  font-weight: 900; 
-  letter-spacing: 0.5px;
-  border-radius: 12px;
-  background: #1a1400; 
-  color: #fde047; 
-  border: 2px solid #4a3a00;
-  opacity: .55; 
-  box-shadow: 0 3px 8px rgba(0,0,0,0.5);
-  transition: all .15s cubic-bezier(0.2,0,0.2,1);
-  text-shadow: 0 1px 3px #000;
-}
-#ult.ready { 
-  opacity: 1; 
-  background: linear-gradient(145deg, #f59e0b 0%, #b91c1c 45%, #7f1d1d 100%); 
-  color: #fff; 
-  border-color: #fbbf24;
-  box-shadow: 0 0 22px #f59e0bcc, 0 6px 14px rgba(0,0,0,0.5);
-  animation: ultpulse 0.9s infinite ease-in-out;
-  text-shadow: 0 0 6px #fff3, 0 2px 4px #000;
-}
-#ult:disabled { opacity: .35; }
-#ult:active { transform: scale(0.97); }
-@keyframes ultpulse { 
-  0%,100% { box-shadow: 0 0 22px #f59e0bcc, 0 6px 14px rgba(0,0,0,0.5); transform: scale(1); } 
-  50% { box-shadow: 0 0 32px #fbbf24ee, 0 6px 14px rgba(0,0,0,0.5); transform: scale(1.01); } 
-}
+/* Alex Rivera: ULT — ABSOLUTE PREMIUM "LEGION COMMAND — MY POWER" (AFK Arena ultimate release fantasy + HSR big cinematic impact + E7 prestige). Ready state = BIG DAMN DEAL dopamine: fire gradient + hero glyph + powerful KR label "【군단의 핵 — MY ULT】 EXECUTE". Per-hero tint bleed, stronger pulse/scale/rim. Canvas synced. "이 궁극기가 내 거야" identity fusion. TG portrait premium, no heavy. */
+#ult { width:100%; margin-top:5px; padding:15px 7px; font-size:13px; font-weight:900; letter-spacing:0.6px; border-radius:21px; background:#110c00; color:#fde047; border:3.5px solid #4a3a00; opacity:.48; box-shadow:0 4px 11px rgba(0,0,0,0.78); transition:all .12s cubic-bezier(0.2,0,0.2,1); text-shadow:0 1px 3px #000; display:flex; align-items:center; justify-content:center; gap:7px; min-height:50px; }
+#ult.ready { opacity:1; background:linear-gradient(145deg,#9f1239 0%,#6b1a1a 36%,#2a1616 100%); color:#fff; border-color:#fbbf24; box-shadow:0 0 86px #fbbf24ee, 0 0 46px currentColor, 0 15px 34px rgba(0,0,0,0.9); animation:ultpulse 0.58s infinite ease-in-out; text-shadow:0 0 28px #fff8,0 2px 4px #000; transform:scale(1.07); }
+#ult.ready.hero-tinted { box-shadow:0 0 92px var(--hcolor, #fbbf24)ee, 0 0 44px currentColor, 0 16px 34px rgba(0,0,0,0.9); border-color: var(--hcolor, #fbbf24); }
+#ult:disabled { opacity:.32; }
+#ult:active { transform:scale(0.91); }
+#ult.ready::before { content:"🔥"; font-size:23px; line-height:1; }
+#ult.ready::after { content:"【군단의 핵 — MY ULT】 EXECUTE"; font-size:7.5px; opacity:1; letter-spacing:1.9px; margin-left:3px; font-weight:900; }
+@keyframes ultpulse { 0%,100% { box-shadow:0 0 78px #fbbf24ee,0 0 36px currentColor,0 13px 32px rgba(0,0,0,0.85); } 50% { box-shadow:0 0 96px #fbbf24ff,0 0 50px currentColor,0 15px 36px rgba(0,0,0,0.9); } }
+
+/* deploy follows */
 
 #deploy { margin-top: 8px; }
 .army { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; background: var(--panel); border-radius: 10px; padding: 7px 8px; box-shadow: inset 3px 0 0 var(--blue); }
@@ -423,17 +434,20 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 
 #legend { margin-top: 10px; font-size: 10px; color: #6f6685; line-height: 1.55; text-align: center; opacity: .8; }
 #legend small { color: #6b7280; font-size: 9.5px; } #legend b { color: var(--gold); }
-/* keep the new premium hero/ult look on small screens too */
-#heroes { margin: 5px 0 3px; padding: 5px 4px; }
-.herorow { gap: 3px; }
-.hbtn { min-height: 36px; padding: 4px 1px; font-size: 17px; }
-.hbtn .rk { font-size: 6.5px; padding: 0 2px; }
-#hero-info { font-size: 10px; margin-top: 3px; }
-#hero-up { padding: 1px 5px; font-size: 8.5px; }
-#controls { margin-top: 5px; }
-#controls button { padding: 10px; font-size: 13px; }
-#ult { margin-top: 4px; padding: 10px 6px; font-size: 13px; }
-#deploy .tag { margin-bottom: 2px; }
+/* Jordan mobile-first TG portrait overrides (80% users small screen, safe-area, one-thumb). Premium hero/ult/popup no regression. Illust strict contain. */
+@media (max-width: 480px) {
+  #heroes { margin: 3px 0 2px; padding: 6px 4px; }
+  .herorow { gap: 2px; }
+  .hbtn { min-height: 36px; padding: 3px 1px; font-size: 17px; }
+  .hbtn .rk { font-size: 6px; padding: 0 2px; }
+  #hero-info { font-size: 9px; margin-top: 1px; }
+  #hero-up { padding: 1px 3px; font-size: 7px; }
+  #ult { margin-top: 4px; padding: 11px 6px; font-size: 12px; min-height: 42px; }
+  #unit-card, #char-panel-card { max-height: 80vh; padding: 4px 5px; }
+  #unit-glyph, #unit-glyph .ucim, #char-panel-card img, #char-panel-card .cpim { max-height: 25vh; max-height: 108px; }
+  .cxc, .gxc { border-radius: 7px; }
+  .ginv-tile .gt-art { width: 32px; height: 32px; }
+}
 
 #overlay, #gacha { position: fixed; inset: 0; background: #000b; display: flex; align-items: center; justify-content: center; z-index: 10; }
 #overlay.hidden, #gacha.hidden { display: none; }
@@ -469,22 +483,22 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .sq-pool-item { position: relative; aspect-ratio: 1/1.3; background: #16101f; border: 1.5px solid; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer; overflow: hidden; padding: 2px; }
 .sq-pool-item.on { background: #241a3a; box-shadow: inset 0 0 0 1px var(--gold); }
 .sq-pool-item .sq-art { position: relative; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 22px; overflow: hidden; border-radius: 6px; }
-.sq-pool-item .sqim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; max-height: 120px; }
+.sq-pool-item .sqim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; max-height: 92px; }
 .sq-pnm { font-size: 9px; font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sq-prr { font-size: 8.5px; font-weight: 900; }
 .sq-pool-item.rSSR { box-shadow: inset 0 0 12px rgba(245,196,81,0.22); }
 
-/* 캐릭터 상세 패널 */
-#char-panel { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 16; padding: 16px; }
+/* Jordan: char-panel compact fit (unit-pop sync). Illust 24-28vh strict contain compact. Premium no overflow. */
+#char-panel { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 16; padding: 4px; }
 #char-panel.hidden { display: none; }
-#char-panel-card { background: var(--panel); border-radius: 16px; padding: 18px; width: 360px; max-width: 94vw; max-height: 88vh; overflow-y: auto; border: 1px solid #2c2142; }
-#cp-head { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
-.cp-art { position: relative; width: 64px; height: 64px; flex: 0 0 64px; border: 2px solid; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 34px; overflow: hidden; }
-.cp-art .cpim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; max-height: 64px; }
+#char-panel-card { background: var(--panel); border-radius: 9px; padding: 4px 5px; width: 92vw; max-width: 262px; max-height: 78vh; overflow-y: auto; border: 1px solid #2c2142; box-shadow: 0 8px 26px rgba(0,0,0,0.6); }
+#cp-head { display: flex; gap: 5px; align-items: center; margin-bottom: 2px; }
+.cp-art { position: relative; width: 34px; height: 34px; flex: 0 0 34px; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; overflow: hidden; background:#0a0812; }
+.cp-art .cpim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; max-height: 34px; }
 .cp-meta { min-width: 0; flex: 1; }
-.cp-nm { font-size: 17px; font-weight: 800; }
-.cp-ti { font-size: 11px; color: var(--dim); margin: 2px 0; }
-.cp-st { font-size: 11px; color: #c4b5fd; margin-bottom: 6px; }
+.cp-nm { font-size: 15px; font-weight: 800; }
+.cp-ti { font-size: 10px; color: var(--dim); margin: 1px 0; }
+.cp-st { font-size: 10px; color: #c4b5fd; margin-bottom: 4px; }
 #cp-lvup { padding: 7px 12px; font-size: 12px; font-weight: 800; border-radius: 8px; background: linear-gradient(135deg, #f5c451, #d97706); color: #1a1400; }
 #cp-gear { display: flex; gap: 6px; margin-bottom: 12px; }
 .cp-slot { flex: 1; aspect-ratio: 1.2/1; background: #16101f; border: 1.5px dashed #2c2142; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 17px; gap: 1px; }
@@ -502,14 +516,15 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 
 /* 장비 창 개선 — scannable cards, premium (toy 느낌 제거) */
 #cp-gear { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 10px; }
-.cp-slot { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #16101f; border: 1.5px solid #2c2142; border-radius: 8px; padding: 6px 4px; font-size: 13px; min-height: 52px; }
+.cp-slot { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #16101f; border: 1.5px solid #2c2142; border-radius: 7px; padding: 4px 3px; font-size: 11px; min-height: 46px; transition: transform .05s; }
 .cp-slot.on { border-color: #fbbf24; background: #1d1535; }
-.cp-slot .slot-vis { font-size: 18px; line-height: 1; }
-.cp-slot .slot-info { text-align: center; margin-top: 2px; }
-.cp-slot .slot-name { font-size: 10px; font-weight: 800; }
-.cp-slot .slot-stats { font-size: 8px; color: var(--dim); }
-.cp-slot .slot-x { position: absolute; top: 1px; right: 3px; font-size: 10px; color: #f87171; cursor: pointer; }
-.cp-slot .slot-empty { font-size: 9px; color: #3a3550; }
+.cp-slot:active { transform: scale(0.95); }
+.cp-slot .slot-vis { font-size: 16px; line-height: 1; }
+.cp-slot .slot-info { text-align: center; margin-top: 1px; }
+.cp-slot .slot-name { font-size: 9px; font-weight: 800; }
+.cp-slot .slot-stats { font-size: 7px; color: var(--dim); }
+.cp-slot .slot-x { position: absolute; top: 0px; right: 2px; font-size: 9px; color: #f87171; cursor: pointer; }
+.cp-slot .slot-empty { font-size: 8px; color: #3a3550; }
 
 .gear-card { display: flex; align-items: center; gap: 6px; background: #16101f; border: 1.5px solid; border-radius: 8px; padding: 6px 8px; font-size: 11px; cursor: pointer; }
 .gear-card.on { border-color: var(--gold); background: #241a3a; }
@@ -521,18 +536,20 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .gear-card .g-equip { font-size: 10px; padding: 3px 8px; background: #2a2348; color: var(--gold); border: 1px solid #473a63; border-radius: 5px; }
 .gear-card .act-on { font-size: 9px; color: var(--gold); }
 .gear-card .best { font-size: 9px; color: #a3e635; margin-left: 4px; }
-/* gear-inv list premium art scale (after images) */
-.gitem .g-art, .gitem .gear-synth { width:18px; height:18px; display:inline-block; vertical-align:middle; margin-right:2px; font-size:11px; }
+/* gear-inv list premium art scale (after images) — 간지 full (PNG priority + veins/shards synth) */
+.gitem .g-art, .gitem .gear-synth { width:18px; height:18px; display:inline-block; vertical-align:middle; margin-right:2px; font-size:11px; filter: contrast(1.1) saturate(1.12); }
 
-/* Gear art premium "간지" (not toy) — synthetic fallback also looks illustrated & badass (research: layered plating, veins, shards, volumetric contrast) */
+/* Alex Rivera: Gear "간지" premium collectible (not toy) — 20 slot-rarity PNG (art/gear per prompts) + ultra-cool synth fallback. Full pop in codex/gdex/gslot/cp-slot/gear-card/ginv/unit. Strong contrast/sat/shadow/rim. Tap equip = visual power + endowment. */
 .gear-art, .slot-art {
-  width: 48px; height: 48px; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 22px;
-  background: linear-gradient(135deg, #2a2f42, #1a1f2e); box-shadow: inset 0 0 12px rgba(0,0,0,0.65), 0 2px 6px rgba(0,0,0,0.5), 0 0 4px rgba(255,255,255,0.08);
+  width: 46px; height: 46px; border-radius: 7px; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 19px;
+  background: linear-gradient(135deg, #2a2f42, #1a1f2e); box-shadow: inset 0 0 18px rgba(0,0,0,0.82), 0 5px 10px rgba(0,0,0,0.65), 0 0 7px rgba(255,255,255,0.15);
   border: 1.5px solid #3a4055;
 }
-.gear-art img, .slot-art img { width: 100%; height: 100%; object-fit: contain; filter: contrast(1.12) saturate(1.2) brightness(1.02); }
+.gear-art img, .slot-art img { width: 100%; height: 100%; object-fit: contain; filter: contrast(1.22) saturate(1.3) brightness(1.06); }
+.ginv-tile .gt-art, .gxc .gxi .g-art, .gxc .gxi .gear-synth, .gxc .gxi img { transition: transform .08s, filter .1s; }
+.ginv-tile:active .gt-art, .gxc:active .gxi .g-art { transform: scale(1.08); filter: contrast(1.25) saturate(1.32); }
 .gear-synth { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative;
-  border: 1.5px solid; border-radius: 6px; box-shadow: 0 3px 10px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -3px 6px rgba(0,0,0,0.55);
+  border: 1.5px solid; border-radius: 7px; box-shadow: 0 4px 11px rgba(0,0,0,0.78), inset 0 2px 0 rgba(255,255,255,0.22), inset 0 -4px 7px rgba(0,0,0,0.6);
 }
 .gear-synth.rSSR { background: linear-gradient(145deg, #3a2a1a 0%, #5a4630 38%, #2f2418 100%); border-color: #fbbf24; box-shadow: 0 0 16px rgba(251,191,36,0.4), inset 0 0 12px rgba(251,191,36,0.25); }
 .gear-synth.rSR { background: linear-gradient(145deg, #2a1a3a 0%, #46305a 38%, #1f1628 100%); border-color: #c084fc; box-shadow: 0 0 12px rgba(192,132,252,0.35); }
@@ -582,11 +599,17 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .craft-big { width: 100%; padding: 13px; font-size: 15px; font-weight: 800; border-radius: 11px; background: linear-gradient(135deg, #f5c451, #d97706); color: #1a1400; border: none; margin-bottom: 6px; }
 .craft-big:active { transform: scale(.985); }
 #gear-inv { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 10px; }
-.ginv-tile { position: relative; aspect-ratio: 1/1.15; background: #16101f; border: 1.5px solid; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; overflow: hidden; }
-.ginv-tile:active { transform: scale(.95); }
-.ginv-tile .gt-art { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
-.ginv-tile .gt-art .g-art { width: 100%; height: 100%; object-fit: contain; }
-.ginv-tile .gt-rr { font-size: 9px; font-weight: 900; }
-.ginv-tile .gt-eq { position: absolute; top: 2px; right: 3px; font-size: 10px; }
+.ginv-tile { position: relative; aspect-ratio: 1/1.05; background: #16101f; border: 1.5px solid; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer; overflow: hidden; transition: transform .06s, box-shadow .1s; }
+.ginv-tile:active { transform: scale(.92); box-shadow: 0 0 0 2px #fbbf24; }
+.ginv-tile .gt-art { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.ginv-tile .gt-art .g-art { width: 100%; height: 100%; object-fit: contain; filter: contrast(1.08) saturate(1.15); }
+.ginv-tile .gt-rr { font-size: 8px; font-weight: 900; }
+.ginv-tile .gt-eq { position: absolute; top: 1px; right: 2px; font-size: 9px; }
 .ginv-tile.rSSR { box-shadow: inset 0 0 12px rgba(245,196,81,0.22); }
+.ginv-tile.rSSR:active { box-shadow: 0 0 0 2px #fbbf24, inset 0 0 14px rgba(245,196,81,0.3); }
 #gdex-wrap.hidden { display: none; }
+
+/* 캐릭 장비카드 이미지 강제 축소 (512px 터짐 방지) */
+.gear-card img { width: 34px !important; height: 34px !important; object-fit: contain !important; }
+.gear-card .g-art { flex: 0 0 34px !important; width: 34px !important; height: 34px !important; overflow: hidden !important; }
+.cp-slot img { width: 22px !important; height: 22px !important; object-fit: contain !important; }

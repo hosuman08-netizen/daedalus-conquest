@@ -45,9 +45,10 @@ art/gear/weapon-n.png ... weapon-ssr.png · armor-n..ssr · acc-n..ssr · relic-
 - relic-r: sci-fi game gear icon, blue rune stone relic with soft glow, R blue tier, modest details, centered, dark transparent background, no text, original
 - core-r: sci-fi game gear icon, blue energy core crystal with steady pulse, R blue tier, clean sci-fi, centered, dark transparent background, no text, original
 
-### N (gray, 단순 양산형)
+### N (gray, 단순 양산형 — research: clean functional Warframe base + Destiny simple module, original)
 - weapon-n: sci-fi game gear icon, basic gray steel sword, N gray tier, mass-produced simple, centered, dark transparent background, no text, original
 - armor-n: sci-fi game gear icon, basic gray chest plate armor, N gray tier, plain functional, centered, dark transparent background, no text, original
 - acc-n: sci-fi game gear icon, basic gray boots or simple cloak, N gray tier, utilitarian, centered, dark transparent background, no text, original
 - relic-n: sci-fi game gear icon, plain gray relic talisman or rune, N gray tier, minimal, centered, dark transparent background, no text, original
 - core-n: sci-fi game gear icon, basic gray energy core module, N gray tier, standard power unit, centered, dark transparent background, no text, original
+(20 full slot-rarity PNGs: code gearArt() maps slot-rarity.png auto → synth cooler fallback on 404. N/R synth volumetric layered for "간지" even without PNG.)

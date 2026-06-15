@@ -407,10 +407,10 @@ function gearSynthHTML(g) {
   const icon = SLOT_ICON[g.slot] || "⚙️";
   const r = g.rarity || "N";
   const s = g.slot || "";
-  // EVEN COOLER synth fallback (for N/R + missing PNGs): layered depth, veins on SSR/SR/R, shards SSR/SR, extra rim for SSR. Premium volumetric even without art. (after image adds → img wins in codex/panels)
+  // COOLER synth (research: Warframe/Destiny layered + Diablo crystal depth + volumetric). PNG 20종 (slot-rarity) 우선. Missing N/R도 "간지" full. Veins/shards/rim + extra rim for SSR.
   const veins = (r === "SSR" || r === "SR" || r === "R") ? `<span class="gear-vein"></span><span class="gear-vein2"></span>` : "";
   const shards = (r === "SSR" || r === "SR") ? `<span class="gear-shard"></span><span class="gear-shard2"></span>` : "";
-  const rim = (r === "SSR") ? `<span class="gear-rim" style="position:absolute;inset:0;border:1.5px solid #fbbf24;opacity:0.3;border-radius:3px;pointer-events:none;"></span>` : "";
+  const rim = (r === "SSR") ? `<span class="gear-rim" style="position:absolute;inset:0;border:1.5px solid #fbbf24;opacity:0.32;border-radius:4px;pointer-events:none;"></span>` : (r==="SR" ? `<span class="gear-rim" style="position:absolute;inset:0;border:1px solid #c084fc;opacity:0.25;border-radius:4px;pointer-events:none;"></span>` : "");
   return `<div class="gear-synth r${r} slot-${s}">${icon}${veins}${shards}${rim}<span class="gear-r">${r}</span></div>`;
 }
 function squadSynergy() {                               // 진영/아키타입 조합 시너지
@@ -1319,6 +1319,8 @@ function bindDeploy() {
 
 $("start").addEventListener("click", start);
 $("reset").addEventListener("click", reset);
+// Reset feedback 강화 (user: "디자인 좀 바꿔" — clear premium danger + confirmation already + bak safe)
+const resetBtn = $("reset"); if (resetBtn) { resetBtn.style.border = "1px solid #f87171"; resetBtn.title = "진행 초기화 (백업 자동 생성, 복구 가능)"; }
 $("speed").addEventListener("click", () => {
   // 무료 1x·2x / 스타터 4x / VIP 8x — 팝업 없이 순환
   const tiers = META.ultra ? [1, 2, 4, 8] : META.vip ? [1, 2, 4] : [1, 2];   // VIP=4x · 울트라=8x
@@ -1336,12 +1338,20 @@ function buyStarter() { buyPack("starter"); }   // 결제 경로 통일 (Stars �
 // ── 궁극기 (플레이어 직접 발동) ───────────────────────────────────────────────
 function updateUltBtn() {
   const b = $("ult"); if (!b) return;
-  const name = "💥 " + tUlt(HEROES[META.hero].ult);
-  if (!running) { b.textContent = name; b.disabled = true; b.classList.remove("ready"); return; }
+  const h = HEROES[META.hero];
+  const glyph = h.glyph || "⚔️";
+  // Jordan: ULT screams power fantasy "this hero's ultimate is MINE and awesome". Per-hero identity + dramatic label. Ready = BIG DAMN DEAL (HSR/AFK/E7). Hero glyph bleed + color. Korean premium text.
+  if (!running) { b.textContent = "LEGION CC · " + glyph + " " + (h.ultName || tUlt(h.ult)); b.disabled = true; b.classList.remove("ready"); b.classList.remove("hero-tinted"); b.style.removeProperty('--hcolor'); return; }
   b.disabled = ultT > 0;
-  if (ultT > 0) { b.textContent = "💥 " + Math.ceil(ultT) + "s"; b.classList.remove("ready"); }
-  else { b.textContent = name; b.classList.add("ready"); }
+  if (ultT > 0) { b.textContent = glyph + " " + Math.ceil(ultT) + "s"; b.classList.remove("ready"); b.classList.remove("hero-tinted"); b.style.removeProperty('--hcolor'); }
+  else {
+    b.textContent = "🔥 " + glyph + " 【군단의 핵 — MY ULT】 " + (h.ultName || tUlt(h.ult));
+    b.classList.add("ready");
+    const hc = getHeroColor(META.hero);
+    if (hc) { b.style.setProperty('--hcolor', hc); b.classList.add('hero-tinted'); } else { b.classList.remove('hero-tinted'); b.style.removeProperty('--hcolor'); }
+  }
 }
+function getHeroColor(hk) { const map = { strategist:'#c4b5fd', berserker:'#f87171', warden:'#67e8f9', ranger:'#a3e635', mech:'#94a3b8', engineer:'#f0abfc', dragoon:'#fbbf24' }; return map[hk] || null; }
 function doUlt() {
   if (!running || ultT > 0) return;
   const h = HEROES[META.hero], lv = (META.heroLv[META.hero] || 1), k = heroScale(lv);
@@ -1365,14 +1375,34 @@ function updateHeroUI() {
   HERO_ORDER.forEach((hk) => {
     const b = document.querySelector('.hbtn[data-h="' + hk + '"]'); if (!b) return;
     b.classList.toggle("sel", hk === META.hero);
-    if (!b.dataset.dec) { b.innerHTML = '<span class="hgly">' + HEROES[hk].glyph + '</span><img class="him" src="art/hero-' + hk + '.png" alt="" onerror="this.remove()"><i class="rk">' + HEROES[hk].rank + '</i>'; b.dataset.dec = "1"; }
+    if (!b.dataset.dec) {
+      // Jordan premium: try heroicon PNG for dramatic god-pose (art/heroicon-<key>.png) if exists, else clean emoji glyph + rank. hbtn sel uses scale/glow/rim already (CSS).
+      const iconPath = `art/heroicon-${hk}.png`;
+      const img = new Image();
+      img.onload = () => { if (b && !b.classList.contains('sel')) b.innerHTML = `<img class="him" src="${iconPath}" alt=""> <span class="hgly">${HEROES[hk].glyph}</span><i class="rk">${HEROES[hk].rank}</i>`; };
+      img.src = iconPath;
+      b.innerHTML = `<span class="hgly">${HEROES[hk].glyph}</span><i class="rk">${HEROES[hk].rank}</i>`;
+      b.dataset.dec = "1";
+    }
   });
   const h = HEROES[META.hero], lv = META.heroLv[META.hero] || 1, tr = tHero(META.hero);
-  if ($("hero-name")) $("hero-name").innerHTML = h.glyph + ' <span class="hcode">RANK ' + h.rank + '</span> ' + tr[0] + " Lv" + lv;
+  // Alex Rivera: Legion Command Center — "MY POWER" premium (AFK/HSR/E7). Korean "군단의 핵" identity fusion for endowment.
+  if ($("hero-name")) $("hero-name").innerHTML = h.glyph + ' <span class="hcode">RANK ' + h.rank + '</span> ' + tr[0] + " Lv" + lv + ' <small style="color:#fbbf24;font-size:6.5px">LEGION CC • MY POWER • ULT</small>';
   if ($("hero-desc")) $("hero-desc").innerHTML = tr[1] + ' <span style="color:#f59e0b;font-weight:700">· ULT: ' + tUlt(h.ult) + '</span>';
   if ($("hero-up")) $("hero-up").textContent = t("upgrade") + " " + heroUpCost() + "g";
+  updateUltBtn(); // ensure hero color bleed syncs instantly on switch
 }
-function selectHero(h) { if (running || !HEROES[h]) return; META.hero = h; saveMeta(); updateHeroUI(); reset(); }
+function selectHero(h) { if (running || !HEROES[h]) return; META.hero = h; saveMeta(); updateHeroUI(); reset(); haptic("heavy");
+  // Premium sel feedback — "this hero's ultimate is MINE" power fantasy (HSR wow + AFK/E7). Strong scale + glow + ult sync.
+  const bb = document.querySelector('.hbtn[data-h="' + h + '"]'); if (bb) {
+    bb.style.transform = 'scale(1.26)';
+    const hc = getHeroColor(h);
+    if (hc) bb.style.boxShadow = `0 0 56px ${hc}bb, 0 0 22px ${hc}, inset 0 0 12px rgba(255,255,255,0.2)`;
+    setTimeout(() => { if (bb) { bb.style.transform = ''; bb.style.boxShadow = ''; updateUltBtn(); } }, 240);
+  }
+  // ult preview flash — screams "MY power"
+  const ub = $("ult"); if (ub && !running) { ub.style.borderColor = getHeroColor(h) || '#4a3a00'; setTimeout(()=>{if(ub) ub.style.borderColor = '#4a3a00';}, 480); }
+}
 function upgradeHero() {
   if (running) return;
   const cost = heroUpCost();
@@ -2085,7 +2115,12 @@ function renderCodex() {
     const facCls = u.faction ? ` fac-${u.faction.toLowerCase()}` : "";
     return `<div class="cxc r${u.rarity}${has ? "" : " lock"}${archCls}${facCls}" data-id="${u.id}"><div class="cxg">${has ? artHTML(u, "cxgly", "cxim") : "❔"}</div></div>`;
   }).join("");
-  grid.querySelectorAll(".cxc").forEach((c) => c.addEventListener("click", () => showUnit(+c.dataset.id)));
+  grid.querySelectorAll(".cxc").forEach((c) => c.addEventListener("click", () => {
+    const id = +c.dataset.id;
+    c.style.transform = 'scale(0.92)';
+    setTimeout(() => { if (c) c.style.transform = ''; }, 90);
+    showUnit(id);
+  }));
 }
 let gdexFilter = "ALL";
 function renderGearCodex() {
@@ -2103,10 +2138,9 @@ function renderGearCodex() {
   const list = gdexFilter === "ALL" ? GEAR_ROSTER : GEAR_ROSTER.filter((g) => g.slot === gdexFilter);
   grid.innerHTML = list.map((g) => {
     const has = owned.has(g.id);
-    // gearArt now prefers art/gear/<slot>-<rarity>.png (SSR/SR real images, N/R synth). Codex shows proper art not ? for priority.
+    // Ultra clean gallery (no text/rarity/borders in grid per user — pure icon. Subtle r* shadow + art/synth. No inline border.
     const art = gearArt(g);
-    const nm = g.name || '';
-    return `<div class="gxc r${g.rarity}${has ? "" : " lock"}" data-tid="${g.id}" style="border-color:${g.color}${has ? "" : "33"}"><div class="gxi gear-codex-art">${art}</div><div class="gxr" style="color:${g.color}">${g.rarity}</div><div class="gxn">${nm}</div></div>`;
+    return `<div class="gxc r${g.rarity}${has ? "" : " lock"}" data-tid="${g.id}"><div class="gxi gear-codex-art">${art}</div></div>`;
   }).join("");
   grid.querySelectorAll(".gxc").forEach((c) => c.addEventListener("click", () => showGearDex(+c.dataset.tid)));
 }
