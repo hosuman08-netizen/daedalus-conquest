@@ -351,6 +351,15 @@ const SQUAD_I18N = {
   ru: { sqTitle: "Боевой отряд", sqPool: "📋 Персонажи — нажмите для отряда", dArchNote: "(по типу)", cpInv: "🎒 Снаряжение — нажмите чтобы надеть", sqFull: "Отряд полон (макс {n})", sqDeployed: "✅ В отряде — в бою", sqUndeploy: "Убран из отряда" },
 };
 for (const l in SQUAD_I18N) Object.assign(I18N[l], SQUAD_I18N[l]);
+const PRESTIGE_I18N={
+ko:{setReset:"🔄 환생 (보상받고 처음부터)",prestigeAsk:"🔄 환생하시겠습니까?\n진행은 처음부터 — 단 보상 획득:\n🔮 소울 +{soul} (유지+적립) · 💎 +{gem} · 💰 +{gold}\n소울로 각성하면 영구히 강해집니다.",prestigeDone:"🔄 환생! 🔮+{soul} 💎+{gem} 💰+{gold} — 소울로 각성하라"},
+en:{setReset:"🔄 Rebirth (reset for rewards)",prestigeAsk:"🔄 Rebirth?\nProgress resets — but you gain:\n🔮 Soul +{soul} (kept+added) · 💎 +{gem} · 💰 +{gold}\nSpend Soul on Awakening for permanent power.",prestigeDone:"🔄 Rebirth! 🔮+{soul} 💎+{gem} 💰+{gold}"},
+ja:{setReset:"🔄 転生 (報酬を得て最初から)",prestigeAsk:"🔄 転生しますか?\n進行はリセット — 報酬:\n🔮 ソウル +{soul} · 💎 +{gem} · 💰 +{gold}",prestigeDone:"🔄 転生! 🔮+{soul} 💎+{gem} 💰+{gold}"},
+zh:{setReset:"🔄 转生 (获取奖励重来)",prestigeAsk:"🔄 转生?\n进度重置 — 但获得:\n🔮 灵魂 +{soul} · 💎 +{gem} · 💰 +{gold}",prestigeDone:"🔄 转生! 🔮+{soul} 💎+{gem} 💰+{gold}"},
+hi:{setReset:"🔄 पुनर्जन्म",prestigeAsk:"🔄 पुनर्जन्म?\nप्रगति रीसेट — इनाम:\n🔮 +{soul} · 💎 +{gem} · 💰 +{gold}",prestigeDone:"🔄 पुनर्जन्म! 🔮+{soul} 💎+{gem} 💰+{gold}"},
+ru:{setReset:"🔄 Перерождение",prestigeAsk:"🔄 Перерождение?\nПрогресс сбросится — награда:\n🔮 +{soul} · 💎 +{gem} · 💰 +{gold}",prestigeDone:"🔄 Перерождение! 🔮+{soul} 💎+{gem} 💰+{gold}"}
+};
+for(const l in PRESTIGE_I18N)Object.assign(I18N[l],PRESTIGE_I18N[l]);
 const GO_I18N={ko:"보유 장비",en:"My Gear",ja:"所持装備",zh:"拥有装备",hi:"मेरा गियर",ru:"Снаряжение"};for(const l in GO_I18N)I18N[l].gOwned=GO_I18N[l];
 const GN_I18N={ko:"🔨 장비를 탭하면 강화 · 장착은 캐릭터 탭에서",en:"🔨 Tap gear to enhance · equip in Characters tab",ja:"装着はキャラタブから",zh:"装备在角色页签中进行",hi:"लगाना: किरदार टैब से",ru:"Экипировка во вкладке Персонажи"};for(const l in GN_I18N)I18N[l].gearNote=GN_I18N[l];
 const LH_I18N={ko:"유닛·상성 정보",en:"Units & counters",ja:"ユニット·相性",zh:"单位·克制",hi:"यूनिट·काउंटर",ru:"Юниты·контры"};for(const l in LH_I18N)I18N[l].legendHelp=LH_I18N[l];

@@ -254,6 +254,8 @@ function bumpPrestige(amt) { // "numbers go up" visual on every claim/ritual
   META.prestige = (META.prestige || 0) + gain;
   const el = $("cohesion"); if (el) { el.textContent = META.prestige.toFixed(1); el.classList.add("pop"); setTimeout(()=>el.classList.remove("pop"), 420); }
   if ($("dash-power")) { $("dash-power").classList.add("pop"); setTimeout(()=> $("dash-power").classList.remove("pop"), 380); }
+  // prestige claim pulse (high ROI §21 hook: ritual dopamine + visual endowment)
+  if (el && (amt||0) >= 1) { el.style.boxShadow = "0 0 18px #c084fc"; setTimeout(()=>{if(el) el.style.boxShadow="";}, 520); }
 }
 function loadMeta() {
   const def = { gold: 550, chapter: 1, streak: 0, pulls: 0, pity: 0, titanOwned: false, starter: false, lastSeen: 0, lastDaily: "",
@@ -407,10 +409,13 @@ function gearSynthHTML(g) {
   const icon = SLOT_ICON[g.slot] || "⚙️";
   const r = g.rarity || "N";
   const s = g.slot || "";
-  // COOLER synth (research: Warframe/Destiny layered + Diablo crystal depth + volumetric). PNG 20종 (slot-rarity) 우선. Missing N/R도 "간지" full. Veins/shards/rim + extra rim for SSR.
-  const veins = (r === "SSR" || r === "SR" || r === "R") ? `<span class="gear-vein"></span><span class="gear-vein2"></span>` : "";
-  const shards = (r === "SSR" || r === "SR") ? `<span class="gear-shard"></span><span class="gear-shard2"></span>` : "";
-  const rim = (r === "SSR") ? `<span class="gear-rim" style="position:absolute;inset:0;border:1.5px solid #fbbf24;opacity:0.32;border-radius:4px;pointer-events:none;"></span>` : (r==="SR" ? `<span class="gear-rim" style="position:absolute;inset:0;border:1px solid #c084fc;opacity:0.25;border-radius:4px;pointer-events:none;"></span>` : "");
+  // UPGRADED synth: deeper shadows/rim/veins for N (not toy), shards energy for SR, gold filigree rim + dramatic for SSR. PNG 20종 우선. "간지" premium volumetric always. TG perf fallback strict.
+  const veins = (r === "SSR" || r === "SR" || r === "R" || r === "N") ? `<span class="gear-vein"></span><span class="gear-vein2"></span>` : "";
+  const shards = (r === "SSR" || r === "SR") ? `<span class="gear-shard"></span><span class="gear-shard2"></span><span class="gear-shard3"></span>` : "";
+  let rim = "";
+  if (r === "SSR") rim = `<span class="gear-rim gear-filigree" style="position:absolute;inset:0;border:2px solid #fbbf24;opacity:0.38;border-radius:5px;pointer-events:none;"></span><span class="gear-filigree2"></span>`;
+  else if (r === "SR") rim = `<span class="gear-rim" style="position:absolute;inset:0;border:1.5px solid #c084fc;opacity:0.3;border-radius:4px;pointer-events:none;"></span>`;
+  else if (r === "R" || r === "N") rim = `<span class="gear-rim" style="position:absolute;inset:0;border:1px solid currentColor;opacity:${r==="N"?0.22:0.28};border-radius:4px;pointer-events:none;"></span>`;
   return `<div class="gear-synth r${r} slot-${s}">${icon}${veins}${shards}${rim}<span class="gear-r">${r}</span></div>`;
 }
 function squadSynergy() {                               // 진영/아키타입 조합 시너지
@@ -435,7 +440,7 @@ function squadSynergy() {                               // 진영/아키타입 �
     atk += weave; hp += weave * 0.6;
     bonuses.push("🌊 Host Weave ×" + founders + " (effervescence +" + Math.round(weave*100) + "%)");
     // light canvas cue (called in draw if running)
-    if (typeof window !== "undefined") window._effervescenceActive = true;
+    if (typeof window !== "undefined") { window._effervescenceActive = true; window._hostFounders = founders; }
   } else if (sq.length > 0) {
     // regulars meaningful even w/o special: Militia Surge via investment or mono-faction volume (proxy weave)
     const invest = sq.reduce((s, u) => s + cStar(u.id) + cAwak(u.id) + (Object.values(charGearStats(u.id)).reduce((a,b)=>a+(b||0),0) > 8 ? 1 : 0), 0);
@@ -645,6 +650,7 @@ function reset() {
   if (typeof preloadEnemyPortraits === "function") preloadEnemyPortraits();
   $overlay.classList.add("hidden");
   $("start").textContent = t("start");
+  window._effervescenceActive = false; window._hostFounders = 0; // reset psych canvas cues
   updateMeta(); updateHeroUI(); updateUltBtn(); updateModeTabs(); draw(); updateScore();
   // 편성이 부대 → generic 골드구매 배치는 편성 비었을 때만(폴백). 편성 있으면 숨김
   const dep = $("deploy"); if (dep) dep.style.display = getDeployedUnits().length ? "none" : "";
@@ -658,6 +664,12 @@ function updateMeta() {
   if ($("soul")) $("soul").textContent = META.soul || 0;
   if ($("chapter")) $("chapter").textContent = META.chapter;
   const coh = $("cohesion"); if (coh) coh.textContent = (META.prestige || 0).toFixed(1);
+  // sacred-host §21 dynamic (Host Weave / Vanguard FOMO cue)
+  const sh = $("sacred-host"); if (sh) {
+    const eff = !!(window._effervescenceActive);
+    const v = (META.vanguard && META.vanguard===today()) ? " • Vanguard Focus 24h ON (carry teaser live)" : "";
+    sh.textContent = eff ? "🌊 Host Weave active — Founders fusion tether" + v : (v ? v.trim().slice(2) : "");
+  }
   // 유닛 레벨 뱃지 + 타이탄 슬롯 노출
   ORDER.forEach((t) => {
     const badge = $("lv-" + t);
@@ -827,6 +839,25 @@ function draw() {
   // ensure SSR portraits ready for battle (in case timing)
   if (Object.keys(ssrPortraits).length === 0) preloadSSRPortraits();
 
+  // §21 Host Weave tethers (Jordan visual endowment + Alex gacha dopamine): 3+ Founders → golden fusion lines + particles (identity fusion tether, Berridge cue-triggered wanting)
+  const eff = !!(window._effervescenceActive && window._hostFounders >= 3);
+  const foundersU = eff ? units.filter(u => u.side==='p' && u.rarity==='SSR' && u.hp>0) : [];
+  if (eff && foundersU.length >= 2) {
+    ctx.strokeStyle = "rgba(251,191,36,0.55)"; ctx.lineWidth = 1.6;
+    for (let i=0; i<foundersU.length; i++) for (let j=i+1; j<foundersU.length; j++) {
+      const a=foundersU[i], b=foundersU[j];
+      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+      // subtle pulse particles
+      const mx=(a.x+b.x)/2, my=(a.y+b.y)/2; const t=Date.now()/180;
+      ctx.fillStyle="rgba(251,191,36,0.7)"; ctx.beginPath(); ctx.arc(mx+Math.sin(t)*3, my+Math.cos(t)*2, 1.8,0,7); ctx.fill();
+    }
+  }
+  // Militia aura on high-invest regulars (endowment "MY elites" visual)
+  // (applied per-unit below in synthetic path)
+
+  // Vanguard Focus 24h visual cue (FOMO carry teaser on Founders)
+  const isVanguard = !!(META.vanguard && META.vanguard === today());
+
   for (const u of units) {
     if (u.hp <= 0) continue;
     // 바닥 그림자 (그라운딩)
@@ -852,8 +883,9 @@ function draw() {
       ctx.drawImage(img, u.x - sz / 2, u.y - sz * 0.42, sz, sz);
       ctx.restore();
       if (hasPlayerPortrait) {
-        ctx.strokeStyle = "#fbbf24"; ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.arc(u.x, u.y, clipR + 1, 0, 7); ctx.stroke();
+        ctx.strokeStyle = isVanguard ? "#fde047" : "#fbbf24"; ctx.lineWidth = isVanguard ? 4.2 : 3;
+        ctx.beginPath(); ctx.arc(u.x, u.y, clipR + (isVanguard?2:1), 0, 7); ctx.stroke();
+        if (isVanguard && u.rarity==="SSR") { ctx.strokeStyle="rgba(251,191,36,0.35)"; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(u.x,u.y,clipR+9,0,7); ctx.stroke(); }
       } else {
         // Hostile red jagged (톱니) rim + dark overlay for enemyPortraits (bosses/elites: titan, corrupted-titan, drone, marksman etc)
         // Makes battle enemies look cool & threatening vs beautiful player army (gold frames). Per ENEMY-ART-PROMPTS.
@@ -967,8 +999,10 @@ function draw() {
         if (u.isSpecific && u.rarity !== "SSR" && u.id) {
           const inv = (cStar(u.id) || 0) + (cAwak(u.id) || 0) + (charGearStats(u.id).str + charGearStats(u.id).int + charGearStats(u.id).agi + charGearStats(u.id).luk > 12 ? 1 : 0);
           if (inv > 0) {
-            ctx.strokeStyle = "rgba(163,230,53,0.45)"; ctx.lineWidth = 1.5 + Math.min(2, inv * 0.6);
-            ctx.beginPath(); ctx.arc(u.x, u.y, u.r * 1.12, 0, 7); ctx.stroke();
+            const pulse = 0.35 + Math.sin(Date.now()/260)*0.18; // Militia aura pulse (high-invest regulars = "MY anchored" endowment)
+            ctx.strokeStyle = `rgba(163,230,53,${pulse})`; ctx.lineWidth = 1.8 + Math.min(2.5, inv * 0.7);
+            ctx.beginPath(); ctx.arc(u.x, u.y, u.r * (1.15 + inv*0.02), 0, 7); ctx.stroke();
+            if (inv >= 3) { ctx.fillStyle=`rgba(163,230,53,0.18)`; ctx.beginPath(); ctx.arc(u.x,u.y,u.r*1.28,0,7); ctx.fill(); }
           }
         }
       }
@@ -1037,6 +1071,8 @@ function finish(p, e) {
         const sig = getLegionSignal(); const win = (META.ritualWin === today() || sig>2.0);
         reward = bonus(200 + META.chapter * 15 + (win ? Math.floor(55*(sig-1)) : 0));
         META.dailyDone = today(); extra = `<div class="rwd">${t("rwDailyBonus", { n: reward })}</div>` + (win ? '<div class="rwd2">⚡ 군단 전술 보너스</div>' : '');
+        // Vanguard Focus FOMO 24h ritual (carry teaser + god-VFX hook; limited, ethical)
+        if (!META.vanguard || META.vanguard !== today()) { if (win || sig > 2.1) { META.vanguard = today(); setTimeout(()=>toast("Vanguard Focus 24h open — carry teaser live"," #fbbf24"), 650); } }
       }
       else { extra = `<div class="rwd2">${t("rwDailyDone")}</div>`; }
       title = t("rDaily"); bumpPrestige(1);
@@ -1094,6 +1130,13 @@ function finish(p, e) {
     if (eNames.length) extraEnemy = ` · ${eNames[0]} 격파`;
     carried = `<div class="rwd2" style="color:#fbbf24;font-size:12px;">${getCarriedFeedback()}${extraEnemy}</div>`;
   }
+  // Vanguard Focus 24h FOMO + first-win stronger overlay (limited window carry teaser + personal belonging)
+  const isV = META.vanguard && META.vanguard === today();
+  if (win && isV) carried = carried.replace('carried', 'VANGUARD carried • 24h Focus');
+  if (win && (META.chapter||1) <= 2) {
+    const fwin = (typeof t === "function" && t("firstWinOverlay")) || "🏆 첫 승리! 내 군단이 {carried}% 활약 — 네 지휘였다";
+    carried = `<div class="rwd2" style="color:#fbbf24;font-size:12px;">${fwin.replace('{carried}', getCarriedFeedback().match(/(\d+)%/)?.[1]||'42')}</div>`;
+  }
   $overlayMsg.innerHTML = title + extra + carried;
   $("overlay-btn").textContent = win ? t("cont") : t("retry");
   $overlay.classList.remove("hidden");
@@ -1134,7 +1177,7 @@ function getCarriedFeedback() {
       const pct = Math.max(8, Math.floor((c.w / totalW) * 72));
       return `${c.name} ${pct}%`;
     }).join(" · ");
-    carry = top + " carried";
+    carry = top + " carried — 네 지휘가 봉인했다";
   } else if (!specifics.length) {
     carry = ["Arclight judgment", "Solace repair", "Dominus command", "Vespera swarm", "Vector sync"][(META.pulls||0)%5];
   }
@@ -1278,6 +1321,8 @@ function checkDaily() {
     META.gold += base + varB; bumpPrestige(1);
     saveMeta(); updateMeta();
     setTimeout(() => toast(t("tDaily") + (varB? ` +${varB}`:""), "#fbbf24"), 500);
+    // Vanguard 24h FOMO ritual interlock (carry teaser + limited god-VFX on Founders)
+    if (winOpen && (!META.vanguard || META.vanguard !== today())) { META.vanguard = today(); setTimeout(()=> { toast("Vanguard Focus 24h: carried % boosted tease + canvas gold rim"," #fbbf24"); if(!running) reset(); }, 820); }
   }
 }
 
@@ -1340,12 +1385,13 @@ function updateUltBtn() {
   const b = $("ult"); if (!b) return;
   const h = HEROES[META.hero];
   const glyph = h.glyph || "⚔️";
-  // Jordan: ULT screams power fantasy "this hero's ultimate is MINE and awesome". Per-hero identity + dramatic label. Ready = BIG DAMN DEAL (HSR/AFK/E7). Hero glyph bleed + color. Korean premium text.
-  if (!running) { b.textContent = "LEGION CC · " + glyph + " " + (h.ultName || tUlt(h.ult)); b.disabled = true; b.classList.remove("ready"); b.classList.remove("hero-tinted"); b.style.removeProperty('--hcolor'); return; }
+  // ULTIMATE PREMIUM (Alex Rivera top expert + Legion): "군단 지휘 본부 — MY ULT" cinematic power fantasy. Per-hero tint + powerful elite KR label "군단의 핵". Ready = BIG dopamine command that screams "MY POWER". Glyph integrated. HSR/AFK/E7 + identity fusion. "이 궁극기가 내 거야".
+  if (!running) { b.textContent = "⚔️ 군단 지휘 본부 • " + glyph + " " + (h.ultName || tUlt(h.ult)); b.disabled = true; b.classList.remove("ready"); b.classList.remove("hero-tinted"); b.style.removeProperty('--hcolor'); return; }
   b.disabled = ultT > 0;
   if (ultT > 0) { b.textContent = glyph + " " + Math.ceil(ultT) + "s"; b.classList.remove("ready"); b.classList.remove("hero-tinted"); b.style.removeProperty('--hcolor'); }
   else {
-    b.textContent = "🔥 " + glyph + " 【군단의 핵 — MY ULT】 " + (h.ultName || tUlt(h.ult));
+    const ultLabel = "【군단의 핵 — " + (h.ultName || tUlt(h.ult)) + "】 EXECUTE";
+    b.textContent = "🔥 " + glyph + " " + ultLabel;
     b.classList.add("ready");
     const hc = getHeroColor(META.hero);
     if (hc) { b.style.setProperty('--hcolor', hc); b.classList.add('hero-tinted'); } else { b.classList.remove('hero-tinted'); b.style.removeProperty('--hcolor'); }
@@ -1386,19 +1432,19 @@ function updateHeroUI() {
     }
   });
   const h = HEROES[META.hero], lv = META.heroLv[META.hero] || 1, tr = tHero(META.hero);
-  // Alex Rivera: Legion Command Center — "MY POWER" premium (AFK/HSR/E7). Korean "군단의 핵" identity fusion for endowment.
-  if ($("hero-name")) $("hero-name").innerHTML = h.glyph + ' <span class="hcode">RANK ' + h.rank + '</span> ' + tr[0] + " Lv" + lv + ' <small style="color:#fbbf24;font-size:6.5px">LEGION CC • MY POWER • ULT</small>';
+  // Alex: Command center per-hero (AFK/HSR power fantasy). "MY ULT" ready state sync.
+  if ($("hero-name")) $("hero-name").innerHTML = h.glyph + ' <span class="hcode">RANK ' + h.rank + '</span> ' + tr[0] + " Lv" + lv + ' <small style="color:#fbbf24;font-size:6px;letter-spacing:1px">⚔️ 군단 지휘 본부 • MY POWER • ULT</small>';
   if ($("hero-desc")) $("hero-desc").innerHTML = tr[1] + ' <span style="color:#f59e0b;font-weight:700">· ULT: ' + tUlt(h.ult) + '</span>';
   if ($("hero-up")) $("hero-up").textContent = t("upgrade") + " " + heroUpCost() + "g";
   updateUltBtn(); // ensure hero color bleed syncs instantly on switch
 }
 function selectHero(h) { if (running || !HEROES[h]) return; META.hero = h; saveMeta(); updateHeroUI(); reset(); haptic("heavy");
-  // Premium sel feedback — "this hero's ultimate is MINE" power fantasy (HSR wow + AFK/E7). Strong scale + glow + ult sync.
+  // Premium sel feedback — "this hero's ultimate is MINE" power fantasy (HSR wow + AFK/E7). Strong scale + glow + ult sync. "MY POWER" visual pop.
   const bb = document.querySelector('.hbtn[data-h="' + h + '"]'); if (bb) {
-    bb.style.transform = 'scale(1.26)';
+    bb.style.transform = 'scale(1.34)';
     const hc = getHeroColor(h);
-    if (hc) bb.style.boxShadow = `0 0 56px ${hc}bb, 0 0 22px ${hc}, inset 0 0 12px rgba(255,255,255,0.2)`;
-    setTimeout(() => { if (bb) { bb.style.transform = ''; bb.style.boxShadow = ''; updateUltBtn(); } }, 240);
+    if (hc) bb.style.boxShadow = `0 0 72px ${hc}dd, 0 0 26px ${hc}, inset 0 0 16px rgba(255,255,255,0.25)`;
+    setTimeout(() => { if (bb) { bb.style.transform = ''; bb.style.boxShadow = ''; updateUltBtn(); } }, 260);
   }
   // ult preview flash — screams "MY power"
   const ub = $("ult"); if (ub && !running) { ub.style.borderColor = getHeroColor(h) || '#4a3a00'; setTimeout(()=>{if(ub) ub.style.borderColor = '#4a3a00';}, 480); }
@@ -1500,26 +1546,36 @@ function initViralA11y() {
   if (META.vfxFallback) document.body.classList.add("vfx-fallback");
 }
 function openSettings() { updateToggles(); buildLangList(); renderProfile(); showPage("settings"); }
+// 🔄 환생 보상 — 진행을 소울(특별 매개체)+골드+다이아로 환산. 소울은 환생해도 유지+적립
+function prestigeReward() {
+  const ch = META.chapter || 1, tower = META.towerBest || 0;
+  let ssr = 0; if (typeof ROSTER !== "undefined") ssr = (META.owned || []).filter((id) => { const u = ROSTER.find((x) => x.id === id); return u && u.rarity === "SSR"; }).length;
+  return { soul: Math.floor(ch * 2 + ssr * 12 + tower / 2), gem: Math.floor(ch * 3 + ssr * 15), gold: Math.floor(ch * 800 + 2000) };
+}
 function resetProgress() {
   const btn = $("set-reset");
-  if (btn) { btn.disabled = true; btn.textContent = "초기화 중..."; }
+  const rw = prestigeReward();
+  const ask = t("prestigeAsk", { soul: rw.soul, gem: rw.gem, gold: rw.gold });
   const go = () => {
+    if (btn) { btn.disabled = true; btn.textContent = "..."; }
+    const prevSoul = META.soul || 0;
     try {
-      // 안전 백업 (LS 영구 삭제 방지, _bak 키로 복구 가능 — 휴지통 원칙)
       const cur = localStorage.getItem(META_KEY);
-      if (cur) localStorage.setItem(META_KEY + "_bak", cur);
+      if (cur) localStorage.setItem(META_KEY + "_bak", cur);   // 백업(복구 가능)
       localStorage.removeItem(META_KEY);
     } catch (e) {}
-    META = loadMeta(); counts.p = META.army; applyStaticI18n(); updateHeroUI(); reset(); showPage("battle"); toast(t("setResetOk"), "#fbbf24");
+    META = loadMeta();
+    META.soul = prevSoul + rw.soul;                            // 🔮 소울 = 환생 관통 매개체(유지+적립)
+    META.gold += rw.gold; META.gems = (META.gems || 0) + rw.gem;
+    saveMeta();
+    counts.p = META.army; applyStaticI18n(); updateHeroUI(); reset(); updateMeta(); showPage("battle");
+    SFX.ssr(); haptic("heavy");
+    setTimeout(() => toast(t("prestigeDone", { soul: rw.soul, gem: rw.gem, gold: rw.gold }), "#c084fc"), 300);
   };
   const done = () => { if (btn) { btn.disabled = false; btn.textContent = t("setReset"); } };
-  if (tg && tg.showConfirm) {
-    tg.showConfirm(t("resetAsk"), (ok) => { if (ok) go(); done(); });
-  } else if (confirm(t("resetAsk"))) {
-    go(); done();
-  } else {
-    done();
-  }
+  if (tg && tg.showConfirm) { tg.showConfirm(ask, (ok) => { if (ok) go(); done(); }); }
+  else if (confirm(ask)) { go(); done(); }
+  else done();
 }
 $("set-sound").addEventListener("click", () => { META.sound = META.sound === false; saveMeta(); updateToggles(); if (META.sound !== false) SFX.tap(); });
 $("set-haptic").addEventListener("click", () => { META.haptic = META.haptic === false; saveMeta(); updateToggles(); });
@@ -1618,6 +1674,7 @@ function claimPlay(i) {
 }
 function openEvent() { renderAttend(); renderPlay(); renderSeason(); showPage("event"); 
   const orb = $("ritual-orb"); if (orb) orb.style.display = (getLegionSignal() > 1.6 || META.ritualWin===today()) ? "" : "none";
+  const vg = $("vanguard-ritual"); if (vg) vg.textContent = (META.vanguard===today()) ? "⚡ Vanguard Focus 24h: Founders gold rim + carried tease live (FOMO window)" : "Vanguard Focus: daily high-signal claim 시 24h 한정 MY carried VFX";
 }
 function renderAttend() {
   const grid = $("attend-grid"); if (!grid) return;
@@ -1893,8 +1950,9 @@ function renderSquad() {
   const synBox = $("squad-syn");
   if (synBox) {
     const syn = squadSynergy();
-    synBox.innerHTML = syn.bonuses.length ? syn.bonuses.map((b) => `<span class="syn-chip">${b}</span>`).join("")
-      : `<div class="ddim" style="font-size:11px">같은 진영 2+ / 다양한 아키타입으로 시너지 발동</div>`;
+    let html = syn.bonuses.length ? syn.bonuses.map((b) => `<span class="syn-chip">${b}</span>`).join("") : `<div class="ddim" style="font-size:11px">같은 진영 2+ / 다양한 아키타입으로 시너지 발동</div>`;
+    if (META.vanguard && META.vanguard===today()) html += ` <span class="syn-chip" style="color:#fde047;border-color:#fbbf24">Vanguard 24h • MY carried tease</span>`;
+    synBox.innerHTML = html;
   }
   // 출전 슬롯
   slots.innerHTML = "";
@@ -2041,7 +2099,8 @@ function openCharPanel(id) {
         const onThis = eq[g.slot] === g.id;
         const st = STAT_KEYS.filter((k) => g[k]).map((k) => `${t("st_" + k)}${gearStat(g, k)}`).join(" ");
         const best = !onThis && isBestForChar(g, id) ? '<span class="best">★추천</span>' : '';
-        return `<div class="gear-card${onThis ? " on" : ""}" data-gid="${g.id}" style="border-color:${g.color}"><div class="g-art">${gearArt(g)}</div><div class="g-info"><div class="g-name"><b style="color:${g.color}">${g.rarity}${g.enh ? "+" + g.enh : ""}</b></div><div class="g-stats">${st}</div>${best}</div><div class="g-act">${onThis ? '<span class="act-on">착용중</span>' : '<button class="g-equip">장착</button>'}</div></div>`;
+        const carry = onThis ? '' : `<small style="color:#a3e635">+${Math.round(((g.str||0)+(g.int||0)+(g.agi||0)+(g.luk||0))*0.9)}% MY power</small>`;
+        return `<div class="gear-card${onThis ? " on" : ""}" data-gid="${g.id}" style="border-color:${g.color}"><div class="g-art">${gearArt(g)}</div><div class="g-info"><div class="g-name"><b style="color:${g.color}">${g.rarity}${g.enh ? "+" + g.enh : ""}</b></div><div class="g-stats">${st}</div>${best}${carry}</div><div class="g-act">${onThis ? '<span class="act-on">착용중</span>' : '<button class="g-equip">장착</button>'}</div></div>`;
       }).join("");
       inv.querySelectorAll(".gear-card").forEach((c) => {
         const gid = +c.dataset.gid;
@@ -2148,6 +2207,7 @@ function showGearDex(tid) {
   const g = GEAR_ROSTER.find((x) => x.id === tid); if (!g) return;
   const has = new Set((META.gear || []).map((x) => x.tplId)).has(tid);
   $("unit-card").style.borderColor = g.color;
+  $("unit-card").classList.toggle('rSSR', g.rarity === 'SSR');
   // premium: always show icon/art (no broken ❔/? even for locked) — codex teasers + panels use full when images added
   $("unit-glyph").innerHTML = (g.vis || SLOT_ICON[g.slot] || "⚙️");
   $("unit-name").innerHTML = `<b style="color:${g.color}">[${g.rarity}]</b> ${has ? g.name : "???"}`;
@@ -2163,6 +2223,7 @@ function openGearItem(id) {
   const owner = gearOwnerName(id), cost = 200 * ((g.enh || 0) + 1);
   const stats = STAT_KEYS.filter((k) => g[k]).map((k) => t("st_" + k) + " +" + gearStat(g, k)).join(" · ");
   $("unit-card").style.borderColor = g.color;
+  $("unit-card").classList.toggle('rSSR', g.rarity === 'SSR');
   $("unit-glyph").innerHTML = g.vis || SLOT_ICON[g.slot] || "⚙️";
   $("unit-name").innerHTML = `<b style="color:${g.color}">[${g.rarity}${g.enh ? "+" + g.enh : ""}]</b> ${g.name}`;
   $("unit-title").textContent = (t("st_" + SLOT_MAIN[g.slot]) || g.slot);
@@ -2176,6 +2237,7 @@ function showUnit(id) {
   const u = ROSTER.find((x) => x.id === id); if (!u) return;
   const has = (META.owned || []).indexOf(id) >= 0;
   $("unit-card").style.borderColor = u.color;
+  $("unit-card").classList.toggle('rSSR', u.rarity === 'SSR');
   $("unit-glyph").innerHTML = has ? artHTML(u, "ucgly", "ucim") : "❔";
   $("unit-name").innerHTML = `<b style="color:${u.color}">[${u.rarity}]</b> ${has ? u.name : "???"}`;
   $("unit-title").textContent = has ? (u.title || u.arch) : t("locked");

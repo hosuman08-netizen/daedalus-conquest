@@ -17,5 +17,15 @@
 - heroicon-dragoon: close bust dragon knight commander, intense gold energy aura, premium sci-fi gacha icon crop, dramatic rim, original
 (기타 heroicon-strategist 등 동일 스타일. hbtn sel 시 scale + glow로 "MY power" pop.)
 
-## ULT 버튼 glyph / frame 강화 (canvas tie-in)
+## ULT 버튼 glyph / frame 강화 (canvas tie-in) + Hero Command Bar assets (Alex/Jordan top expert upgrade)
 > 별도 glyph 필요 시 art/ult-<key>.png (작은 불/드래곤/벽 등). ULT ready 시 hero glyph + fire gradient (CSS) + canvas overclock 효과 연동. "🔥 군단 지휘 — MY ULT" 이미 강력.
+> 추가: art/heroicon-<key>.png (64-128px) dramatic close-bust god-pose, gold/crimson rim, per-hero tint glow (strategist purple, berserker red, dragoon gold 등). hbtn .him / ult bleed에 사용. PNG 우선, synth fallback. Premium Legion CC sel state (AFK energy release + HSR cinematic + E7 prestige). Square crop safe.
+
+## Alex Voss / Jordan Kael 20260616 추가 — ULT power fantasy + god-ray / Host Weave (prompt append)
+hbtn/bar portrait + ULT glyph에 "MY LEGION ULT god-pose variant" + "volumetric god-ray burst from eyes/crown + Host Weave fusion tethers overlay" + "elegant per-hero command portrait (no text, color rim bleed)". 
+- strategist: "MY LEGION ULT tactical command god-pose, volumetric god-rays, Host Weave tethers to drone silhouettes, elegant close-bust command bar, per-hero purple rim"
+(다른 6인 동일: berserker red rage burst, dragoon gold dragon + weave 등). image_gen → art/hero-*.png or heroicon-*.png drop. "터지게" premium + "MY real Founding" endowment. Reversible, TG lazy.
+
+
+## Jordan Kael 2026 polish: Elegant hero command bar portrait per-hero (hbtn .him / bar use)
+> art/heroicon-<key>.png (or reuse hero- for bar): elegant bust/shoulder portrait, per-hero signature color rim/glow (no text/rank/emoji in PNG), dark premium sci-fi bg, subtle volumetric god-ray + host-weave energy threads + etched filigree, cinematic gacha command center ready pose, original not copy. 512-768px, centered bust safe for 1.20 sel scale crop. "MY LEGION ULT" identity — scale 1.20 + intense unique tint on sel. For all 7: strategist (cool purple-blue rim), berserker (crimson-red veins), warden (cyan-steel), ranger (lime-green precision), mech (slate-silver), engineer (magenta-rose), dragoon (gold-dragon fire). PNG lazy priority TG perf. Append variants for ULT ready stronger fire/pose.

@@ -61,6 +61,9 @@
 ## 9. 🧠 Dominus — 군림자 (최고 등급)
 `the supreme ruler of the Legion named Dominus, regal black-and-gold commander regalia with a glowing crown-circuit halo, absolute authoritative aura, banners behind, all-army buff energy radiating, majestic throne-room, golden god-rays, the most prestigious unit; add subtle will-flame or eros-threads or host-weave overlay variants for §21 secular sacred (will to power / platonic eros / durkheim effervescence) without extra stars/logos`
 
+## Jordan Kael 2026 premium polish append: MY LEGION ULT cinematic command portrait variants (all 9 SSR)
+> For hero command bar / ULT synergy (elegant per-SSR color rim no text). Generate ULT-pose variant of each: "MY ULT" dramatic power release pose + volumetric god-ray + host-weave overlay (energy threads linking to army silhouettes) + premium etched filigree + energy conduit veins + dramatic rim lighting. Original sci-fi anime gacha, intense belonging "this is MY vessel". Add to art/ as ult-<slug>.png or heroicon-ult-<slug>.png. 512px bust crop safe. Per-hero tint: Arclight (gold-judgment scales ray), Solace (blue regen weave), Cipher (violet precision conduit), Ignis (crimson rage flame burst), Vector (emerald dispatch threads), Vespera (amber swarm hive weave), Aegis (cyan barrier pillar rim), Anvil (rose forge sparks conduit), Dominus (supreme gold throne ray + full host-weave). Use in #ult ready / .hbtn.sel for god-shine "must collect" urge. TG perf: lazy PNG priority + rich layered synth fallback. Ethical fictional only. "멋져" premium for low-perf mobile.
+
 ---
 
 ## 가챠 연출 메모 (특정 게임 참조 없이 — 일반 기법)
@@ -70,3 +73,10 @@
 - Phase1은 캔버스 합성(에셋 0) 폴백 우선, 실제 PNG는 9인만 lazy 로드. (TG 모바일 경량)
 
 > ⚠️ 위 연출은 **일반적 가챠 기법** 설명이며 특정 게임을 모방·참조하지 않음. 자체 캔버스로 구현.
+
+## Alex Voss / Jordan Kael 최고전문가 추가 (20260616 coordinator synth) — god-ray / ULT / Host Weave / "멋져" premium
+모든 9SSR 프롬프트 끝 (공통 접미 뒤)에 append 적용. "MY LEGION ULT power fantasy pose" + "stronger volumetric god-ray from crown/eyes" + "Host Weave overlay (golden effervescence tethers / fusion threads per §21, Dominus throne 등)" + "elegant command bar portrait variant (close bust, per-hero color rim, no text)". 
+- Arclight: ... + "judgment scales erupting in MY LEGION ULT pose, intense volumetric god-rays, Host Weave golden fusion tethers linking to allied silhouettes"
+- Solace: ... + "regen veil exploding in MY LEGION ULT command, volumetric god-rays, Host Weave effervescence overlay"
+(전체 9인 동일 패턴 적용. image_gen 재drop art/ 로, synth fallback 유지. "도파민 터지게" visual + "MY real army" belonging. TG perf/ethical/fictional 엄수. Jordan clean gallery + Alex gacha/ULT theater tie-in.)
+
