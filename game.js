@@ -955,9 +955,47 @@ function dmg(target, amount, from) {
 
 function addFx(x, y, kind, x2, y2, side) { fx.push({ x, y, kind, x2, y2, side, t: 0, life: kind === "shot" ? 0.12 : 0.45 }); }
 // 💥 궁극기 발동 시각효과 — 1655 호출처가 미정의로 매 궁극기 throw하던 것 정의(군주 "궁극기 이쁘게"). 중앙 방사 폭발.
-function triggerUltVfx(color) {
-  addFx(W / 2, H / 2, "overclock");
-  for (let i = 0; i < 10; i++) { const a = (Math.PI * 2 * i) / 10; addFx(W / 2 + Math.cos(a) * 34, H / 2 + Math.sin(a) * 34, "charge"); }
+// 군주 20260617 + Grok P2: 궁극기 7종 고유 전투 VFX (간지·도파민). 파티클 상한(≤14)으로 perf 안전.
+function triggerUltVfx(ult, color) {
+  const mine = units.filter((u) => u.side === "p" && u.hp > 0);
+  const foes = units.filter((u) => u.side === "e" && u.hp > 0);
+  const cx = W / 2, cy = H / 2;
+  const cap = (arr, n) => arr.slice(0, n);
+  window._ultBurst = { t: 0.7, color: color || "#fbbf24", style: ult };
+  switch (ult) {
+    case "dragon":   // 🐉 드래곤 강림 — 메테오 낙하 + 적 전체 화염
+      window._ultBurst.color = "#ff5a2a";
+      cap(foes, 12).forEach((f) => addFx(f.x, f.y, "die", 0, 0, "e"));
+      for (let i = 0; i < 8; i++) { const x = W * (0.12 + Math.random() * 0.76); addFx(x, 8, "shot", x, cy * (0.5 + Math.random()), "e"); }
+      break;
+    case "volley":   // 🎯 아크 볼리 — 하늘 정밀 일제사
+      window._ultBurst.color = "#a3e635";
+      cap(foes, 14).forEach((f) => addFx(f.x, 6, "snipe", f.x, f.y, "e"));
+      break;
+    case "assault":  // 🤖 강습 — 일제 대시 + 충격파
+      window._ultBurst.color = "#cbd5e1";
+      cap(mine, 12).forEach((u) => { addFx(u.x, u.y, "charge"); addFx(u.x, u.y - 10, "shot", u.x, u.y - 46, "p"); });
+      break;
+    case "focus":    // 🧠 전술 지휘 — 버프 오라 상승
+      window._ultBurst.color = "#c4b5fd";
+      cap(mine, 12).forEach((u) => { addFx(u.x, u.y, "evade"); addFx(u.x, u.y, "ctr"); });
+      break;
+    case "wall":     // 🛡️ 철벽 — 푸른 방벽
+      window._ultBurst.color = "#67e8f9";
+      cap(mine, 12).forEach((u) => addFx(u.x, u.y, "barrier"));
+      break;
+    case "rage":     // ⚡ 광폭화 — 적색 광폭 슬래시
+      window._ultBurst.color = "#ef4444";
+      cap(mine, 12).forEach((u) => { addFx(u.x, u.y, "ctr"); addFx(u.x, u.y, "charge"); });
+      break;
+    case "repair":   // 💉 긴급 수리 — 초록 힐 노바
+      window._ultBurst.color = "#4ade80";
+      cap(mine, 12).forEach((u) => { addFx(u.x, u.y, "overclock"); addFx(u.x, u.y, "barrier"); });
+      break;
+    default:
+      addFx(cx, cy, "overclock");
+      for (let i = 0; i < 8; i++) { const a = (Math.PI * 2 * i) / 8; addFx(cx + Math.cos(a) * 34, cy + Math.sin(a) * 34, "charge"); }
+  }
 }
 // 🎉 승리/가챠 축포 — 1339·1517 호출처가 미정의(try/catch라 죽은 연출)였던 것 정의.
 function confettiBurst() {
@@ -1693,7 +1731,7 @@ function doUlt() {
   else if (h.ult === "repair")  mine.forEach((u) => { u.hp = Math.min(u.maxHp, u.hp + u.maxHp * 0.4); addFx(u.x, u.y, "barrier"); });
   else if (h.ult === "dragon")  { foes.forEach((f) => dmg(f, 42 * k, null)); addFx(W / 2, H / 2, "overclock"); }
   ultT = h.ultCd;
-  triggerUltVfx(getHeroColor(META.hero) || '#fbbf24'); // Sovereign 20260616: 궁극기 더 이쁘게 — canvas god-ray + heavy burst VFX (EXECUTE 순간 극적 폭발)
+  triggerUltVfx(h.ult, getHeroColor(META.hero) || '#fbbf24'); // 궁극기 7종 고유 VFX (드래곤/볼리/강습/지휘/철벽/광폭/수리)
   toast(t("tUlt", { x: tUlt(h.ult) }), "#fbbf24");
   haptic("heavy");
 }
