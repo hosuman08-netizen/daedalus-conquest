@@ -1250,7 +1250,7 @@ function finish(p, e) {
     let extraEnemy = "";
     const eNames = units.filter(u=>u.side==="e" && u.eName).map(u=>u.eName);
     if (eNames.length) extraEnemy = ` · ${eNames[0]} 격파`;
-    carried = `<div class="rwd2" style="color:#fbbf24;font-size:12px;">${getCarriedFeedback()}${extraEnemy}</div>`;
+    carried = `<div class="rwd2 carried-pop" style="color:#fbbf24;font-size:12px;">${getCarriedFeedback()}${extraEnemy}</div>`;
   }
   // Vanguard Focus 24h FOMO + first-win stronger overlay (limited window carry teaser + personal belonging)
   const isV = META.vanguard && META.vanguard === today();
@@ -1437,6 +1437,7 @@ function showGacha(rar, msg) {
   $("gacha-rank").textContent = rar.key;
   $("gacha-rank").style.color = rar.color;
   $("gacha-card").style.boxShadow = `0 0 40px ${rar.color}, inset 0 0 0 2px ${rar.color}`;
+  if (rar.key === "SSR") $("gacha-rank").classList.add('ssr-tease'); else $("gacha-rank").classList.remove('ssr-tease');
   const pity = (META.pity||0); const pct = rar.key==="SSR" ? "2%+" : "visible";
   $("gacha-msg").innerHTML = msg + `<br><small style="opacity:.7">🎯 천장 ${pity}/10 · 캐릭터 N60% R25% SR13% SSR2% | 장비 동일 | pity 투명 (soft&gt;6 +6%/회 ramp, hard10 SSR 보장)</small>`;
   g.classList.remove("hidden");
@@ -1919,20 +1920,20 @@ function claimPlay(i) {
   if (boxRes) setTimeout(() => showGacha({ key: boxRes.rank, color: boxRes.color }, boxRes.text), 400);
   else toast(t("tPlay", { x: txt }) + (mult > 1 ? " (🔥 streak +" + Math.floor((mult-1)*100) + "%)" : ""), "#fbbf24");
   // cycle: after claim, hint next action for loop (AFK accrues while away)
-  setTimeout(() => toast("전투 1판 → 내일 보상 더 커짐! (오프라인 가속)", "#a3e635"), 1200);
+  setTimeout(() => toast("전투 1판 → 내일 보상 더 커짐! (오프라인 가속) claim today → tomorrow carried power hook", "#a3e635"), 1200);
 }
 function openEvent() { renderAttend(); renderPlay(); renderSeason(); showPage("event"); 
   const orb = $("ritual-orb"); if (orb) orb.style.display = (getLegionSignal() > 1.6 || META.ritualWin===today()) ? "" : "none";
-  const vg = $("vanguard-ritual"); if (vg) vg.textContent = (META.vanguard===today()) ? "⚡ Vanguard Focus 24h: Founders gold rim + carried tease live (FOMO window)" : "Vanguard Focus: daily high-signal claim 시 24h 한정 MY carried VFX";
+  const vg = $("vanguard-ritual"); if (vg) vg.textContent = (META.vanguard===today()) ? "⚡ Vanguard Focus 24h: Founders gold rim + carried tease live (FOMO window) — claim today → 내일 MY carried power boost visible" : "Vanguard Focus: daily high-signal claim 시 24h 한정 MY carried VFX (claim → tomorrow power hook)";
   // daily 4-mission checklist for habit cycle (must complete to claim bonus) – "must press reward" loop like AFK/Duolingo
   const miss = $("daily-missions-hint");
   if (miss) {
     const b = META.dailyBattles || 0, p = META.dailyPulls || 0, u = META.dailyUlts || 0, t = META.dailyTower || 0;
     const allDone = b >= 3 && p >= 1 && u >= 1 && t >= 1;
-    miss.innerHTML = `오늘 미션: 전투 ${b}/3 · 뽑 ${p}/1 · ULT ${u}/1 · 탑 ${t}/1 ${allDone && !META.dailyMissionsClaimed ? '<button onclick="claimDailyMissions()">보상 받기 +500g + 내일 AFK 20% 부스트</button>' : ''} (매일 꼭 1번씩! 스트릭 유지)`;
+    miss.innerHTML = `오늘 미션: 전투 ${b}/3 · 뽑 ${p}/1 · ULT ${u}/1 · 탑 ${t}/1 ${allDone && !META.dailyMissionsClaimed ? '<button onclick="claimDailyMissions()">보상 받기 +500g + 내일 AFK 20% 부스트</button>' : ''} (매일 꼭 1번씩! 스트릭 유지 — claim today for tomorrow carried power)`;
   }
   // FOMO + cycle in event: "claim before reset" + streak visible
-  if ($("play-now")) $("play-now").textContent = (META.play.sec||0) + "s (0시 리셋, miss=loss aversion)";
+  if ($("play-now")) $("play-now").textContent = (META.play.sec||0) + "s (0시 리셋, miss=loss aversion; today claim = 내일 carried % stronger)";
 }
 function renderAttend() {
   const grid = $("attend-grid"); if (!grid) return;
@@ -1950,7 +1951,7 @@ function renderAttend() {
   // FOMO: claim before daily reset (visible compulsion)
   const fomo = $("attend-fomo"); if (fomo) {
     const h = 24 - (new Date().getHours() || 0);
-    fomo.textContent = `⏰ 리셋까지 ~${h}h (miss = streak 초기화)`;
+    fomo.textContent = `⏰ 리셋까지 ~${h}h (miss = streak 초기화) — 오늘 claim = 내일 carried power + MY POWER hook`;
   }
 }
 function claimAttend() {

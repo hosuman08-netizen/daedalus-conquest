@@ -694,7 +694,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .hbtn { overflow: hidden; }
 .hbtn .him { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
 .hbtn .rk { z-index: 2; }
-.hbtn.sel .him { outline: 2px solid var(--crimson); outline-offset: -2px; }
+.hbtn.sel .him { outline: 2px solid var(--crimson); outline-offset: -2px; box-shadow: 0 0 10px currentColor; } /* 2026-06-16 polish: hero bar sel pop stronger with icon glow (new heroicons 7 endowment pop). Reversible. */
 
 .gitem { cursor: pointer; transition: transform .08s; }
 .gitem:active { transform: scale(.985); }
@@ -740,3 +740,44 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .cp-pickhint { font-size: 11px; color: var(--dim); text-align: center; padding: 14px 8px; line-height: 1.6; }
 .cp-allbtn { font-size: 10px; color: #f87171; margin-left: 6px; cursor: pointer; }
 #cp-inv { max-height: 200px; overflow-y: auto; }
+
+/* 2026-06-16 Dopamine retention & subtle monetization polishes (user POV specialist, Sovereign directive: 유저 입장 도파민 중독 과금 알게모르게 합법 revenue pipeline). 
+   2-4 ONLY subtle SAFE: carried visual enhance, gacha SSR pulse/tease, tomorrow power hook stronger. NO balance nums. Legal/ethical (transparent pity/FOMO, no dark). Reversible comments. 
+   Why: carried "MY POWER" ownership + SSR peak hit + daily ritual tomorrow-anticipation = habit loop → retention ↑ sessions → natural gacha/heroLv/gear spend pipeline. */
+.carried-pop { animation: carriedBreathe 2.4s ease-in-out infinite; font-weight:700; }
+@keyframes carriedBreathe { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.88; transform:scale(1.012); } }
+#gacha-rank.ssr-tease { animation: ssrTease 2.6s cubic-bezier(0.4,0,0.2,1) infinite; }
+@keyframes ssrTease { 0%,100%{ transform:scale(1); text-shadow:0 0 6px currentColor; } 50%{ transform:scale(1.025); text-shadow:0 0 18px currentColor, 0 0 32px #fbbf24; } }
+
+/* ════════ 캐릭 상세창 확대 — 눈 편하게 (Sovereign 2026-06-16 "너무 작아서 눈아파") ════════ */
+/* 맨 끝 블록 = 캐스케이드 우선. 폰트·슬롯·아바타 전반 1.5~1.8x 확대, 패널 넓힘. */
+#char-panel-card { max-width: 440px !important; width: 96vw !important; max-height: 90vh !important; padding: 12px 14px 14px !important; border-radius: 12px !important; border-width: 2px !important; }
+/* 헤더 */
+#char-panel-card .cp-art { width: 56px !important; height: 56px !important; flex: 0 0 56px !important; border-radius: 8px !important; font-size: 20px !important; }
+#char-panel-card #cp-head { gap: 10px !important; margin-bottom: 8px !important; }
+#char-panel-card .cp-nm { font-size: 17px !important; line-height: 1.15 !important; }
+#char-panel-card .cp-ti { font-size: 11px !important; line-height: 1.3 !important; margin-top: 2px !important; }
+#char-panel-card .cp-st { font-size: 11px !important; line-height: 1.3 !important; margin-top: 2px !important; }
+#char-panel-card #cp-lvup { font-size: 12px !important; padding: 5px 9px !important; border-radius: 6px !important; }
+/* 성장(강화) 줄 */
+#char-panel-card #cp-grow { gap: 5px !important; margin-bottom: 8px !important; }
+#char-panel-card #cp-grow button { font-size: 13px !important; padding: 6px 11px !important; border-radius: 6px !important; }
+#char-panel-card #cp-grow .cp-gdim { font-size: 11px !important; }
+#char-panel-card #cp-grow .cp-badge { font-size: 12px !important; padding: 2px 6px !important; }
+/* 장비 슬롯 5칸 — 크게 */
+#char-panel-card #cp-gear { gap: 6px !important; margin-bottom: 8px !important; }
+#char-panel-card .cp-slot { min-height: 72px !important; padding: 7px 4px !important; border-radius: 9px !important; border-width: 1.5px !important; gap: 5px !important; }
+#char-panel-card .cp-slot .slot-art { width: 46px !important; height: 46px !important; font-size: 26px !important; }
+#char-panel-card .cp-slot img { width: 44px !important; height: 44px !important; }
+#char-panel-card .cp-slot .slot-nm { font-size: 12px !important; line-height: 1.2 !important; }
+#char-panel-card .cp-slot .slot-x { top: -5px !important; right: -3px !important; width: 20px !important; height: 20px !important; font-size: 13px !important; }
+/* 안내문구 / 인벤 / 닫기 */
+#char-panel-card .cp-pickhint, #char-panel-card #cp-inv-label { font-size: 12px !important; padding: 10px 8px !important; line-height: 1.5 !important; }
+#char-panel-card .cp-allbtn { font-size: 12px !important; }
+#char-panel-card #cp-inv { grid-template-columns: repeat(2, 1fr) !important; gap: 5px !important; max-height: 30vh !important; }
+#char-panel-card .gear-card img { width: 26px !important; height: 26px !important; }
+#char-panel-card .gear-card .g-art { flex: 0 0 26px !important; width: 26px !important; height: 26px !important; }
+#char-panel-card .gear-card .g-name { font-size: 12px !important; }
+#char-panel-card .gear-card .g-stats { font-size: 10px !important; }
+#char-panel-card .gear-card .g-act button { font-size: 11px !important; padding: 4px 8px !important; }
+#char-panel-card #cp-close { font-size: 14px !important; padding: 9px 0 !important; margin-top: 8px !important; border-radius: 8px !important; }
