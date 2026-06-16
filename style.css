@@ -409,6 +409,15 @@ h1::first-letter { color: var(--crimson); }
 .modetab.sel { color: #fff; background: linear-gradient(135deg, #3a1d5e, #2a1840); border-color: var(--purple); }
 .modetab.locked { opacity: .5; position: relative; }
 .modetab.locked::after { content: "🔒"; font-size: 9px; margin-left: 3px; }
+.modetab.teaser {
+  border-color: #fbbf24;
+  animation: teaser-pulse 2s infinite ease-in-out;
+  opacity: 0.85;
+}
+@keyframes teaser-pulse {
+  0%,100% { box-shadow: 0 0 0 0 #fbbf2466; }
+  50% { box-shadow: 0 0 8px 2px #fbbf2433; }
+}
 .ms-hint { font-size: 11.5px; font-weight: 700; color: #d6c8ff; background: linear-gradient(135deg, #241a3a, #1a1330);
   border: 1px solid #3a2c5a; border-radius: 8px; padding: 6px 10px; margin: 6px 0 2px; text-align: center; }
 .ms-hint b { color: var(--gold); }
@@ -759,6 +768,13 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .prestige-rw b { color: #c084fc; font-size: 15px; }
 .prestige-btn { width: 100%; padding: 12px; font-size: 15px; font-weight: 800; border-radius: 10px; background: linear-gradient(135deg, #a855f7, #6d28d9); color: #fff; border: none; }
 .prestige-btn:active { transform: scale(.98); }
+/* 🔄 환생 발견성 배너 (배틀화면) */
+#asc-prompt { margin: 4px 0 6px; padding: 9px 12px; border-radius: 10px; font-size: 12.5px; color: #e9d5ff; cursor: pointer;
+  background: linear-gradient(135deg, rgba(168,85,247,.22), rgba(6,182,212,.18)); border: 1px solid rgba(192,132,252,.4);
+  animation: ascPulse 2.4s ease-in-out infinite; }
+#asc-prompt b { color: #f0abfc; }
+.asc-prompt-cta { float: right; color: #67e8f9; font-weight: 800; }
+@keyframes ascPulse { 0%,100% { box-shadow: 0 0 0 rgba(192,132,252,0); } 50% { box-shadow: 0 0 14px rgba(192,132,252,.45); } }
 /* 🔄 환생 에테르 상점 */
 .asc-stats { font-size: 12px; font-weight: 700; color: #d8b4fe; margin-bottom: 8px; }
 .asc-stats b { color: #67e8f9; font-size: 14px; }

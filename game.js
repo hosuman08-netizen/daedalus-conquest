@@ -661,11 +661,12 @@ function enemyPowerMul(ch) {
 const ASCEND_GATE = 18;                                   // ch18 도달 시 환생 가능
 function ascLv(node) { return (META.asc && META.asc[node]) || 0; }
 function etherGain(ch) { ch = ch | 0; if (ch < ASCEND_GATE) return 0; return Math.round(20 * Math.pow(1.18, (ch - ASCEND_GATE) / 2)); } // 깊이비례 기하급수
-function ascAtkMul() { return Math.pow(1.18, ascLv("might")); }     // 「공세」 아군 ATK +18%/lv (복리)
-function ascHpMul() { return Math.pow(1.18, ascLv("bulwark")); }    // 「불굴」 아군 HP +18%/lv (복리)
-function ascGoldMul() { return 1 + ascLv("momentum") * 0.18; }      // 「쇄도」 골드획득 +18%/lv (재돌파 가속)
+// ⚠️ 노드 배율 +8%/lv (1.08): 분리노드라 전투력 = atk×hp = 1.08^(공+체). +18%면 5환생째 폭주(sim 검증) → 1.08이 루프 생존값.
+function ascAtkMul() { return Math.pow(1.08, ascLv("might")); }     // 「공세」 아군 ATK +8%/lv (복리)
+function ascHpMul() { return Math.pow(1.08, ascLv("bulwark")); }    // 「불굴」 아군 HP +8%/lv (복리)
+function ascGoldMul() { return 1 + ascLv("momentum") * 0.18; }      // 「쇄도」 골드획득 +18%/lv (재돌파 가속·전투력 아님 → 폭주 무관)
 function ascStartGold() { return ascLv("momentum") * 300; }         // 「쇄도」 시작 골드 +300/lv
-function ascPowerMul() { return Math.pow(1.18, ascLv("might") + ascLv("bulwark")); } // 전투력 표시용 (공세+불굴 균등 시)
+function ascPowerMul() { return Math.pow(1.08, ascLv("might") + ascLv("bulwark")); } // 전투배율 표시용 = atk×hp
 function ascNodeCost(lv) { return Math.round(5 * Math.pow(1.25, lv)); }  // 노드 다음레벨 비용: 5·6·8·10·12·15…
 
 // ── 모드별 전투 셋업 (사이클의 핵심) ─────────────────────────────────────────
@@ -736,7 +737,15 @@ function updateMeta() {
   if ($("gems")) $("gems").textContent = META.gems || 0;
   if ($("soul")) $("soul").textContent = META.soul || 0;
   if ($("chapter")) $("chapter").textContent = META.chapter;
+  if ($("ether")) $("ether").textContent = META.ether || 0;
   const coh = $("cohesion"); if (coh) coh.textContent = (META.prestige || 0).toFixed(1);
+  // 🔄 환생 발견성 배너: ch18+ 도달 시 "환생 가능 · ⬡+N" 노출 (배틀화면)
+  const ap = $("asc-prompt");
+  if (ap) {
+    const ch = META.chapter || 1;
+    if (ch >= ASCEND_GATE) { ap.style.display = ""; ap.innerHTML = `🔄 <b>환생 가능</b> · 지금 환생 시 ⬡ +${etherGain(ch)} <span class="asc-prompt-cta">탭 →</span>`; }
+    else ap.style.display = "none";
+  }
   const sv = $("streak-val"); if (sv) sv.textContent = (META.loginStreak || 0);  // visible streak everywhere (click → event for claim)
   // MVP final plan: pity always visible lobby top "다음 SSR까지 XX회"
   const pityEl = $("pity-left");
@@ -804,7 +813,7 @@ function renderMsHint() {
 function updateModeTabs() {
   document.querySelectorAll(".modetab").forEach((b) => {
     b.classList.toggle("sel", b.dataset.m === META.mode);
-    const locked = !modeUnlocked(b.dataset.m) || b.dataset.m === "turnbased" || b.dataset.m === "arena";
+    const locked = !modeUnlocked(b.dataset.m) || b.dataset.m === "turnbased" || b.dataset.m === "arena" || b.dataset.m === "mystery";
     b.classList.toggle("locked", locked);
   });
   renderMsHint();
@@ -821,6 +830,12 @@ function setMode(m) {
     META.arenaCount = (META.arenaCount || 0) + 1; saveMeta();
     toast("아레나 매칭 (placeholder 자동 1:1) - Phase2에서 풀 구현", "#a855f7");
     // placeholder: treat as quick boss-like for now
+  }
+  if (m === "mystery") {
+    // Sovereign: 아레나 옆 ??? 티저로 유저 궁금증/FOMO 유발
+    toast("❓ ??? : 비밀의 레기온 창. 곧 공개될 새로운 모드! 지금은... 궁금증만 폭발?", "#fbbf24");
+    // optional: openEvent() or bump prestige curiosity
+    return;
   }
   if (!modeUnlocked(m)) { toast(t("msLocked", { n: MODE_UNLOCK[m] }), "#a855f7"); return; }
   META.mode = m; saveMeta(); reset();
@@ -1106,24 +1121,15 @@ function draw() {
         const ch = (typeof curLevel === "number" ? curLevel : 1);
         const intensity = Math.min(1.0, 0.4 + (ch / 60) + (u.boss ? 0.5 : 0));
         const er = u.r * (u.boss ? 1.15 : 1.0);
-        // per-unit slight variation (seed by position so wall of 20+ stars isn't identical)
+        // per-unit slight variation (seed by position so units in formation look distinct)
         const varSeed = (Math.sin(u.x*0.07 + u.y*0.11) * 0.5 + 0.5); // 0~1
-        // base red glow stronger + jagged rim mimic for synth
+        // base red glow + simple solid hostile rim (no spikes/star — user feedback: 별표 빼, 오히려 안 멋져)
         ctx.strokeStyle = `rgba(239,68,68,${0.35 + intensity*0.25})`;
         ctx.lineWidth = 1.5 + intensity * 1.5;
         ctx.beginPath(); ctx.arc(u.x, u.y, er * 1.08, 0, 7); ctx.stroke();
-        // extra hostile jagged rim (PNG 스타일 톱니를 synth에도)
-        ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 2.8 + intensity*0.8;
-        const n = 8 + Math.floor(varSeed*3);
-        ctx.beginPath();
-        for (let k = 0; k <= n; k++) {
-          const ang = (k / n) * Math.PI * 2 - 0.06;
-          const radJ = er * 1.05 + ((k % 2 === 0) ? 3.5 : -0.6) + varSeed*1.5;
-          const jx = u.x + Math.cos(ang) * radJ;
-          const jy = u.y + Math.sin(ang) * radJ;
-          if (k === 0) ctx.moveTo(jx, jy); else ctx.lineTo(jx, jy);
-        }
-        ctx.closePath(); ctx.stroke();
+        // clean red rim for enemy synth — smooth, not jagged/star-like
+        ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 2.5 + intensity*0.5;
+        ctx.beginPath(); ctx.arc(u.x, u.y, er * 1.05, 0, 7); ctx.stroke();
         // arch aggressive details (기존 + var)
         if (u.t === "drone" || u.arch === "drone") {
           ctx.fillStyle = `rgba(239,68,68,${0.5 + intensity*0.3})`;

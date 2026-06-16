@@ -20,7 +20,7 @@
       <span class="meta gem">💎 <i id="gems">50</i></span>
       <span class="meta soul">🔮 <i id="soul">0</i></span>
       <span class="meta ch">📖 <i id="chapter">1</i></span>
-      <span class="meta coh" style="cursor:pointer" onclick="openSettings();renderPrestige();" title="영구 파워 배율. 0.4 = 모든 보상/파워 약 +40% 영구 적용. 환생·리추얼로 증가">🌀 결속 <i id="cohesion">0.0</i></span>
+      <span class="meta eth" style="cursor:pointer" onclick="openSettings();renderPrestige();" title="⬡ 에테르 — 환생으로 얻는 영구 화폐. 에테르 상점에서 아군 공격력·체력을 영구 복리 강화">⬡ <i id="ether">0</i></span>
       <span class="meta" id="streak-meta" style="color:#fbbf24;font-size:11px;cursor:pointer" onclick="openEvent();" title="일일 연속. 7일 유지 시 AFK 보상 1.5배 등. 매일 클레임으로 쌓음">🔥 연속 <i id="streak-val">0</i></span>
       <!-- MVP: pity always visible in lobby top per final plan -->
       <span class="meta pity">🎯 다음 SSR까지 <i id="pity-left">23</i>회</span>
@@ -33,11 +33,13 @@
       <button class="modetab" data-m="boss" data-i18n="mode.boss">🐲 보스</button>
       <button class="modetab" data-m="turnbased" data-i18n="mode.turnbased">⚔️ 턴제</button>
       <button class="modetab" data-m="arena" data-i18n="mode.arena">🏟️ 아레나</button>
+      <button class="modetab teaser" data-m="mystery">❓ ???</button>
     </div>
     <div id="ms-hint" class="ms-hint"></div>
-    <!-- §21 Human Core: Secular Sacred indicators (Host Weave / Signs / Edict quick) -->
+    <!-- 🔄 환생 발견성: ch18+ 도달 시 노출 (PRD §6 "환생 가능 · 예상 에테르 N") -->
+    <div id="asc-prompt" style="display:none" onclick="openSettings();renderPrestige();"></div>
+    <!-- §21 indicators (clean, no dev leaks) -->
     <div id="sacred-host" style="font-size:10px;color:#fbbf24;margin:2px 0 4px;min-height:14px;"></div>
-    <!-- Vanguard Focus 24h FOMO ritual teaser (carry + god-VFX) -->
 
     <div id="heroes">
       <div class="herorow">
@@ -183,7 +185,6 @@
       <div id="play-fomo" style="font-size:10px;color:#f59e0b;margin:-2px 0 6px;text-align:center;"></div>
       <div class="set-sec">🏆 <span data-i18n="evSeason">시즌 이벤트</span></div>
       <div id="season-list"></div>
-      <!-- Vanguard Focus 24h FOMO ritual (psych hook: carry teaser + god-VFX) -->
       <div id="vanguard-ritual" style="font-size:10px;color:#fbbf24;margin-top:6px;min-height:12px;"></div>
     </div>
 
