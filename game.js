@@ -104,31 +104,29 @@ function bgm808(freq, dur, vol) {   // phonk 808 슬라이드 서브베이스
     o.connect(g); g.connect(_actx.destination); o.start(); o.stop(_actx.currentTime + dur + 0.02);
   } catch (e) {}
 }
-function bgmCowbell(freq, vol) {   // Memphis phonk 카우벨 — 시그니처 멜로디 (square 2개 디튠)
+function bgmCowbell(freq, vol) {   // phonk 멜로디 — 둥글게(triangle), 낮고 그루비 (칩튠/테트리스 느낌 제거)
   if (!_actx || (typeof META !== "undefined" && META && META.music === false)) return;
   try {
-    [freq, freq * 1.504].forEach((f) => {
-      const o = _actx.createOscillator(), g = _actx.createGain();
-      o.type = "square"; o.frequency.value = f;
-      g.gain.value = vol; g.gain.exponentialRampToValueAtTime(0.0001, _actx.currentTime + 0.13);
-      o.connect(g); g.connect(_actx.destination); o.start(); o.stop(_actx.currentTime + 0.14);
-    });
+    const o = _actx.createOscillator(), g = _actx.createGain();
+    o.type = "triangle"; o.frequency.value = freq;
+    g.gain.value = vol; g.gain.exponentialRampToValueAtTime(0.0001, _actx.currentTime + 0.24);
+    o.connect(g); g.connect(_actx.destination); o.start(); o.stop(_actx.currentTime + 0.26);
   } catch (e) {}
 }
-const BGM_BASS = [1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0];        // 808 슬라이드 패턴
-const PHONK_COWBELL = [1, 0, 3, 0, 1, 0, 2, 3, 1, 0, 3, 1, 2, 0, 3, 0];   // 카우벨 멜로디 (코드음 1~3)
-function bgmTick() {       // 🩸 phonk (esdeekid 바이브, 오리지널): 하프타임 드럼 + 808 슬라이드 + Memphis 카우벨 + 어두운 단조
+const BGM_BASS = [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0];        // 808 — 스파스(느리고 공간)
+const PHONK_COWBELL = [1, 0, 0, 3, 0, 0, 2, 0, 0, 1, 0, 0, 3, 0, 2, 0];   // 멜로디 — 스파스 그루브
+function bgmTick() {       // 🩸 phonk — 느리고 어둡게, 스윙 그루브 (esdeekid 바이브). 멜로디 옥타브↓ = 칩튠/테트리스 제거
   const chord = BGM_CHORDS[(bgmStep >> 2) % BGM_CHORDS.length], root = chord[0];
-  if (bgmStep === 0 || bgmStep === 6) bgmKick(0.12);                                 // 킥 (하프타임)
-  if (bgmStep === 8) bgmClap(0.03);                                                  // 스네어 (하프타임 백비트)
-  if (bgmStep % 2 === 1) bgmHat(0.011);                                              // 트랩 햇
-  if (bgmStep === 11 || bgmStep === 15) bgmHat(0.009);                               // 햇 롤
-  if (BGM_BASS[bgmStep]) bgm808(root / 2, 0.26, 0.17);                               // 808 슬라이드 서브베이스
-  if (PHONK_COWBELL[bgmStep]) bgmCowbell(chord[PHONK_COWBELL[bgmStep] - 1] * 2, 0.02); // 카우벨 멜로디
-  if (bgmStep === 0 || bgmStep === 8) bgmTone(chord[2], 0.55, "sawtooth", 0.008);    // 어두운 코드 패드
+  const sw = (bgmStep % 2 === 1) ? 48 : 0, D = (fn) => sw ? setTimeout(fn, sw) : fn();   // 오프비트 스윙(그루브 탑승)
+  if (bgmStep === 0 || bgmStep === 10) bgmKick(0.13);                                // 킥 (싱코페이션)
+  if (bgmStep === 8) bgmClap(0.028);                                                 // 스네어
+  if (bgmStep === 4 || bgmStep === 12 || bgmStep === 14) D(() => bgmHat(0.008));     // 스파스 햇 + 스윙
+  if (BGM_BASS[bgmStep]) bgm808(root, 0.55, 0.18);                                   // 808 (느리고 길게, 낮은 베이스)
+  if (PHONK_COWBELL[bgmStep]) D(() => bgmCowbell(chord[PHONK_COWBELL[bgmStep] - 1], 0.022)); // 낮고 둥근 멜로디(옥타브↓) + 스윙
+  if (bgmStep % 16 === 0) bgmTone(chord[1] / 2, 1.3, "sine", 0.012);                 // 어두운 서브 패드
   bgmStep = (bgmStep + 1) % 16;
 }
-function startSynthBgm() { if (bgmTimer || (META && META.music === false)) return; ensureAudio(); bgmStep = 0; bgmTimer = setInterval(bgmTick, 115); }  // ~130BPM phonk (어두운 드래그)
+function startSynthBgm() { if (bgmTimer || (META && META.music === false)) return; ensureAudio(); bgmStep = 0; bgmTimer = setInterval(bgmTick, 150); }  // ~100BPM phonk (느린 스윙 그루브)
 function stopSynthBgm() { if (bgmTimer) { clearInterval(bgmTimer); bgmTimer = null; } }
 function bgmStart() {      // 실제 음원 audio/bgm.mp3 있으면 사용(로열티프리만!), 없으면 합성 딥하우스
   if (META && META.music === false) return;
