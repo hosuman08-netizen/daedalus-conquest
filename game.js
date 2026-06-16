@@ -572,8 +572,8 @@ function spawnArmy(side) {
     const epm = side === "e" ? enemyPowerMul(curLevel) : 1;
     const aw = side === "p" ? (META.awak[t] || 0) : 0;                                                   // ✦ 각성(소울)
     const es = side === "p" ? (1 + (META.enh[t] || 0) * 0.06) * (1 + (META.star[t] || 0) * 0.25) * (1 + aw * 0.35) : 1;   // 강화·승급·각성
-    let hpM = (side === "p" ? lvMul(t, "hp") * ascHpMul() : epm) * hb.hpMul * (1 + (hb.typeHp[t] || 0)) * powerComp * es * gHp;     // 🔄 환생 복리 HP배율
-    let atkM = (side === "p" ? lvMul(t, "atk") * ascAtkMul() : epm) * hb.atkMul * (1 + (hb.typeAtk[t] || 0)) * synMul * powerComp * es * gAtk;  // 🔄 환생 복리 ATK배율
+    let hpM = (side === "p" ? lvMul(t, "hp") * ascHpMul() : epm) * hb.hpMul * (1 + (hb.typeHp[t] || 0)) * powerComp * es * gHp * (side === "p" ? cohesionMul() : 1);     // 🔄 환생 복리 HP배율
+    let atkM = (side === "p" ? lvMul(t, "atk") * ascAtkMul() : epm) * hb.atkMul * (1 + (hb.typeAtk[t] || 0)) * synMul * powerComp * es * gAtk * (side === "p" ? cohesionMul() : 1);  // 🔄 환생 복리 ATK배율
     // 초반 완전 초보 구간(ch<=8)만 강한 보너스 — 그 이후부터는 제대로 된 투자(가챠·강화·편성·기어) 없으면 자연 벽 (squad/편성에도 동일)
     if (side === "p" && curLevel <= 8) {
       hpM *= 1.4;
@@ -664,6 +664,7 @@ function etherGain(ch) { ch = ch | 0; if (ch < ASCEND_GATE) return 0; return Mat
 // ⚠️ 노드 배율 +8%/lv (1.08): 분리노드라 전투력 = atk×hp = 1.08^(공+체). +18%면 5환생째 폭주(sim 검증) → 1.08이 루프 생존값.
 function ascAtkMul() { return Math.pow(1.08, ascLv("might")); }     // 「공세」 아군 ATK +8%/lv (복리)
 function ascHpMul() { return Math.pow(1.08, ascLv("bulwark")); }    // 「불굴」 아군 HP +8%/lv (복리)
+function cohesionMul() { return 1 + (META.prestige || 0) * 0.02; }  // 🌀 결속 1당 아군 전투력 +2% (군주 20260616: 죽은 스탯→실기능 연결)
 function ascGoldMul() { return 1 + ascLv("momentum") * 0.18; }      // 「쇄도」 골드획득 +18%/lv (재돌파 가속·전투력 아님 → 폭주 무관)
 function ascStartGold() { return ascLv("momentum") * 300; }         // 「쇄도」 시작 골드 +300/lv
 function ascPowerMul() { return Math.pow(1.08, ascLv("might") + ascLv("bulwark")); } // 전투배율 표시용 = atk×hp
@@ -1270,7 +1271,7 @@ function finish(p, e) {
         reward = bonus(200 + META.chapter * 15 + (win ? Math.floor(55*(sig-1)) : 0));
         META.dailyDone = today(); extra = `<div class="rwd">${t("rwDailyBonus", { n: reward })}</div>` + (win ? '<div class="rwd2">⚡ 군단 전술 보너스</div>' : '');
         // Vanguard Focus FOMO 24h ritual (carry teaser + god-VFX hook; limited, ethical)
-        if (!META.vanguard || META.vanguard !== today()) { if (win || sig > 2.1) { META.vanguard = today(); setTimeout(()=>toast("24h 집중 모드 ON — 내일 carried 파워 대폭 UP"," #fbbf24"), 650); } }
+        if (!META.vanguard || META.vanguard !== today()) { if (win || sig > 2.1) { META.vanguard = today(); setTimeout(()=>toast("24h 집중 모드 ON — 내일 전투력 대폭 UP","#fbbf24"), 650); } }
       }
       else { extra = `<div class="rwd2">${t("rwDailyDone")}</div>`; }
       title = t("rDaily"); bumpPrestige(1);
@@ -1363,7 +1364,7 @@ function finish(p, e) {
   try { if (tg) tg.HapticFeedback.impactOccurred("medium"); } catch(e){}
   // (called from their handlers already have some, expand here for key)
   // 6hr daily loop + bazaar pulse (speculative dopamine, no balance break)
-  if (win && Math.random()<0.25) { setTimeout(()=>toast("Legion Bazaar: Arclight hot +28% — check now?","#a3e635"), 800); }
+  if (win && Math.random()<0.25) { setTimeout(()=>toast("🔥 군단 사기 충천! 다음 챕터로 진격하세요","#a3e635"), 800); }
   updateMeta(); draw();
 }
 
@@ -1480,12 +1481,11 @@ function gacha() {
   bumpPrestige(0.5); saveMeta(); updateMeta(); reset();
   showGacha(rar, msg);
   // gacha pulse interlock from daily ritual
-  if (rar.key==="SSR" && getLegionSignal()>1.8) setTimeout(()=>toast("SSR pulse — check offline/ritual/Bazaar for synergy", "#fbbf24"), 900);
+  if (rar.key==="SSR" && getLegionSignal()>1.8) setTimeout(()=>toast("✨ SSR 획득! 오프라인·일일 보상도 챙기세요", "#fbbf24"), 900);
   // §21 Eros Form Gaze tease (Plato eros for ideal + visual desire; god-pose hint on SSR without repeat prior teases)
   if (rar.key === "SSR") {
     setTimeout(() => {
-      const gaze = "Eros Gaze: the Form stirs — bind the vessel";
-      toast(gaze, "#fbbf24");
+      toast("✨ 전설의 영웅이 군단에 합류했습니다", "#fbbf24");
     }, 650);
   }
 }
@@ -1554,7 +1554,7 @@ function checkDaily() {
     saveMeta(); updateMeta();
     setTimeout(() => toast(t("tDaily") + (varB? ` +${varB}`:""), "#fbbf24"), 500);
     // Vanguard 24h FOMO ritual interlock
-    if (winOpen && (!META.vanguard || META.vanguard !== today)) { META.vanguard = today; setTimeout(()=> { toast("24h 집중 모드: carried 파워 + 시각 효과 ON", "#fbbf24"); if(!running) reset(); }, 820); }
+    if (winOpen && (!META.vanguard || META.vanguard !== today)) { META.vanguard = today; setTimeout(()=> { toast("24h 집중 모드 ON: 전투력 + 시각 효과 강화", "#fbbf24"); if(!running) reset(); }, 820); }
   }
 }
 
@@ -1621,7 +1621,7 @@ function updateUltBtn() {
   b.disabled = ultT > 0;
   if (ultT > 0) { b.textContent = Math.ceil(ultT) + "s"; b.classList.remove("ready"); b.classList.remove("hero-tinted"); b.style.removeProperty('--hcolor'); }
   else {
-    const ultLabel = "【군단의 핵 — " + (h.ultName || tUlt(h.ult)) + "】 EXECUTE";
+    const ultLabel = "【군단의 핵】 " + (h.ultName || tUlt(h.ult)) + " 발동";
     b.textContent = ultLabel;
     b.classList.add("ready");
     const hc = getHeroColor(META.hero);
@@ -2004,7 +2004,7 @@ function claimPlay(i) {
   if (boxRes) setTimeout(() => showGacha({ key: boxRes.rank, color: boxRes.color }, boxRes.text), 400);
   else toast(t("tPlay", { x: txt }) + (mult > 1 ? " (🔥 streak +" + Math.floor((mult-1)*100) + "%)" : ""), "#fbbf24");
   // cycle: after claim, hint next action for loop (AFK accrues while away)
-  setTimeout(() => toast("전투 1판 → 내일 보상 더 커짐! (오프라인 가속) claim today → tomorrow carried power hook", "#a3e635"), 1200);
+  setTimeout(() => toast("전투 1판 → 내일 보상 더 커져요! (오프라인 가속)", "#a3e635"), 1200);
 }
 function openEvent() { renderAttend(); renderPlay(); renderSeason(); showPage("event"); 
   const orb = $("ritual-orb"); if (orb) orb.style.display = (getLegionSignal() > 1.6 || META.ritualWin===today()) ? "" : "none";
@@ -2070,17 +2070,17 @@ function claimAttend() {
     setTimeout(() => showGacha({ key: boxRes.rank, color: boxRes.color }, boxRes.text), 400);
   } else toast(t("tAttend", { n: idx + 1 }) + " 🔥 streak " + META.loginStreak, "#fbbf24");
   // interlock: attend ritual → gacha pulse tease
-  setTimeout(() => { if (Math.random()<0.6) toast("Ritual complete — Bazaar pulse or quick pull ready?", "#a3e635"); }, 1200);
+  setTimeout(() => { if (Math.random()<0.6) toast("의식 완료 — 가챠 한 번 돌려볼까요?", "#a3e635"); }, 1200);
   // §21: Tanha Quench Mirror Insight stub (Buddhism layer — low-friction daily quench if 9 icons "thirst" met via founders in squad; insight var)
   const sq = getDeployedUnits ? getDeployedUnits() : [];
   const fCount = sq.filter(u => u && u.rarity === "SSR").length;
   if (fCount >= 3) {
     const insight = Math.floor(20 + getLegionSignal() * 15);
     META.gold = (META.gold || 0) + insight;
-    setTimeout(() => toast("🪞 Thirst quenched — insight +" + insight + "g (mirror shows the game)", "#a3e635"), 900);
+    setTimeout(() => toast("🪞 통찰 보너스 +" + insight + "골드 획득!", "#a3e635"), 900);
   }
   // FOMO: if streak high, next day bigger hint + loss aversion (miss = reset streak bonus)
-  if (META.loginStreak >= 7) setTimeout(() => toast("7일 연속! 내일 보상 2배 기대 (miss 하면 초기화)", "#fbbf24"), 1500);
+  if (META.loginStreak >= 7) setTimeout(() => toast("7일 연속! 내일 보상 2배 기대 (놓치면 초기화)", "#fbbf24"), 1500);
 }
 $("attend-claim").addEventListener("click", claimAttend);
 
@@ -2097,7 +2097,7 @@ function claimDailyMissions() {  // MVP daily cycle claim — forces 1 action lo
   toast("🎁 미션 완료! +350g + 내일 AFK +15% (오프라인 가속)", "#fbbf24");
   setTimeout(() => toast("전투 1판 더 → 스트릭/보상 업! (3-5분 루프)", "#a3e635"), 1100);
 }
-on("om-ritual", "click", () => { bumpPrestige(1); checkDaily(); if (curPage!=="event") openEvent(); toast("Ritual interlock: prestige+1 + gacha pulse ready", "#a3e635"); setTimeout(gacha, 700); });
+on("om-ritual", "click", () => { bumpPrestige(1); checkDaily(); if (curPage!=="event") openEvent(); toast("🔮 의식 완료 — 가챠가 준비됐어요!", "#a3e635"); setTimeout(gacha, 700); });
 
 // ── 이벤트/쿠폰 코드 (회원 배포용) ───────────────────────────────────────────
 const CODES = {
