@@ -1924,11 +1924,15 @@ const BOX = {
   legend: { icon: "🌟", color: "#fbbf24" },
 };
 function openBox(tier) {
-  if (tier === "legend") {                                    // 30일차 최고 보상: SSR 유닛 + SSR 장비 + 💎
-    const gu = grantUnit("SSR");
-    const g = newGear("SSR"); META.gear.push(g);
-    META.gems = (META.gems || 0) + 100;
-    return { color: "#fbbf24", text: (gu ? "【" + gu.name + "】 " : "") + "SSR + " + (SLOT_ICON[g.slot] || "") + "SSR장비 + 💎100", rank: "SSR" };
+  if (tier === "legend") {                                    // 30일차 최고 보상: SR확정 + SSR 15%확률 + SR/SSR장비 + 💎200
+    // ⚠️ 무료 출석 SSR 확정 제거(군주 "SSR 함부로 안 줌"): 무과금도 30일이면 SSR 확정이라 희소성 파괴됐음.
+    // → SR 확정 보장(여전히 강함) + 15% SSR 잭팟(가챠 두근거림) + 💎200(보상가치 보전). 결제팩 SSR은 고액이라 유지.
+    const isSSR = Math.random() < 0.15;
+    const rar = isSSR ? "SSR" : "SR";
+    const gu = grantUnit(rar);
+    const g = newGear(rar); META.gear.push(g);
+    META.gems = (META.gems || 0) + 200;
+    return { color: "#fbbf24", text: (gu ? "【" + gu.name + "】 " : "") + rar + " + " + (SLOT_ICON[g.slot] || "") + rar + "장비 + 💎200", rank: rar };
   }
   const b = BOX[tier];
   if (Math.random() < 0.5) {                                  // 유닛
@@ -2168,18 +2172,18 @@ const SHOP = [
   { id: "growth2", k: "pkGrow2", price: "₩49,900", tag: "성장·SSR" },
   { id: "gem1", gem: 60, price: "₩1,100" },
   { id: "gem2", gem: 330, price: "₩5,500", tag: "+10%" },
-  { id: "gem3", gem: 1180, price: "₩19,900", tag: "+18%" },
-  { id: "gem4", gem: 3200, price: "₩49,900", tag: "+25%" },
+  { id: "gem3", gem: 1280, price: "₩19,900", tag: "+18%" },   // 1180→1280: 태그 +18% 실제와 일치(표시광고법) + 단가 단조
+  { id: "gem4", gem: 3400, price: "₩49,900", tag: "+25%" },   // 3200→3400: 태그 +25% 실제와 일치. 단가 18.3→16.7→15.5→14.7 완벽 단조
   { id: "gold1", g: 6000, price: "₩1,100" },
-  { id: "gold2", g: 35000, price: "₩5,500", tag: "+6%" },
-  { id: "gold3", g: 140000, price: "₩19,900", tag: "+18%" },
+  { id: "gold2", g: 35000, price: "₩5,500", tag: "+17%" },    // 태그 정직화(실제 +17%, 수량유지=유저이득)
+  { id: "gold3", g: 140000, price: "₩19,900", tag: "+29%" },  // 태그 정직화(실제 +29%)
 ];
 function dayPlus(n) { try { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); } catch (e) { return ""; } }
 function passActive(kind) { return META.pass[kind] && today() <= META.pass[kind]; }
 function checkPasses() {                                // 활성 패스 = 매일 💎 자동 수령
   let got = 0;
   if (passActive("monthly") && META.passClaim.monthly !== today()) { META.gems = (META.gems || 0) + 100; META.passClaim.monthly = today(); got += 100; }
-  if (passActive("weekly") && META.passClaim.weekly !== today()) { META.gems = (META.gems || 0) + 50; META.passClaim.weekly = today(); got += 50; }
+  if (passActive("weekly") && META.passClaim.weekly !== today()) { META.gems = (META.gems || 0) + 100; META.passClaim.weekly = today(); got += 100; }   // 매일 50→100 (주간 가성비 1.5→2.9배)
   if (got) { saveMeta(); updateMeta(); toast("📅 " + t("passDaily", { n: got }), "#fbbf24"); }
 }
 function openShop() { renderShop(); showPage("shop"); }
@@ -2257,8 +2261,8 @@ function grantPack(id) {
     saveMeta(); checkPasses(); updateMeta(); renderShop();
     toast(t("tMonthly"), "#fbbf24"); haptic("heavy"); return;
   }
-  if (p.id === "weekly") {                              // 📅 주간 패스: 즉시 💎100 + 7일 매일 💎50
-    META.pass.weekly = dayPlus(7); META.passClaim.weekly = ""; META.gems = (META.gems || 0) + 100;
+  if (p.id === "weekly") {                              // 📅 주간 패스: 즉시 💎150 + 7일 매일 💎100 (가성비 합당화)
+    META.pass.weekly = dayPlus(7); META.passClaim.weekly = ""; META.gems = (META.gems || 0) + 150;
     saveMeta(); checkPasses(); updateMeta(); renderShop();
     toast(t("tWeekly"), "#fbbf24"); haptic("heavy"); return;
   }
