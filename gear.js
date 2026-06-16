@@ -6,9 +6,9 @@ const SLOT_MAIN = { weapon: "str", armor: "int", acc: "agi", relic: "luk", core:
 const STAT_KEYS = ["str", "int", "agi", "luk"];
 const GEAR_RARITY = [
   { k: "N", p: 0.60, base: 6, color: "#9ca3af" },
-  { k: "R", p: 0.28, base: 12, color: "#60a5fa" },
-  { k: "SR", p: 0.10, base: 22, color: "#c084fc" },
-  { k: "SSR", p: 0.02, base: 40, color: "#fbbf24" }, // base 2% SSR (낮춰 chase), pity로 조정 (gearGacha에 pity 추가)
+  { k: "R", p: 0.25, base: 12, color: "#60a5fa" },
+  { k: "SR", p: 0.13, base: 22, color: "#c084fc" },
+  { k: "SSR", p: 0.02, base: 40, color: "#fbbf24" }, // 장비 동일: N60% R25% SR13% SSR2% (base 2% + pity ramp gearGacha에서 적용)
 ];
 function rollGearRarity() { let r = Math.random(), a = 0; for (const x of GEAR_RARITY) { a += x.p; if (r <= a) return x; } return GEAR_RARITY[0]; }
 

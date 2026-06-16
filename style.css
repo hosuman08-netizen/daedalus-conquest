@@ -510,7 +510,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .sq-prr { font-size: 8.5px; font-weight: 900; }
 .sq-pool-item.rSSR { box-shadow: inset 0 0 12px rgba(245,196,81,0.22); }
 
-/* Alex Rivera + Jordan + Sovereign 20260616 relay: char-panel ULTRA tight "한번에 한창에" clean ONE-VIEW no-scroll fit (phone TG single glance, top+inv all visible). Illust 20vh strict, card 76vh, inv internal 58px (2col ~6-7 items glance), micro pad/gap/font. Reversible MVP. */
+/* Legion UI: "한번에 한창에" ultra-glance fit (head/grow/5slots/inv4+btn 100% visible 480px TG portrait no body scroll/cutoff). 74vh card, hidden overflow, inv internal56px 2col tiny(art12px,6px font), slots34px, grow8px, pads2-3px. Reversible. */
 #char-panel { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 16; padding: 3px; }
 #char-panel.hidden { display: none; }
 #char-panel-card { background: var(--panel); border-radius: 7px; padding: 2px 3px 3px; width: 94vw; max-width: 264px; max-height: 74vh; overflow-y: hidden; border: 1.5px solid #3a2f5e; box-shadow: 0 6px 18px rgba(0,0,0,0.72); }
@@ -530,7 +530,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
   display: grid !important;
   grid-template-columns: repeat(2, 1fr);
   gap: 1px;
-  max-height: 58px;
+  max-height: 56px;
   overflow-y: auto;
 }
 #char-panel-card .gear-card {
@@ -590,7 +590,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 }
 .cp-slot b { font-size: 9px; }
 #char-panel-card #cp-inv-label { font-size: 8px; margin-bottom: 1px; line-height: 1.0; }
-#char-panel-card #cp-inv { display: grid !important; grid-template-columns: repeat(2, 1fr); gap: 1px; max-height: 68px; overflow-y: auto; margin-bottom: 2px; }
+#char-panel-card #cp-inv { display: grid !important; grid-template-columns: repeat(2, 1fr); gap: 1px; max-height: 56px; overflow-y: auto; margin-bottom: 2px; }
 #char-panel-card .gear-card { width: 100%; box-sizing: border-box; }
 #char-panel-card .gear-card .g-stats { white-space: normal !important; }
 #char-panel-card .gear-card .g-act { flex: 0 0 auto; }

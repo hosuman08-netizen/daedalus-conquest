@@ -1319,7 +1319,7 @@ function gacha() {
   if (META.gold < GACHA_COST) { toast(t("tGoldShort", { n: GACHA_COST }), "#ef4444"); return; }
   META.gold -= GACHA_COST; META.pulls = (META.pulls || 0) + 1; META.pity = (META.pity || 0) + 1;
   let rar = rollRarity();
-  if (META.pity >= 10) rar = RARITY[3];                 // hard pity 10 for 10-pull excitement (dopamine safety net)
+  if (META.pity >= 10) rar = RARITY[3];                 // hard pity 10 SSR (dopamine safety net, low-frust chase)
   if (rar.key === "SSR" || rar.key === "SR") META.pity = 0;
   let msg;
   if (rar.key === "SSR" && !META.titanOwned) { META.titanOwned = true; counts.p.titan = 1; msg = t("tTitan"); }
@@ -1353,8 +1353,8 @@ function gacha10() {
   for (let i = 0; i < 10; i++) {
     META.pity = (META.pity || 0) + 1;
     let rar = rollRarity();
-    if (META.pity >= 10) rar = RARITY[3];
-    if (i === 9 && best < 2) rar = RARITY[2];          // 10연 SR↑ 보장
+    if (META.pity >= 10) rar = RARITY[3]; // hard10
+    if (i === 9 && best < 2) rar = RARITY[2];          // 10연 SR↑ 보장 (dopamine)
     if (rar.key === "SSR" || rar.key === "SR") META.pity = 0;
     best = Math.max(best, RANK[rar.key]); grantUnit(rar.key);
     if (rar.key === "SSR" && !META.titanOwned) { META.titanOwned = true; counts.p.titan = 1; }
@@ -1370,7 +1370,7 @@ function showGacha(rar, msg) {
   $("gacha-rank").style.color = rar.color;
   $("gacha-card").style.boxShadow = `0 0 40px ${rar.color}, inset 0 0 0 2px ${rar.color}`;
   const pity = (META.pity||0); const pct = rar.key==="SSR" ? "2%+" : "visible";
-  $("gacha-msg").innerHTML = msg + `<br><small style="opacity:.7">🎯 천장 ${pity}/11 · SSR ${((0.02 + (pity > 6 ? (pity - 6) * 0.06 : 0)) * 100).toFixed(0)}% (rates 투명 + ramp 도파민)</small>`;
+  $("gacha-msg").innerHTML = msg + `<br><small style="opacity:.7">🎯 천장 ${pity}/10 · 캐릭터 N60% R25% SR13% SSR2% | 장비 동일 | pity 투명 (soft&gt;6 +6%/회 ramp, hard10 SSR 보장)</small>`;
   g.classList.remove("hidden");
   if (rar.key === "SSR") {
     SFX.ssr();
@@ -2055,12 +2055,19 @@ function grantPack(id) {
 on("gacha10-btn", "click", gacha10);
 // 장비 뽑기 + 상점 뽑기 버튼 + 시즌 이벤트
 function gearGacha(count) {
-  const cost = count === 10 ? 400 : 40; // Sovereign 20260616: 10연 400 / 1회 40 gems (raise for value perception + chase not cheap spam; align HTML/JS, 10x entry premium dopamine per debate)
+  const cost = count === 10 ? 400 : 40; // 10연 400 gems (char10 80와 차별, 가치감 UP + retention; gear는 영구파워라 고단가)
   if ((META.gems || 0) < cost) { toast(t("tGemShort", { n: cost }), "#ef4444"); return; }
   if (META.gear.length + count > 60) { toast(t("gFull"), "#ef4444"); return; }
   META.gems -= cost;
   const RK = { N: 0, R: 1, SR: 2, SSR: 3 }; let best = null;
-  for (let i = 0; i < count; i++) { const g = newGear(); META.gear.push(g); if (!best || RK[g.rarity] > RK[best.rarity]) best = g; }
+  for (let i = 0; i < count; i++) {
+    META.pity = (META.pity || 0) + 1;
+    let rar = rollRarity();
+    if (META.pity >= 10) rar = RARITY[3]; // hard10 SSR (dopamine safety net)
+    if (rar.key === "SSR" || rar.key === "SR") META.pity = 0;
+    const g = newGear(rar.key); META.gear.push(g);
+    if (!best || RK[g.rarity] > RK[best.rarity]) best = g;
+  }
   saveMeta(); updateMeta(); renderGear();
   showGacha({ key: best.rarity, color: best.color }, "🔨 " + t("gTitle") + " ×" + count + " — best " + best.rarity);
 }
@@ -2289,7 +2296,7 @@ function openCharPanel(id) {
       const pool = META.gear.filter((g) => g.slot === cpSlotFilter).sort((a, b) => gearPowerForChar(b) - gearPowerForChar(a));
       if (lbl) lbl.innerHTML = `${SLOT_ICON[cpSlotFilter]} <b>${(t("st_" + SLOT_MAIN[cpSlotFilter]) || cpSlotFilter)}</b> 장비 ${pool.length}개 <span id="cp-inv-all" class="cp-allbtn">✕ 닫기</span>`;
       on("cp-inv-all", "click", () => { cpSlotFilter = null; openCharPanel(id); });
-      if (!pool.length) { inv.innerHTML = `<div class="ddim" style="font-size:11px;padding:8px;text-align:center">이 부위 장비 없음 — 장비 탭에서 제작</div>`; }
+      if (!pool.length) { inv.innerHTML = `<div class="ddim" style="font-size:7px;padding:2px;text-align:center">이 부위 없음 — 제작</div>`; }
       else {
         inv.innerHTML = pool.slice(0, 8).map((g) => {
           const onThis = eq[g.slot] === g.id;
