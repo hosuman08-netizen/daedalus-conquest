@@ -460,16 +460,14 @@ h1::first-letter { color: var(--crimson); }
 
 #battle-combo { font-size:9.5px; color:#a3e635; margin:1px 2px 4px; min-height:12px; line-height:1.25; } /* dynamic squad + hero passive buffs, compact for battle "한창에" */
 
-/* ULTIMATE PREMIUM ULT v2 (Sovereign 20260616 + Legion): "군단의 핵 — MY ULT" 더 이쁘고 극적인 power fantasy. AFK+HSR+E7 cinematic fusion, per-hero nuclear core glow, richer fire depth, elegant command label, stronger pulse + aura ring for "터지는" 도파민. Canvas god-ray tie-in ready. TG one-thumb premium, "MY POWER" identity max. Reversible. */
-#ult { width:100%; margin-top:4px; padding:8px 9px; font-size:12px; font-weight:900; letter-spacing:.8px; border-radius:20px; background:#0a0800; color:#fde047; border:3px solid #3f2f00; opacity:.42; box-shadow:0 5px 12px rgba(0,0,0,0.82), inset 0 1px 0 rgba(255,255,255,0.06); transition:all .08s cubic-bezier(0.2,0,0.2,1); text-shadow:0 1px 3px #000; display:flex; align-items:center; justify-content:center; gap:6px; min-height:38px; }
-/* 군주 20260616: 궁극기 배너 과함·하단버튼 클릭차단 수정 — scale 제거(히트영역 침범 원인), 글로우/높이/이중라벨 톤다운 */
-#ult.ready { opacity:1; background:linear-gradient(140deg,#6b1a1a 0%,#3f0f0f 42%,#140606 78%,#0a0402 100%); color:#fff; border-color:#fbbf24; box-shadow:0 0 14px #fbbf2488, 0 4px 12px rgba(0,0,0,0.85), inset 0 1px 6px rgba(255,255,255,0.1); animation:ultpulse 1.1s infinite ease-in-out; text-shadow:0 0 10px #fff6, 0 1px 4px #000; font-size:12.5px; }
-#ult.ready.hero-tinted { box-shadow:0 0 16px var(--hcolor, #fbbf24)99, 0 4px 12px rgba(0,0,0,0.85), inset 0 1px 8px rgba(255,255,255,0.12); border-color:var(--hcolor, #fbbf24); }
+/* ULT: Sovereign direct request — 이팩트 완전 제거. No heavy glow, no pulse, no bright neon border, no ::before flame. Clean flat command button. Dark, readable, minimal shadow only for depth. Matches overall clean heroicon / no-clutter direction. */
+#ult { width:100%; margin-top:3px; padding:5px 8px; font-size:11px; font-weight:900; letter-spacing:.5px; border-radius:14px; background:#0a0800; color:#fde047; border:1px solid #3f2f00; opacity:.42; box-shadow:0 2px 5px rgba(0,0,0,0.6); transition:all .08s cubic-bezier(0.2,0,0.2,1); text-shadow:0 1px 2px #000; display:flex; align-items:center; justify-content:center; gap:6px; min-height:30px; }
+#ult.ready { opacity:1; background:#1c140f; color:#f5e8c7; border:1px solid #5c4630; box-shadow:0 2px 5px rgba(0,0,0,0.65); animation:none; text-shadow:0 1px 2px #000; font-size:11px; }
+#ult.ready.hero-tinted { border-color:#6b5a3a; box-shadow:0 2px 5px rgba(0,0,0,0.65); }
 #ult:disabled { opacity:.26; }
 #ult:active { transform:scale(0.96); filter:brightness(0.92); }
-#ult.ready::before { content:"🔥"; font-size:16px; line-height:1; margin-right:2px; text-shadow:0 0 8px #fbbf24; }
-/* ::after 이중 라벨 제거 — textContent에 이미 EXECUTE 라벨 있음 (중복=과함) */
-@keyframes ultpulse { 0%,100% { box-shadow:0 0 12px #fbbf2488, 0 4px 12px rgba(0,0,0,0.85), inset 0 1px 6px rgba(255,255,255,0.1); } 50% { box-shadow:0 0 20px #fbbf24bb, 0 4px 12px rgba(0,0,0,0.85), inset 0 1px 8px rgba(255,255,255,0.16); } }
+/* flame emoji effect removed per request */
+#ult.ready::before { content: none; }
 
 /* deploy follows */
 
@@ -505,7 +503,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
   .hbtn .rk { font-size: 6px; padding: 0 2px; }
   #hero-info { font-size: 9px; margin-top: 1px; }
   #hero-up { padding: 1px 3px; font-size: 7px; }
-  #ult { margin-top: 3px; padding: 7px 6px; font-size: 11.5px; min-height: 36px; border-width: 3px; } /* 컴팩트 — 하단버튼 클릭영역 확보 */
+  #ult { margin-top: 2px; padding: 4px 6px; font-size: 10.5px; min-height: 27px; border-width: 2px; } /* 컴팩트 — 하단버튼 클릭영역 확보 */
   #unit-card, #char-panel-card { max-height: 82vh; padding: 5px 6px; border-width: 2px; }
   #unit-glyph { max-height: 26vh; }
   #unit-card img, #unit-card .ucim, #char-panel-card img, #char-panel-card .cpim { max-height: 24vh; }
