@@ -1698,7 +1698,7 @@ function updateHeroUI() {
   if ($("hero-name")) {
     const nameEl = $("hero-name");
     // Sovereign: "RANK" → "TIER" 로 변경 (고정 창설 티어 vs 업그레이드 레벨 구분 명확히). 유저가 "업글 안했는데 랭크 다름" 오해하지 않게. TIER은 영웅 고유 정체성 (Ⅰ~Ⅵ 순서), Lv만 골드 강화로 오름.
-    nameEl.innerHTML = tr[0] + ' <span class="hcode">TIER ' + h.rank + '</span> Lv' + lv;
+    nameEl.innerHTML = tr[0] + ' Lv' + lv;
     nameEl.title = "고유 창설 티어 (고정·변하지 않음) · 지휘 레벨 (골드로 강화)";
   }
   if ($("hero-desc")) {
