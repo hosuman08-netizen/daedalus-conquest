@@ -1605,7 +1605,7 @@ function updateHeroUI() {
   });
   const h = HEROES[META.hero], lv = META.heroLv[META.hero] || 1, tr = tHero(META.hero);
   // Alex: Command center per-hero (AFK/HSR power fantasy). "MY ULT" ready state sync.
-  if ($("hero-name")) $("hero-name").innerHTML = h.glyph + ' <span class="hcode">RANK ' + h.rank + '</span> ' + tr[0] + " Lv" + lv + ' <small style="color:#fbbf24;font-size:6px;letter-spacing:1px">⚔️ 군단 지휘 본부 • MY POWER • ULT</small>';
+  if ($("hero-name")) $("hero-name").innerHTML = h.glyph + ' <span class="hcode">RANK ' + h.rank + '</span> ' + tr[0] + " Lv" + lv;
   if ($("hero-desc")) {
     let ultHtml = ' <span style="color:#f59e0b;font-weight:700">· ULT: ' + tUlt(h.ult) + '</span>';
     if (META.hero === "ranger") {

@@ -403,21 +403,21 @@ h1::first-letter { color: var(--crimson); }
 .hbtn .hgly { position:relative; z-index:3; filter: drop-shadow(0 1px 3px #000); font-size: 21px; }
 .hbtn .him { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; opacity:.82; }
 .hbtn:active { transform: scale(0.88); }
-.hbtn.sel { 
-  border-color: #fbbf24; transform: scale(1.22); z-index:8;  /* Jordan Kael 20260616: stronger 1.15-1.22 sel scale + per-hero glow amp per brief (HSR/E7/AFK "MY POWER" identity). Reversible. */
-  box-shadow: 0 0 82px #fbbf24ee, 0 0 38px currentColor, 0 14px 28px rgba(0,0,0,0.96), inset 0 0 22px rgba(255,255,255,0.32);
-  filter: saturate(1.62) brightness(1.18) contrast(1.08);
-  animation: hselpop .22s cubic-bezier(0.2,0.85,0.15,1);
+.hbtn.sel {
+  border-color: #fbbf24; transform: scale(1.1); z-index:8;  /* 2026-06-16 Sovereign 복구: 과한 82px 형광 후광 제거 → 은은하고 보기 쉬운 선택 강조 */
+  box-shadow: 0 0 14px #fbbf2466, 0 6px 14px rgba(0,0,0,0.9), inset 0 0 9px rgba(255,255,255,0.1);
+  filter: saturate(1.12) brightness(1.04);
+  animation: hselpop .16s ease-out;
 }
-@keyframes hselpop { 0% { transform: scale(1.0); } 36% { transform: scale(1.42); } 100% { transform: scale(1.38); } }
-/* Per-hero distinct identity — absolute top-tier tint/glow on sel screams "MY POWER" (AFK ultimate release + HSR cinematic wow + E7 prestige + Legion fusion). Stronger bleed + unique rim. No clutter. */
-.hbtn[data-h="strategist"] { color:#c4b5fd; } .hbtn[data-h="strategist"].sel { background: linear-gradient(160deg,#27213f,#1a1528); box-shadow:0 0 72px #c4b5fdcc,0 0 32px #c4b5fd, inset 0 0 20px #c4b5fd66; border-color:#a5b4fc; }
-.hbtn[data-h="berserker"] { color:#f87171; } .hbtn[data-h="berserker"].sel { background: linear-gradient(160deg,#3f1f22,#221418); box-shadow:0 0 72px #f87171cc,0 0 32px #f87171, inset 0 0 20px #f8717166; border-color:#fda4af; }
-.hbtn[data-h="warden"] { color:#67e8f9; } .hbtn[data-h="warden"].sel { background: linear-gradient(160deg,#1c2a33,#131f26); box-shadow:0 0 72px #67e8f9cc,0 0 32px #67e8f9, inset 0 0 20px #67e8f966; border-color:#7dd3fc; }
-.hbtn[data-h="ranger"] { color:#a3e635; } .hbtn[data-h="ranger"].sel { background: linear-gradient(160deg,#24331f,#181f15); box-shadow:0 0 72px #a3e635cc,0 0 32px #a3e635, inset 0 0 20px #a3e63566; border-color:#bef264; }
-.hbtn[data-h="mech"] { color:#94a3b8; } .hbtn[data-h="mech"].sel { background: linear-gradient(160deg,#252b38,#171c28); box-shadow:0 0 72px #94a3b8cc,0 0 32px #94a3b8, inset 0 0 20px #94a3b866; border-color:#cbd5e1; }
-.hbtn[data-h="engineer"] { color:#f0abfc; } .hbtn[data-h="engineer"].sel { background: linear-gradient(160deg,#2e2438,#1f1828); box-shadow:0 0 72px #f0abfccc,0 0 32px #f0abfc, inset 0 0 20px #f0abfc66; border-color:#e879f9; }
-.hbtn[data-h="dragoon"] { color:#fbbf24; } .hbtn[data-h="dragoon"].sel { background: linear-gradient(160deg,#352b18,#221f12); box-shadow:0 0 82px #fbbf24ee,0 0 36px #fbbf24, inset 0 0 22px #fbbf2466; border-color:#fde047; }
+@keyframes hselpop { 0% { transform: scale(1.0); } 100% { transform: scale(1.1); } }
+/* 영웅별 색 정체성 — 은은한 tint + 작은 glow(어지럽지 않게) */
+.hbtn[data-h="strategist"] { color:#c4b5fd; } .hbtn[data-h="strategist"].sel { background: linear-gradient(160deg,#27213f,#1a1528); box-shadow:0 0 15px #c4b5fd88, inset 0 0 8px #c4b5fd44; border-color:#a5b4fc; }
+.hbtn[data-h="berserker"] { color:#f87171; } .hbtn[data-h="berserker"].sel { background: linear-gradient(160deg,#3f1f22,#221418); box-shadow:0 0 15px #f8717188, inset 0 0 8px #f8717144; border-color:#fda4af; }
+.hbtn[data-h="warden"] { color:#67e8f9; } .hbtn[data-h="warden"].sel { background: linear-gradient(160deg,#1c2a33,#131f26); box-shadow:0 0 15px #67e8f988, inset 0 0 8px #67e8f944; border-color:#7dd3fc; }
+.hbtn[data-h="ranger"] { color:#a3e635; } .hbtn[data-h="ranger"].sel { background: linear-gradient(160deg,#24331f,#181f15); box-shadow:0 0 15px #a3e63588, inset 0 0 8px #a3e63544; border-color:#bef264; }
+.hbtn[data-h="mech"] { color:#94a3b8; } .hbtn[data-h="mech"].sel { background: linear-gradient(160deg,#252b38,#171c28); box-shadow:0 0 15px #94a3b888, inset 0 0 8px #94a3b844; border-color:#cbd5e1; }
+.hbtn[data-h="engineer"] { color:#f0abfc; } .hbtn[data-h="engineer"].sel { background: linear-gradient(160deg,#2e2438,#1f1828); box-shadow:0 0 15px #f0abfc88, inset 0 0 8px #f0abfc44; border-color:#e879f9; }
+.hbtn[data-h="dragoon"] { color:#fbbf24; } .hbtn[data-h="dragoon"].sel { background: linear-gradient(160deg,#352b18,#221f12); box-shadow:0 0 15px #fbbf2488, inset 0 0 8px #fbbf2444; border-color:#fde047; }
 .hbtn .rk { position:absolute; top:1px; right:2px; font-size:6.5px; font-weight:900; color:#f87171; background:#1a1400; padding:0 3px; border-radius:2px; z-index:4; border:1px solid #3a2a00; }
 #hero-info { margin-top:3px; font-size:10.5px; padding:0 3px; }
 #hero-info b { font-size:11.5px; color:#fbbf24; text-shadow:0 1px 2px #000; }
