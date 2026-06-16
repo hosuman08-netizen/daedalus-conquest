@@ -27,7 +27,7 @@ const I18N = {
     tStarter: "💎 스타터팩 획득! 속도 2x 해금 +골드3000", tOwned: "이미 보유 중 — 속도 2x 사용 가능",
     tUlt: "💥 {x}!", tHeroUp: "🦸 {x} 강화! Lv{n}",
     heroes: { strategist: ["책략가", "전군 AI 지능 +1"], berserker: ["광전사", "전군 공격력 +15%"], warden: ["수호자", "전군 체력 +20%"], ranger: ["사격대장", "드론·사수 공격 +30%"], mech: ["기갑사령", "돌격봇·가디언 체력 +40%"], engineer: ["정비공", "전군 체력 재생"], dragoon: ["용기사", "전군 +8% · 강력 궁극기"] },
-    ultName: { focus: "전술 지휘", rage: "광폭화", wall: "철벽", volley: "일제사격", assault: "강습", repair: "긴급 수리", dragon: "드래곤 강림" },
+    ultName: { focus: "전술 지휘", rage: "광폭화", wall: "철벽", volley: "아크 볼리", assault: "강습", repair: "긴급 수리", dragon: "드래곤 강림" }, // Sovereign 20260616: ranger ULT 이름 업그레이드 (평범한 일제사격 → 진짜 궁극기 "아크 볼리")
   },
   en: {
     title: "AI Legion War",
@@ -53,7 +53,7 @@ const I18N = {
     tStarter: "💎 Starter Pack! 2x speed +3000 gold", tOwned: "Already owned — 2x speed available",
     tUlt: "💥 {x}!", tHeroUp: "🦸 {x} upgraded! Lv{n}",
     heroes: { strategist: ["Strategist", "All units AI +1"], berserker: ["Berserker", "All ATK +15%"], warden: ["Warden", "All HP +20%"], ranger: ["Ranger Lord", "Drone·Marksman ATK +30%"], mech: ["Mech Cmdr", "Bruiser·Guardian HP +40%"], engineer: ["Engineer", "All units regen HP"], dragoon: ["Dragoon", "All +8% · strong ult"] },
-    ultName: { focus: "Tactical Order", rage: "Berserk", wall: "Iron Wall", volley: "Volley", assault: "Assault", repair: "Repair", dragon: "Dragon Descent" },
+    ultName: { focus: "Tactical Order", rage: "Berserk", wall: "Iron Wall", volley: "Arclight Volley", assault: "Assault", repair: "Repair", dragon: "Dragon Descent" }, // Sovereign 20260616: ranger ULT name upgrade
   },
   ja: {
     title: "AI軍団戦争",

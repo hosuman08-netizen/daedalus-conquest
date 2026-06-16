@@ -155,7 +155,7 @@ const HEROES = {
   strategist: { glyph: "🧠", rank: "Ⅱ", ult: "focus",    ultName: "전술 지휘",   ultCd: 13 },
   warden:     { glyph: "🛡️", rank: "Ⅲ", ult: "wall",     ultName: "철벽",        ultCd: 13 },
   berserker:  { glyph: "⚡", rank: "Ⅳ", ult: "rage",     ultName: "광폭화",      ultCd: 13 },
-  ranger:     { glyph: "🎯", rank: "Ⅴ", ult: "volley",   ultName: "일제사격",    ultCd: 12 },
+  ranger:     { glyph: "🎯", rank: "Ⅴ", ult: "volley",   ultName: "아크 볼리",    ultCd: 12 }, // Sovereign 20260616: 진짜 궁극기 느낌으로 업그레이드 (이름+이미지+이팩트)
   engineer:   { glyph: "💉", rank: "Ⅵ", ult: "repair",   ultName: "긴급 수리",   ultCd: 12 },
 };
 const HERO_ORDER = ["strategist", "berserker", "warden", "ranger", "mech", "engineer", "dragoon"];
@@ -899,6 +899,7 @@ function draw() {
 
   for (const u of units) {
     if (u.hp <= 0) continue;
+    if (u.boss) { drawBoss(u); continue; }   // 🐲 위압적 보스 전용 렌더
     // 바닥 그림자 (그라운딩)
     ctx.fillStyle = "rgba(0,0,0,0.28)"; ctx.beginPath(); ctx.ellipse(u.x, u.y + u.r + 1.5, u.r * 0.7, u.r * 0.26, 0, 0, 7); ctx.fill();
     // 팀 구분 — 하드한 동그라미 대신 소프트 글로우
@@ -1491,7 +1492,24 @@ function doUlt() {
   if (h.ult === "focus")        mine.forEach((u) => { u.buff = Math.round(u.atk * 0.5); u.buffT = 4; });
   else if (h.ult === "rage")    mine.forEach((u) => { u.buff = Math.round(u.atk * 0.5); u.buffT = 5; u.spd = 1.5; u.spdT = 5; });
   else if (h.ult === "wall")    mine.forEach((u) => { u.shield = 4; });
-  else if (h.ult === "volley")  { foes.forEach((f) => dmg(f, 22 * k, null)); addFx(W / 2, H / 2, "overclock"); }
+  else if (h.ult === "volley")  {
+    // 아크 볼리 — 진짜 "궁극기" 다중 정밀 일제 (Sovereign 피드백: 멋없는 flat dmg → spectacle barrage)
+    const k2 = k * 1.1;
+    const tgts = foes.slice().sort(() => Math.random() - 0.5).slice(0, Math.min(9, foes.length || 1));
+    tgts.forEach((f, i) => {
+      setTimeout(() => {
+        if (f && f.hp > 0) {
+          dmg(f, (24 + (i < 3 ? 10 : 0)) * k2, null);
+          addFx(f.x + (Math.random()-0.5)*6, f.y + (Math.random()-0.5)*6, "boom");
+          // precision shot lines from "sky" / center (crosshair lock feel)
+          addFx(W/2 + (i-4)*18, 35, "shot", f.x, f.y, "p");
+        }
+      }, i * 38);
+    });
+    addFx(W/2, 38, "overclock"); // big lock-on pulse
+    // extra green energy cross + multiple ctr pips for "ultimate" dopamine
+    for (let j = 0; j < 4; j++) setTimeout(() => addFx(W/2 + (j-1.5)*22, 55, "ctr"), 80 + j*25);
+  }
   else if (h.ult === "assault") mine.forEach((u) => { if (foes.length) { const t = foes.reduce((a, b) => (dist(u, b) < dist(u, a) ? b : a)); u.x += (t.x - u.x) * 0.5; u.y += (t.y - u.y) * 0.5; } addFx(u.x, u.y, "charge"); });
   else if (h.ult === "repair")  mine.forEach((u) => { u.hp = Math.min(u.maxHp, u.hp + u.maxHp * 0.4); addFx(u.x, u.y, "barrier"); });
   else if (h.ult === "dragon")  { foes.forEach((f) => dmg(f, 42 * k, null)); addFx(W / 2, H / 2, "overclock"); }
@@ -1519,7 +1537,14 @@ function updateHeroUI() {
   const h = HEROES[META.hero], lv = META.heroLv[META.hero] || 1, tr = tHero(META.hero);
   // Alex: Command center per-hero (AFK/HSR power fantasy). "MY ULT" ready state sync.
   if ($("hero-name")) $("hero-name").innerHTML = h.glyph + ' <span class="hcode">RANK ' + h.rank + '</span> ' + tr[0] + " Lv" + lv + ' <small style="color:#fbbf24;font-size:6px;letter-spacing:1px">⚔️ 군단 지휘 본부 • MY POWER • ULT</small>';
-  if ($("hero-desc")) $("hero-desc").innerHTML = tr[1] + ' <span style="color:#f59e0b;font-weight:700">· ULT: ' + tUlt(h.ult) + '</span>';
+  if ($("hero-desc")) {
+    let ultHtml = ' <span style="color:#f59e0b;font-weight:700">· ULT: ' + tUlt(h.ult) + '</span>';
+    if (META.hero === "ranger") {
+      // Sovereign 20260616: ranger ULT 이미지 업그레이드 — 멋진 아크 볼리 아이콘 (lime precision crosshair volley, generated premium)
+      ultHtml = ' <img src="art/ult-ranger-small.jpg" style="width:18px;height:18px;vertical-align:middle;margin:0 3px 1px 2px;border-radius:2px;box-shadow:0 0 4px #a3e635;"> <span style="color:#f59e0b;font-weight:700">· ULT: ' + tUlt(h.ult) + '</span>';
+    }
+    $("hero-desc").innerHTML = tr[1] + ultHtml;
+  }
   if ($("hero-up")) $("hero-up").textContent = t("upgrade") + " " + heroUpCost() + "g";
   updateUltBtn(); // ensure hero color bleed syncs instantly on switch
   // ensure sel has premium class for CSS glow/scale
