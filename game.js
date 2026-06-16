@@ -2739,7 +2739,7 @@ function renderCodex() {
     const has = owned.has(u.id);
     const archCls = u.arch ? ` arch-${u.arch}` : "";
     const facCls = u.faction ? ` fac-${u.faction.toLowerCase()}` : "";
-    return `<div class="cxc r${u.rarity}${has ? "" : " lock"}${archCls}${facCls}" data-id="${u.id}"><div class="cxg">${has ? artHTML(u, "cxgly", "cxim") : "❔"}</div></div>`;
+    return `<div class="cxc r${u.rarity}${has ? "" : " lock"}${archCls}${facCls}" data-id="${u.id}"><div class="cxg">${artHTML(u, "cxgly", "cxim")}</div></div>`;
   }).join("");
   grid.querySelectorAll(".cxc").forEach((c) => c.addEventListener("click", () => {
     const id = +c.dataset.id;
