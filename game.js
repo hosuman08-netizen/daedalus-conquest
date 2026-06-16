@@ -1442,7 +1442,7 @@ function getDominionCardText() {
 }
 
 // ── 가챠 (뽑기) — 등급·천장·전설해금 ─────────────────────────────────────────
-const GACHA_COST = 100;
+const GACHA_COST = 8;   // 캐릭 단차: 💰골드100 → 💎젬8 (10연 💎80과 화폐 통일·비교가능. 1젬≈100골드라 골드단차=사실상 무한공짜였음. 트리니티 옵션A)
 const RARITY = [
   { key: "N",   p: 0.60, color: "#9ca3af", lvls: 1 },
   { key: "R",   p: 0.25, color: "#60a5fa", lvls: 2 },
@@ -1463,8 +1463,8 @@ function gacha() {
   if (running) return;
   recordManualPlay(); // for synergy
   META.dailyPulls = (META.dailyPulls || 0) + 1;
-  if (META.gold < GACHA_COST) { toast(t("tGoldShort", { n: GACHA_COST }), "#ef4444"); return; }
-  META.gold -= GACHA_COST; META.pulls = (META.pulls || 0) + 1; META.pity = (META.pity || 0) + 1;
+  if ((META.gems || 0) < GACHA_COST) { toast(t("tGemShort", { n: GACHA_COST }), "#ef4444"); return; }
+  META.gems -= GACHA_COST; META.pulls = (META.pulls || 0) + 1; META.pity = (META.pity || 0) + 1;
   let rar = rollRarity();
   if (META.pity >= 10) rar = RARITY[3];                 // hard pity 10 SSR (dopamine safety net, low-frust chase)
   if (rar.key === "SSR" || rar.key === "SR") META.pity = 0;
@@ -2274,7 +2274,7 @@ function grantPack(id) {
 on("gacha10-btn", "click", gacha10);
 // 장비 뽑기 + 상점 뽑기 버튼 + 시즌 이벤트
 function gearGacha(count) {
-  const cost = count === 10 ? 400 : 40; // 10연 400 gems (char10 80와 차별, 가치감 UP + retention; gear는 영구파워라 고단가)
+  const cost = count === 10 ? 72 : 8; // 장비: 단차💎8(캐릭과 동일단가 — 가치역전 해소) / 10연💎72(8×10에서 10%할인 — 10연 인센티브). 트리니티 옵션A
   if ((META.gems || 0) < cost) { toast(t("tGemShort", { n: cost }), "#ef4444"); return; }
   if (META.gear.length + count > 60) { toast(t("gFull"), "#ef4444"); return; }
   META.gems -= cost;
@@ -2283,6 +2283,7 @@ function gearGacha(count) {
     META.pity = (META.pity || 0) + 1;
     let rar = rollRarity();
     if (META.pity >= 10) rar = RARITY[3]; // hard10 SSR (dopamine safety net)
+    if (count === 10 && i === 9 && (!best || RK[best.rarity] < 2)) rar = RARITY[2];   // 🔨 장비 10연 SR↑ 1보장 (캐릭 10연과 동일 인센티브)
     if (rar.key === "SSR" || rar.key === "SR") META.pity = 0;
     const g = newGear(rar.key); META.gear.push(g);
     if (!best || RK[g.rarity] > RK[best.rarity]) best = g;
