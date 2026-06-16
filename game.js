@@ -376,6 +376,17 @@ function fit() {
   h = Math.max(h, 240);
   cv.width = w; cv.height = h;
   W = cv.width; H = cv.height; ctx = cv.getContext("2d");
+  buildBgCache();   // perf: 배경+그리드 1회만 그려 캐시 → draw()는 drawImage 1회 (매프레임 그리드 path 제거)
+}
+function buildBgCache() {
+  if (!W || !H || typeof document === "undefined") return;
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const g = c.getContext("2d");
+  g.fillStyle = "#0f121a"; g.fillRect(0, 0, W, H);
+  g.strokeStyle = "#1b2030"; g.lineWidth = 1;
+  for (let x = 0; x < W; x += 40) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
+  for (let y = 0; y < H; y += 40) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+  window._bgCache = c;
 }
 
 // ── 군대 배치 ─────────────────────────────────────────────────────────────────
@@ -475,24 +486,64 @@ function squadSynergy() {                               // 진영/아키타입 �
 function renderSynergyTable() {
   const el = $("synergy-table"); if (!el) return;
   const sq = getDeployedUnits();
-  if (!sq.length) { el.innerHTML = ""; return; }
+  if (!sq.length) { el.innerHTML = ""; el.dataset.key = ""; return; }
+  // cheap key to skip rebuild if no change (perf for mobile "한창에" – was causing reflows on every update)
+  const key = sq.map(u => u.id).join(',') + '|' + (META.hero || '');
+  if (el.dataset.key === key) return;
+  el.dataset.key = key;
   const FAC_ICON = { Strategist: "🧠", Executor: "⚙️", Swarm: "🐜", Guardian: "🛡️", Intel: "👁️" };
   const fac = {}; sq.forEach((u) => { fac[u.faction] = (fac[u.faction] || 0) + 1; });
-  const cards = [];
+  // DOM cached version for speed: create cards once, update text/classes (no innerHTML rebuild, less GC/reflow)
+  if (!el._synCards) {
+    el.innerHTML = `<div class="syn-h">⚡ 군단 시너지</div><div class="syn-grid"></div>`;
+    const grid = el.querySelector('.syn-grid');
+    const facs = ['Strategist','Executor','Swarm','Guardian','Intel'];
+    el._synCards = {};
+    facs.forEach(f => {
+      const c = document.createElement('div');
+      c.className = 'syn-card';
+      c.innerHTML = `<span class="syn-ic">${FAC_ICON[f]}</span><span class="syn-nm"></span>`;
+      c._nm = c.querySelector('.syn-nm');
+      c._b = document.createElement('span'); c._b.className = 'syn-b'; c.appendChild(c._b);
+      c._nx = document.createElement('span'); c._nx.className = 'syn-nx'; c.appendChild(c._nx);
+      grid.appendChild(c);
+      el._synCards[f] = c;
+    });
+    const dc = document.createElement('div');
+    dc.className = 'syn-card';
+    dc.innerHTML = `<span class="syn-ic">🔀</span><span class="syn-nm"></span>`;
+    dc._nm = dc.querySelector('.syn-nm');
+    dc._b = document.createElement('span'); dc._b.className = 'syn-b'; dc.appendChild(dc._b);
+    dc._nx = document.createElement('span'); dc._nx.className = 'syn-nx'; dc.appendChild(dc._nx);
+    grid.appendChild(dc);
+    el._divCard = dc;
+  }
+  // update existing cards (fast)
   for (const f in fac) {
+    const c = el._synCards[f]; if (!c) continue;
     const n = fac[f]; const on = n >= 2; let bonus = "", nxt;
     if (n >= 4) { bonus = "공+30%"; nxt = "★ MAX"; }
     else if (n >= 3) { bonus = "공+18%"; nxt = "1명 더 → +30%"; }
     else if (n >= 2) { bonus = "공+8%"; nxt = "1명 더 → +18%"; }
     else { nxt = (2 - n) + "명 더 → +8%"; }
-    cards.push(`<div class="syn-card ${on ? "on" : "off"}"><span class="syn-ic">${FAC_ICON[f] || "🏷️"}</span><span class="syn-nm">${f} ×${n}</span>${on ? `<span class="syn-b">⚔️ ${bonus}</span>` : ""}<span class="syn-nx">${nxt}</span></div>`);
+    c._nm.textContent = `${f} ×${n}`;
+    c._b.textContent = on ? `⚔️ ${bonus}` : '';
+    c._b.style.display = on ? '' : 'none';
+    c._nx.textContent = nxt;
+    c.classList.toggle('on', on);
+    c.classList.toggle('off', !on);
   }
   const archs = new Set(sq.map((u) => u.arch)).size; const dOn = archs >= 3; let dB = "", dNx;
   if (archs >= 5) { dB = "체+20%"; dNx = "★ MAX"; }
   else if (archs >= 3) { dB = "체+10%"; dNx = (5 - archs) + "종 더 → +20%"; }
   else { dNx = (3 - archs) + "종 더 → +10%"; }
-  cards.push(`<div class="syn-card ${dOn ? "on" : "off"}"><span class="syn-ic">🔀</span><span class="syn-nm">다양성 ${archs}종</span>${dOn ? `<span class="syn-b">🛡️ ${dB}</span>` : ""}<span class="syn-nx">${dNx}</span></div>`);
-  el.innerHTML = `<div class="syn-h">⚡ 군단 시너지</div><div class="syn-grid">${cards.join("")}</div>`;
+  const dc = el._divCard;
+  dc._nm.textContent = `다양성 ${archs}종`;
+  dc._b.textContent = dOn ? `🛡️ ${dB}` : '';
+  dc._b.style.display = dOn ? '' : 'none';
+  dc._nx.textContent = dNx;
+  dc.classList.toggle('on', dOn);
+  dc.classList.toggle('off', !dOn);
 }
 // Sovereign 20260616: 정적 "유닛·상성 정보" 대신, 캐릭터 선택(또는 편성) 시 실시간 조합 버프 표시.
 // squadSynergy + 선택 영웅 패시브를 한눈에. 전투 화면에서 "내 조합" 느낌 극대화.
@@ -743,6 +794,8 @@ function reset() {
     const ds = $("deploy-specifics");
     if (ds) ds.innerHTML = ''; // battle에서는 canvas squad가 제대로 보이게 (HTML preview 완전 제거)
   }
+  // perf: hide synergy table (prep tool) during battle to reduce layout/paint on mobile canvas-heavy view
+  const synEl = $("synergy-table"); if (synEl) synEl.style.display = running ? 'none' : '';
   // 2026-06-16 업데이트: 모든 모드 탭 표시 (캠페인 + 무한탑 + 보스 + 턴제 + 아레나).
   // 이전 MVP 때는 turn/arena/boss를 hard hide 했으나, 이제 roadmap 전체 보이게 해서 progression 느낌 주고 "왜 이거만 있어?" 질문 해결.
   // 잠긴 모드는 updateModeTabs + .locked 스타일로 처리 (🔒 + 클릭 시 coming soon).
@@ -953,7 +1006,7 @@ function dmg(target, amount, from) {
   if (target.hp <= 0) { addFx(target.x, target.y, "die", 0, 0, target.side); if (Math.random() < 0.5) SFX.boom(); }
 }
 
-function addFx(x, y, kind, x2, y2, side) { fx.push({ x, y, kind, x2, y2, side, t: 0, life: kind === "shot" ? 0.12 : 0.45 }); }
+function addFx(x, y, kind, x2, y2, side) { if (fx.length > 90) return; fx.push({ x, y, kind, x2, y2, side, t: 0, life: kind === "shot" ? 0.12 : 0.45 }); }
 // 💥 궁극기 발동 시각효과 — 1655 호출처가 미정의로 매 궁극기 throw하던 것 정의(군주 "궁극기 이쁘게"). 중앙 방사 폭발.
 // 군주 20260617 + Grok P2: 궁극기 7종 고유 전투 VFX (간지·도파민). 파티클 상한(≤14)으로 perf 안전.
 function triggerUltVfx(ult, color) {
@@ -1069,10 +1122,8 @@ function drawBoss(u) {
 
 // ── 그리기 ────────────────────────────────────────────────────────────────────
 function draw() {
-  ctx.fillStyle = "#0f121a"; ctx.fillRect(0, 0, W, H);
-  ctx.strokeStyle = "#1b2030"; ctx.lineWidth = 1;
-  for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
-  for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+  if (window._bgCache) ctx.drawImage(window._bgCache, 0, 0);   // perf: 캐시된 배경+그리드 1회 합성
+  else { ctx.fillStyle = "#0f121a"; ctx.fillRect(0, 0, W, H); ctx.strokeStyle = "#1b2030"; ctx.lineWidth = 1; for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); } for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); } }
 
   for (const f of fx) {
     const k = f.t / f.life;
@@ -1304,7 +1355,12 @@ function loop(ts) {
   units = units.filter((u) => u.hp > 0);
   if (ultT > 0) ultT -= dt;
   if (window._ultBurst) { window._ultBurst.t -= dt; if (window._ultBurst.t <= 0) delete window._ultBurst; }
-  draw(); updateScore(); updateUltBtn();
+  if (!window._lastDraw || ts - window._lastDraw >= 14) { draw(); updateScore(); window._lastDraw = ts; }   // perf: draw ~60fps 쓰로틀 (120Hz 기기 과draw 방지)
+  // throttle heavy UI updates (was per-frame DOM writes + style recalc causing lag on TG mobile after ULT/table polish)
+  if (!window._lastUI || ts - window._lastUI > 100) {
+    updateUltBtn();
+    window._lastUI = ts;
+  }
   const pA = units.some((u) => u.side === "p"), eA = units.some((u) => u.side === "e");
   if (!pA || !eA) return finish(pA, eA);
   raf = requestAnimationFrame(loop);
@@ -1780,10 +1836,10 @@ function updateHeroUI() {
 function selectHero(h) { if (running || !HEROES[h]) return; META.hero = h; saveMeta(); updateHeroUI(); reset(); haptic("heavy");
   // Premium sel feedback — "this hero's ultimate is MINE" power fantasy (HSR wow + AFK/E7). Strong scale + glow + ult sync. "MY POWER" visual pop.
   const bb = document.querySelector('.hbtn[data-h="' + h + '"]'); if (bb) {
-    bb.style.transform = 'scale(1.34)';
+    bb.style.transform = 'scale(1.15)'; // lower for perf (less layout/paint on tap)
     const hc = getHeroColor(h);
-    if (hc) bb.style.boxShadow = `0 0 72px ${hc}dd, 0 0 26px ${hc}, inset 0 0 16px rgba(255,255,255,0.25)`;
-    setTimeout(() => { if (bb) { bb.style.transform = ''; bb.style.boxShadow = ''; updateUltBtn(); } }, 260);
+    if (hc) bb.style.boxShadow = `0 0 40px ${hc}99, 0 0 16px ${hc}, inset 0 0 10px rgba(255,255,255,0.2)`;
+    setTimeout(() => { if (bb) { bb.style.transform = ''; bb.style.boxShadow = ''; updateUltBtn(); } }, 200);
   }
   // ult preview flash — screams "MY power"
   const ub = $("ult"); if (ub && !running) { ub.style.borderColor = getHeroColor(h) || '#4a3a00'; setTimeout(()=>{if(ub) ub.style.borderColor = '#4a3a00';}, 480); }
