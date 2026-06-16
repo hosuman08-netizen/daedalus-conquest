@@ -536,8 +536,8 @@ function spawnArmy(side) {
         const cgAtk = 1 + gcs.str * 0.004, cgHp = 1 + gcs.int * 0.004;
         const cgSpd = 1 - Math.min(0.4, gcs.agi * 0.0035), cgCrit = Math.min(45, 10 + gcs.luk * 0.4);
         const lvK = 1 + lv * 0.12;
-        let hp = Math.round(s.hp * u.mul * lvK * invest * hb.hpMul * (1 + (hb.typeHp[u.arch] || 0)) * syn.hp * cgHp);
-        let atk = Math.round(s.atk * u.mul * lvK * invest * hb.atkMul * (1 + (hb.typeAtk[u.arch] || 0)) * syn.atk * cgAtk);
+        let hp = Math.round(s.hp * u.mul * lvK * invest * ascHpMul() * hb.hpMul * (1 + (hb.typeHp[u.arch] || 0)) * syn.hp * cgHp);   // 🔄 환생 복리 HP (편성 스쿼드도 동일 적용)
+        let atk = Math.round(s.atk * u.mul * lvK * invest * ascAtkMul() * hb.atkMul * (1 + (hb.typeAtk[u.arch] || 0)) * syn.atk * cgAtk);  // 🔄 환생 복리 ATK
         // ch1-8 trivial (squad/편성 경로에도 동일 적용 — 쉬운 시작)
         if (side === "p" && curLevel <= 8) { hp = Math.round(hp * 1.4); atk = Math.round(atk * 1.3); }
         // Give player's selected characters (from char panel deploy) more space and presence on field.
@@ -2340,7 +2340,8 @@ function awaken(type) {
 function openDash() { showPage("char"); renderDash(); }
 function renderDash() {
   const sq = getDeployedUnits();
-  if ($("dash-power")) $("dash-power").textContent = sq.length ? squadPower() : legionPower();
+  // 🔄 전력 표시엔 환생 복리배율 반영(도파민 "눈에 보이게 세짐"). 배당골드(dividendGold)는 raw 유지 — 패시브 인플레 방지.
+  if ($("dash-power")) $("dash-power").textContent = Math.round((sq.length ? squadPower() : legionPower()) * ascPowerMul());
   if ($("dash-div")) $("dash-div").textContent = dividendGold();
   renderSquad();
 }
@@ -2349,7 +2350,7 @@ function renderDash() {
 function renderSquad() {
   const slots = $("squad-slots"); if (!slots) return;
   const sq = getDeployedUnits();
-  if ($("squad-info")) $("squad-info").textContent = sq.length + "/" + DEPLOY_MAX + " · ⚡" + squadPower();
+  if ($("squad-info")) $("squad-info").textContent = sq.length + "/" + DEPLOY_MAX + " · ⚡" + Math.round(squadPower() * ascPowerMul());
   // 시너지 칩
   const synBox = $("squad-syn");
   if (synBox) {
