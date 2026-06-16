@@ -1,8 +1,10 @@
-/* LEGION 유닛 로스터 — Phase1 120종 (9/55/56)
+/* LEGION 유닛 로스터 — 200종 (SSR9 / SR55 / R56 / N80)
    6 아키타입 × faction 변형. 결정적 생성.
-   SSR 9 Founding (fictional codenames only: Arclight 등). Low: faction + noun + id (procedural fodder for volume/synergy/hybrid comps).
-   총: SSR:9 + SR:55 + R:56 = 120. (초기 229 과도 → 79 → 120 for more volume/synergy, matching SR-ART-PROMPTS 55 SR. Non-SSR synthetic only, TG perf 최적.)
-   Later: drip new SSR releases (retention/FOMO). New SSR = high id (200+) to preserve existing 1-120 player META.owned. */
+   SSR 9 Founding (fictional codenames only: Arclight 등). 희소·함부로 안 줌(군주 지령). SR/R/N = 무과금 주력.
+   총: SSR:9 + SR:55 + R:56 + N:80 = 200.
+   ⚠️ N(무과금 초반 주력)은 id 121~200으로 마지막 생성 → 기존 1~120 player META.owned 100% 보존.
+   가챠 N등급(60%)이 이제 실제 N 캐릭 드랍(전엔 N 캐릭 없어 R로 폴백 = 무과금 등급이 비어있던 갭 해소).
+   Later: drip new SSR releases (retention/FOMO). New SSR = high id (201+) to preserve existing players. */
 
 const ARCHES = ["drone", "marksman", "guardian", "bruiser", "commander", "titan"];
 const ARCH_GLYPH = { drone: "🛸", marksman: "🎯", guardian: "🛡️", bruiser: "🤖", commander: "🧠", titan: "🐉" };
@@ -23,7 +25,7 @@ const PREFIX = ["강철", "그림자", "폭풍", "심연", "칠흑", "진홍", "
   "공허", "성염", "흑풍", "백금", "흑철", "진월", "광란", "한설", "맹화", "패왕"];
 // 등급별 스탯 배율 (SSR이 가장 강함)
 const RARITY_MUL = { N: 1.0, R: 1.25, SR: 1.6, SSR: 2.2 }; // N reserved for future compat (currently unused)
-const RARITY_COUNT = { R: 56, SR: 55, SSR: 9 };  // Phase1 120 (9/55/56). 9SSR god-tier + 55 SR (per SR-ART-PROMPTS) + 56 R procedural fodder. Matches art prompts for launch. Later drip new SSR (high-id 200+).
+const RARITY_COUNT = { R: 56, SR: 55, SSR: 9, N: 80 };  // 200종 (9SSR god-tier + 55SR + 56R + 80N 무과금주력). N=가챠 60% 실드랍. SSR 희소 유지(군주 지령).
 const RARITY_COLOR = { N: "#9ca3af", R: "#60a5fa", SR: "#c084fc", SSR: "#fbbf24" }; // N for future
 
 // Faction for synergy (Strategist/Executor/Swarm/Guardian/Intel)
@@ -62,7 +64,7 @@ const SR_CHARS = [
 function buildRoster() {
   const roster = [];
   let id = 0, ssrIdx = 0, srIdx = 0;
-  const order = ["SSR", "SR", "R"];   // Phase1 120: no N. SSR 1-9 fixed god, SR/R procedural fodder id 10+
+  const order = ["SSR", "SR", "R", "N"];   // SSR 1-9 god / SR 10-64 / R 65-120 / N 121-200(무과금주력, 마지막=기존 id 보존)
   order.forEach((rar) => {
     const n = RARITY_COUNT[rar] || 0;
     for (let i = 0; i < n; i++) {
@@ -76,6 +78,11 @@ function buildRoster() {
       } else if (rar === "SR" && srIdx < SR_CHARS.length) {
         const c = SR_CHARS[srIdx++]; u.name = c.name; u.title = c.title;
         u.vis = u.glyph; u.accent = FACTION_ACCENT[u.faction] || "";
+      } else if (rar === "N") {
+        // 무과금 초반 주력 (N 80종): 접두어 다양화로 친근한 이름 e.g. "강철 정찰기". 가챠 60% 실드랍.
+        const nouns = ARCH_NOUN[arch];
+        u.name = PREFIX[i % PREFIX.length] + " " + nouns[i % nouns.length];
+        u.vis = u.glyph; u.accent = FACTION_ACCENT[fac] || "";
       } else {
         // 절차적 fodder (R): faction 일반 병사 e.g. "Intel 정찰기-073". volume/synergy/hybrid comps용.
         const nouns = ARCH_NOUN[arch];
