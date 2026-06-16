@@ -387,6 +387,17 @@ function buildBgCache() {
   for (let x = 0; x < W; x += 40) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
   for (let y = 0; y < H; y += 40) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
   window._bgCache = c;
+  // perf: 팀 글로우를 스프라이트로 1회 렌더 → 유닛별 createRadialGradient 제거
+  window._glowP = makeGlowSprite("rgba(90,140,255,0.55)");
+  window._glowE = makeGlowSprite("rgba(255,95,95,0.55)");
+}
+function makeGlowSprite(c0) {
+  const S = 64, c = document.createElement("canvas"); c.width = c.height = S;
+  const g = c.getContext("2d");
+  const grad = g.createRadialGradient(S / 2, S / 2, 1, S / 2, S / 2, S / 2);
+  grad.addColorStop(0, c0); grad.addColorStop(1, "rgba(0,0,0,0)");
+  g.fillStyle = grad; g.beginPath(); g.arc(S / 2, S / 2, S / 2, 0, 7); g.fill();
+  return c;
 }
 
 // ── 군대 배치 ─────────────────────────────────────────────────────────────────
@@ -1206,10 +1217,10 @@ function draw() {
     // 바닥 그림자 (그라운딩)
     ctx.fillStyle = "rgba(0,0,0,0.28)"; ctx.beginPath(); ctx.ellipse(u.x, u.y + u.r + 1.5, u.r * 0.7, u.r * 0.26, 0, 0, 7); ctx.fill();
     // 팀 구분 — 하드한 동그라미 대신 소프트 글로우
-    const glow = ctx.createRadialGradient(u.x, u.y, 1, u.x, u.y, u.r + 5);
-    glow.addColorStop(0, u.side === "p" ? "rgba(90,140,255,0.55)" : "rgba(255,95,95,0.55)");
-    glow.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 5, 0, 7); ctx.fill();
+    const _gl = u.side === "p" ? window._glowP : window._glowE;
+    const gr = u.r + 5;
+    if (_gl) { ctx.drawImage(_gl, u.x - gr, u.y - gr, gr * 2, gr * 2); }
+    else { const glow = ctx.createRadialGradient(u.x, u.y, 1, u.x, u.y, gr); glow.addColorStop(0, u.side === "p" ? "rgba(90,140,255,0.55)" : "rgba(255,95,95,0.55)"); glow.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(u.x, u.y, gr, 0, 7); ctx.fill(); }
     // 상태 링은 활성 시에만 (의미 있는 정보)
     if (u.boss)       { ctx.strokeStyle = "#fbbf24"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 5, 0, 7); ctx.stroke(); }
     if (u.shield > 0) { ctx.strokeStyle = "#67e8f9"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 4.5, 0, 7); ctx.stroke(); }
