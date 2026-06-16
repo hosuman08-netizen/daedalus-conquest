@@ -2836,7 +2836,7 @@ function showUnit(id) {
   $("unit-card").style.borderColor = u.color;
   $("unit-card").classList.toggle('rSSR', u.rarity === 'SSR');
   $("unit-card").classList.remove('gear-manage');   // 유닛 도감은 기본 세로 레이아웃
-  $("unit-glyph").innerHTML = has ? artHTML(u, "ucgly", "ucim") : "❔";
+  $("unit-glyph").innerHTML = artHTML(u, "ucgly", "ucim");   // 미보유도 일러스트 노출(보는 맛) — 이름/스탯만 잠금
   $("unit-name").innerHTML = `<b style="color:${u.color}">[${u.rarity}]</b> ${has ? u.name : "???"}`;
   $("unit-title").textContent = has ? (u.title || u.arch) : t("locked");
   $("unit-detail").innerHTML = has

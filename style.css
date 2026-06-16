@@ -195,7 +195,7 @@ h1::first-letter { color: var(--crimson); }
   /* final perfect popup: larger for easy read on phone/desktop, centered, premium frame */
 }
 /* ULTIMATE PREMIUM (Alex Rivera top expert + Legion): Illust STRICT 24-34vh max contain (user: "일러스트 줄여 화면에 맞게" "화면 이게 뭐야" 완전 해결). object-fit:contain + max-height cap. Compact header+stats+controls. Premium thin gold rim + vignette. Char-panel + unit-pop + gear popup unified. Gear/unit shared reuse. */
-#unit-glyph { font-size: 11px; position: relative; width: 100%; max-width: 90px; height: auto; max-height: 28vh; margin: 0 auto 3px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 8px; border: 2px solid rgba(245,196,81,0.32); box-shadow: inset 0 0 18px rgba(0,0,0,0.9), 0 0 0 1.5px rgba(0,0,0,0.5); background: #05040c; padding: 3px; } /* larger hero art in popups */
+#unit-glyph { font-size: 11px; position: relative; width: 100%; max-width: 200px; aspect-ratio: 1 / 1; height: auto; max-height: 42vh; margin: 0 auto 6px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 10px; border: 2px solid rgba(245,196,81,0.32); box-shadow: inset 0 0 18px rgba(0,0,0,0.9), 0 0 0 1.5px rgba(0,0,0,0.5); background: #05040c; padding: 3px; } /* 군주 20260617: 도감 팝업 일러스트 안 잘리게 — 정사각 비율로 full 표시 */
 #unit-glyph .ucgly { line-height: 1; }
 #unit-glyph .ucim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; border-radius: 5px; }
 /* Elegant premium SSR gold rim on unit glyph (codex popup / char panel) for god-shine "must own" urge. Per-SSR tint bleed via parent .rSSR if applied. */
