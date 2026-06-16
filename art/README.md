@@ -21,8 +21,12 @@ Later: drip new SSR releases 시 신규 art 추가 (u10+ 또는 ssr/ slug).
 ## 권장 (gear 포함)
 - 정사각형 **512×512+**, 중앙, 투명/단색 배경, dramatic rim + volumetric god-ray (업그레이드 common suffix 적용).
 - gear: art/gear/<slot>-<rarity>.png (e.g. weapon-ssr.png). 5×4=20 files cover all via slot+rarity (GEAR-ART-PROMPTS simplified). gearArt() auto prefer; synth (cooler veins/shards/rim) for missing N/R. PNG drop 즉시 codex/slots/inv proper images (no ?).
+- 2026-06-16 polish: all 20 re-gen no-text pure per refined (N functional vol, SR/SSR premium filigree no overlap).
+- heroicons (command bar hbtn): art/heroicon-<key>.png (7: strategist/berserker/warden/ranger/mech/engineer/dragoon). 128px square, god-pose close-bust, per-hero rim (purple-blue/crimson/cyan-steel/lime-green/slate-silver/magenta-rose/gold-dragon fire) + volumetric god-ray + host-weave + etched filigree, no text, original. Lazy .him in updateHeroUI.
 - 연구 (에이전트 전부 서치): HSR/Genshin/E7/AFK (volumetric + etched runes + heroic weight), Warframe/Destiny/AC (layered plating, energy conduits, particle exhaust), Diablo/PoE/MH/Arknights (dark metal + bone + inner-glow crystal + subsurface refraction + intricate filigree). 모방 스타일만, 완전 original 디자인. "모방 OK, 카피 NO" 엄수.
 - `object-fit: contain; filter: contrast(1.1) saturate(1.15)` 적용 (CSS).
+
+**Heroicon 2026-06-16 (Morpheus Art spawn)**: 7 heroicon-<key>.png gen complete for hbtn bar "MY POWER" (critical per Sovereign). Prompts exact from HERO-ART-PROMPTS (god-pose, per-hero rim tint, god-ray + Host Weave). Drop from gen session to art/ enables .him lazy in updateHeroUI + sel premium scale/glow. Fallback emoji always. Quality: tier correct (rims match getHeroColor), fun dopamine, original. Gear 20 verified/polished in docs.
 
 ## 작업 순서
 1. **SSR 9 god-tier** (SSR-ART-PROMPTS.md tailored prompts + gear) — image_gen → art/ drop → lazy integrate game.js artHTML.

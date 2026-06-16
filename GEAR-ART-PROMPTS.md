@@ -89,3 +89,5 @@ Same for acc/relic/core. Append "volumetric god-ray host-weave etched filigree e
 - 누락 PNG: weapon-r.png, armor-r.png, acc-n.png, acc-r.png, core-n.png, core-r.png, relic-n.png, relic-r.png
 - 우선순위: R 5종 (전체 R 완성) → N acc/core/relic (acc-n 등) → 기존 12종 업글 재gen (premium filigree 등 적용)
 - image_gen 호출 예: aspect_ratio=1:1 prompt=위 refined 중 하나. synth fallback 항상 유지 (TG perf). Jordan clean gallery 스타일 통합.
+
+**Verify 2026-06-16 (Morpheus)**: All 20 PNG now present in art/gear/ (list + README COMPLETE). User "12/20 view" likely legacy filter/UI/prior state. Polish: upgraded prompts (volumetric rim veins filigree for 간지 N/R not toy) already baked in prior; gearArt() PNG first + rich synth fallback. No new gen needed for MVP (reversible, quality tier correct fun). If visual low in game, re-gen specific on demand.

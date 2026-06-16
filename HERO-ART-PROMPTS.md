@@ -17,6 +17,8 @@
 - heroicon-dragoon: close bust dragon knight commander, intense gold energy aura, premium sci-fi gacha icon crop, dramatic rim, original
 (기타 heroicon-strategist 등 동일 스타일. hbtn sel 시 scale + glow로 "MY power" pop.)
 
+**Gen 2026-06-16 (Morpheus/Art)**: 7 heroicon generated with refined god-pose + volumetric god-ray + Host Weave + per-hero rim (purple strategist, red berserker, cyan warden, lime ranger, silver mech, magenta engineer, gold dragoon). Temp sources logged in handoff; drop to art/ for auto .him load in updateHeroUI. Tier correct, fun power fantasy, no copy. (Reversible: remove png -> emoji fallback.)
+
 ## ULT 버튼 glyph / frame 강화 (canvas tie-in) + Hero Command Bar assets (Alex/Jordan top expert upgrade)
 > 별도 glyph 필요 시 art/ult-<key>.png (작은 불/드래곤/벽 등). ULT ready 시 hero glyph + fire gradient (CSS) + canvas overclock 효과 연동. "🔥 군단 지휘 — MY ULT" 이미 강력.
 > 추가: art/heroicon-<key>.png (64-128px) dramatic close-bust god-pose, gold/crimson rim, per-hero tint glow (strategist purple, berserker red, dragoon gold 등). hbtn .him / ult bleed에 사용. PNG 우선, synth fallback. Premium Legion CC sel state (AFK energy release + HSR cinematic + E7 prestige). Square crop safe.

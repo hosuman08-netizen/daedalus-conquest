@@ -38,6 +38,11 @@ h1::first-letter { color: var(--crimson); }
 .hbtn.sel .rk { color: #fde047; } 
 /* hero bar premium sel per subagent: scale + gold rim + pulse for "MY POWER" identity */
 .hcode { color: var(--crimson); font-weight: 900; font-size: 12px; padding: 1px 5px; border: 1px solid #7f1d1d; border-radius: 5px; }
+/* 2026-06-16 Morpheus UI polish (heroicon bar critical): .him for god-pose icons (64-128 fit), premium sel scale/glow + per tint bleed. Clean one-view micro: tighter hero row, ult prominent. Reversible. */
+.hbtn .him { width: 22px; height: 22px; object-fit: cover; border-radius: 3px; vertical-align: middle; margin-right: 1px; border: 1px solid rgba(255,255,255,0.2); }
+.hbtn.sel .him { box-shadow: 0 0 8px currentColor; }
+#heroes { margin: 4px 0; }
+#ult { font-size:13px; padding:7px 10px; } /* ult visibility dopamine */
 
 /* 출석 그리드 */
 #attend-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin: 8px 0 12px; }

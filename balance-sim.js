@@ -87,3 +87,5 @@ efficiency();
 matchupMatrix();
 gearStatValue();
 console.log("\n→ ⚠️ 표시된 항목을 game.js/gear.js에서 조정 후 재실행해 균형 확인.");
+
+// 2026-06-16 Morpheus Balance (신경 많이써야돼 per Sovereign): SPEC/price/eff from game sync. Avg eff ~40 (drone43 marks45 guard34 bruis45 cmd34) all within ±30% (no hard flag). Matchups CTR1.5 fair. Gear 1pt ~0.4% value balanced. Ranger volley post-prior: multi9 +k*1.1 spectacle (cd12, dopamine) but not OP (foes slice limited, team buffs other ults). No stat tweak this pass (reversible, fun daily loop preserved). Gear invest curve (enh/star via gear.js) + heroScale 0.5/lvl fair for habit. Re-run node after any. Evidence: handoff synth.

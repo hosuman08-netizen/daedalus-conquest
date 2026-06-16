@@ -673,9 +673,10 @@ function reset() {
   renderDeploySpecificsPreview();  // char 배치 specific 유닛 쉽게 보이게
   // MVP final plan: phone vertical no-scroll focus on 4 main actions only
   // hide extra modes (turn/arena/boss) to keep clean; keep campaign + tower for now
+  // 2026-06-16 Morpheus/Modes decision (per CEO debate lean MVP upload-ready dopamine reversible): HIDE clean recommended. Shells in setMode/i18n kept for Phase2 (no broken UI, 4-action focus core loop). Revert: remove these hides + comments. Impl minimal would add risk/friction for upload.
   document.querySelectorAll('.modetab[data-m="turnbased"], .modetab[data-m="arena"], .modetab[data-m="boss"]').forEach(b => b.style.display = 'none');
-  // limit bottom nav to key 4 for vertical no-scroll MVP (battle, shop for summon, event for AFK/daily, settings corner)
-  document.querySelectorAll('#bnav .navtab[data-p="char"], #bnav .navtab[data-p="gear"], #bnav .navtab[data-p="codex"]').forEach(el => el.style.display = 'none');
+  // 하단바 전체 탭 유지(전투·캐릭터·장비·도감·상점·이벤트) — 편성·장비·도감은 핵심 수집 루프라 숨기지 않음 (Sovereign 2026-06-16 복구)
+  document.querySelectorAll('#bnav .navtab[data-p="char"], #bnav .navtab[data-p="gear"], #bnav .navtab[data-p="codex"]').forEach(el => el.style.display = '');
 }
 
 // ── 메타 UI 갱신 ──────────────────────────────────────────────────────────────
@@ -759,6 +760,7 @@ function setMode(m) {
   if (m === "turnbased") { toast(t("tComingTb"), "#a855f7"); return; }
   if (m === "arena") {
     // MVP final plan: arena daily 5회 제한만, 자동매칭 placeholder (Phase2 full)
+    // 2026-06-16 Morpheus: decided HIDE (lean MVP, 4-action dopamine focus, reversible no-broken). Stubs remain for future.
     const tdy = today();
     if (!META.arenaDay || META.arenaDay !== tdy) { META.arenaDay = tdy; META.arenaCount = 0; saveMeta(); }
     if ((META.arenaCount || 0) >= 5) { toast("오늘 아레나 5회 완료", "#ef4444"); return; }
@@ -853,6 +855,71 @@ function dmg(target, amount, from) {
 }
 
 function addFx(x, y, kind, x2, y2, side) { fx.push({ x, y, kind, x2, y2, side, t: 0, life: kind === "shot" ? 0.12 : 0.45 }); }
+
+// 🐲 위압적 보스 전용 렌더 (거대 layered construct + 맥동 코어 + 스파이크 + 글로우)
+function drawBoss(u) {
+  const t = Date.now();
+  const R = u.r * 2.5;                              // 히트박스보다 크게 — 위압감
+  const breathe = 1 + Math.sin(t / 430) * 0.03;    // 호흡 맥동
+  const bob = Math.sin(t / 640) * 3;               // 상하 흔들림
+  const cx = u.x, cy = u.y + bob;
+  const hpr = u.maxHp ? Math.max(0, u.hp / u.maxHp) : 1;
+  ctx.save();
+  // 강한 적색 외곽 글로우
+  ctx.shadowColor = "#ff2a2a"; ctx.shadowBlur = 26;
+  // 스파이크 9개 (회전 + 개별 맥동)
+  ctx.fillStyle = "#3a0e0e"; ctx.strokeStyle = "#7a1414"; ctx.lineWidth = 1.5;
+  const spikes = 9;
+  for (let i = 0; i < spikes; i++) {
+    const a = (i / spikes) * 6.283 + t / 2600;
+    const sl = R * (1.18 + Math.sin(t / 480 + i) * 0.09);
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a - 0.13) * R * 0.72, cy + Math.sin(a - 0.13) * R * 0.72);
+    ctx.lineTo(cx + Math.cos(a) * sl, cy + Math.sin(a) * sl);
+    ctx.lineTo(cx + Math.cos(a + 0.13) * R * 0.72, cy + Math.sin(a + 0.13) * R * 0.72);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
+  ctx.shadowBlur = 0;
+  // 중장갑 본체 (육각 플레이트, 역회전)
+  const plate = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.3, 2, cx, cy, R * breathe);
+  plate.addColorStop(0, "#5a1414"); plate.addColorStop(0.6, "#2e0a0a"); plate.addColorStop(1, "#160404");
+  ctx.fillStyle = plate; ctx.beginPath();
+  const sides = 6;
+  for (let i = 0; i <= sides; i++) {
+    const a = (i / sides) * 6.283 - t / 4200;
+    const rr = R * breathe * (1 + Math.sin(t / 720 + i) * 0.02);
+    const x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr;
+    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  }
+  ctx.closePath(); ctx.fill();
+  ctx.lineWidth = 2.5; ctx.strokeStyle = "#ff3b3b"; ctx.stroke();
+  // 크랙 (HP 낮을수록 진해짐)
+  if (hpr < 0.7) {
+    ctx.strokeStyle = "rgba(255,90,40," + (0.7 - hpr).toFixed(2) + ")"; ctx.lineWidth = 1.5;
+    for (let i = 0; i < 5; i++) {
+      const a = i * 1.3 + 0.4;
+      ctx.beginPath(); ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(a) * R * 0.78, cy + Math.sin(a) * R * 0.78); ctx.stroke();
+    }
+  }
+  // 맥동 코어
+  const cr = R * 0.5;
+  const core = ctx.createRadialGradient(cx, cy, 1, cx, cy, cr * (1 + Math.sin(t / 250) * 0.12));
+  core.addColorStop(0, "#fff2c0"); core.addColorStop(0.4, "#ff5a2a"); core.addColorStop(1, "rgba(120,10,10,0)");
+  ctx.fillStyle = core; ctx.beginPath(); ctx.arc(cx, cy, cr, 0, 7); ctx.fill();
+  // 눈 2개 (적색)
+  for (const dx of [-0.22, 0.22]) {
+    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(cx + dx * R, cy - R * 0.05, R * 0.075, 0, 7); ctx.fill();
+    ctx.fillStyle = "#ff1a1a"; ctx.beginPath(); ctx.arc(cx + dx * R, cy - R * 0.05, R * 0.038, 0, 7); ctx.fill();
+  }
+  ctx.restore();
+  // 큰 HP 바 + 이름
+  const w = R * 1.8, by = cy - R * 1.28;
+  ctx.fillStyle = "rgba(0,0,0,0.7)"; rRect(cx - w / 2 - 1, by - 1, w + 2, 7, 3); ctx.fill();
+  ctx.fillStyle = hpr > 0.4 ? "#ef4444" : "#fbbf24"; rRect(cx - w / 2, by, w * hpr, 5, 2.5); ctx.fill();
+  ctx.fillStyle = "#fbbf24"; ctx.font = "bold 11px sans-serif"; ctx.textAlign = "center";
+  ctx.fillText("🐲 " + (u.name || "타락 거신"), cx, by - 5);
+}
 
 // ── 그리기 ────────────────────────────────────────────────────────────────────
 function draw() {
@@ -1483,6 +1550,7 @@ function updateUltBtn() {
   }
 }
 function getHeroColor(hk) { const map = { strategist:'#c4b5fd', berserker:'#f87171', warden:'#67e8f9', ranger:'#a3e635', mech:'#94a3b8', engineer:'#f0abfc', dragoon:'#fbbf24' }; return map[hk] || null; }
+// 2026-06-16 Morpheus: rim tints match heroicon gens (purple/red/cyan/lime/silver/magenta/gold) for bar "MY POWER" consistency. Balance pass: ranger ult multi buff careful (within sim eff). Lean MVP.
 function doUlt() {
   if (!running || ultT > 0) return;
   META.dailyUlts = (META.dailyUlts || 0) + 1;
@@ -1525,10 +1593,11 @@ function updateHeroUI() {
     const b = document.querySelector('.hbtn[data-h="' + hk + '"]'); if (!b) return;
     b.classList.toggle("sel", hk === META.hero);
     if (!b.dataset.dec) {
-      // Jordan premium: try heroicon PNG for dramatic god-pose (art/heroicon-<key>.png) if exists, else clean emoji glyph + rank. hbtn sel uses scale/glow/rim already (CSS).
+      // Jordan premium + 2026-06-16 Sovereign art: lazy heroicon PNG (god-pose, per-hero rim god-ray + host-weave, 128px, no text original). .him for command bar pop. Fallback emoji+rank. Reversible (dataset + onerror safe).
       const iconPath = `art/heroicon-${hk}.png`;
       const img = new Image();
-      img.onload = () => { if (b && !b.classList.contains('sel')) b.innerHTML = `<img class="him" src="${iconPath}" alt=""> <span class="hgly">${HEROES[hk].glyph}</span><i class="rk">${HEROES[hk].rank}</i>`; };
+      img.onload = () => { if (b) b.innerHTML = `<img class="him" src="${iconPath}" alt="${hk}"> <span class="hgly">${HEROES[hk].glyph}</span><i class="rk">${HEROES[hk].rank}</i>`; };
+      img.onerror = () => {}; // keep emoji fallback
       img.src = iconPath;
       b.innerHTML = `<span class="hgly">${HEROES[hk].glyph}</span><i class="rk">${HEROES[hk].rank}</i>`;
       b.dataset.dec = "1";
