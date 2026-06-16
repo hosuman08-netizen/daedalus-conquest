@@ -1097,7 +1097,7 @@ function draw() {
     if (u.buff > 0)   { ctx.strokeStyle = "#a3e635"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 6.5, 0, 7); ctx.stroke(); }
     // Battle body: player SSR PNG or enemy hostile PNG (small set) — or rich synthetic
     const hasPlayerPortrait = u.id && ssrPortraits[u.id] && ssrPortraits[u.id].complete && ssrPortraits[u.id].naturalWidth > 0;
-    const hasEnemyPortrait = u.side === "e" && u.portraitKey && enemyPortraits[u.portraitKey] && enemyPortraits[u.portraitKey].complete && enemyPortraits[u.portraitKey].naturalWidth > 0;
+    const hasEnemyPortrait = u.side === "e" && u.portraitKey && u.portraitKey!=="drone" && u.portraitKey!=="marksman" && enemyPortraits[u.portraitKey] && enemyPortraits[u.portraitKey].complete && enemyPortraits[u.portraitKey].naturalWidth > 0;
     if (hasPlayerPortrait || hasEnemyPortrait) {
       const img = hasPlayerPortrait ? ssrPortraits[u.id] : enemyPortraits[u.portraitKey];
       const clipR = hasPlayerPortrait ? u.r * 1.15 : Math.min(22, u.r + 4);
@@ -1135,10 +1135,10 @@ function draw() {
         // base red glow + simple solid hostile rim (no spikes/star — user feedback: 별표 빼, 오히려 안 멋져)
         ctx.strokeStyle = `rgba(239,68,68,${0.35 + intensity*0.25})`;
         ctx.lineWidth = 1.5 + intensity * 1.5;
-        ctx.beginPath(); ctx.arc(u.x, u.y, er * 1.08, 0, 7); ctx.stroke();
+        /* 군주 20260616: 빨간 림(테두리) 제거 — 글로우만 */
         // clean red rim for enemy synth — smooth, not jagged/star-like
         ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 2.5 + intensity*0.5;
-        ctx.beginPath(); ctx.arc(u.x, u.y, er * 1.05, 0, 7); ctx.stroke();
+        /* 빨간 림 제거 */
         // arch aggressive details (기존 + var)
         if (u.t === "drone" || u.arch === "drone") {
           ctx.fillStyle = `rgba(239,68,68,${0.5 + intensity*0.3})`;
@@ -1243,8 +1243,8 @@ function loop(ts) {
 }
 
 function updateScore() {
-  const n = (s) => units.filter((u) => u.side === s).length;
-  $score.innerHTML = `<b class="b">🔵 ${n("p")}</b> vs <b class="r">${n("e")} 🔴</b>`;
+  // 🔵 N vs N 🔴 스코어 제거(군주 결정): 캔버스 유닛으로 충분·비전투 화면 잔재 군더더기. 안전 no-op(호출처 유지).
+  if ($score) $score.innerHTML = "";
 }
 
 function finish(p, e) {
