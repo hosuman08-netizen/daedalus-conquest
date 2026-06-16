@@ -13,6 +13,7 @@ html, body {
   background-attachment: fixed;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", sans-serif;
   user-select: none; overscroll-behavior: none;
+  overflow-x: hidden;   /* 가로 오버플로우 클립 — metabar/상점 등 우측 잘림·가로스크롤 방지 */
 }
 #app { max-width: 480px; margin: 0 auto; padding: 8px 9px 70px; position: relative; }
 
@@ -331,21 +332,21 @@ h1::first-letter { color: var(--crimson); }
 #shop-list { display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
 .packcard { position: relative; width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 13px 14px; background: #1d1535; border-radius: 10px; border: 1px solid #2c2142; }
 .packcard .pwhat { font-size: 15px; font-weight: 700; }
-.packcard .pprice { font-size: 14px; font-weight: 800; color: var(--gold); }
+.packcard .pprice { font-size: 14px; font-weight: 800; color: var(--gold); flex-shrink: 0; white-space: nowrap; }
 .packcard .ptag { position: absolute; top: -7px; left: 10px; font-size: 9px; font-weight: 900; background: var(--crimson); color: #fff; padding: 2px 6px; border-radius: 5px; }
 .packcard.vip { border-color: var(--gold); background: linear-gradient(135deg, #241a10, #1d1535); }
 .packcard.grow { border-color: #6d28d9; background: linear-gradient(135deg, #1e1626, #1d1535); }
 .packcard.active { border-color: #34d399; }
 .packcard.owned { opacity: .6; }
 .packcard.owned .pprice { color: #34d399; }
-.packcard .pwhat { flex: 1; text-align: left; margin-right: 8px; line-height: 1.3; }
+.packcard .pwhat { flex: 1; min-width: 0; text-align: left; margin-right: 8px; line-height: 1.3; }
 .packcard .psub { font-size: 10px; color: #34d399; font-weight: 700; margin-right: 8px; white-space: nowrap; }
 #settings-corner { flex: none; padding: 6px 9px; font-size: 15px; background: transparent; color: var(--dim); border: none; }
 #score { font-size: 15px; font-weight: 700; }
 #score .b { color: var(--blue); } #score .r { color: var(--red); }
 
-#metabar { display: flex; align-items: center; gap: 5px; margin: 8px 0 4px; flex-wrap: wrap; }
-.meta { background: var(--panel); border-radius: 8px; padding: 6px 9px; font-size: 12.5px; font-weight: 700; flex: 1 1 auto; text-align: center; white-space: nowrap; }
+#metabar { display: flex; align-items: center; gap: 3px; margin: 8px 0 4px; flex-wrap: wrap; }
+.meta { background: var(--panel); border-radius: 8px; padding: 5px 6px; font-size: 11.5px; font-weight: 700; flex: 1 1 auto; text-align: center; white-space: nowrap; }
 .meta.gold i { color: var(--gold); } .meta.ch i { color: #93c5fd; }
 #gacha-btn { flex: none; padding: 8px 12px; font-size: 13px; font-weight: 800;
   background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #2a1a00; border: none; border-radius: 9px; }
@@ -508,6 +509,10 @@ h1::first-letter { color: var(--crimson); }
 .army { margin-bottom: 2px; }
 #deploy .tag small { color: var(--dim); font-weight: 400; font-size: 10px; }
 
+#reset-controls { display: flex; gap: 6px; }
+#reset-controls #reset { flex: 0 0 38%; }
+#quick-pull { flex: 1; font-size: 12px; font-weight: 800; padding: 5px 6px; min-height: 30px; border: none; border-radius: 8px; background: linear-gradient(135deg, #a855f7, #6d28d9); color: #fff; }
+#quick-pull:active { transform: scale(.97); }
 #controls { display: flex; gap: 4px; margin-top: 4px; }
 #controls button { font-size: 11px; padding: 5px 6px; min-height: 30px; } /* final compact for battle */
 #controls + #controls { margin-top: 2px; }
@@ -875,3 +880,18 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .gr-note { font-size: 10px; color: #a3a3c2; text-align: center; margin-top: 6px; line-height: 1.45; }
 /* 🎁 첫구매 2배 뱃지 */
 .ptag.pdbl { background: linear-gradient(135deg, #f5c451, #d97706) !important; color: #1a1400 !important; font-weight: 900 !important; }
+
+/* 군주 20260616 + Grok P1: 군단 시너지 조합표 (달성=골드글로우 펄스, 미달=실루엣) */
+#synergy-table { margin-top: 8px; }
+.syn-h { font-size: 11px; font-weight: 800; color: #fbbf24; letter-spacing: 1px; margin-bottom: 4px; text-align: center; }
+.syn-grid { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
+.syn-card { display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 80px; padding: 6px 8px; border-radius: 8px; background: #14121c; border: 1px solid #2a2536; font-size: 10px; transition: all .2s; }
+.syn-card.on { background: linear-gradient(160deg, #3a2c12, #1a1330); border-color: #fbbf24; animation: synpulse 1.6s infinite ease-in-out; }
+.syn-card.off { opacity: .5; filter: grayscale(0.65); }
+.syn-ic { font-size: 16px; line-height: 1; }
+.syn-nm { font-weight: 700; color: #ddd; }
+.syn-card.off .syn-nm { color: #8a8a8a; }
+.syn-b { color: #fde047; font-weight: 800; }
+.syn-nx { font-size: 8.5px; color: #9ca3af; }
+.syn-card.on .syn-nx { color: #fbbf24; }
+@keyframes synpulse { 0%,100% { box-shadow: 0 0 8px -2px #fbbf2466; } 50% { box-shadow: 0 0 16px -1px #fbbf24bb; } }
