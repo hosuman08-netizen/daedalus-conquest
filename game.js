@@ -829,7 +829,7 @@ function setMode(m) {
     if ((META.arenaCount || 0) >= 5) { toast("오늘 아레나 5회 완료", "#ef4444"); return; }
     META.arenaCount = (META.arenaCount || 0) + 1; saveMeta();
     toast("아레나 매칭 (placeholder 자동 1:1) - Phase2에서 풀 구현", "#a855f7");
-    // placeholder: treat as quick boss-like for now
+    return;   // ⚠️ 버그픽스: return 없으면 840줄로 fall-through→META.mode="arena" 영구저장+campaign 둔갑 오염. MVP 숨김 스텁이라 no-op.
   }
   if (m === "mystery") {
     // Sovereign: 아레나 옆 ??? 티저로 유저 궁금증/FOMO 유발
@@ -924,6 +924,15 @@ function dmg(target, amount, from) {
 }
 
 function addFx(x, y, kind, x2, y2, side) { fx.push({ x, y, kind, x2, y2, side, t: 0, life: kind === "shot" ? 0.12 : 0.45 }); }
+// 💥 궁극기 발동 시각효과 — 1655 호출처가 미정의로 매 궁극기 throw하던 것 정의(군주 "궁극기 이쁘게"). 중앙 방사 폭발.
+function triggerUltVfx(color) {
+  addFx(W / 2, H / 2, "overclock");
+  for (let i = 0; i < 10; i++) { const a = (Math.PI * 2 * i) / 10; addFx(W / 2 + Math.cos(a) * 34, H / 2 + Math.sin(a) * 34, "charge"); }
+}
+// 🎉 승리/가챠 축포 — 1339·1517 호출처가 미정의(try/catch라 죽은 연출)였던 것 정의.
+function confettiBurst() {
+  for (let i = 0; i < 14; i++) { addFx(W * (0.15 + Math.random() * 0.7), H * (0.18 + Math.random() * 0.4), i % 2 ? "charge" : "barrier"); }
+}
 
 // 🐲 위압적 보스 전용 렌더 (거대 layered construct + 맥동 코어 + 스파이크 + 글로우)
 function drawBoss(u) {
@@ -1240,8 +1249,8 @@ function updateScore() {
 
 function finish(p, e) {
   running = false; gameOver = true;
-  if (win) META.dailyBattles = (META.dailyBattles || 0) + 1;
   const win = p && !e, dr = !p && !e;
+  if (win) META.dailyBattles = (META.dailyBattles || 0) + 1;   // ⚠️ TDZ 버그픽스: win 선언 뒤로 이동 (전엔 선언 전 참조→매 전투종료 ReferenceError로 finish() 전체 붕괴)
   const m = META.mode;
   let extra = "", title = win ? t("rWin") : dr ? t("rDraw") : t("rLose");
   let bonus = (x) => Math.floor(x * (META.vip ? 1.5 : META.starter ? 1.2 : 1));   // VIP +50% / 스타터 +20% 골드
