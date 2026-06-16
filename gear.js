@@ -5,10 +5,10 @@ const SLOT_ICON = { weapon: "⚔️", armor: "🛡️", acc: "👟", relic: "�
 const SLOT_MAIN = { weapon: "str", armor: "int", acc: "agi", relic: "luk", core: "mix" };
 const STAT_KEYS = ["str", "int", "agi", "luk"];
 const GEAR_RARITY = [
-  { k: "N", p: 0.5, base: 6, color: "#9ca3af" },
-  { k: "R", p: 0.32, base: 12, color: "#60a5fa" },
-  { k: "SR", p: 0.14, base: 22, color: "#c084fc" },
-  { k: "SSR", p: 0.04, base: 40, color: "#fbbf24" },
+  { k: "N", p: 0.60, base: 6, color: "#9ca3af" },
+  { k: "R", p: 0.28, base: 12, color: "#60a5fa" },
+  { k: "SR", p: 0.10, base: 22, color: "#c084fc" },
+  { k: "SSR", p: 0.02, base: 40, color: "#fbbf24" }, // base 2% SSR (낮춰 chase), pity로 조정 (gearGacha에 pity 추가)
 ];
 function rollGearRarity() { let r = Math.random(), a = 0; for (const x of GEAR_RARITY) { a += x.p; if (r <= a) return x; } return GEAR_RARITY[0]; }
 
@@ -52,6 +52,13 @@ function makeGear(forceRar) {
   const rk = forceRar || rollGearRarity().k;
   const pool = GEAR_ROSTER.filter((t) => t.rarity === rk);
   const tpl = pool[(Math.random() * pool.length) | 0];
-  return { id: -1, tplId: tpl.id, slot: tpl.slot, rarity: tpl.rarity, color: tpl.color, name: tpl.name, str: tpl.str, int: tpl.int, agi: tpl.agi, luk: tpl.luk, enh: 0 };
+  return { id: -1, tplId: tpl.id, slot: tpl.slot, rarity: tpl.rarity, color: tpl.color, name: tpl.name, str: tpl.str, int: tpl.int, agi: tpl.agi, luk: tpl.luk, enh: 0, star: 0, awak: 0 };
 }
-function gearStat(g, key) { return Math.round((g[key] || 0) * (1 + (g.enh || 0) * 0.1)); }
+function gearStat(g, key) {
+  const base = (g[key] || 0);
+  const e = (g.enh || 0);
+  const s = (g.star || 0);
+  const a = (g.awak || 0);
+  // enh 10%/lv + star big spike 25%/lv + awak soul spike 40%/lv for dopamine (gear enh→★→✦ progression)
+  return Math.round(base * (1 + e * 0.1) * (1 + s * 0.25) * (1 + a * 0.40));
+}

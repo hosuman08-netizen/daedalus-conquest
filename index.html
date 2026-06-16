@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>다이달로스 — AI 군단 전쟁</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="style.css?v=20260616g" />
+  <link rel="stylesheet" href="style.css?v=20260616h" />
 </head>
 <body>
   <div id="app">
@@ -20,7 +20,10 @@
       <span class="meta gem">💎 <i id="gems">50</i></span>
       <span class="meta soul">🔮 <i id="soul">0</i></span>
       <span class="meta ch">📖 <i id="chapter">1</i></span>
-      <span class="meta coh">🌀 <i id="cohesion">0.0</i></span> <!-- prestige dash: numbers go up every claim/ritual -->
+      <span class="meta coh" style="cursor:pointer" onclick="openSettings();renderPrestige();">🌀 <i id="cohesion">0.0</i></span>
+      <span class="meta" id="streak-meta" style="color:#fbbf24;font-size:11px;cursor:pointer" onclick="openEvent();">🔥<i id="streak-val">0</i></span>
+      <!-- MVP: pity always visible in lobby top per final plan -->
+      <span class="meta pity">🎯 다음 SSR까지 <i id="pity-left">23</i>회</span>
     </div>
 
     <div id="page-battle" class="page">
@@ -53,6 +56,14 @@
     </div>
 
     <div id="status">군대를 배치하고 ▶ 전투 시작</div>
+
+    <!-- MVP 4 actions quick bar (vertical phone, no scroll focus: summon/gacha, battle, shop, AFK) -->
+    <div id="mvp-quick" style="display:flex;gap:6px;margin:4px 0;justify-content:center;flex-wrap:wrap;">
+      <button onclick="gacha()" style="padding:6px 10px;border-radius:6px;background:#2a1f0f;color:#fbbf24;border:1px solid #664e1f;font-size:12px;">🎰 소환</button>
+      <button onclick="if(!running){if(gameOver)reset();start();}" style="padding:6px 10px;border-radius:6px;background:#fbbf24;color:#1a1400;border:none;font-size:12px;font-weight:700;">▶ 전투</button>
+      <button onclick="openShop()" style="padding:6px 10px;border-radius:6px;background:#2a1f0f;color:#fbbf24;border:1px solid #664e1f;font-size:12px;">🛒 상점</button>
+      <button onclick="checkIdle();toast('AFK 보상 확인 (이벤트/일일 참고)','#a3e635')" style="padding:6px 10px;border-radius:6px;background:#2a1f0f;color:#fbbf24;border:1px solid #664e1f;font-size:12px;">🌙 AFK</button>
+    </div>
 
     <canvas id="field"></canvas>
 
@@ -172,9 +183,11 @@
       <div class="set-sec">📅 <span data-i18n="evAttend">일일 출석 (30일)</span></div>
       <div id="attend-grid"></div>
       <button id="attend-claim" data-i18n="evClaim">출석 보상 받기</button>
+      <div id="attend-fomo" style="font-size:10px;color:#f59e0b;margin:4px 0;text-align:center;"></div>
       <div class="set-sec">⏱️ <span data-i18n="playTitle">오늘의 플레이 보상</span> <span id="play-now" class="ddim"></span></div>
       <div class="play-hint" data-i18n="playHint">접속해 플레이한 시간만큼 보상! (매일 0시 초기화)</div>
       <div id="play-list"></div>
+      <div id="play-fomo" style="font-size:10px;color:#f59e0b;margin:-2px 0 6px;text-align:center;"></div>
       <div class="set-sec">🏆 <span data-i18n="evSeason">시즌 이벤트</span></div>
       <div id="season-list"></div>
       <!-- Vanguard Focus 24h FOMO ritual (psych hook: carry teaser + god-VFX) -->
@@ -187,10 +200,11 @@
       <div class="set-sec">🎰 <span data-i18n="shopGacha">뽑기</span></div>
       <div id="shop-gacha">
         <button class="gbig" id="sg-char1">🎰 <span data-i18n="navChar">캐릭터</span> · 💰100</button>
-        <button class="gbig" id="sg-char10">💎 <span data-i18n="navChar">캐릭터</span> 10연 · 💎30</button>
-        <button class="gbig" id="sg-gear1">🔨 <span data-i18n="gTitle">장비</span> · 💎30</button>
-        <button class="gbig" id="sg-gear10">🔨 <span data-i18n="gTitle">장비</span> 10연 · 💎250</button>
+        <button class="gbig" id="sg-char10">💎 <span data-i18n="navChar">캐릭터</span> 10연 · 💎80</button>
+        <button class="gbig" id="sg-gear1">🔨 <span data-i18n="gTitle">장비</span> · 💎40</button>
+        <button class="gbig" id="sg-gear10">🔨 <span data-i18n="gTitle">장비</span> 10연 · 💎400</button>
       </div>
+      <div style="font-size:10px;color:#fbbf24;text-align:center;margin:2px 0 6px;">SSR 2%+ (pity ramp 투명, chase dopamine) · Gear SSR 2% | 10연 가치 UP (저가 spam NO, retention chase)</div>
       <div class="set-sec">💎 <span data-i18n="shopPack">패키지 · 재화</span></div>
       <div id="shop-list"></div>
       <div class="set-ver" data-i18n="shopNote">실제 결제는 텔레그램 Stars 연동 예정</div>
@@ -230,7 +244,7 @@
         <div id="cp-head"></div>
         <div id="cp-grow"></div>
         <div id="cp-gear"></div>
-        <div id="cp-inv-label" class="ddim" data-i18n="cpInv">🎒 보유 장비 — 탭해서 이 캐릭터에 장착</div>
+        <div id="cp-inv-label" class="ddim" data-i18n="cpInv">🎒 슬롯 탭 → 장착 후보</div>
         <div id="cp-inv"></div>
         <button id="cp-close" class="ghost" data-i18n="confirm">확인</button>
       </div>
@@ -238,9 +252,9 @@
 
     <div id="toast"></div>
   </div>
-  <script src="i18n.js?v=20260616g"></script>
-  <script src="units.js?v=20260616g"></script>
-  <script src="gear.js?v=20260616g"></script>
-  <script src="game.js?v=20260616g"></script>
+  <script src="i18n.js?v=20260616h"></script>
+  <script src="units.js?v=20260616h"></script>
+  <script src="gear.js?v=20260616h"></script>
+  <script src="game.js?v=20260616h"></script>
 </body>
 </html>
