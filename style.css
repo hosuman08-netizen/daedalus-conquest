@@ -65,7 +65,7 @@ h1::first-letter { color: var(--crimson); }
 #attend-claim:disabled { background: #2c2442; color: var(--dim); }
 .play-hint { font-size: 11px; color: var(--dim); margin: -2px 0 6px; }
 #tg-profile { display: flex; align-items: center; gap: 12px; background: #1d1535; border-radius: 11px; padding: 12px; margin-bottom: 4px; }
-.prof-img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; flex: 0 0 48px; }
+.prof-img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; object-position: center top; flex: 0 0 48px; }
 .prof-ph { display: flex; align-items: center; justify-content: center; font-size: 24px; background: #2c2442; }
 .prof-meta { min-width: 0; }
 .prof-name { font-size: 15px; font-weight: 800; }
@@ -435,7 +435,7 @@ h1::first-letter { color: var(--crimson); }
   display: flex; align-items: center; justify-content: center;
 }
 .hbtn .hgly { display:none; } /* 20260616 Sovereign: hero bar pure PNG — 겹치는 이모지 완전 제거 (fallback 시에만 사용) */
-.hbtn .him { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; opacity:.82; }
+.hbtn .him { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center top; z-index:1; opacity:.82; }
 .hbtn:active { transform: scale(0.88); }
 .hbtn.sel {
   border-color: #fbbf24; transform: scale(1.1); z-index:8;  /* 2026-06-16 Sovereign 복구: 과한 82px 형광 후광 제거 → 은은하고 보기 쉬운 선택 강조 */
@@ -461,32 +461,34 @@ h1::first-letter { color: var(--crimson); }
 #battle-combo { font-size:9.5px; color:#a3e635; margin:1px 2px 4px; min-height:12px; line-height:1.25; } /* dynamic squad + hero passive buffs, compact for battle "한창에" */
 
 /* ULT button: 이팩트 완전 제거 (Sovereign request). Zero glow, zero neon, zero pulse, zero emoji, zero colored border, zero heavy shadow. Completely flat clean button. Matches clean UI direction — no special effects. */
-#ult { 
-  width:100%; margin-top:3px; padding:6px 10px; font-size:12px; font-weight:700; letter-spacing:0.5px; 
-  border-radius:6px; background:#0d0d0d; color:#ccc; 
-  border:1px solid #222; 
-  box-shadow:none; 
-  transition:none; 
-  text-shadow:none; 
-  display:block; 
-  min-height:28px; 
+#ult {
+  width:100%; margin-top:4px; padding:13px 12px; font-size:14px; font-weight:800; letter-spacing:0.5px;
+  border-radius:12px; background:#0d0d0d; color:#999;
+  border:2px solid #222;
+  box-shadow:none;
+  transition:box-shadow .2s, border-color .2s, color .2s;
+  text-shadow:none;
+  display:flex; align-items:center; justify-content:center;
+  min-height:56px;
   text-align:center;
   outline:none;
 }
-#ult.ready { 
-  opacity:1; 
-  background:#121212; 
-  color:#ddd; 
-  border:1px solid #333; 
-  box-shadow:none; 
-  animation:none; 
-  text-shadow:none; 
-  font-size:12px; 
+/* 군주 20260616 + Grok Micro1: 평소엔 차분(dim), 궁극기 쓸 수 있을 때만 반짝. 글로우는 위주로 — 하단버튼 침범 금지(세로 bleed 최소). scale 없음. */
+#ult.ready {
+  opacity:1;
+  background:linear-gradient(150deg,#2a1810 0%,#1a1208 60%,#120a04 100%);
+  color:#ffe9b0;
+  border:2px solid var(--hcolor, #fbbf24);
+  box-shadow:0 0 22px -2px var(--hcolor, #fbbf24)cc, inset 0 0 10px rgba(255,210,120,0.12);
+  animation:ultsparkle 1.3s infinite ease-in-out;
+  text-shadow:0 0 10px rgba(255,220,140,0.5);
+  font-size:14.5px;
 }
 #ult.ready.hero-tinted { 
   border-color:#333; 
   box-shadow:none; 
 }
+@keyframes ultsparkle { 0%,100% { box-shadow:0 0 16px -2px var(--hcolor,#fbbf24)aa, inset 0 0 8px rgba(255,210,120,0.1); } 50% { box-shadow:0 0 30px -1px var(--hcolor,#fbbf24)ee, inset 0 0 14px rgba(255,225,150,0.2); } }
 #ult:disabled { opacity:.35; }
 #ult:active { transform:none; filter:none; }
 /* no flame, no pseudo effects at all */
@@ -753,7 +755,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 #cp-grow .cp-badge.pur { color: #c084fc; background: #241a3a; }
 
 .hbtn { overflow: hidden; }
-.hbtn .him { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+.hbtn .him { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center top; z-index: 1; }
 .hbtn .rk { z-index: 2; }
 .hbtn.sel .him { outline: 2px solid var(--crimson); outline-offset: -2px; box-shadow: 0 0 10px currentColor; } /* 2026-06-16 polish: hero bar sel pop stronger with icon glow (new heroicons 7 endowment pop). Reversible. */
 
