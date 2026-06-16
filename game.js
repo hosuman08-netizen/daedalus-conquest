@@ -2880,9 +2880,10 @@ function showUnit(id) {
   $("unit-glyph").innerHTML = artHTML(u, "ucgly", "ucim");   // 미보유도 일러스트 노출(보는 맛) — 이름/스탯만 잠금
   $("unit-name").innerHTML = `<b style="color:${u.color}">[${u.rarity}]</b> ${has ? u.name : "???"}`;
   $("unit-title").textContent = has ? (u.title || u.arch) : t("locked");
-  $("unit-detail").innerHTML = has
+  const lore = (typeof LORE !== "undefined" && LORE[id]) ? `<div class="unit-lore">📖 ${LORE[id]}</div>` : "";   // 군주 20260617: 캐릭터 서사(도파민) — 항상 노출(흥미 유발)
+  $("unit-detail").innerHTML = (has
     ? `${u.faction ? "🏷️ " + u.faction + " · " : ""}${u.glyph} ${u.arch} ×${u.mul}<br>${u.persona ? "💬 " + u.persona + "<br>" : ""}${u.trait ? "✦ " + u.trait : ""}`
-    : t("lockedHint");
+    : t("lockedHint")) + lore;
   $("unit-pop").classList.remove("hidden");
 }
 // ── 장비: 제작 · 장착 · 강화 ──────────────────────────────────────────────────

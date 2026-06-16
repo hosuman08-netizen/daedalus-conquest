@@ -899,3 +899,6 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .syn-nx { font-size: 8.5px; color: #9ca3af; }
 .syn-card.on .syn-nx { color: #fbbf24; }
 @keyframes synpulse { 0%,100% { box-shadow: 0 0 8px -2px #fbbf2466; } 50% { box-shadow: 0 0 16px -1px #fbbf24bb; } }
+
+/* 군주 20260617: 캐릭터 서사(lore) — 상세 팝업 하단, 흥미 유발(도파민) */
+.unit-lore { margin-top: 8px; padding: 8px 10px; border-top: 1px solid rgba(245,196,81,0.25); background: linear-gradient(180deg, rgba(245,196,81,0.05), transparent); border-radius: 6px; font-size: 11.5px; line-height: 1.55; color: #cfc4a8; font-style: italic; text-align: left; }
