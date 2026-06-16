@@ -258,7 +258,7 @@ function bumpPrestige(amt) { // "numbers go up" visual on every claim/ritual
   if (el && (amt||0) >= 1) { el.style.boxShadow = "0 0 18px #c084fc"; setTimeout(()=>{if(el) el.style.boxShadow="";}, 520); }
 }
 function loadMeta() {
-  const def = { gold: 550, chapter: 1, streak: 0, pulls: 0, pity: 0, titanOwned: false, starter: false, lastSeen: 0, lastDaily: "",
+  const def = { gold: 550, chapter: 1, streak: 0, pulls: 0, pity: 0, titanOwned: false, starter: false, firstBuy: {}, lastSeen: 0, lastDaily: "",
                 lv: { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 },
                 army: { drone: 5, marksman: 3, guardian: 1, bruiser: 1, commander: 0, titan: 0 }, // 초반 접근성: 조금 더 관대하게 시작 (빠른 첫 승 + 구매 유도)
                 hero: "strategist",
@@ -517,16 +517,21 @@ function spawnArmy(side) {
         let atk = Math.round(s.atk * u.mul * lvK * invest * hb.atkMul * (1 + (hb.typeAtk[u.arch] || 0)) * syn.atk * cgAtk);
         // ch1-8 trivial (squad/편성 경로에도 동일 적용 — 쉬운 시작)
         if (side === "p" && curLevel <= 8) { hp = Math.round(hp * 1.4); atk = Math.round(atk * 1.3); }
+        // Give player's selected characters (from char panel deploy) more space and presence on field.
+        // Not squeezed at very bottom edge — user selected them, they should appear properly and not "짜치게".
         const perRow = 5, row = Math.floor(si / perRow), col = si % perRow;
         const rowN = Math.min(perRow, squad.length - row * perRow);
-        const x = W / 2 + (col - (rowN - 1) / 2) * 46 + (Math.random() * 6 - 3);
-        const y = baseY + dir * row * 34;
+        const basePlayerY = H * 0.65; // more room from bottom for visible formation
+        const x = W / 2 + (col - (rowN - 1) / 2) * 52 + (Math.random() * 4 - 2);
+        const y = basePlayerY - row * 42; // spread vertically for better visibility
+        const specR = 18; // larger than generic for "my selected characters" prominence
         units.push({
           t: u.arch, side, x, y, hp, maxHp: hp, atk, range: s.range, speed: s.speed,
           atkCd: s.atkCd * cgSpd, crit: cgCrit, ai: Math.min(3, s.ai + hb.aiBonus + aw),
           sight: s.sight, r: s.r * 1.18, skill: s.skill, skillCd: s.skillCd, ranged: s.ranged,
           regen: hb.regen, atkT: Math.random() * 0.3, skT: s.skillCd * 0.4, shield: 0, buff: 0, buffT: 0, spd: 0, spdT: 0,
           id: u.id, name: u.name, vis: u.vis, color: u.color, isSpecific: true, rarity: u.rarity, dmgOut: 0,
+          r: specR, // larger visual for selected characters to appear properly on field
         });
         loadPortrait(u.id);   // 편성 캐릭 일러스트 캔버스용 로드 (전 등급)
       });
@@ -693,6 +698,9 @@ function updateMeta() {
     const p = (META.pity || 0);
     const remain = Math.max(0, 10 - p); // align with current hard ceiling ~10-12
     pityEl.textContent = remain;
+    // 가챠 천장 진행바(상점) — 코드값과 100% 일치 (n/10)
+    const pf = $("pity-fill"); if (pf) pf.style.width = Math.min(100, (p / 10) * 100) + "%";
+    const pbl = $("pity-bar-label"); if (pbl) pbl.textContent = Math.min(p, 10) + "/10";
   }
   // sacred-host §21 dynamic (Host Weave / Vanguard FOMO cue)
   const sh = $("sacred-host"); if (sh) {
@@ -983,8 +991,8 @@ function draw() {
     const hasEnemyPortrait = u.side === "e" && u.portraitKey && enemyPortraits[u.portraitKey] && enemyPortraits[u.portraitKey].complete && enemyPortraits[u.portraitKey].naturalWidth > 0;
     if (hasPlayerPortrait || hasEnemyPortrait) {
       const img = hasPlayerPortrait ? ssrPortraits[u.id] : enemyPortraits[u.portraitKey];
-      const clipR = hasPlayerPortrait ? 20 : Math.min(22, u.r + 4);
-      const sz = hasPlayerPortrait ? 46 : 48;
+      const clipR = hasPlayerPortrait ? u.r * 1.15 : Math.min(22, u.r + 4);
+      const sz = hasPlayerPortrait ? u.r * 2.6 : 48;
       ctx.save();
       ctx.beginPath(); ctx.arc(u.x, u.y, clipR, 0, 7); ctx.clip();
       ctx.drawImage(img, u.x - sz / 2, u.y - sz * 0.42, sz, sz);
@@ -993,46 +1001,15 @@ function draw() {
         ctx.strokeStyle = isVanguard ? "#fde047" : "#fbbf24"; ctx.lineWidth = isVanguard ? 4.2 : 3;
         ctx.beginPath(); ctx.arc(u.x, u.y, clipR + (isVanguard?2:1), 0, 7); ctx.stroke();
         if (isVanguard && u.rarity==="SSR") { ctx.strokeStyle="rgba(251,191,36,0.35)"; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(u.x,u.y,clipR+9,0,7); ctx.stroke(); }
-      } else {
-        // Hostile red jagged (톱니) rim + dark overlay for enemyPortraits (bosses/elites: titan, corrupted-titan, drone, marksman etc)
-        // Makes battle enemies look cool & threatening vs beautiful player army (gold frames). Per ENEMY-ART-PROMPTS.
-        // dark overlay first (hostile corrupted feel)
-        ctx.save();
-        ctx.beginPath(); ctx.arc(u.x, u.y, clipR, 0, 7); ctx.clip();
-        ctx.fillStyle = "rgba(20,5,5,0.48)";
-        ctx.fillRect(u.x - sz/2 - 2, u.y - sz * 0.42 - 2, sz + 4, sz + 4);
-        ctx.restore();
-        // jagged serrated red hostile frame (톱니 테두리)
-        ctx.strokeStyle = "#ef4444";
-        ctx.lineWidth = 3.8;
-        ctx.beginPath();
-        const n = 10;
-        for (let k = 0; k <= n; k++) {
-          const ang = (k / n) * Math.PI * 2 - 0.08;
-          const radJ = clipR + 2 + ((k % 2 === 0) ? 5.5 : -0.8);
-          const jx = u.x + Math.cos(ang) * radJ;
-          const jy = u.y + Math.sin(ang) * radJ;
-          if (k === 0) ctx.moveTo(jx, jy); else ctx.lineTo(jx, jy);
-        }
-        ctx.closePath();
-        ctx.stroke();
-        // extra red energy aggression spikes
-        ctx.strokeStyle = "rgba(239,68,68,0.78)";
-        ctx.lineWidth = 1.9;
-        for (let k = 0; k < 7; k++) {
-          const ang = (k * 0.95) % 6.28;
-          const r1 = clipR + 1.8;
-          const r2 = clipR + 8.5 + ((k % 2) * 2.5);
-          ctx.beginPath();
-          ctx.moveTo(u.x + Math.cos(ang) * r1, u.y + Math.sin(ang) * r1);
-          ctx.lineTo(u.x + Math.cos(ang) * r2, u.y + Math.sin(ang) * r2);
-          ctx.stroke();
-        }
-        // subtle outer hostile pulse
-        ctx.strokeStyle = "rgba(239,68,68,0.32)";
-        ctx.lineWidth = 2.2;
-        ctx.beginPath(); ctx.arc(u.x, u.y, clipR + 9.5, 0, 7); ctx.stroke();
       }
+      if (u.isSpecific && hasPlayerPortrait) {
+        // label so the characters selected in char panel appear with name on field
+        ctx.fillStyle = '#e8e0ff';
+        ctx.font = '6.5px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(u.name || '', u.x, u.y - clipR - 4);
+      }
+      // For enemy PNG: clean, no extra circles/lines/rims/spikes (user request for NPC enemies to look proper without unnecessary effects)
     } else {
       ctx.font = (u.r + 8) + "px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
       const drawGlyph = (u.vis || SPEC[u.t].glyph || "●");
@@ -2062,7 +2039,9 @@ function renderShop() {
     const what = p.starter ? "💎 " + t("spTitle") : p.vip ? t("tVip") : p.ultra ? t("tUltra") : p.k ? t(p.k) : (p.gem ? "💎 " + p.gem : "💰 " + p.g);
     const sub = active ? '<div class="psub">✓ ~' + META.pass[p.id] + "</div>" : "";
     const price = owned ? "✓ " + t("ownedShort") : p.price;  // 보유중이면 가격 대신 표시(사라지지 않게)
-    c.innerHTML = (p.tag ? '<span class="ptag">' + p.tag + "</span>" : "") + '<div class="pwhat">' + what + "</div>" + sub + '<div class="pprice">' + price + "</div>";
+    const isFB = !((META.firstBuy || {})[p.id]) && (p.gem || p.g) && !owned;  // 🎁 첫구매 2배 대상(젬·골드 팩, 미구매)
+    const tagHtml = isFB ? '<span class="ptag pdbl">🎁 첫구매 2배</span>' : (p.tag ? '<span class="ptag">' + p.tag + "</span>" : "");
+    c.innerHTML = tagHtml + '<div class="pwhat">' + what + "</div>" + sub + '<div class="pprice">' + price + "</div>";
     if (owned) c.disabled = true; else c.addEventListener("click", () => buyPack(p.id));
     box.appendChild(c);
   });
@@ -2142,10 +2121,14 @@ function grantPack(id) {
     if (u) setTimeout(() => showGacha({ key: "SSR", color: "#fbbf24" }, "🎁 " + u.name + " (SSR) + " + (SLOT_ICON[g.slot] || "") + "SSR장비"), 300);
     toast(t("tGrowth"), "#fbbf24"); haptic("heavy"); return;
   }
-  if (p.gem) META.gems = (META.gems || 0) + p.gem;
-  if (p.g) META.gold += p.g;
+  // 🎁 첫구매 2배 — 젬·골드 팩 최초 1회 한정 추가 지급(다크패턴 아님: 진짜 2배, 정가 그대로)
+  META.firstBuy = META.firstBuy || {};
+  const dbl = !META.firstBuy[id] && (p.gem || p.g);
+  if (p.gem) META.gems = (META.gems || 0) + (dbl ? p.gem * 2 : p.gem);
+  if (p.g) META.gold += (dbl ? p.g * 2 : p.g);
+  if (dbl) META.firstBuy[id] = true;
   saveMeta(); updateMeta(); renderShop();
-  toast("🛒 " + (p.gem ? "💎+" + p.gem : "💰+" + p.g), "#fbbf24"); haptic("medium");
+  toast("🛒 " + (dbl ? "🎁 첫구매 2배! " : "") + (p.gem ? "💎+" + (dbl ? p.gem * 2 : p.gem) : "💰+" + (dbl ? p.g * 2 : p.g)), "#fbbf24"); haptic(dbl ? "heavy" : "medium");
 }
 on("gacha10-btn", "click", gacha10);
 // 장비 뽑기 + 상점 뽑기 버튼 + 시즌 이벤트

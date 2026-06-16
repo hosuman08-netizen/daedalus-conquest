@@ -781,3 +781,14 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 #char-panel-card .gear-card .g-stats { font-size: 10px !important; }
 #char-panel-card .gear-card .g-act button { font-size: 11px !important; padding: 4px 8px !important; }
 #char-panel-card #cp-close { font-size: 14px !important; padding: 9px 0 !important; margin-top: 8px !important; border-radius: 8px !important; }
+
+/* ════════ 가챠 확률 가시화 + 천장 진행바 (P0 — 법규·신뢰, 코드값 일치) ════════ */
+#gacha-rates { margin: 5px 0 12px; padding: 9px 11px; background: #16101f; border: 1px solid #2c2142; border-radius: 11px; }
+.gr-rates { display: flex; justify-content: space-between; gap: 4px; font-size: 13px; font-weight: 800; margin-bottom: 8px; }
+.gr-rates .gr-n { color: #9ca3af; } .gr-rates .gr-r { color: #60a5fa; } .gr-rates .gr-sr { color: #c084fc; } .gr-rates .gr-ssr { color: #fbbf24; }
+#pity-bar { position: relative; height: 16px; background: #0f0a18; border: 1px solid #3a2f5e; border-radius: 8px; overflow: hidden; }
+#pity-fill { position: absolute; top: 0; bottom: 0; left: 0; width: 0%; background: linear-gradient(90deg, #a855f7, #fbbf24); border-radius: 8px; transition: width .3s ease; }
+#pity-bar-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: #fff; text-shadow: 0 1px 2px #000; z-index: 2; }
+.gr-note { font-size: 10px; color: #a3a3c2; text-align: center; margin-top: 6px; line-height: 1.45; }
+/* 🎁 첫구매 2배 뱃지 */
+.ptag.pdbl { background: linear-gradient(135deg, #f5c451, #d97706) !important; color: #1a1400 !important; font-weight: 900 !important; }
