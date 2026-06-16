@@ -886,7 +886,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .syn-h { font-size: 11px; font-weight: 800; color: #fbbf24; letter-spacing: 1px; margin-bottom: 4px; text-align: center; }
 .syn-grid { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
 .syn-card { display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 80px; padding: 6px 8px; border-radius: 8px; background: #14121c; border: 1px solid #2a2536; font-size: 10px; transition: all .2s; }
-.syn-card.on { background: linear-gradient(160deg, #3a2c12, #1a1330); border-color: #fbbf24; animation: synpulse 1.6s infinite ease-in-out; }
+.syn-card.on { background: linear-gradient(160deg, #3a2c12, #1a1330); border-color: #fbbf24; box-shadow: 0 0 10px -2px #fbbf2499; }
 .syn-card.off { opacity: .5; filter: grayscale(0.65); }
 .syn-ic { font-size: 16px; line-height: 1; }
 .syn-nm { font-weight: 700; color: #ddd; }
