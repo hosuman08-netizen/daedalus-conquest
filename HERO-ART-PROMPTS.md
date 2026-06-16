@@ -2,6 +2,7 @@
 > 저장: art/hero-<key>.png (7장). 정사각 1024², 캐릭터 중앙, 투명/단색 배경. 오리지널, 별/등급텍스트 없음.
 > 컨셉 공통: **흑·진홍(crimson) 엘리트 결사 사령관**, dark elite commander, anime gacha splash, sci-fi.
 > bar/hbtn용: dramatic god-pose rim/glow (gold/hero tint) for premium Legion Command sel state (HSR/AFK/E7 power fantasy). Small icon crop safe. 모방 OK, 카피 NO.
+> CLEAN VERSION (Sovereign request): no small additional emoticons, icons, symbols, badges or overlays on the character at all. Clean main dramatic god-pose character only, no small icons/emoticons in the illustration, no corner symbols. Pure elegant character portrait. Use this for heroicon PNG to avoid clutter on the command bar and make ULT info visible.
 | 파일 | key | 컨셉 | 궁극기 |
 |---|---|---|---|
 | art/hero-strategist.png | strategist | 두뇌형 전술가, 홀로 전술맵, 냉철 | 전술 지휘 |

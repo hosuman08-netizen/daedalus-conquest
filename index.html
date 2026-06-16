@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>다이달로스 — AI 군단 전쟁</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="style.css?v=20260616l" />
+  <link rel="stylesheet" href="style.css?v=20260616m" />
 </head>
 <body>
   <div id="app">
@@ -20,8 +20,8 @@
       <span class="meta gem">💎 <i id="gems">50</i></span>
       <span class="meta soul">🔮 <i id="soul">0</i></span>
       <span class="meta ch">📖 <i id="chapter">1</i></span>
-      <span class="meta coh" style="cursor:pointer" onclick="openSettings();renderPrestige();">🌀 <i id="cohesion">0.0</i></span>
-      <span class="meta" id="streak-meta" style="color:#fbbf24;font-size:11px;cursor:pointer" onclick="openEvent();">🔥<i id="streak-val">0</i></span>
+      <span class="meta coh" style="cursor:pointer" onclick="openSettings();renderPrestige();" title="영구 파워 배율. 0.4 = 모든 보상/파워 약 +40% 영구 적용. 환생·리추얼로 증가">🌀 결속 <i id="cohesion">0.0</i></span>
+      <span class="meta" id="streak-meta" style="color:#fbbf24;font-size:11px;cursor:pointer" onclick="openEvent();" title="일일 연속. 7일 유지 시 AFK 보상 1.5배 등. 매일 클레임으로 쌓음">🔥 연속 <i id="streak-val">0</i></span>
       <!-- MVP: pity always visible in lobby top per final plan -->
       <span class="meta pity">🎯 다음 SSR까지 <i id="pity-left">23</i>회</span>
     </div>
@@ -41,30 +41,28 @@
 
     <div id="heroes">
       <div class="herorow">
-        <button class="hbtn" data-h="strategist">🧠</button>
-        <button class="hbtn" data-h="berserker">⚡</button>
-        <button class="hbtn" data-h="warden">🛡️</button>
-        <button class="hbtn" data-h="ranger">🎯</button>
-        <button class="hbtn" data-h="mech">🤖</button>
-        <button class="hbtn" data-h="engineer">💉</button>
-        <button class="hbtn" data-h="dragoon">🐉</button>
+        <button class="hbtn" data-h="strategist"></button>
+        <button class="hbtn" data-h="berserker"></button>
+        <button class="hbtn" data-h="warden"></button>
+        <button class="hbtn" data-h="ranger"></button>
+        <button class="hbtn" data-h="mech"></button>
+        <button class="hbtn" data-h="engineer"></button>
+        <button class="hbtn" data-h="dragoon"></button>
       </div>
       <div id="hero-info">
         <div><b id="hero-name"></b> <button id="hero-up"></button></div>
         <div id="hero-desc"></div>
       </div>
+      <!-- Sovereign 요청: 정적 유닛 상성(legend) 대신, 캐릭터 선택 시 실시간 조합 버프/시너지 표시 -->
+      <div id="battle-combo"></div>
     </div>
 
     <div id="status">군대를 배치하고 ▶ 전투 시작</div>
 
-    <!-- MVP 4 actions quick bar (vertical phone, no scroll focus: summon/gacha, battle, shop, AFK) -->
-    <!-- 2026-06-16 Morpheus UI/Critic polish: hero bar icons now power visual, quick 4 focus dopamine. Micro spacing tweaks prior. Reversible comments. -->
-    <div id="mvp-quick" style="display:flex;gap:6px;margin:4px 0;justify-content:center;flex-wrap:wrap;">
-      <button onclick="gacha()" style="padding:6px 10px;border-radius:6px;background:#2a1f0f;color:#fbbf24;border:1px solid #664e1f;font-size:12px;">🎰 소환</button>
-      <button onclick="if(!running){if(gameOver)reset();start();}" style="padding:6px 10px;border-radius:6px;background:#fbbf24;color:#1a1400;border:none;font-size:12px;font-weight:700;">▶ 전투</button>
-      <button onclick="openShop()" style="padding:6px 10px;border-radius:6px;background:#2a1f0f;color:#fbbf24;border:1px solid #664e1f;font-size:12px;">🛒 상점</button>
-      <button onclick="checkIdle();toast('AFK 보상 확인 (이벤트/일일 참고)','#a3e635')" style="padding:6px 10px;border-radius:6px;background:#2a1f0f;color:#fbbf24;border:1px solid #664e1f;font-size:12px;">🌙 AFK</button>
-    </div>
+    <!-- MVP quick bar 완전 제거 (Sovereign 요청: 원래 하단바가 더 낫다).
+         이제 하단 #bnav 6탭(전투/캐릭터/장비/도감/상점/이벤트)이 메인 네비.
+         배틀 컨트롤(시작/자동/속도/다시)은 콘텐츠 영역에만.
+         Reversible: 이 블록 복구 가능. -->
 
     <canvas id="field"></canvas>
 
@@ -89,17 +87,11 @@
       <button id="auto" data-i18n="auto">⚔️ 자동사냥</button>
       <button id="speed">속도 1x</button>
     </div>
-    <div id="controls" style="margin-top:6px">
+    <div id="reset-controls" style="margin-top:6px">
       <button id="reset" data-i18n="reset">↻ 다시</button>
     </div>
 
-    <button id="legend-toggle" class="legend-toggle">ℹ️ <span data-i18n="legendHelp">유닛·상성 정보</span></button>
-    <div id="legend" class="hidden">
-      <span data-i18n="legend1"></span><br/>
-      <span data-i18n="legend2"></span><br/>
-      <b data-i18n="legend4"></b><br/>
-      <b data-i18n="legend3"></b>
-    </div>
+    <!-- legend-toggle + #legend removed from battle (static info replaced by #battle-combo dynamic synergy per Sovereign). Kept in codex if needed. -->
     </div><!-- /page-battle -->
 
     <!-- 캐릭터 페이지 (도감·강화·승급·장비) -->
@@ -257,9 +249,9 @@
 
     <div id="toast"></div>
   </div>
-  <script src="i18n.js?v=20260616l"></script>
-  <script src="units.js?v=20260616l"></script>
-  <script src="gear.js?v=20260616l"></script>
-  <script src="game.js?v=20260616l"></script>
+  <script src="i18n.js?v=20260616m"></script>
+  <script src="units.js?v=20260616m"></script>
+  <script src="gear.js?v=20260616m"></script>
+  <script src="game.js?v=20260616m"></script>
 </body>
 </html>
