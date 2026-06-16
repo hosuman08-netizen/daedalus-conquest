@@ -692,6 +692,7 @@ function applyMode() {
     let st = t("sDeploy", { n: META.chapter });
     if (META.chapter <= 8) st += " · 초보자 모드 (쉽게 시작!)";
     else if (META.chapter > 20) st += " · 본격 난이도 ↑ (강한 Legion 유닛/강화 필요)";
+    st += " · 승리하면 챕터 +1";
     $status.textContent = st;
   }
 }
@@ -775,6 +776,7 @@ function updateMeta() {
   if (ts) ts.style.display = META.titanOwned ? "" : "none";
   const sb = $("starter-btn"); if (sb) sb.style.display = META.starter ? "none" : "";
   const sp = $("speed"); if (sp && !running) sp.textContent = t("speed", { n: speed });
+  updateModeTabs(); // 챕터 변경(환생·승리 등) 시 '캠페인 chX' 탭 라벨 즉시 갱신
 }
 
 // ── 모드 사이클 ───────────────────────────────────────────────────────────────
@@ -817,6 +819,9 @@ function updateModeTabs() {
     const locked = !modeUnlocked(b.dataset.m) || b.dataset.m === "turnbased" || b.dataset.m === "arena" || b.dataset.m === "mystery";
     b.classList.toggle("locked", locked);
   });
+  // Sovereign: 캠페인 탭에 현재 챕터 번호 동적 표시 — "2챕터가 안넘어가" 혼란 방지. 유저가 "이 버튼이 챕터 진행용"임을 즉시 인지.
+  const camp = document.querySelector('.modetab[data-m="campaign"]');
+  if (camp) camp.textContent = `📖 캠페인 ch${META.chapter || 1}`;
   renderMsHint();
 }
 function setMode(m) {
@@ -1296,6 +1301,7 @@ function finish(p, e) {
       extra = `<div class="rwd">${t("rwGold", { n: reward })}` + (META.streak > 1 ? t("rwStreak", { n: META.streak }) : "") + `</div><div class="rwd2">${t("rwChapter", { n: META.chapter })}</div>`;
       if (protected) extra += '<div class="rwd2" style="color:#67e8f9">🛡️ Founders protect streak</div>';
       checkMilestones();                                 // 🏆 챕터 해금/보상
+      updateModeTabs(); // 탭 라벨 chX 즉시 갱신 (오버레이 떠 있는 동안에도 "캠페인 ch2" 보이게)
     }
     const div = dividendGold();                        // 복리 배당
     if (div > 0) { reward += div; extra += '<div class="rwd2">' + t("dDividend", { n: div }) + "</div>"; }
@@ -1621,11 +1627,13 @@ function updateUltBtn() {
   b.disabled = ultT > 0;
   if (ultT > 0) { b.textContent = Math.ceil(ultT) + "s"; b.classList.remove("ready"); b.classList.remove("hero-tinted"); b.style.removeProperty('--hcolor'); }
   else {
-    const ultLabel = "【군단의 핵】 " + (h.ultName || tUlt(h.ult)) + " 발동";
+    // Clean text only. No heavy prefix, no emoji. Just the ult name + EXECUTE. Effects removed in CSS.
+    const ultLabel = (h.ultName || tUlt(h.ult)) + " EXECUTE";
     b.textContent = ultLabel;
     b.classList.add("ready");
-    const hc = getHeroColor(META.hero);
-    if (hc) { b.style.setProperty('--hcolor', hc); b.classList.add('hero-tinted'); } else { b.classList.remove('hero-tinted'); b.style.removeProperty('--hcolor'); }
+    // No hero tint classes or vars — effects fully stripped per request. Flat clean button.
+    b.classList.remove('hero-tinted');
+    b.style.removeProperty('--hcolor');
   }
 }
 function getHeroColor(hk) { const map = { strategist:'#c4b5fd', berserker:'#f87171', warden:'#67e8f9', ranger:'#a3e635', mech:'#94a3b8', engineer:'#f0abfc', dragoon:'#fbbf24' }; return map[hk] || null; }
@@ -1687,7 +1695,12 @@ function updateHeroUI() {
   });
   const h = HEROES[META.hero], lv = META.heroLv[META.hero] || 1, tr = tHero(META.hero);
   // Alex: Command center per-hero (AFK/HSR power fantasy). "MY ULT" ready state sync.
-  if ($("hero-name")) $("hero-name").innerHTML = '<span class="hcode">RANK ' + h.rank + '</span> ' + tr[0] + " Lv" + lv; // glyph emoji 제거 — 궁극기 영역 디자인 방해 최소화
+  if ($("hero-name")) {
+    const nameEl = $("hero-name");
+    // Sovereign: "RANK" → "TIER" 로 변경 (고정 창설 티어 vs 업그레이드 레벨 구분 명확히). 유저가 "업글 안했는데 랭크 다름" 오해하지 않게. TIER은 영웅 고유 정체성 (Ⅰ~Ⅵ 순서), Lv만 골드 강화로 오름.
+    nameEl.innerHTML = tr[0] + ' <span class="hcode">TIER ' + h.rank + '</span> Lv' + lv;
+    nameEl.title = "고유 창설 티어 (고정·변하지 않음) · 지휘 레벨 (골드로 강화)";
+  }
   if ($("hero-desc")) {
     let ultHtml = ' <span style="color:#f59e0b;font-weight:700">· ULT: ' + tUlt(h.ult) + '</span>';
     if (META.hero === "ranger") {

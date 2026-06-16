@@ -51,7 +51,7 @@ h1::first-letter { color: var(--crimson); }
 .hbtn .him { width: 22px; height: 22px; object-fit: cover; border-radius: 3px; vertical-align: middle; margin-right: 1px; border: 1px solid rgba(255,255,255,0.2); }
 .hbtn.sel .him { box-shadow: 0 0 8px currentColor; }
 #heroes { margin: 4px 0; }
-#ult { font-size:13px; padding:7px 10px; } /* ult visibility dopamine */
+#ult { font-size:12px; padding:6px 10px; } /* cleaned flat, no effects */
 
 /* 출석 그리드 */
 #attend-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin: 8px 0 12px; }
@@ -460,14 +460,37 @@ h1::first-letter { color: var(--crimson); }
 
 #battle-combo { font-size:9.5px; color:#a3e635; margin:1px 2px 4px; min-height:12px; line-height:1.25; } /* dynamic squad + hero passive buffs, compact for battle "한창에" */
 
-/* ULT: Sovereign direct request — 이팩트 완전 제거. No heavy glow, no pulse, no bright neon border, no ::before flame. Clean flat command button. Dark, readable, minimal shadow only for depth. Matches overall clean heroicon / no-clutter direction. */
-#ult { width:100%; margin-top:3px; padding:5px 8px; font-size:11px; font-weight:900; letter-spacing:.5px; border-radius:14px; background:#0a0800; color:#fde047; border:1px solid #3f2f00; opacity:.42; box-shadow:0 2px 5px rgba(0,0,0,0.6); transition:all .08s cubic-bezier(0.2,0,0.2,1); text-shadow:0 1px 2px #000; display:flex; align-items:center; justify-content:center; gap:6px; min-height:30px; }
-#ult.ready { opacity:1; background:#1c140f; color:#f5e8c7; border:1px solid #5c4630; box-shadow:0 2px 5px rgba(0,0,0,0.65); animation:none; text-shadow:0 1px 2px #000; font-size:11px; }
-#ult.ready.hero-tinted { border-color:#6b5a3a; box-shadow:0 2px 5px rgba(0,0,0,0.65); }
-#ult:disabled { opacity:.26; }
-#ult:active { transform:scale(0.96); filter:brightness(0.92); }
-/* flame emoji effect removed per request */
-#ult.ready::before { content: none; }
+/* ULT button: 이팩트 완전 제거 (Sovereign request). Zero glow, zero neon, zero pulse, zero emoji, zero colored border, zero heavy shadow. Completely flat clean button. Matches clean UI direction — no special effects. */
+#ult { 
+  width:100%; margin-top:3px; padding:6px 10px; font-size:12px; font-weight:700; letter-spacing:0.5px; 
+  border-radius:6px; background:#0d0d0d; color:#ccc; 
+  border:1px solid #222; 
+  box-shadow:none; 
+  transition:none; 
+  text-shadow:none; 
+  display:block; 
+  min-height:28px; 
+  text-align:center;
+  outline:none;
+}
+#ult.ready { 
+  opacity:1; 
+  background:#121212; 
+  color:#ddd; 
+  border:1px solid #333; 
+  box-shadow:none; 
+  animation:none; 
+  text-shadow:none; 
+  font-size:12px; 
+}
+#ult.ready.hero-tinted { 
+  border-color:#333; 
+  box-shadow:none; 
+}
+#ult:disabled { opacity:.35; }
+#ult:active { transform:none; filter:none; }
+/* no flame, no pseudo effects at all */
+#ult::before, #ult.ready::before, #ult::after, #ult.ready::after { content: none !important; display: none !important; }
 
 /* deploy follows */
 
