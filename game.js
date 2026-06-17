@@ -1640,6 +1640,38 @@ function rollRarity() {
   for (const t of adj) { a += t.p / sum; if (r <= a) return t; }
   return RARITY[0];
 }
+// ── 🪙 골드 뽑기 + 🔮 소울 분해 루프 (트리니티 SPEC-soul-fodder-loop) ──────────────
+const GOLD_GACHA_COST = 200;
+const SOUL_VAL = { N: 2, R: 5, SR: 15, SSR: 60 };   // 분해 시 등급별 소울
+function rollGoldRarity() { const r = Math.random(); if (r < 0.05) return RARITY[2]; if (r < 0.30) return RARITY[1]; return RARITY[0]; }  // SR5/R25/N70, SSR 0%
+function goldGacha() {
+  if (running) return;
+  if ((META.gold || 0) < GOLD_GACHA_COST) { toast(t("tGoldShort", { n: GOLD_GACHA_COST }), "#ef4444"); return; }
+  META.gold -= GOLD_GACHA_COST; META.dailyPulls = (META.dailyPulls || 0) + 1;
+  const rar = rollGoldRarity();
+  const pool = ORDER.filter((u) => u !== "titan" || META.titanOwned);
+  for (let i = 0; i < rar.lvls; i++) { const u = pool[(Math.random() * pool.length) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; }
+  const gu = grantUnit(rar.key);
+  let msg = t("tGachaUp", { n: rar.lvls });
+  if (gu) msg = "【" + gu.name + "】 " + msg;
+  bumpPrestige(0.2); saveMeta(); updateMeta(); reset();
+  showGacha(rar, msg);
+}
+function dismantleDupes() {
+  META.dupes = META.dupes || {};
+  let soul = 0, count = 0;
+  for (const id in META.dupes) {
+    const n = META.dupes[id] | 0; if (n <= 0) continue;
+    const u = (typeof ROSTER !== "undefined") && ROSTER.find((x) => x.id === +id); if (!u || u.rarity === "SSR") continue;   // SSR 제외(안전)
+    soul += n * (SOUL_VAL[u.rarity] || 2); count += n; META.dupes[id] = 0;
+  }
+  if (count === 0) { toast("분해할 중복이 없어요 (SSR 제외)", "#9ca3af"); return; }
+  META.soul = (META.soul || 0) + soul; saveMeta(); updateMeta();
+  if (typeof renderSquad === "function") renderSquad();
+  if (typeof renderCodex === "function") renderCodex();
+  toast("🔮 +" + soul + " 소울! · " + count + "장 분해", "#c084fc");
+  if (SFX && SFX.ssr) SFX.ssr(); haptic("medium");
+}
 function gacha() {
   if (running) return;
   recordManualPlay(); // for synergy
@@ -2511,6 +2543,8 @@ on("quick-pull", "click", gacha);   // 🎰 전투 하단 빠른 뽑기 — 보�
 on("sg-char10", "click", gacha10);
 on("sg-gear1", "click", () => gearGacha(1));
 on("sg-gear10", "click", () => gearGacha(10));
+on("sg-gold1", "click", goldGacha);            // 🪙 골드 뽑기 (소울루프)
+on("dismantle-dupes", "click", dismantleDupes); // 🔮 중복 전부 소울로
 
 // ── 대시보드: 도감 + 강화(실패확률·보호) + 승급(조합) ─────────────────────────
 const PROTECT_COST = 10;   // 💎
@@ -2773,6 +2807,7 @@ function grantUnit(rarity) {
   const u = pool[(Math.random() * pool.length) | 0];
   if (!META.owned) META.owned = [];
   if (META.owned.indexOf(u.id) < 0) META.owned.push(u.id);
+  else { META.dupes = META.dupes || {}; META.dupes[u.id] = (META.dupes[u.id] || 0) + 1; }   // 소울루프: 중복 누적(분해 대상)
   return u;
 }
 // 캐릭터 아트: art/<slug>.png 있으면 표시, 없으면(404) 이모지 폴백 (onerror로 자동)
