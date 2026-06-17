@@ -1485,9 +1485,11 @@ function finish(p, e) {
   // 자동사냥: 캠페인·무한탑에서만, 승리 시 자동 진행
   const autoMode = (m === "campaign" || m === "tower");
   if (auto && win && autoMode) {
+    if (window._montage && META.chapter > window._montageTarget) { endMontage(); return; }   // 몽타주 목표 도달 → 종료
+    if (window._montage) addFx(W / 2, H * 0.28, "dnum", "CH " + (META.chapter - 1) + " 격파!", 1, "p");   // 격파 플래시
     toast(t("tAutoRun"), "#a3e635");
     updateMeta(); draw();
-    setTimeout(() => { if (auto) { reset(); start(); } }, 1000);
+    setTimeout(() => { if (auto) { reset(); start(); } }, window._montage ? 220 : 1000);   // 몽타주는 고속 재시작
     return;
   }
   // 🗼 무한탑 폴백파밍: 자동 중 패배해도 멈추지 않고 한 층 내려가 계속 농사 (골드 지속)
@@ -1501,7 +1503,7 @@ function finish(p, e) {
     setTimeout(() => { if (auto) { reset(); start(); } }, 1000);
     return;
   }
-  if (auto && (!win || !autoMode)) { auto = false; updateAutoBtn(); }
+  if (auto && (!win || !autoMode)) { if (window._montage) endMontage(); else { auto = false; updateAutoBtn(); } }
 
   let carried = "";
   if (win) {
@@ -2051,6 +2053,26 @@ function buyAscNode(node) {
   const g = { might: "⚔️", bulwark: "🛡️", momentum: "⚡" }[node];
   toast(g + " " + t("ascLvN", { n: lv + 1 }), "#c084fc"); SFX.ssr(); haptic("medium");
 }
+// PRD2: 환생 빨리감기 폭살 몽타주 — ch1~10 고속 자동클리어, 스킵 가능. "내가 이만큼 세졌다" 카타르시스.
+function startMontage() {
+  window._montage = true; window._montageTarget = 10;
+  speed = 8; auto = true; updateAutoBtn();
+  reset(); start();
+  setTimeout(() => toast("⚡ 군단 재각성 — 빨리감기 진격! (탭하면 스킵)", "#c084fc"), 250);
+  if (cv) cv.addEventListener("click", montageSkip);
+}
+function montageSkip() {
+  if (!window._montage) return;
+  META.chapter = (window._montageTarget || 10) + 1; saveMeta();
+  endMontage();
+}
+function endMontage() {
+  if (!window._montage) return;
+  window._montage = false; speed = 1; auto = false;
+  if (cv) cv.removeEventListener("click", montageSkip);
+  running = false; updateAutoBtn(); reset(); updateMeta();
+  toast("⚡ 재각성 완료 · 본격 진격!", "#a3e635"); haptic("heavy");
+}
 function doAscend() {
   const ch = META.chapter || 1; if (ch < ASCEND_GATE) return;
   const btn = $("prestige-go"), gain = etherGain(ch);
@@ -2065,7 +2087,7 @@ function doAscend() {
     saveMeta();
     applyMode(); reset(); updateMeta(); showPage("battle");
     SFX.ssr(); haptic("heavy");
-    setTimeout(() => { toast(t("ascDone", { e: gain }), "#c084fc"); }, 300);
+    setTimeout(() => { toast(t("ascDone", { e: gain }), "#c084fc"); startMontage(); }, 300);   // PRD2: 첫 환생 빨리감기 폭살 몽타주
   };
   const done = () => { if (btn) { btn.disabled = false; renderPrestige(); } };
   if (tg && tg.showConfirm) { tg.showConfirm(ask, (ok) => { if (ok) go(); else done(); }); }
