@@ -927,3 +927,33 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 /* 도감 중복 수량 뱃지 (소울루프 분해 재료 한눈에) */
 .cxc { position: relative; }
 .cxc-dup { position: absolute; bottom: 2px; right: 2px; background: #c084fc; color: #1a1330; font-size: 9px; font-weight: 800; padding: 0 4px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.5); z-index: 2; }
+
+/* ⭐ SSR 강림 스펙터클 + ⚔️ 출정식 (부활 veil 재사용, 황금 축하 버전) */
+#rebirth-veil.play-ssr, #rebirth-veil.play-sortie { animation: ssrBurst 1.9s ease-out forwards; }
+@keyframes ssrBurst {
+  0%   { background: rgba(0,0,0,0); }
+  18%  { background: radial-gradient(circle at 50% 45%, rgba(255,220,120,0.7) 0%, rgba(20,10,2,0.85) 55%); }
+  55%  { background: radial-gradient(circle at 50% 45%, rgba(255,210,100,0.35) 0%, rgba(20,10,2,0.45) 60%); }
+  100% { background: rgba(0,0,0,0); }
+}
+#rebirth-veil.play-ssr #rebirth-text, #rebirth-veil.play-sortie #rebirth-text { animation: ssrText 1.9s ease-out forwards; }
+@keyframes ssrText {
+  0%   { opacity: 0; transform: scale(0.5); font-size: 18px; }
+  20%  { opacity: 1; transform: scale(1.2); font-size: 34px; }
+  75%  { opacity: 1; transform: scale(1); font-size: 30px; }
+  100% { opacity: 0; transform: scale(1.04); font-size: 30px; }
+}
+
+/* 🗺️ 세계 정복 지도 (정복지가 내 색으로 물든다) */
+#conquest-map { margin: 4px 0 8px; }
+.cq-title { font-size: 12px; font-weight: 800; color: #fbbf24; letter-spacing: .5px; margin-bottom: 5px; }
+.cq-strip { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 4px; }
+.cq-node { flex: 0 0 auto; width: 38px; height: 44px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-size: 9px; border: 1px solid #2a2536; background: #14121c; transition: all .2s; }
+.cq-node .cq-ic { font-size: 15px; line-height: 1; }
+.cq-node .cq-n { color: #9ca3af; font-weight: 700; }
+.cq-node.won { background: linear-gradient(160deg, #3a2c12, #1a1330); border-color: #fbbf24; box-shadow: 0 0 8px -2px #fbbf2466; }
+.cq-node.won .cq-n { color: #fde047; }
+.cq-node.here { border-color: #67e8f9; box-shadow: 0 0 10px -1px #67e8f988; animation: cqPulse 1.2s infinite ease-in-out; }
+.cq-node.here .cq-n { color: #67e8f9; }
+.cq-node.lock { opacity: .4; }
+@keyframes cqPulse { 0%,100% { box-shadow: 0 0 6px -2px #67e8f966; } 50% { box-shadow: 0 0 12px -1px #67e8f9bb; } }

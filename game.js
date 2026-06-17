@@ -204,6 +204,15 @@ const HERO_ORDER = ["strategist", "berserker", "warden", "ranger", "mech", "engi
 function heroScale(lv) { return 1 + (lv - 1) * 0.5; }       // lv1=1.0, lv2=1.5, lv3=2.0 ...
 function heroAiBonus(lv) { return 1 + Math.floor((lv - 1) / 2); }  // lv1→+1, lv3→+2, lv5→+3
 
+function getLiveHeroPassive(hk) {
+  const lv = META.heroLv[hk] || 1;
+  if (hk === 'strategist') {
+    return `전군 AI 지능 +${heroAiBonus(lv)}`;
+  }
+  const tr = tHero(hk);
+  return tr ? tr[1] : '';
+}
+
 let cv, ctx, W, H, units, fx, running, gameOver, lastT, speed = 1, raf = 0, auto = false, ultT = 0;
 let curLevel = 1, bossFight = false;                 // 모드별 적 레벨/보스전 플래그
 
@@ -614,9 +623,9 @@ function updateBattleCombo() {
   const sq = getDeployedUnits();
   const syn = squadSynergy();
   const h = HEROES[META.hero];
-  const tr = tHero(META.hero);
   const parts = [];
-  if (tr && tr[1]) parts.push(tr[1]); // 선택한 영웅 패시브 (e.g. 전군 AI +1)
+  const livePassive = getLiveHeroPassive(META.hero);
+  if (livePassive) parts.push(livePassive); // 선택한 영웅 패시브 (live value, e.g. 전군 AI +20 at high lv)
   if (syn && Array.isArray(syn.bonuses) && syn.bonuses.length) {
     parts.push(...syn.bonuses);
   }
@@ -1792,6 +1801,7 @@ function showGacha(rar, msg) {
     SFX.ssr();
     haptic("heavy");
     try { confettiBurst(); } catch(e){}
+    try { ssrSpectacle(); } catch(e){}   // ⭐ 전설 강림 스펙터클
   } else {
     SFX.gacha();
     haptic("light");
@@ -1969,7 +1979,8 @@ function updateHeroUI() {
       // Sovereign 20260616: ranger ULT 이미지 업그레이드 — 멋진 아크 볼리 아이콘 (lime precision crosshair volley, generated premium)
       ultHtml = ' <img src="art/ult-ranger-small.jpg" style="width:18px;height:18px;vertical-align:middle;margin:0 3px 1px 2px;border-radius:2px;box-shadow:0 0 4px #a3e635;"> <span style="color:#f59e0b;font-weight:700">· ULT: ' + tUlt(h.ult) + '</span>';
     }
-    $("hero-desc").innerHTML = tr[1] + ultHtml;
+    const livePassive = getLiveHeroPassive(META.hero);
+    $("hero-desc").innerHTML = livePassive + ultHtml;
   }
   if ($("hero-up")) $("hero-up").textContent = t("upgrade") + " " + heroUpCost() + "g";
   updateUltBtn(); // ensure hero color bleed syncs instantly on switch
@@ -2140,6 +2151,37 @@ function buyAscNode(node) {
   saveMeta(); updateMeta(); renderPrestige();
   const g = { might: "⚔️", bulwark: "🛡️", momentum: "⚡" }[node];
   toast(g + " " + t("ascLvN", { n: lv + 1 }), "#c084fc"); SFX.ssr(); haptic("medium");
+}
+// 첫 SSR 스펙터클 (황금 강림 연출) — 트리니티 도파민맵
+function ssrSpectacle(name) {
+  const v = $("rebirth-veil"), txt = $("rebirth-text");
+  if (!v) return;
+  if (txt) txt.textContent = "⭐ " + (name || "전설") + " 강림!";
+  v.classList.remove("hidden"); void v.offsetWidth; v.classList.add("play-ssr");
+  if (SFX && SFX.ssr) SFX.ssr(); haptic("heavy");
+  setTimeout(() => { v.classList.remove("play-ssr"); v.classList.add("hidden"); if (txt) txt.textContent = ""; }, 1900);
+}
+// 일일 출정식 의례 (종교 도메인 — 데일리를 '숙제'가 아닌 '의식'으로). 하루 1회.
+function maybeSortie() {
+  if (!META || META.sortieDay === today()) return;
+  META.sortieDay = today(); saveMeta();
+  const v = $("rebirth-veil"), txt = $("rebirth-text");
+  if (!v) return;
+  if (txt) txt.textContent = "⚔️ 출정! 군단 진격";
+  v.classList.remove("hidden"); void v.offsetWidth; v.classList.add("play-sortie");
+  if (SFX && SFX.win) SFX.win(); haptic("medium");
+  setTimeout(() => { v.classList.remove("play-sortie"); v.classList.add("hidden"); if (txt) txt.textContent = ""; }, 2000);
+}
+// 세계 정복 지도 (역사·정복 서사 — 정복지가 내 색으로 물든다). 토론 TOP2.
+function renderConquestMap() {
+  const el = $("conquest-map"); if (!el) return;
+  const cur = META.chapter || 1, maxShow = Math.max(cur + 3, 14);
+  let nodes = "";
+  for (let c = 1; c <= maxShow; c++) {
+    const won = c < cur, here = c === cur;
+    nodes += `<div class="cq-node ${won ? "won" : here ? "here" : "lock"}"><span class="cq-ic">${won ? "🚩" : here ? "⚔️" : "·"}</span><span class="cq-n">${c}</span></div>`;
+  }
+  el.innerHTML = `<div class="cq-title">🗺️ 정복 연대기 · <b>${cur - 1}</b>개 폐허 함락</div><div class="cq-strip">${nodes}</div>`;
 }
 // 부활 의식 연출 (캠벨 영웅여정 — 죽음→심연 정적→빛과 함께 더 강하게 귀환). 트리니티 토론 TOP1.
 function playRebirthCeremony(cb) {
@@ -2905,6 +2947,7 @@ function artHTML(u, glyphCls, imgCls) {
   return g + `<img class="${imgCls}" src="art/u${u.id}.png" alt="" loading="lazy" data-c="${col}" data-b="${b64}" onerror="var s=(+this.dataset.s||0)+1;this.dataset.s=s;if(s===1){this.src='art/ssr/${slug}.png'}else if(s===2){this.src='art/${slug}.png'}else{var c=this.dataset.c||'#60a5fa';var bb=this.dataset.b||'●';this.outerHTML='<span class=\\''+this.className+' synth\\'' style=\\'display:inline-block;border:1px solid '+c+';background:#0b111f;color:#e2e8f0;padding:1px 3px;border-radius:2px;font-size:0.95em;opacity:0.9;\\'>'+bb+'</span>'}">`;
 }
 function renderCodex() {
+  renderConquestMap();   // 🗺️ 정복 연대기
   const grid = $("codex-grid"); if (!grid || typeof ROSTER === "undefined") return;
   const owned = new Set(META.owned || []);
   if ($("codex-count")) $("codex-count").textContent = owned.size + " / " + ROSTER.length;
@@ -3176,3 +3219,4 @@ checkPasses();
 checkMilestones();   // 🏆 기존 진행분 백필(해금/보상 누락 방지)
 updateAutoBtn();
 updateMeta(); // ensure cohesion dash shows on load
+setTimeout(() => { try { maybeSortie(); } catch (e) {} }, 700);   // ⚔️ 일일 출정식 의례
