@@ -1053,12 +1053,13 @@ function dmg(target, amount, from) {
   if (from && COUNTER[from.t] && COUNTER[from.t].indexOf(target.t) >= 0) { a *= CTR_MUL; ctr = true; }   // 상성 +30%
   if (target.shield > 0) a *= 0.5;
   target.hp -= a;
+  addFx(target.x + (Math.random() * 14 - 7), target.y - target.r, "dnum", Math.round(a), ctr ? 1 : 0, from && from.side);  // 군주/트리니티 PRD1: 데미지 숫자 팝업(세지는 게 보이는 게임)
   if (ctr) { addFx(target.x, target.y, "ctr"); if (Math.random() < 0.3) SFX.ctr(); }
   if (from && from.id) { from.dmgOut = (from.dmgOut || 0) + a; }  // track for real "MY unit carried X%" even on regulars
   if (target.hp <= 0) { addFx(target.x, target.y, "die", 0, 0, target.side); if (Math.random() < 0.5) SFX.boom(); }
 }
 
-function addFx(x, y, kind, x2, y2, side) { if (fx.length > 90) return; fx.push({ x, y, kind, x2, y2, side, t: 0, life: kind === "shot" ? 0.12 : 0.45 }); }
+function addFx(x, y, kind, x2, y2, side) { if (fx.length > 90) return; fx.push({ x, y, kind, x2, y2, side, t: 0, life: kind === "shot" ? 0.12 : kind === "dnum" ? 0.7 : 0.45 }); }
 // 💥 궁극기 발동 시각효과 — 1655 호출처가 미정의로 매 궁극기 throw하던 것 정의(군주 "궁극기 이쁘게"). 중앙 방사 폭발.
 // 군주 20260617 + Grok P2: 궁극기 7종 고유 전투 VFX (간지·도파민). 파티클 상한(≤14)으로 perf 안전.
 function triggerUltVfx(ult, color) {
@@ -1181,6 +1182,7 @@ function draw() {
     const k = f.t / f.life;
     ctx.globalAlpha = 1 - k;
     if (f.kind === "shot")      { ctx.strokeStyle = f.side === "p" ? "#7db1ff" : "#ff9a9a"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.x2, f.y2); ctx.stroke(); }
+    else if (f.kind === "dnum") { const rise = 26 * k, crit = f.y2 === 1; ctx.textAlign = "center"; ctx.font = crit ? "bold 22px sans-serif" : "bold 13px sans-serif"; if (crit) { ctx.lineWidth = 3; ctx.strokeStyle = "rgba(0,0,0,0.6)"; ctx.strokeText(f.x2, f.x, f.y - 8 - rise); } ctx.fillStyle = crit ? "#fde047" : (f.side === "p" ? "#ffffff" : "#ffb4b4"); ctx.fillText(f.x2, f.x, f.y - 8 - rise); }
     else if (f.kind === "snipe"){ ctx.strokeStyle = "#fde047"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.x2, f.y2); ctx.stroke(); }
     else if (f.kind === "charge"){ ctx.strokeStyle = "#fb923c"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(f.x, f.y, 36 * (0.4 + k), 0, 7); ctx.stroke(); }
     else if (f.kind === "overclock"){ ctx.strokeStyle = "#a3e635"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(f.x, f.y, 85 * (0.3 + k), 0, 7); ctx.stroke(); }
