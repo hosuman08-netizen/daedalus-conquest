@@ -1183,9 +1183,21 @@ function drawBoss(u) {
 }
 
 // ── 그리기 ────────────────────────────────────────────────────────────────────
+function fmtNum(n) { n = Math.round(n || 0); if (n >= 1e6) return (n / 1e6).toFixed(n >= 1e7 ? 0 : 1) + "M"; if (n >= 1e4) return (n / 1e3).toFixed(n >= 1e5 ? 0 : 1) + "K"; return "" + n; }
+function drawHpGauge() {   // 양팀 총 HP 바 (전투 중만) — 트리니티 도파민맵
+  if (!running || !units || !units.length) return;
+  let php = 0, pmax = 0, ehp = 0, emax = 0;
+  for (const u of units) { if (u.side === "p") { php += Math.max(0, u.hp); pmax += u.maxHp || 0; } else { ehp += Math.max(0, u.hp); emax += u.maxHp || 0; } }
+  const bw = (W - 22) / 2;
+  ctx.fillStyle = "rgba(0,0,0,0.5)"; rRect(8, 4, bw, 6, 3); ctx.fill();
+  ctx.fillStyle = "#5a8cff"; rRect(8, 4, bw * (pmax ? php / pmax : 0), 6, 3); ctx.fill();
+  ctx.fillStyle = "rgba(0,0,0,0.5)"; rRect(W - 8 - bw, 4, bw, 6, 3); ctx.fill();
+  const ew = bw * (emax ? ehp / emax : 0); ctx.fillStyle = "#ff5a5a"; rRect(W - 8 - ew, 4, ew, 6, 3); ctx.fill();
+}
 function draw() {
   if (window._bgCache) ctx.drawImage(window._bgCache, 0, 0);   // perf: 캐시된 배경+그리드 1회 합성
   else { ctx.fillStyle = "#0f121a"; ctx.fillRect(0, 0, W, H); ctx.strokeStyle = "#1b2030"; ctx.lineWidth = 1; for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); } for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); } }
+  drawHpGauge();   // 양팀 HP 게이지 (전투 중)
 
   for (const f of fx) {
     const k = f.t / f.life;
@@ -2654,7 +2666,7 @@ function openDash() { showPage("char"); renderDash(); }
 function renderDash() {
   const sq = getDeployedUnits();
   // 🔄 전력 표시엔 환생 복리배율 반영(도파민 "눈에 보이게 세짐"). 배당골드(dividendGold)는 raw 유지 — 패시브 인플레 방지.
-  if ($("dash-power")) $("dash-power").textContent = Math.round((sq.length ? squadPower() : legionPower()) * ascPowerMul());
+  if ($("dash-power")) $("dash-power").textContent = fmtNum((sq.length ? squadPower() : legionPower()) * ascPowerMul());   // K/M 단위
   if ($("dash-div")) $("dash-div").textContent = dividendGold();
   renderSquad();
 }
@@ -2899,7 +2911,8 @@ function renderCodex() {
     const has = owned.has(u.id);
     const archCls = u.arch ? ` arch-${u.arch}` : "";
     const facCls = u.faction ? ` fac-${u.faction.toLowerCase()}` : "";
-    return `<div class="cxc r${u.rarity}${has ? "" : " lock"}${archCls}${facCls}" data-id="${u.id}"><div class="cxg">${artHTML(u, "cxgly", "cxim")}</div></div>`;
+    const dn = (META.dupes && META.dupes[u.id]) ? `<span class="cxc-dup">×${META.dupes[u.id] + 1}</span>` : "";   // 중복 수량 뱃지
+    return `<div class="cxc r${u.rarity}${has ? "" : " lock"}${archCls}${facCls}" data-id="${u.id}"><div class="cxg">${artHTML(u, "cxgly", "cxim")}</div>${dn}</div>`;
   }).join("");
   grid.querySelectorAll(".cxc").forEach((c) => c.addEventListener("click", () => {
     const id = +c.dataset.id;

@@ -923,3 +923,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
   84%    { opacity: 1; transform: scale(1); font-size: 31px; }
   100%   { opacity: 0; transform: scale(1.06); font-size: 31px; }
 }
+
+/* 도감 중복 수량 뱃지 (소울루프 분해 재료 한눈에) */
+.cxc { position: relative; }
+.cxc-dup { position: absolute; bottom: 2px; right: 2px; background: #c084fc; color: #1a1330; font-size: 9px; font-weight: 800; padding: 0 4px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.5); z-index: 2; }
