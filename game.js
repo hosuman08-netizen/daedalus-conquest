@@ -1657,6 +1657,23 @@ function goldGacha() {
   bumpPrestige(0.2); saveMeta(); updateMeta(); reset();
   showGacha(rar, msg);
 }
+const GOLD_GACHA10_COST = 1800;   // 10연 = 1,800골드 (10% 할인 + SR↑ 1보장)
+function goldGacha10() {
+  if (running) return;
+  if ((META.gold || 0) < GOLD_GACHA10_COST) { toast(t("tGoldShort", { n: GOLD_GACHA10_COST }), "#ef4444"); return; }
+  META.gold -= GOLD_GACHA10_COST; META.dailyPulls = (META.dailyPulls || 0) + 10;
+  const RANK = { N: 0, R: 1, SR: 2 }; let best = 0;
+  for (let i = 0; i < 10; i++) {
+    let rar = rollGoldRarity();
+    if (i === 9 && best < 2) rar = RARITY[2];          // SR↑ 1보장
+    best = Math.max(best, RANK[rar.key]); grantUnit(rar.key);
+    const pool = ORDER.filter((u) => u !== "titan" || META.titanOwned);
+    for (let j = 0; j < rar.lvls; j++) { const u = pool[(Math.random() * pool.length) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; }
+  }
+  bumpPrestige(0.5); saveMeta(); updateMeta(); reset();
+  const bestKey = Object.keys(RANK).find((k) => RANK[k] === best);
+  showGacha(RARITY[best], t("tGacha10", { x: bestKey }));
+}
 function dismantleDupes() {
   META.dupes = META.dupes || {};
   let soul = 0, count = 0;
@@ -2544,6 +2561,7 @@ on("sg-char10", "click", gacha10);
 on("sg-gear1", "click", () => gearGacha(1));
 on("sg-gear10", "click", () => gearGacha(10));
 on("sg-gold1", "click", goldGacha);            // 🪙 골드 뽑기 (소울루프)
+on("sg-gold10", "click", goldGacha10);         // 🪙 골드 10연
 on("dismantle-dupes", "click", dismantleDupes); // 🔮 중복 전부 소울로
 
 // ── 대시보드: 도감 + 강화(실패확률·보호) + 승급(조합) ─────────────────────────
