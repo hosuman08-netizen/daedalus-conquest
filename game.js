@@ -2842,6 +2842,17 @@ function charEnhance(id) {
   else { if (e >= 5) { META.charEnh[id] = e - 1; toast(t("dFail") + " −1", "#ef4444"); } else toast(t("dFail"), "#ef4444"); SFX.lose(); haptic("heavy"); }
   saveMeta(); updateMeta(); openCharPanel(id); renderSquad(); if (!running) reset();
 }
+function fuseChar(id) {   // ✨ 합성: 같은 캐릭 중복 N장 → ★승급 (골드/젬 없이, 중복의 또다른 쓸모)
+  if (running) return;
+  const st = cStar(id), need = st + 1, have = (META.dupes && META.dupes[id]) || 0;
+  if (st >= 5) { toast("최대 ★5", "#8b93a7"); return; }
+  if (have < need) { toast(`합성에 중복 ${need}장 필요 (보유 ${have})`, "#ef4444"); return; }
+  META.dupes[id] -= need;
+  if (!META.charStar) META.charStar = {};
+  META.charStar[id] = st + 1;
+  saveMeta(); updateMeta(); openCharPanel(id); renderSquad(); if (typeof renderCodex === "function") renderCodex(); if (!running) reset();
+  toast("✨ 합성! ★" + cStar(id) + " 승급 · 중복 " + need + "장 소모", "#fbbf24"); SFX.ssr(); haptic("heavy");
+}
 function charAscend(id) {
   if (running || cEnh(id) < 10) return;
   const goldC = 5000, gemC = 50;
@@ -2892,12 +2903,15 @@ function openCharPanel(id) {
   if (gw) {
     const e = cEnh(id), st = cStar(id), aw = cAwak(id);
     const canAsc = e >= 10, canAwk = st >= 3 && aw < AWAK_MAX;
+    const dup = (META.dupes && META.dupes[id]) || 0, fuseNeed = st + 1, canFuse = st < 5 && dup >= fuseNeed;   // 합성: 중복 N장 → ★승급
     gw.innerHTML =
       `<button id="cp-enh">⚙️ ${t("dEnhance")} +${e} · ${cEnhRate(id)}% · 💰${cEnhCost(id)}</button>`
+      + (canFuse ? `<button id="cp-fuse" class="cp-purple">✨ 합성 ★${st}→★${st + 1} (중복 ${fuseNeed}장)</button>` : (dup ? `<span class="cp-gdim">✨ 합성 중복 ${dup}/${fuseNeed}</span>` : ""))
       + (canAsc ? `<button id="cp-asc" class="cp-gold">⭐ ${t("dCombo")} 💰5k+💎50</button>` : `<span class="cp-gdim">⭐ +10강 시 ${t("dCombo")}</span>`)
       + (canAwk ? `<button id="cp-awk" class="cp-purple">✦ 각성 🔮${cAwakCost(id)}</button>` : (st >= 3 && aw >= AWAK_MAX ? `<span class="cp-gdim">✦${aw} MAX</span>` : st < 3 ? `<span class="cp-gdim">✦ ★3↑ 각성</span>` : ""))
       + (st ? `<span class="cp-badge">★${st}</span>` : "") + (aw ? `<span class="cp-badge pur">✦${aw}</span>` : "");
     on("cp-enh", "click", () => charEnhance(id));
+    on("cp-fuse", "click", () => fuseChar(id));
     on("cp-asc", "click", () => charAscend(id));
     on("cp-awk", "click", () => charAwaken(id));
   }
@@ -3093,11 +3107,14 @@ function openGearItem(id) {
     const awkC = 50 * (a + 1);
     html += `<button id="gpop-awk" class="gpop-awk">✦ 각성 ✦${a}→✦${a+1} · 🔮${awkC}</button>`;
   }
+  const dupG = (g.tplId != null) && META.gear.find((x) => x.id !== id && x.tplId === g.tplId && !gearOwnerName(x.id));   // 같은 장비(미장착) 합성용
+  if (dupG && s < 5) html += `<button id="gpop-fuse" class="gpop-star">✨ 합성 ★${s}→★${s + 1} (같은 장비 소모)</button>`;
   html += `</div>`;
   $("unit-detail").innerHTML = html;
   on("gpop-enh", "click", () => { enhanceGear(id); setTimeout(() => openGearItem(id), 50); });
   if (e >= 10 && s < 5) on("gpop-star", "click", () => { gearStar(id); setTimeout(() => openGearItem(id), 50); });
   if (s >= 3 && a < 5) on("gpop-awk", "click", () => { gearAwaken(id); setTimeout(() => openGearItem(id), 50); });
+  if (dupG && s < 5) on("gpop-fuse", "click", () => { fuseGear(id); setTimeout(() => openGearItem(id), 50); });
   $("unit-pop").classList.remove("hidden");
 }
 function showUnit(id) {
@@ -3150,6 +3167,18 @@ function enhanceGear(id) {
   else { toast(t("dFail"), "#ef4444"); SFX.lose(); }
   saveMeta(); updateMeta(); renderGear();
   if (!running) reset();   // 장착 중인 캐릭 전력 반영
+}
+function fuseGear(id) {   // ✨ 장비 합성: 같은 장비(같은 tplId·미장착) 소모 → 별강화 (강화10 우회)
+  if (running) return;
+  const g = META.gear.find((x) => x.id === id); if (!g) return;
+  if ((g.star || 0) >= 5) { toast("★ 최대", "#8b93a7"); return; }
+  const dup = META.gear.find((x) => x.id !== id && x.tplId === g.tplId && !gearOwnerName(x.id));
+  if (!dup) { toast("합성할 같은 장비(미장착)가 없어요", "#ef4444"); return; }
+  META.gear = META.gear.filter((x) => x.id !== dup.id);
+  g.star = (g.star || 0) + 1;
+  saveMeta(); updateMeta(); renderGear();
+  toast("✨ 장비 합성! ★" + g.star + " · 같은 장비 1개 소모", "#fbbf24"); if (SFX && SFX.ssr) SFX.ssr(); haptic("heavy");
+  if (!running) reset();
 }
 function gearStar(id) {
   const g = META.gear.find((x) => x.id === id); if (!g) return;
