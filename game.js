@@ -391,7 +391,7 @@ function gearPower() {                                 // 장착 장비 전력 (
 }
 function legionPower() {
   let p = 0; for (const t of ORDER) p += (META.army[t] || 0) * ((META.lv[t] || 0) + (META.enh[t] || 0) * 2 + (META.star[t] || 0) * 12 + (META.awak[t] || 0) * 40);
-  return p + gearPower();                              // ⚔️ 장비 + ✦각성(40/✦) 반영
+  return Math.round((p + gearPower()) * heroPowerMul());   // ⚔️ 장비 + ✦각성 + 영웅 강화 반영
 }
 function dividendGold() { return Math.floor(legionPower() * 0.6); }
 
@@ -446,7 +446,7 @@ function makeGlowSprite(c0) {
 function heroBuffs() {
   const h = META.hero, lv = (META.heroLv && META.heroLv[h]) || 1, k = heroScale(lv);
   const b = { aiBonus: 0, hpMul: 1, atkMul: 1, typeHp: {}, typeAtk: {}, regen: 0 };
-  if (h === "strategist") b.aiBonus = heroAiBonus(lv);
+  if (h === "strategist") { b.aiBonus = heroAiBonus(lv); b.atkMul = 1 + 0.10 * k; }   // 버그픽스: AI는 3캡이라 Lv올려도 전력0이던 것 → 군단 공격 스케일 추가
   else if (h === "berserker") b.atkMul = 1 + 0.15 * k;
   else if (h === "warden") b.hpMul = 1 + 0.20 * k;
   else if (h === "ranger") { b.typeAtk.drone = 0.30 * k; b.typeAtk.marksman = 0.30 * k; }
@@ -454,6 +454,15 @@ function heroBuffs() {
   else if (h === "engineer") b.regen = 1.5 * k;
   else if (h === "dragoon") { b.atkMul = 1 + 0.08 * k; b.hpMul = 1 + 0.08 * k; }
   return b;
+}
+// 영웅 레벨이 전력 표시에 반영되도록 대표 배율 (실전 heroBuffs와 일치 — 강화 시 전력 올라가는 게 보이게)
+function heroPowerMul() {
+  const hb = heroBuffs();
+  let m = (hb.atkMul || 1) * (hb.hpMul || 1);
+  const ta = Object.values(hb.typeAtk || {}).reduce((a, b) => a + b, 0);
+  const th = Object.values(hb.typeHp || {}).reduce((a, b) => a + b, 0);
+  m *= (1 + ta * 0.3 + th * 0.3) * (1 + (hb.aiBonus || 0) * 0.05 + (hb.regen || 0) * 0.02);
+  return m;
 }
 
 // ── 편성(스쿼드) 시스템 ───────────────────────────────────────────────────────
@@ -627,7 +636,7 @@ function squadPower() {                                 // 편성 전투력 (헤
     const base = (s.hp * 0.5 + (s.atk / s.atkCd) * 3) * u.mul * (1 + lv * 0.12) * invest;
     p += base + (gcs.str + gcs.int + gcs.agi + gcs.luk) * 5;
   });
-  return Math.round(p * syn.atk);
+  return Math.round(p * syn.atk * heroPowerMul());   // 영웅 강화 반영
 }
 // 단일 캐릭 유효 전력 (레벨·강화·승급·각성·장비 전부 반영) — 상세창 "세지는 게 보이는" 표시용
 function charEffPower(id) {
@@ -1985,7 +1994,7 @@ function upgradeHero() {
   if (META.gold < cost) { toast(t("tGoldShort", { n: cost }), "#ef4444"); return; }
   META.gold -= cost; META.heroLv[META.hero] = (META.heroLv[META.hero] || 1) + 1;
   saveMeta(); updateHeroUI(); updateMeta(); reset();
-  toast(t("tHeroUp", { x: tHero(META.hero)[0], n: META.heroLv[META.hero] }), "#a3e635");
+  toast(t("tHeroUp", { x: tHero(META.hero)[0], n: META.heroLv[META.hero] }) + " · ⚡전력 " + fmtNum(legionPower()), "#a3e635");   // 전력 증가 즉시 피드백
 }
 
 // ── 자동사냥 토글 ─────────────────────────────────────────────────────────────
