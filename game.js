@@ -206,8 +206,21 @@ function heroAiBonus(lv) { return 1 + Math.floor((lv - 1) / 2); }  // lv1→+1, 
 
 function getLiveHeroPassive(hk) {
   const lv = META.heroLv[hk] || 1;
+  const k = heroScale(lv);
   if (hk === 'strategist') {
     return `전군 AI 지능 +${heroAiBonus(lv)}`;
+  } else if (hk === 'berserker') {
+    return `전군 공격력 +${Math.round(15 * k)}%`;
+  } else if (hk === 'warden') {
+    return `전군 체력 +${Math.round(20 * k)}%`;
+  } else if (hk === 'ranger') {
+    return `드론·사수 공격 +${Math.round(30 * k)}%`;
+  } else if (hk === 'mech') {
+    return `돌격봇·가디언 체력 +${Math.round(40 * k)}%`;
+  } else if (hk === 'engineer') {
+    return `전군 체력 재생 +${(1.5 * k).toFixed(1)}`;
+  } else if (hk === 'dragoon') {
+    return `전군 +${Math.round(8 * k)}% · 강력 궁극기`;
   }
   const tr = tHero(hk);
   return tr ? tr[1] : '';
@@ -472,6 +485,17 @@ function heroPowerMul() {
   const th = Object.values(hb.typeHp || {}).reduce((a, b) => a + b, 0);
   m *= (1 + ta * 0.3 + th * 0.3) * (1 + (hb.aiBonus || 0) * 0.05 + (hb.regen || 0) * 0.02);
   return m;
+}
+// 영웅 버프 텍스트(레벨 반영 실제값) — 강화 시 효과가 화면에 오르는 게 보이게(군주: "레벨만 오르고 효과 똑같음" 픽스)
+function heroBuffText() {
+  const hb = heroBuffs(), p = [];
+  if (hb.atkMul > 1.001) p.push("전군 공격 +" + Math.round((hb.atkMul - 1) * 100) + "%");
+  if (hb.hpMul > 1.001) p.push("전군 체력 +" + Math.round((hb.hpMul - 1) * 100) + "%");
+  for (const t in (hb.typeAtk || {})) if (hb.typeAtk[t] > 0) p.push(((SPEC[t] && SPEC[t].name) || t) + " 공격 +" + Math.round(hb.typeAtk[t] * 100) + "%");
+  for (const t in (hb.typeHp || {})) if (hb.typeHp[t] > 0) p.push(((SPEC[t] && SPEC[t].name) || t) + " 체력 +" + Math.round(hb.typeHp[t] * 100) + "%");
+  if (hb.regen > 0) p.push("전군 재생 +" + hb.regen.toFixed(1) + "/s");
+  if (hb.aiBonus > 0) p.push("전군 지능 +" + hb.aiBonus);
+  return p.join(" · ") || "—";
 }
 
 // ── 편성(스쿼드) 시스템 ───────────────────────────────────────────────────────
@@ -1979,7 +2003,7 @@ function updateHeroUI() {
       // Sovereign 20260616: ranger ULT 이미지 업그레이드 — 멋진 아크 볼리 아이콘 (lime precision crosshair volley, generated premium)
       ultHtml = ' <img src="art/ult-ranger-small.jpg" style="width:18px;height:18px;vertical-align:middle;margin:0 3px 1px 2px;border-radius:2px;box-shadow:0 0 4px #a3e635;"> <span style="color:#f59e0b;font-weight:700">· ULT: ' + tUlt(h.ult) + '</span>';
     }
-    const livePassive = getLiveHeroPassive(META.hero);
+    const livePassive = heroBuffText();   // 레벨 반영 실제 버프값(강화 시 효과 오르는 게 보임) — getLiveHeroPassive는 strategist만 반영하던 버그
     $("hero-desc").innerHTML = livePassive + ultHtml;
   }
   if ($("hero-up")) $("hero-up").textContent = t("upgrade") + " " + heroUpCost() + "g";
@@ -2005,6 +2029,17 @@ function upgradeHero() {
   if (META.gold < cost) { toast(t("tGoldShort", { n: cost }), "#ef4444"); return; }
   META.gold -= cost; META.heroLv[META.hero] = (META.heroLv[META.hero] || 1) + 1;
   saveMeta(); updateHeroUI(); updateMeta(); reset();
+  // 도파민: 강화 직후 '효과 UP' 이 즉시 보이게 — affected 보너스 영역에 pop + highlight
+  const combo = $("battle-combo");
+  if (combo) {
+    combo.classList.add('powerPop');
+    setTimeout(() => { if (combo) combo.classList.remove('powerPop'); }, 550);
+  }
+  const hdesc = $("hero-desc");
+  if (hdesc) {
+    hdesc.classList.add('powerPop');
+    setTimeout(() => { if (hdesc) hdesc.classList.remove('powerPop'); }, 550);
+  }
   toast(t("tHeroUp", { x: tHero(META.hero)[0], n: META.heroLv[META.hero] }) + " · ⚡전력 " + fmtNum(legionPower()), "#a3e635");   // 전력 증가 즉시 피드백
 }
 
