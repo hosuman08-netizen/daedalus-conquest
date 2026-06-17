@@ -629,6 +629,14 @@ function squadPower() {                                 // 편성 전투력 (헤
   });
   return Math.round(p * syn.atk);
 }
+// 단일 캐릭 유효 전력 (레벨·강화·승급·각성·장비 전부 반영) — 상세창 "세지는 게 보이는" 표시용
+function charEffPower(id) {
+  const u = (typeof ROSTER !== "undefined") && ROSTER.find((x) => x.id === id); if (!u) return 0;
+  const s = SPEC[u.arch] || SPEC.drone, lv = charLv(id), gcs = charGearStats(id);
+  const invest = (1 + cEnh(id) * 0.06) * (1 + cStar(id) * 0.25) * (1 + cAwak(id) * 0.35);
+  const base = (s.hp * 0.5 + (s.atk / s.atkCd) * 3) * u.mul * (1 + lv * 0.12) * invest;
+  return Math.round(base + (gcs.str + gcs.int + gcs.agi + gcs.luk) * 5);
+}
 function spawnArmy(side) {
   const baseY = side === "p" ? H - 36 : 36;
   const dir = side === "p" ? -1 : 1;
@@ -2680,7 +2688,10 @@ function renderSquad() {
 }
 // ── 캐릭터 상세 패널 (레벨업 + 캐릭별 장비) ──────────────────────────────────
 let cpCharId = null, cpSlotFilter = null;
-function charLvCost(id) { return 200 * (charLv(id) + 1); }
+// 등급별 업그레이드 비용 배율 (군주 원칙: 고등급일수록 비쌈). N싸게 양산 / SSR 비싼 대신 강함
+const RARITY_COST = { N: 1, R: 1.5, SR: 2.5, SSR: 4 };
+function charRarityCost(id) { const u = (typeof ROSTER !== "undefined") && ROSTER.find((x) => x.id === id); return (u && RARITY_COST[u.rarity]) || 1; }
+function charLvCost(id) { return Math.round(200 * (charLv(id) + 1) * charRarityCost(id)); }
 function charLevelUp(id) {
   if (running) return;
   const cost = charLvCost(id);
@@ -2693,7 +2704,7 @@ function charLevelUp(id) {
 function cEnh(id) { return (META.charEnh && META.charEnh[id]) || 0; }
 function cStar(id) { return (META.charStar && META.charStar[id]) || 0; }
 function cAwak(id) { return (META.charAwak && META.charAwak[id]) || 0; }
-function cEnhCost(id) { return 120 * (cEnh(id) + 1); }
+function cEnhCost(id) { return Math.round(120 * (cEnh(id) + 1) * charRarityCost(id)); }
 function cEnhRate(id) { return Math.max(35, 100 - cEnh(id) * 6); }
 function cAwakCost(id) { return 30 * Math.pow(2, cAwak(id)); }
 function charEnhance(id) {
@@ -2747,7 +2758,7 @@ function openCharPanel(id) {
   if (head) head.innerHTML = `<div class="cp-art" style="border-color:${u.color}">${artHTML(u, "cpgly", "cpim")}</div>`
     + `<div class="cp-meta"><div class="cp-nm" style="color:${u.color}">${u.name}</div>`
     + `<div class="cp-ti">${u.title || u.arch} · ${u.rarity} · 🏷️${u.faction}</div>`
-    + `<div class="cp-st">⚡Lv${lv}${cEnh(id) ? " +" + cEnh(id) : ""}${cStar(id) ? " ★" + cStar(id) : ""}${cAwak(id) ? " ✦" + cAwak(id) : ""} · 💪${gcs.str} 🧠${gcs.int} 👟${gcs.agi} 🍀${gcs.luk}</div>`
+    + `<div class="cp-st">⚔️ 전력 <b>${charEffPower(id)}</b> · Lv${lv}${cEnh(id) ? " +" + cEnh(id) : ""}${cStar(id) ? " ★" + cStar(id) : ""}${cAwak(id) ? " ✦" + cAwak(id) : ""} · 💪${gcs.str} 🧠${gcs.int} 👟${gcs.agi} 🍀${gcs.luk}</div>`
     + `<button id="cp-lvup">⬆️ 레벨업 Lv${lv + 1} · 💰${charLvCost(id)}</button></div>`;
   on("cp-lvup", "click", () => charLevelUp(id));
   // 강화 · 승급 · 각성 (캐릭별)
