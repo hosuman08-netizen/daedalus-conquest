@@ -957,3 +957,12 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .cq-node.here .cq-n { color: #67e8f9; }
 .cq-node.lock { opacity: .4; }
 @keyframes cqPulse { 0%,100% { box-shadow: 0 0 6px -2px #67e8f966; } 50% { box-shadow: 0 0 12px -1px #67e8f9bb; } }
+
+/* 🎰 가챠 결과 목록 (10연 10개 다 + 단차 신규/중복) */
+#gacha-list { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin: 10px 0 4px; max-height: 40vh; overflow-y: auto; }
+#gacha-list:empty { display: none; }
+.gres { display: flex; align-items: center; gap: 5px; padding: 4px 8px; border-radius: 7px; background: #14121c; border: 1px solid #2a2536; font-size: 11px; }
+.gres b { font-size: 10px; font-weight: 800; }
+.gres-nm { color: #ddd; font-weight: 600; }
+.gres-dup { color: #c084fc; font-size: 9px; font-weight: 800; background: rgba(192,132,252,0.15); padding: 0 4px; border-radius: 4px; }
+.gres-new { color: #4ade80; font-size: 9px; font-weight: 800; background: rgba(74,222,128,0.15); padding: 0 4px; border-radius: 4px; }
