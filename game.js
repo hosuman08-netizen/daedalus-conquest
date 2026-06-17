@@ -2120,6 +2120,24 @@ function buyAscNode(node) {
   const g = { might: "⚔️", bulwark: "🛡️", momentum: "⚡" }[node];
   toast(g + " " + t("ascLvN", { n: lv + 1 }), "#c084fc"); SFX.ssr(); haptic("medium");
 }
+// 부활 의식 연출 (캠벨 영웅여정 — 죽음→심연 정적→빛과 함께 더 강하게 귀환). 트리니티 토론 TOP1.
+function playRebirthCeremony(cb) {
+  const v = $("rebirth-veil"), txt = $("rebirth-text");
+  if (!v) { if (cb) cb(); return; }
+  const wasMusic = !(typeof META !== "undefined" && META && META.music === false);
+  if (wasMusic) { try { stopSynthBgm(); } catch (e) {} }           // 정적
+  v.classList.remove("hidden");
+  if (txt) txt.textContent = "심연…";
+  setTimeout(() => { if (txt) txt.textContent = "군단, 부활하라"; }, 1500);
+  void v.offsetWidth; v.classList.add("play");
+  if (SFX && SFX.boom) SFX.boom();
+  setTimeout(() => { if (SFX && SFX.win) SFX.win(); haptic("heavy"); }, 1500);   // 부활 순간
+  setTimeout(() => {
+    v.classList.remove("play"); v.classList.add("hidden");
+    if (wasMusic) { try { bgmStart(); } catch (e) {} }
+    if (cb) cb();
+  }, 2600);
+}
 // PRD2: 환생 빨리감기 폭살 몽타주 — ch1~10 고속 자동클리어, 스킵 가능. "내가 이만큼 세졌다" 카타르시스.
 function startMontage() {
   window._montage = true; window._montageTarget = 10;
@@ -2154,7 +2172,7 @@ function doAscend() {
     saveMeta();
     applyMode(); reset(); updateMeta(); showPage("battle");
     SFX.ssr(); haptic("heavy");
-    setTimeout(() => { toast(t("ascDone", { e: gain }), "#c084fc"); startMontage(); }, 300);   // PRD2: 첫 환생 빨리감기 폭살 몽타주
+    setTimeout(() => { toast(t("ascDone", { e: gain }), "#c084fc"); playRebirthCeremony(startMontage); }, 300);   // 부활 의식 연출 → 빨리감기 몽타주
   };
   const done = () => { if (btn) { btn.disabled = false; renderPrestige(); } };
   if (tg && tg.showConfirm) { tg.showConfirm(ask, (ok) => { if (ok) go(); else done(); }); }
