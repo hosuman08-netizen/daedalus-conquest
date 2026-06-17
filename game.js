@@ -867,6 +867,7 @@ function updateMeta() {
   if ($("gold")) $("gold").textContent = META.gold;
   if ($("gems")) $("gems").textContent = META.gems || 0;
   if ($("soul")) $("soul").textContent = META.soul || 0;
+  if ($("soul-shop-have")) $("soul-shop-have").textContent = "보유 🔮 " + (META.soul || 0);
   if ($("chapter")) $("chapter").textContent = META.chapter;
   if ($("ether")) $("ether").textContent = META.ether || 0;
   const coh = $("cohesion"); if (coh) coh.textContent = (META.prestige || 0).toFixed(1);
@@ -1688,6 +1689,15 @@ function dismantleDupes() {
   if (typeof renderCodex === "function") renderCodex();
   toast("🔮 +" + soul + " 소울! · " + count + "장 분해", "#c084fc");
   if (SFX && SFX.ssr) SFX.ssr(); haptic("medium");
+}
+function soulBuy(soulCost, give) {   // 🔮 소울 상점 교환
+  if ((META.soul || 0) < soulCost) { toast("🔮 소울 부족 (" + soulCost + " 필요)", "#ef4444"); return; }
+  META.soul -= soulCost;
+  if (give.gold) META.gold = (META.gold || 0) + give.gold;
+  if (give.gems) META.gems = (META.gems || 0) + give.gems;
+  saveMeta(); updateMeta();
+  toast((give.gold ? "💰 +" + give.gold.toLocaleString() : "💎 +" + give.gems) + " 획득", "#a3e635");
+  if (SFX && SFX.tap) SFX.tap(); haptic("light");
 }
 function gacha() {
   if (running) return;
@@ -2562,6 +2572,9 @@ on("sg-gear1", "click", () => gearGacha(1));
 on("sg-gear10", "click", () => gearGacha(10));
 on("sg-gold1", "click", goldGacha);            // 🪙 골드 뽑기 (소울루프)
 on("sg-gold10", "click", goldGacha10);         // 🪙 골드 10연
+on("ss-gold5k", "click", () => soulBuy(20, { gold: 5000 }));     // 🔮 소울 상점
+on("ss-gold30k", "click", () => soulBuy(100, { gold: 30000 }));
+on("ss-gem50", "click", () => soulBuy(80, { gems: 50 }));
 on("dismantle-dupes", "click", dismantleDupes); // 🔮 중복 전부 소울로
 
 // ── 대시보드: 도감 + 강화(실패확률·보호) + 승급(조합) ─────────────────────────
