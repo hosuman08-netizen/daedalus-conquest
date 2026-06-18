@@ -1,6 +1,8 @@
 node_modules/
 .DS_Store
 *.log
-art/_backup/
-art/*.bak-*
+
+# 트리니티 고정(이 폴더 전용)
+CLAUDE.md
 *.bak-*
+game.js.bak-*
