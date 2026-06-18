@@ -1977,7 +1977,7 @@ function finish(p, e) {
   }
   // Vanguard Focus 24h FOMO + first-win stronger overlay (limited window carry teaser + personal belonging)
   const isV = META.vanguard && META.vanguard === today();
-  if (win && isV) carried = carried.replace('carried', 'VANGUARD carried • 24h Focus');
+  if (win && isV) carried = '<div class="rwd2" style="color:#fde047;font-size:11px;">🔥 선봉대 24h 집중</div>' + carried;
   if (win && (META.chapter||1) <= 2) {
     const fwin = (typeof t === "function" && t("firstWinOverlay")) || "🏆 첫 승리! 내 군단이 {carried}% 활약 — 네 지휘였다";
     carried = `<div class="rwd2" style="color:#fbbf24;font-size:12px;">${fwin.replace('{carried}', getCarriedFeedback().match(/(\d+)%/)?.[1]||'42')}</div>`;
@@ -2017,7 +2017,7 @@ function getCarriedFeedback() {
   const distinct = ORDER.filter(tt => (counts.p||META.army)[tt]>0).length;
   const syn = distinct>=4 ? 42 : distinct>=3 ? 28 : 12;
   const specifics = getDeployedUnits();
-  let carry = "volume swarm";
+  let carry = "물량 군집";
   if (specifics.length && units.length) {
     // real contrib: use live dmgOut if tracked (specifics), else power-share proxy
     const contribs = [];
@@ -2041,9 +2041,9 @@ function getCarriedFeedback() {
       const pct = Math.max(8, Math.floor((c.w / totalW) * 72));
       return `${c.name} ${pct}%`;
     }).join(" · ");
-    carry = top + " carried — 네 지휘가 봉인했다";
+    carry = top + " 캐리 — 네 지휘가 봉인했다";
   } else if (!specifics.length) {
-    carry = ["Arclight judgment", "Solace repair", "Dominus command", "Vespera swarm", "Vector sync"][(META.pulls||0)%5];
+    carry = ["Arclight 심판", "Solace 수복", "Dominus 지휘", "Vespera 군집", "Vector 동기화"][(META.pulls||0)%5];
   }
   return `Synergy +${syn}% | ${carry}`;
 }
@@ -3803,6 +3803,7 @@ function gearOwnerName(gearId) {                        // 이 장비를 장착�
 function on(id, ev, fn) { const e = $(id); if (e) e.addEventListener(ev, fn); }
 on("dash-protect", "click", () => { dashProtect = !dashProtect; renderDash(); });
 on("gear-craft", "click", craftGear);
+on("gear-scrap-junk", "click", dismantleJunkGear);
 on("gdex-toggle", "click", () => { const w = $("gdex-wrap"); if (w) { w.classList.toggle("hidden"); renderGearCodex(); } });
 on("unit-close", "click", () => $("unit-pop").classList.add("hidden"));
 on("cp-close", "click", () => $("char-panel").classList.add("hidden"));
