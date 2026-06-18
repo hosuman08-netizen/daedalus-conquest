@@ -1871,7 +1871,7 @@ function updateScore() {
 function finish(p, e) {
   running = false; gameOver = true;
   const win = p && !e, dr = !p && !e;
-  if (win) META.dailyBattles = (META.dailyBattles || 0) + 1;   // ⚠️ TDZ 버그픽스: win 선언 뒤로 이동 (전엔 선언 전 참조→매 전투종료 ReferenceError로 finish() 전체 붕괴)
+  if (win) { META.dailyBattles = (META.dailyBattles || 0) + 1; META.totalWins = (META.totalWins || 0) + 1; }   // ⚠️ TDZ 버그픽스: win 선언 뒤로 이동 (전엔 선언 전 참조→매 전투종료 ReferenceError로 finish() 전체 붕괴)
   const m = META.mode;
   let extra = "", title = win ? t("rWin") : dr ? t("rDraw") : t("rLose");
   let bonus = (x) => Math.floor(x * (META.vip ? 1.5 : META.starter ? 1.2 : 1));   // VIP +50% / 스타터 +20% 골드
@@ -1931,7 +1931,7 @@ function finish(p, e) {
       if (!protected) META.streak = (META.streak || 0) + 1;
       reward = bonus(50 + META.chapter * 22 + Math.min(80, (META.streak - 1) * 10));  // early boost for ch18 reach (치명적 P0)
       reward = Math.round(reward * ascGoldMul() * ascPlunderMul());        // 🔄 환생 「쇄도」 골드획득 가속
-      if (META.chapter < 999) META.chapter += 1;
+      if (META.chapter < 999) META.chapter += 1; if (META.chapter > (META.maxChapter || 0)) META.maxChapter = META.chapter;
       title = t("rChapter");
       extra = `<div class="rwd">${t("rwGold", { n: reward })}` + (META.streak > 1 ? t("rwStreak", { n: META.streak }) : "") + `</div><div class="rwd2">${t("rwChapter", { n: META.chapter })}</div>`;
       if (protected) extra += '<div class="rwd2" style="color:#67e8f9">🛡️ Founders protect streak</div>';
@@ -2605,6 +2605,15 @@ function updateToggles() {
   if ($("set-highcontrast")) { $("set-highcontrast").textContent = META.highContrast ? "ON" : "OFF"; $("set-highcontrast").classList.toggle("off", !META.highContrast); }
   if ($("set-vfxfallback")) { $("set-vfxfallback").textContent = META.vfxFallback ? "ON" : "OFF"; $("set-vfxfallback").classList.toggle("off", !META.vfxFallback); }
 }
+function renderGameStats() {
+  const el = $("game-stats"); if (!el) return;
+  const total = (typeof ROSTER !== "undefined") ? ROSTER.length : 200;
+  const owned = (META.owned || []).length;
+  const maxCh = Math.max(META.maxChapter || 0, META.chapter || 1);
+  const power = (getDeployedUnits().length ? squadPower() : legionPower()) * ascPowerMul();
+  const rows = [["🏆", maxCh, t("statBest")],["📋", owned + "/" + total, t("statCollect")],["🔄", (META.ascCount || 0), t("statRebirth")],["⚡", fmtNum(power), t("statPower")],["🎰", (META.pulls || 0), t("statPulls")],["⚔️", (META.totalWins || 0), t("statWins")]];
+  el.innerHTML = "<div class=\"gstat-grid\">" + rows.map(function(r){return "<div class=\"gstat\"><span class=\"gs-ic\">"+r[0]+"</span><b class=\"gs-v\">"+r[1]+"</b><small class=\"gs-l\">"+r[2]+"</small></div>";}).join("") + "</div>";
+}
 function renderProfile() {
   const box = $("tg-profile"); if (!box) return;
   let u = null;
@@ -2637,7 +2646,7 @@ function initViralA11y() {
     } catch(e){}
   }
 }
-function openSettings() { updateToggles(); buildLangList(); renderProfile(); renderPrestige(); showPage("settings"); }
+function openSettings() { updateToggles(); buildLangList(); renderProfile(); renderGameStats(); renderPrestige(); showPage("settings"); }
 // 🔄 환생(Ascension) — 비파괴 메타 루프. 챕터·골드만 리셋, 유닛/장비/가챠/캐릭 100% 유지.
 //    에테르(⬡, 영구화폐)로 복리노드(공세/불굴/쇄도) 강화 → 영구 전투배율. PRD-prestige-loop.md 확정.
 const ASC_NODES = [

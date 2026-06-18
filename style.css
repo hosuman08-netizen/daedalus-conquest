@@ -971,3 +971,10 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 /* 에테르 노드 현재→다음 스탯 표시 (강화 시 얼마 오르는지) */
 .asc-node-now { font-size: 10.5px; color: #8b93a7; margin-top: 2px; }
 .asc-node-now b { color: #c4b5fd; font-weight: 700; }
+
+/* 📊 내 군단 통계 (정직한 진척 — 다크패턴 아님) */
+.gstat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.gstat { background: #14121c; border: 1px solid #2a2536; border-radius: 8px; padding: 8px 4px; text-align: center; display: flex; flex-direction: column; gap: 2px; }
+.gstat .gs-ic { font-size: 17px; line-height: 1; }
+.gstat .gs-v { color: #fde047; font-size: 14px; font-weight: 800; }
+.gstat .gs-l { color: #9ca3af; font-size: 9.5px; }
