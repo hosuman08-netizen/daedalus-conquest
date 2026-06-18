@@ -388,6 +388,8 @@ h1::first-letter { color: var(--crimson); }
 /* 스타터팩 모달 */
 #starter { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 12; }
 #starter.hidden { display: none; }
+/* 📊 확률 공개 모달: 인라인 display:flex 때문에 !important 필요 (안 닫히던 버그 수정) */
+#odds-modal.hidden { display: none !important; }
 #starter-card { background: linear-gradient(160deg, #2a1f3a, #161a26); padding: 24px 26px; border-radius: 18px;
   text-align: center; max-width: 320px; border: 1.5px solid #a855f7; animation: pop .3s ease-out; }
 .sp-badge { font-size: 21px; font-weight: 900; color: #f0abfc; margin-bottom: 14px; }

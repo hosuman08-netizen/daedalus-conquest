@@ -3303,7 +3303,7 @@ const oddsM = $("odds-modal");
 if (oddsM) {
   oddsM.addEventListener("click", (e) => {
     if (e.target === oddsM) oddsM.classList.add("hidden");
-  });
+  }, {once: false});
 }
 on("ss-gold5k", "click", () => soulBuy(20, { gold: 5000 }));     // 🔮 소울 상점
 on("ss-gold30k", "click", () => soulBuy(100, { gold: 30000 }));
@@ -3916,6 +3916,18 @@ setInterval(() => { try { META.lastSeen = nowMs(); localStorage.setItem(META_KEY
 setInterval(tickPlay, 1000);   // ⏱️ 플레이타임 보상 적립(보이는 동안만)
 document.addEventListener("visibilitychange", () => { if (document.hidden) saveMeta(); });
 window.addEventListener("beforeunload", saveMeta);
+
+// Escape to close common modals (robust for stuck UI)
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    ['odds-modal', 'unit-pop', 'gacha', 'starter', 'char-panel', 'overlay'].forEach(function(id) {
+      const el = $(id);
+      if (el && !el.classList.contains('hidden')) {
+        el.classList.add('hidden');
+      }
+    });
+  }
+});
 
 bindDeploy();
 applyStaticI18n();
