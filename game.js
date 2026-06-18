@@ -562,18 +562,25 @@ function gearArt(g) {
   return `<img class="g-art" src="art/gear/${slot}-${rar}.png" alt="" loading="lazy" onerror="this.outerHTML=gearSynthHTML(${JSON.stringify(g).replace(/"/g,'&quot;')});">`;
 }
 function gearSynthHTML(g) {
-  if (!g) return `<div class="gear-synth empty" style="opacity:.55">⚙️</div>`; // no broken "?", premium icon even for empty/fallback
+  if (!g) return `<div class="gear-synth empty" style="opacity:.55">⚙️</div>`;
   const icon = SLOT_ICON[g.slot] || "⚙️";
   const r = g.rarity || "N";
   const s = g.slot || "";
-  // UPGRADED synth: deeper shadows/rim/veins for N (not toy), shards energy for SR, gold filigree rim + dramatic for SSR. PNG 20종 우선. "간지" premium volumetric always. TG perf fallback strict.
-  const veins = (r === "SSR" || r === "SR" || r === "R" || r === "N") ? `<span class="gear-vein"></span><span class="gear-vein2"></span>` : "";
-  const shards = (r === "SSR" || r === "SR") ? `<span class="gear-shard"></span><span class="gear-shard2"></span><span class="gear-shard3"></span>` : "";
-  let rim = "";
-  if (r === "SSR") rim = `<span class="gear-rim gear-filigree" style="position:absolute;inset:0;border:2px solid #fbbf24;opacity:0.38;border-radius:5px;pointer-events:none;"></span><span class="gear-filigree2"></span>`;
-  else if (r === "SR") rim = `<span class="gear-rim" style="position:absolute;inset:0;border:1.5px solid #c084fc;opacity:0.3;border-radius:4px;pointer-events:none;"></span>`;
-  else if (r === "R" || r === "N") rim = `<span class="gear-rim" style="position:absolute;inset:0;border:1px solid currentColor;opacity:${r==="N"?0.22:0.28};border-radius:4px;pointer-events:none;"></span>`;
-  return `<div class="gear-synth r${r} slot-${s}">${icon}${veins}${shards}${rim}<span class="gear-r">${r}</span></div>`;
+  // STRONGLY DIFFERENTIATED synth: 고급일수록 압도적으로 간지나게. N은 깔끔 기본, R은 세련, SR은 화려, SSR은 전설급 과도한 디테일+이펙트.
+  let extra = "";
+  if (r === "SSR") {
+    extra = `<span class="gear-vein"></span><span class="gear-vein2"></span><span class="gear-shard"></span><span class="gear-shard2"></span><span class="gear-shard3"></span>`;
+    extra += `<span class="gear-rim gear-filigree" style="position:absolute;inset:0;border:3px solid #fbbf24;opacity:0.55;border-radius:6px;pointer-events:none;"></span><span class="gear-filigree2"></span>`;
+  } else if (r === "SR") {
+    extra = `<span class="gear-vein"></span><span class="gear-shard"></span><span class="gear-shard2"></span>`;
+    extra += `<span class="gear-rim" style="position:absolute;inset:0;border:2px solid #c084fc;opacity:0.45;border-radius:5px;pointer-events:none;"></span>`;
+  } else if (r === "R") {
+    extra = `<span class="gear-vein"></span>`;
+    extra += `<span class="gear-rim" style="position:absolute;inset:0;border:1.5px solid #60a5fa;opacity:0.35;border-radius:4px;pointer-events:none;"></span>`;
+  } else {
+    extra = `<span class="gear-rim" style="position:absolute;inset:0;border:1px solid #9ca3af;opacity:0.25;border-radius:3px;pointer-events:none;"></span>`;
+  }
+  return `<div class="gear-synth r${r} slot-${s}">${icon}${extra}<span class="gear-r">${r}</span></div>`;
 }
 function squadSynergy() {                               // 진영/아키타입 조합 시너지
   const sq = getDeployedUnits();
@@ -647,7 +654,7 @@ function renderSynergyTable() {
   const fac = {}; sq.forEach((u) => { fac[u.faction] = (fac[u.faction] || 0) + 1; });
   // DOM cached version for speed: create cards once, update text/classes (no innerHTML rebuild, less GC/reflow)
   if (!el._synCards) {
-    el.innerHTML = `<div class="syn-h">⚡ 군단 시너지</div><div class="syn-grid"></div>`;
+    el.innerHTML = `<div class="syn-h">${t("synHeader")}</div><div class="syn-grid"></div>`;
     const grid = el.querySelector('.syn-grid');
     const facs = ['Strategist','Executor','Swarm','Guardian','Intel'];
     el._synCards = {};
@@ -691,7 +698,7 @@ function renderSynergyTable() {
   else if (archs >= 3) { dB = "전군+8%"; dNx = (5 - archs) + "종 더 → +12%"; }
   else { dNx = (3 - archs) + "종 더 → +10%"; }
   const dc = el._divCard;
-  dc._nm.textContent = `다양성 ${archs}종`;
+  dc._nm.textContent = t("diversity") + ` ${archs}종`;
   dc._b.textContent = dOn ? `🛡️ ${dB}` : '';
   dc._b.style.display = dOn ? '' : 'none';
   dc._nx.textContent = dNx;
@@ -1002,8 +1009,8 @@ function applyMode() {
     curLevel = META.chapter;
     counts.e = enemyForChapter(META.chapter);
     let st = t("sDeploy", { n: META.chapter });
-    if (META.chapter <= 8) st += " · 초보자 모드 (쉽게 시작!)";
-    else if (META.chapter > 20) st += " · 본격 난이도 ↑ (강한 Legion 유닛/강화 필요)";
+    if (META.chapter <= 8) st += " · " + (LANG==="ko"?"초보자 모드 (쉽게 시작!)":"Beginner mode (easy start!)");
+    else if (META.chapter > 20) st += " · " + (LANG==="ko"?"본격 난이도 ↑":"Full difficulty ↑");
     st += " · 승리하면 챕터 +1";
     $status.textContent = st;
   }
@@ -1041,7 +1048,7 @@ function reset() {
   // 하단바 전체 6탭 강제 표시 완료
   document.querySelectorAll('#bnav .navtab').forEach(el => el.style.display = '');
   delete window._ultBurst;
-  const leg = $("legend-toggle");
+  // legend-toggle removed
   if (leg) leg.style.display = 'none'; // Sovereign: 정적 유닛·상성 정보는 전투에서 제거. 동적 조합 버프로 대체
   const legDiv = $("legend");
   if (legDiv) legDiv.style.display = 'none';
@@ -1055,12 +1062,12 @@ function updateMeta() {
   if ($("soul-shop-have")) $("soul-shop-have").textContent = t("soulHave") + (META.soul || 0);
   if ($("chapter")) $("chapter").textContent = META.chapter;
   if ($("ether")) $("ether").textContent = META.ether || 0;
-  const coh = $("cohesion"); if (coh) coh.textContent = (META.prestige || 0).toFixed(1);
+  // cohesion display removed (no #cohesion element; prestige surfaced via ether)
   // 🔄 환생 발견성 배너: ch18+ 도달 시 "환생 가능 · ⬡+N" 노출 (배틀화면)
   const ap = $("asc-prompt");
   if (ap) {
     const ch = META.chapter || 1;
-    if (ch >= ASCEND_GATE) { ap.style.display = ""; ap.innerHTML = `🔄 <b>환생 가능</b> · 지금 환생 시 ⬡ +${etherGain(ch)} <span class="asc-prompt-cta">탭 →</span>`; }
+    if (ch >= ASCEND_GATE) { ap.style.display = ""; ap.innerHTML = t("tAscBanner", { e: etherGain(ch) }); }
     else ap.style.display = "none";
   }
   const sv = $("streak-val"); if (sv) sv.textContent = (META.loginStreak || 0);  // visible streak everywhere (click → event for claim)
@@ -1089,7 +1096,7 @@ function updateMeta() {
   });
   const ts = $("slot-titan");
   if (ts) ts.style.display = META.titanOwned ? "" : "none";
-  const sb = $("starter-btn"); if (sb) sb.style.display = META.starter ? "none" : "";
+  // starter-btn removed (integrated to shop)
   const sp = $("speed"); if (sp && !running) {
     const eff = speed * (META.starter ? 2 : 1);
     sp.textContent = t("speed", { n: eff });
@@ -1139,7 +1146,7 @@ function updateModeTabs() {
   });
   // Sovereign: 캠페인 탭에 현재 챕터 번호 동적 표시 — "2챕터가 안넘어가" 혼란 방지. 유저가 "이 버튼이 챕터 진행용"임을 즉시 인지.
   const camp = document.querySelector('.modetab[data-m="campaign"]');
-  if (camp) camp.textContent = `📖 캠페인 ch${META.chapter || 1}`;
+  if (camp) camp.textContent = t("tCampaignChLabel") + (META.chapter || 1);
   renderMsHint();
 }
 function setMode(m) {
@@ -1150,14 +1157,14 @@ function setMode(m) {
     // 2026-06-16 Morpheus: decided HIDE (lean MVP, 4-action dopamine focus, reversible no-broken). Stubs remain for future.
     const tdy = today();
     if (!META.arenaDay || META.arenaDay !== tdy) { META.arenaDay = tdy; META.arenaCount = 0; saveMeta(); }
-    if ((META.arenaCount || 0) >= 5) { toast("오늘 아레나 5회 완료", "#ef4444"); return; }
+    if ((META.arenaCount || 0) >= 5) { toast(t("tArenaDone"), "#ef4444"); return; }
     META.arenaCount = (META.arenaCount || 0) + 1; saveMeta();
-    toast("아레나 매칭 (placeholder 자동 1:1) - Phase2에서 풀 구현", "#a855f7");
+    toast(t("tArenaMatch"), "#a855f7");
     return;   // ⚠️ 버그픽스: return 없으면 840줄로 fall-through→META.mode="arena" 영구저장+campaign 둔갑 오염. MVP 숨김 스텁이라 no-op.
   }
   if (m === "mystery") {
     // Sovereign: 아레나 옆 ??? 티저 (중립 호기심, FOMO·압박 금지)
-    toast("❓ ??? : 비밀의 레기온 창. 곧 공개될 새로운 모드! 지금은... 궁금증만 폭발?", "#fbbf24");
+    toast(t("tMystery"), "#fbbf24");
     // optional: openEvent() or bump prestige curiosity
     return;
   }
@@ -2127,7 +2134,7 @@ function showOdds() {
   if (m) {
     m.classList.remove("hidden");
     m.style.display = "flex";                 // 인라인 직접 제어 — CSS 전파·캐시 무관 보장
-    // close on background click (robust)
+    // close on background click (robust) — direct onclick for max compat
     m.onclick = (e) => { if (e.target === m) closeOdds(); };
     const closeBtn = $("odds-close");
     if (closeBtn) closeBtn.onclick = closeOdds;
@@ -2135,7 +2142,14 @@ function showOdds() {
 }
 function closeOdds() {
   const m = $("odds-modal");
-  if (m) { m.style.display = "none"; m.classList.add("hidden"); }   // 인라인 none = 항상 닫힘
+  if (m) {
+    m.style.display = "none";
+    m.classList.add("hidden");
+    // robust: clear any direct handlers too
+    m.onclick = null;
+    const cb = $("odds-close");
+    if (cb) cb.onclick = null;
+  }
 }
 // ── 🪙 골드 뽑기 + 🔮 소울 분해 루프 (트리니티 SPEC-soul-fodder-loop) ──────────────
 const GOLD_GACHA_COST = 200;
@@ -2623,6 +2637,9 @@ function buildLangList() {
 function applyLanguage(l) {
   setLang(l); applyStaticI18n(); buildLangList();
   if (!running) reset(); else { updateHeroUI(); updateUltBtn(); }
+  // re-render prestige (and other dynamic) after lang switch so Korean strings don't linger
+  if ($("prestige-box")) renderPrestige();
+  if (typeof renderGameStats === "function") renderGameStats();
   toast(t("langOk"), "#a3e635");
 }
 function updateToggles() {
@@ -2697,9 +2714,28 @@ function ascVanguardCh() { return Math.min(5, ascLv("vanguard")); }
 function ascProsperGem() { return ascLv("prosper") * 3; }
 function ascInsightDisc(){ return Math.min(0.40, ascLv("insight") * 0.04); }
 function ascNodeStat(key, lv) {
+  // Use English for now when LANG is en; full i18n can expand later
+  const isEn = (typeof LANG !== 'undefined' && LANG === 'en');
+  const pct = Math.round((Math.pow(1.08, lv) - 1) * 100);
+  if (isEn) {
+    switch (key) {
+      case "might":    return "+" + pct + "% ATK";
+      case "bulwark":  return "+" + pct + "% HP";
+      case "momentum": return "+" + (lv * 18) + "% gold · start +" + (lv * 300) + "g";
+      case "soulnode": return "+" + (lv * 25) + "% soul";
+      case "plunder":  return "+" + (lv * 12) + "% battle gold";
+      case "edge":     return "+" + (lv * 2) + "% crit rate";
+      case "pierce":   return "+" + (lv * 8) + "% crit dmg";
+      case "vanguard": return "+" + Math.min(5, lv) + " start chapter";
+      case "prosper":  return "+" + (lv * 3) + " gems on rebirth";
+      case "insight":  return "-" + Math.round(Math.min(0.40, lv * 0.04) * 100) + "% awaken cost";
+      default: return "";
+    }
+  }
+  // Korean fallback
   switch (key) {
-    case "might":    return "+" + Math.round((Math.pow(1.08, lv) - 1) * 100) + "% 공격";
-    case "bulwark":  return "+" + Math.round((Math.pow(1.08, lv) - 1) * 100) + "% 체력";
+    case "might":    return "+" + pct + "% 공격";
+    case "bulwark":  return "+" + pct + "% 체력";
     case "momentum": return "+" + (lv * 18) + "% 골드 · 시작 +" + (lv * 300) + "g";
     case "soulnode": return "+" + (lv * 25) + "% 소울";
     case "plunder":  return "+" + (lv * 12) + "% 전투골드";
@@ -2729,18 +2765,19 @@ function renderPrestige() {
     h += `<div class="asc-node">`
       + `<div class="asc-node-main"><b>${n.glyph} ${t(ascNodeKey(n.key))}</b> <span class="asc-lv">${t("ascLvN", { n: lv })}</span>`
       + `<div class="asc-node-d">${t(ascNodeKey(n.key, "D"))}</div>`
-      + `<div class="asc-node-now">현재 <b>${ascNodeStat(n.key, lv)}</b> → <b style="color:#a3e635">${ascNodeStat(n.key, lv + 1)}</b></div></div>`
+      + `<div class="asc-node-now">${t("ascNow") || "Now"} <b>${ascNodeStat(n.key, lv)}</b> → <b style="color:#a3e635">${ascNodeStat(n.key, lv + 1)}</b></div></div>`
       + `<button class="asc-buy${can ? "" : " off"}" data-node="${n.key}"${can ? "" : " disabled"}>${t("ascUp", { c: cost })}</button>`
       + `</div>`;
   }
   box.innerHTML = h;
   // 신뢰성 있는 버튼 연결 (innerHTML 동적 생성 후 직접 onclick — on() 헬퍼 다중리스너/타이밍 문제 방지)
-  const goBtn = $("prestige-go");
-  if (goBtn) goBtn.onclick = doAscend;
-  box.querySelectorAll(".asc-buy").forEach((b) => {
-    // 기존 리스너 중복 방지 위해 onclick 사용
-    b.onclick = () => buyAscNode(b.dataset.node);
-  });
+  // delegation for prestige buttons (survives re-renders)
+  box.onclick = (e) => {
+    const go = e.target.closest("#prestige-go");
+    if (go) { doAscend(); return; }
+    const buy = e.target.closest(".asc-buy");
+    if (buy && !buy.disabled) buyAscNode(buy.dataset.node);
+  };
 }
 function buyAscNode(node) {
   if (running || !META.asc) return; if (!(node in META.asc)) META.asc[node] = 0;
@@ -3308,6 +3345,9 @@ const oddsM = $("odds-modal");
 if (oddsM) {
   oddsM.addEventListener("click", (e) => { if (e.target === oddsM) closeOdds(); }, {once: false});
 }
+// permanent direct onclick safety for close btn (robust, works even if addEvent timing odd)
+const ocb = $("odds-close");
+if (ocb) ocb.onclick = closeOdds;
 on("ss-gold5k", "click", () => soulBuy(20, { gold: 5000 }));     // 🔮 소울 상점
 on("ss-gold30k", "click", () => soulBuy(100, { gold: 30000 }));
 on("ss-gem50", "click", () => soulBuy(80, { gems: 50 }));
@@ -3875,13 +3915,19 @@ function gearOwnerName(gearId) {                        // 이 장비를 장착�
 }
 // 안전 바인딩 헬퍼 (요소 없으면 무시 — null 크래시 방지)
 function on(id, ev, fn) { const e = $(id); if (e) e.addEventListener(ev, fn); }
-on("dash-protect", "click", () => { dashProtect = !dashProtect; renderDash(); });
-on("gear-craft", "click", craftGear);
+// dash-protect removed (legacy)
+on("gear-craft", "click", () => craftGear());
 on("gear-scrap-junk", "click", dismantleJunkGear);
 on("gdex-toggle", "click", () => { const w = $("gdex-wrap"); if (w) { w.classList.toggle("hidden"); renderGearCodex(); } });
 on("unit-close", "click", () => $("unit-pop").classList.add("hidden"));
+// bg click close for unit-pop (robust UX)
+const unitPop = $("unit-pop");
+if (unitPop) unitPop.addEventListener("click", (e) => { if (e.target.id === "unit-pop") unitPop.classList.add("hidden"); });
 on("cp-close", "click", () => $("char-panel").classList.add("hidden"));
-on("legend-toggle", "click", () => { const l = $("legend"); if (l) l.classList.toggle("hidden"); });
+// bg click close for char-panel
+const charP = $("char-panel");
+if (charP) charP.addEventListener("click", (e) => { if (e.target.id === "char-panel") charP.classList.add("hidden"); });
+// legend-toggle removed (legacy UI)
 // ── 페이지 네비게이션 ──
 let curPage = "battle";
 function showPage(p) {
@@ -3903,14 +3949,14 @@ on("settings-corner", "click", openSettings);   // 설정 = 상단 구석
 initViralA11y(); // Community Viral A11y loop init (share/profile/a11y/faction/carried export)
 
 $("overlay-btn").addEventListener("click", reset);
-on("gacha-btn", "click", gacha);
+// gacha-btn removed (now handled in shop/quick-pull)
 $("gacha-close").addEventListener("click", () => $("gacha").classList.add("hidden"));
 $("auto").addEventListener("click", toggleAuto);
 $("ult").addEventListener("click", doUlt);
 $("hero-up").addEventListener("click", upgradeHero);
 $("starter-buy").addEventListener("click", buyStarter);
 $("starter-close").addEventListener("click", () => $("starter").classList.add("hidden"));
-// (starter-btn은 상점으로 통합됨 — 더 이상 별도 버튼 없음)
+// starter-btn integrated to shop (removed)
 document.querySelectorAll(".modetab").forEach((b) => b.addEventListener("click", () => setMode(b.dataset.m)));
 document.querySelectorAll(".hbtn").forEach((b) => b.addEventListener("click", () => selectHero(b.dataset.h)));
 window.addEventListener("resize", () => { if (!running) reset(); });
@@ -3926,8 +3972,11 @@ document.addEventListener('keydown', function(e) {
     ['odds-modal', 'unit-pop', 'gacha', 'starter', 'char-panel', 'overlay'].forEach(function(id) {
       const el = $(id);
       if (el && !el.classList.contains('hidden')) {
-        el.classList.add('hidden');
-        if (id === 'odds-modal') el.style.display = 'none';   // 인라인 display 제압
+        if (id === 'odds-modal') {
+          closeOdds();  // use full robust closer (display + hidden + cleanup)
+        } else {
+          el.classList.add('hidden');
+        }
       }
     });
   }

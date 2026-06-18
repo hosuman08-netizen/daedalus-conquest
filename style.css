@@ -116,13 +116,12 @@ h1::first-letter { color: var(--crimson); }
 .cfil.on { background: #2a1418; color: var(--gold); }
 #codex-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 6px; }
 /* Jordan: Ultra clean modern icon gallery (user exact: "빨간색 동그라미 지우고 글자 지워 없는게나아"). No red borders/fac-swarm circles, no rarity letters (.cxr), no names/text under icons in grid. Pure icon-focused high-end collection (E7 clean gallery + HSR icon pop pride). Subtle variety ONLY via arch tints/glows + SSR gold rim. Tap scale pop dopamine. Premium, no clutter on 5-col tiny TG. */
-.cxc { aspect-ratio: 1/1.02; border: none; background: transparent; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 2px; transition: transform .07s, box-shadow .1s; cursor: pointer; }
+.cxc { aspect-ratio: 1/1.02; border: none; background: transparent; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 1px; transition: transform .07s, box-shadow .1s; cursor: pointer; } /* reduced outer pad for tight gold rim hug */
 .cxc.lock { opacity: .82; filter: grayscale(0.25); }  /* 군주 20260617: 미보유도 일러스트 선명하게 "보는 맛" — 살짝만 muted */
 .cxc:active { transform: scale(0.93); box-shadow: 0 0 0 1.5px #fbbf2488; }
 .cxc .cxg { font-size: 16px; position: relative; width: 100%; flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 7px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03); border: none; background: #05040c; }
 .cxc .cxgly { line-height: 1; }
-.cxc .cxim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 15%; } /* nukki grid: cover로 프레임 꽉, 캐릭 중심 */
-.cxc .cxg img { max-height: 100%; }
+.cxc .cxim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 17%; border-radius: 6px; } /* nukki grid: cover fills .cxg exactly, gold box-shadow on .cxc frames tightly. */
 .cxc.rSSR:not(.lock) { box-shadow: 0 0 0 1.5px rgba(251,191,36,0.38); }
 .cxc:not(.lock):hover { transform: scale(1.015); }
 .cxc:not(.lock):active { transform: scale(0.94); box-shadow: 0 0 0 2px #fbbf24cc; }
@@ -162,8 +161,12 @@ h1::first-letter { color: var(--crimson); }
 .gxc .gxi.gear-codex-art { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
 .gxc .gxi.gear-codex-art .gear-synth,
 .gxc .gxi.gear-codex-art .g-art,
-.gxc .gxi.gear-codex-art img { width: 52px; height: 52px; font-size: 20px; filter: contrast(1.18) saturate(1.28) brightness(1.06); box-shadow: 0 2px 8px rgba(0,0,0,0.6), 0 0 6px rgba(251,191,36,0.12); } /* bit larger for tap */
-.gxc .gxi.gear-codex-art .gear-synth .gear-r { font-size: 8px; } /* readable rarity */
+.gxc .gxi.gear-codex-art img { width: 52px; height: 52px; font-size: 20px; filter: contrast(1.18) saturate(1.28) brightness(1.06); box-shadow: 0 2px 8px rgba(0,0,0,0.6), 0 0 6px rgba(251,191,36,0.12); }
+.gxc .gxi.gear-codex-art .gear-synth .gear-r { font-size: 8px; }
+/* Rarity visual escalation in codex (고급일수록 강하게) */
+.gxc .gxi.gear-codex-art .gear-synth.rSSR { filter: contrast(1.3) saturate(1.5) brightness(1.15) drop-shadow(0 0 8px #fbbf24); }
+.gxc .gxi.gear-codex-art .gear-synth.rSR { filter: contrast(1.25) saturate(1.4) brightness(1.1) drop-shadow(0 0 5px #c084fc); }
+.gxc .gxi.gear-codex-art .gear-synth.rR { filter: contrast(1.2) saturate(1.2) brightness(1.05); }
 #unit-pop { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 18; padding: 6px; }
 #unit-pop.hidden { display: none; } /* final perfect centered modal, no bottom stuck */
 /* 장비 관리 팝업 — 캐릭터창(#char-panel) 시각 언어 차용 (군주 20260616 "장비 눌렀을때 캐릭터 창 처럼"). 가독성 우선: 캐릭창보다 살짝 큼. */
@@ -173,7 +176,9 @@ h1::first-letter { color: var(--crimson); }
 #unit-card.gear-manage #unit-title { display: none; }   /* 헤더(gm-head)로 대체 */
 .gm-head { display: flex; gap: 10px; align-items: center; margin-bottom: 11px; }
 .gm-art { position: relative; width: 56px; height: 56px; flex: 0 0 56px; border: 2px solid; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #05040c; box-shadow: inset 0 0 14px rgba(0,0,0,0.9), 0 0 0 1px rgba(0,0,0,0.5); }
-.gm-art .gear-synth, .gm-art .g-art, .gm-art img { width: 48px; height: 48px; object-fit: contain; filter: contrast(1.15) saturate(1.2); }
+.gm-art .gear-synth, .gm-art .g-art, .gm-art img { width: 48px; height: 48px; object-fit: contain; border-radius: 5px; filter: contrast(1.15) saturate(1.2); }
+.gm-art .gear-synth.rSSR { filter: contrast(1.3) saturate(1.5) brightness(1.15) drop-shadow(0 0 6px #fbbf24); }
+.gm-art .gear-synth.rSR { filter: contrast(1.25) saturate(1.4) brightness(1.1) drop-shadow(0 0 4px #c084fc); }
 .gm-art .gear-synth .gear-r { font-size: 8px; }
 .gm-meta { min-width: 0; flex: 1; }
 .gm-nm { font-size: 14px; font-weight: 800; line-height: 1.25; }
@@ -193,13 +198,12 @@ h1::first-letter { color: var(--crimson); }
   animation: pop .3s ease-out; 
   box-shadow: 0 12px 40px rgba(0,0,0,0.8);
 } /* tighter padding, nukki art priority */
-/* ULTIMATE PREMIUM (Alex Rivera top expert + Legion): Illust STRICT 24-34vh max contain (user: "일러스트 줄여 화면에 맞게" "화면 이게 뭐야" 완전 해결). object-fit:contain + max-height cap. Compact header+stats+controls. Premium thin gold rim + vignette. Char-panel + unit-pop + gear popup unified. Gear/unit shared reuse. */
-#unit-glyph { font-size: 11px; position: relative; width: 100%; max-width: 260px; height: auto; max-height: 48vh; margin: 0 auto 6px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 10px; border: 2px solid rgba(245,196,81,0.32); box-shadow: inset 0 0 18px rgba(0,0,0,0.9), 0 0 0 1.5px rgba(0,0,0,0.5); background: #05040c; padding: 2px; }
-#unit-glyph img.ucim, #unit-glyph .ucim { width: 100%; height: 100%; object-fit: cover; object-position: center 15%; border-radius: 7px; } /* nukki-perfect: cover로 프레임 꽉 채움, 얼굴/상체 중심 crop. 깨끗한 누끼 */
+/* NUKKI GOLD FRAME (tight fit): #unit-glyph yellow/gold border now hugs the illustration edge with zero gap. Container relative + absolute inset img (cover + tuned pos) ensures perfect alignment regardless of PNG intrinsic size/aspect. No padding inside border. Consistent bust crop for all nukki. */
+#unit-glyph { font-size: 11px; position: relative; width: 100%; max-width: 280px; aspect-ratio: 1 / 1.02; max-height: 36vh; margin: 0 auto 4px; display: block; overflow: hidden; background: #05040c; border-radius: 12px; }
+#unit-glyph img.ucim, #unit-glyph .ucim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 15%; border-radius: 9px; display: block; border: 2px solid rgba(245,196,81,0.55); box-shadow: inset 0 0 20px rgba(0,0,0,0.95), 0 0 0 1px rgba(0,0,0,0.5); } /* nukki: border and shadow directly on the img for tight frame hug, no gap. cover + pos for character focus. */
 #unit-glyph .ucgly { line-height: 1; }
-#unit-glyph .ucim { position: static; width: 100%; height: auto; display: block; object-fit: cover; border-radius: 7px; }
-/* Elegant premium SSR gold rim on unit glyph (codex popup / char panel) for god-shine "must own" urge. Per-SSR tint bleed via parent .rSSR if applied. */
-#unit-card.rSSR #unit-glyph, #char-panel-card.rSSR #unit-glyph { border-color: #fbbf24; box-shadow: inset 0 0 18px rgba(0,0,0,0.9), 0 0 0 1.5px rgba(0,0,0,0.5), 0 0 0 2px rgba(251,191,36,0.35); } 
+/* Elegant premium SSR gold rim — border now directly on frame for "must own" shine. */
+#unit-card.rSSR #unit-glyph img.ucim, #unit-card.rSSR #unit-glyph .ucim, #char-panel-card.rSSR #unit-glyph img, #char-panel-card.rSSR #unit-glyph .ucim { border-color: #fbbf24; box-shadow: inset 0 0 22px rgba(0,0,0,0.92), 0 0 0 1px rgba(0,0,0,0.6), 0 0 0 2px rgba(251,191,36,0.55); } 
 #unit-card img,
 #unit-card .gear-art,
 #unit-card .g-art,
@@ -209,11 +213,11 @@ h1::first-letter { color: var(--crimson); }
 #unit-card .cpim,
 #char-panel-card img,
 #char-panel-card .cpim {
-  max-height: 38vh;
+  max-height: none; /* rely on parent frame for tight nukki fit */
   width: 100%; max-width: 100%; height: auto;
   object-fit: cover; display: block;
   filter: contrast(1.18) saturate(1.26) brightness(1.05);
-} /* nukki fill: cover로 프레임 꽉, 화면 fit 개선. glyph container가 경계. */
+} /* nukki fill: cover, parent glyph/card frame controls. */
 #unit-card .gear-synth {
   max-width: 52px;
   max-height: 52px;
@@ -541,13 +545,13 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
   #hero-up { padding: 1px 3px; font-size: 7px; }
   #ult { margin-top: 2px; padding: 4px 6px; font-size: 10.5px; min-height: 27px; border-width: 2px; } /* 컴팩트 — 하단버튼 클릭영역 확보 */
   #unit-card, #char-panel-card { max-height: 82vh; padding: 5px 6px; border-width: 2px; }
-  #unit-glyph { max-height: 26vh; }
-  #unit-card img, #unit-card .ucim, #char-panel-card img, #char-panel-card .cpim { max-height: 24vh; }
+  #unit-glyph { max-height: 28vh; aspect-ratio: 1/1.04; }
+  #unit-card img, #unit-card .ucim, #char-panel-card img, #char-panel-card .cpim { max-height: none; }
   .cxc, .gxc { border-radius: 7px; }
   .ginv-tile .gt-art { width: 42px; height: 42px; }
   .gxc .gxi.gear-codex-art .gear-synth, .gxc .gxi.gear-codex-art .g-art, .gxc .gxi.gear-codex-art img { width: 42px; height: 42px; }
-  #unit-glyph { max-height: 24vh; }
-  #unit-card img, #unit-card .ucim { max-height: 24vh; max-width: 52%; }
+  #unit-glyph { max-height: 26vh; }
+  #unit-card img, #unit-card .ucim { max-height: none; max-width: 100%; } /* rely on tight #unit-glyph frame */
 }
 
 #overlay, #gacha { position: fixed; inset: 0; background: #000b; display: flex; align-items: center; justify-content: center; z-index: 10; }
@@ -571,20 +575,20 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 /* ⚔️ 편성(스쿼드) 시스템 */
 .syn-chip { display: inline-block; font-size: 10.5px; font-weight: 700; color: #a3e635; background: #1c2a14; border: 1px solid #3a5a1e; border-radius: 6px; padding: 2px 7px; margin: 0 4px 4px 0; }
 #squad-slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
-.sq-slot { position: relative; aspect-ratio: 1/1.25; background: #16101f; border: 1.5px solid #2c2142; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer; overflow: hidden; }
+.sq-slot { position: relative; aspect-ratio: 1/1.18; background: #16101f; border: 1.5px solid #2c2142; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; overflow: hidden; padding: 3px 2px; }
 .sq-slot.filled { background: #1d1535; }
-.sq-slot .sq-art { position: relative; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; font-size: 24px; overflow: hidden; border-radius: 7px; }
-.sq-slot .sqim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 20%; } /* nukki squad */
+.sq-slot .sq-art { position: relative; width: 82%; aspect-ratio: 1/1; max-width: 62px; display: flex; align-items: center; justify-content: center; font-size: 24px; overflow: hidden; border-radius: 7px; }
+.sq-slot .sqim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 17%; border-radius: 6px; } /* nukki squad: larger % to fill slot frame better, gold/colored border hugs art */
 .sq-nm { font-size: 9.5px; font-weight: 800; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 2px; }
 .sq-lv { font-size: 8px; color: var(--dim); }
 .sq-x { position: absolute; top: 2px; right: 4px; font-size: 11px; color: #f87171; }
 .sq-empty { font-size: 24px; color: #3a3550; }
 .squad-pool-label { font-size: 12px; color: var(--dim); margin: 4px 0 6px; }
 #squad-pool { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px; }
-.sq-pool-item { position: relative; aspect-ratio: 1/1.3; background: #16101f; border: 1.5px solid; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer; overflow: hidden; padding: 2px; }
+.sq-pool-item { position: relative; aspect-ratio: 1/1.18; background: #16101f; border: 1.5px solid; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; overflow: hidden; padding: 3px 2px; }
 .sq-pool-item.on { background: #241a3a; box-shadow: inset 0 0 0 1px var(--gold); }
-.sq-pool-item .sq-art { position: relative; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 22px; overflow: hidden; border-radius: 6px; }
-.sq-pool-item .sqim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 15%; } /* nukki pool */
+.sq-pool-item .sq-art { position: relative; width: 92%; aspect-ratio: 1/1; max-width: 64px; background: #0c0813; display: flex; align-items: center; justify-content: center; font-size: 22px; overflow: hidden; border-radius: 6px; }
+.sq-pool-item .sqim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 17%; border-radius: 5px; } /* nukki pool: larger fill, tight border alignment */
 .sq-pnm { font-size: 9px; font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sq-prr { font-size: 8.5px; font-weight: 900; }
 .sq-pool-item.rSSR { box-shadow: inset 0 0 12px rgba(245,196,81,0.22); }
@@ -594,8 +598,8 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 #char-panel.hidden { display: none; }
 #char-panel-card { background: var(--panel); border-radius: 7px; padding: 2px 3px 3px; width: 94vw; max-width: 264px; max-height: 74vh; overflow-y: hidden; border: 1.5px solid #3a2f5e; box-shadow: 0 6px 18px rgba(0,0,0,0.72); }
 #cp-head { display: flex; gap: 1px; align-items: center; margin-bottom: 0; }
-.cp-art { position: relative; width: 30px; height: 30px; flex: 0 0 30px; border: 1px solid rgba(245,196,81,0.32); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; overflow: hidden; background:#05040c; }
-.cp-art .cpim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 20%; } /* nukki char head */
+.cp-art { position: relative; width: 30px; height: 30px; flex: 0 0 30px; border: 1px solid rgba(245,196,81,0.32); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 11px; overflow: hidden; background:#05040c; }
+.cp-art .cpim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 17%; border-radius: 3px; } /* nukki char head: tight gold border frame, consistent crop */
 .cp-meta { min-width: 0; flex: 1; }
 .cp-nm { font-size: 10px; font-weight: 800; line-height: 1.0; }
 .cp-ti { font-size: 6.5px; color: var(--dim); margin: 0; line-height: 1.0; }
@@ -666,6 +670,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 #char-panel-card { max-height: 74vh; }
 @media (max-width: 480px) {
   #char-panel-card { max-height: 72vh; padding: 1px 2px 2px; }
+  .sq-slot .sq-art, .sq-pool-item .sq-art { max-width: 52px; } /* TG portrait fit */
 }
 .cp-slot b { font-size: 9px; }
 #char-panel-card #cp-inv-label { font-size: 8px; margin-bottom: 1px; line-height: 1.0; }
@@ -736,7 +741,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .gear-synth .gear-shard2 { top:61%; left:20%; animation-delay:1.05s; }
 @keyframes gearShardFloat { 0%{transform:translateY(0) scale(1);} 100%{transform:translateY(-3.5px) scale(.68);} }
 
-/* Synth UPGRADE: deeper N shadows/rim/veins, SR extra energy shards, SSR gold filigree rim (etched premium "멋져" not toy) */
+/* Synth UPGRADE: 고급일수록 극적으로 간지 차이. SSR은 압도적 프리미엄, SR은 확실한 업그레이드. */
 .gear-synth.rN { background: linear-gradient(145deg, #252a38 0%, #151a24 100%); border-color: #7a818f; box-shadow: 0 3px 10px rgba(0,0,0,0.88), inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -4px 7px rgba(0,0,0,0.75); }
 .gear-synth .gear-shard3 { position:absolute; width:3.2px; height:3.2px; background:rgba(255,255,255,.8); border-radius:50%; box-shadow:0 0 3px #fff; pointer-events:none; top:42%; left:52%; animation:gearShardFloat 1.9s ease-in-out infinite alternate 0.6s; }
 .gear-synth .gear-filigree, .gear-synth .gear-filigree2 { position:absolute; pointer-events:none; }

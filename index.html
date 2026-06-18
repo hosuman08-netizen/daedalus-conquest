@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>다이달로스 — AI 군단 전쟁</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="style.css?v=20260619c" />
+  <link rel="stylesheet" href="style.css?v=20260619d" />
 </head>
 <body>
   <div id="app">
@@ -122,7 +122,7 @@
       <div class="squad-pool-label" data-i18n="sqPool">📋 보유 캐릭터 — 탭해서 편성/해제</div>
       <div id="squad-pool"></div>
       <!-- 🔮 소울 루프: 중복 캐릭 일괄 분해 → 소울 (트리니티 SPEC-soul-fodder-loop) -->
-      <button id="dismantle-dupes" class="gbig" style="margin-top:8px;background:linear-gradient(160deg,#3a2c4e,#1a1330);border-color:#c084fc;color:#e9d5ff;">🔮 중복 캐릭터 전부 소울로 분해 <small>(첫 장 보존·SSR 제외)</small></button>
+      <button id="dismantle-dupes" class="gbig" style="margin-top:8px;background:linear-gradient(160deg,#3a2c4e,#1a1330);border-color:#c084fc;color:#e9d5ff;" data-i18n="tDismantle">🔮 중복 캐릭터 전부 소울로 분해 <small>(첫 장 보존·SSR 제외)</small></button>
 
     </div>
 
@@ -182,7 +182,7 @@
           <div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2638;padding:3px 0;"><span style="color:#e879f9;font-weight:600;">UR</span><span>1%</span></div>
           <div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2638;padding:3px 0;"><span style="color:#f472b6;font-weight:600;">EX</span><span>0.5%</span></div>
         </div>
-        <button id="odds-close" class="ghost" style="margin-top:12px;width:100%;" data-i18n="confirm" onclick="document.getElementById('odds-modal').classList.add('hidden')">확인</button>
+        <button id="odds-close" class="ghost" style="margin-top:12px;width:100%;" data-i18n="confirm">확인</button>
       </div>
     </div>
 
@@ -234,7 +234,7 @@
         <button id="odds-view" class="ghost" data-i18n="oddsBtn">📊 전체 확률 보기</button>
       </div>
       <!-- 🔮 소울 상점 (트리니티 SPEC-soul-fodder-loop §3): 소울 싱크 + 무과금 자원 순환 -->
-      <div class="set-sec">🔮 <span>소울 상점</span> <span id="soul-shop-have" class="ddim"></span></div>
+      <div class="set-sec">🔮 <span data-i18n="tSoulShop">소울 상점</span> <span id="soul-shop-have" class="ddim"></span></div>
       <div id="soul-shop">
         <button class="gbig" id="ss-gold5k">💰 골드 ×5,000 <small>· 🔮20</small></button>
         <button class="gbig" id="ss-gold30k">💰 골드 ×30,000 <small>· 🔮100</small></button>
@@ -271,7 +271,7 @@
         <div id="unit-name"></div>
         <div id="unit-title"></div>
         <div id="unit-detail"></div>
-        <button id="unit-close" class="ghost" data-i18n="confirm">확인</button>
+        <button id="unit-close" class="ghost" data-i18n="confirm" onclick="document.getElementById('unit-pop').classList.add('hidden')">확인</button>
       </div>
     </div>
 
@@ -289,10 +289,10 @@
 
     <div id="toast"></div>
   </div>
-  <script src="i18n.js?v=20260619c"></script>
-  <script src="units.js?v=20260619c"></script>
-  <script src="gear.js?v=20260619c"></script>
-  <script src="lore.js?v=20260619c"></script>
-  <script src="game.js?v=20260619c"></script>
+  <script src="i18n.js?v=20260619d"></script>
+  <script src="units.js?v=20260619d"></script>
+  <script src="gear.js?v=20260619d"></script>
+  <script src="lore.js?v=20260619d"></script>
+  <script src="game.js?v=20260619d"></script>
 </body>
 </html>

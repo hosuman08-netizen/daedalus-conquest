@@ -59,35 +59,46 @@ art/gear/weapon-n.png ... weapon-ssr.png · armor-n..ssr · acc-n..ssr · relic-
 - armor-n/r: ... chestplate with volumetric metal depth + conduit seams + rim glow.
 Same for acc/relic/core. Append "volumetric god-ray host-weave etched filigree energy conduit dramatic rim" for consistency with hero/ULT. 48px+ display in .gxc/.ginv/.gslot/.cp-slot with premium aura/tint on art. Carried % preview on equip for "MY power +X% carried" endowment dopamine. SSR gold shine prominent.
 
-## REFINED PREMIUM PROMPTS (업그레이드: "멋져" 간지 max — etched filigree + energy conduit + dramatic volumetric rim + original craft, Warframe/Destiny/HSR E7 premium sci-fi icon style, not toy)
-> 기존 20종 + 누락 N/R (acc/core/relic + weapon-r/armor-r) 업그레이드 버전. image_gen으로 art/gear/<slot>-<rar>.png 생성 (512x512 1:1, centered, dark trans bg, no text). PNG 우선, synth fallback strict TG perf.
-### Upgraded SSR (gold filigree rim + etched + volumetric energy conduit)
-- weapon-ssr: premium etched filigree sci-fi game gear icon, ornate golden greatsword with glowing energy blade and intricate rune conduits, SSR gold tier dramatic volumetric rim lighting dramatic shadows, original craft Warframe Destiny inspiration, centered, dark transparent background, no text
-- armor-ssr: premium etched filigree sci-fi game gear icon, ornate golden heavy power armor chestplate with embedded energy conduits heroic etched filigree, SSR gold tier metallic sheen dramatic volumetric rim, centered, dark transparent background, no text, original
-- acc-ssr: premium etched filigree sci-fi game gear icon, elegant golden acceleration cloak with thruster wings jet elements emitting energy trails, SSR gold tier ornate dynamic aura dramatic volumetric rim, centered, dark transparent background, no text, original
-- relic-ssr: premium etched filigree sci-fi game gear icon, radiant golden holy relic floating orb inscribed ancient runes energy conduits ethereal beams, SSR gold tier mystical particles dramatic volumetric rim, centered, dark transparent background, no text, original
-- core-ssr: premium etched filigree sci-fi game gear icon, luminous golden energy core heart pulsing plasma faceted crystalline shards energy conduits, SSR gold tier intense inner glow dramatic volumetric rim, centered, dark transparent background, no text, original power source
-### Upgraded SR (energy shards + aura conduit)
-- weapon-sr: sci-fi game gear icon with premium energy shards, sleek purple energy sword rune-etched blade subtle aura energy conduit, SR purple tier dynamic glow particles dramatic rim, centered, dark transparent background, no text, original
-- armor-sr: sci-fi game gear icon with premium energy shards, reinforced purple chest armor energy lines rune accents energy conduit, SR purple tier layered plating aura dramatic rim, centered, dark transparent background, no text, original
-- acc-sr: sci-fi game gear icon with premium energy shards, purple acceleration boots or cloak glowing thrusters speed runes energy conduit motion trails, SR purple tier dramatic rim, centered, dark transparent background, no text, original
-- relic-sr: sci-fi game gear icon with premium energy shards, purple arcane relic orb floating runes mystical aura energy conduit, SR purple tier subtle particles dramatic rim, centered, dark transparent background, no text, original
-- core-sr: sci-fi game gear icon with premium energy shards, pulsing purple energy core crystalline facets inner light energy conduit, SR purple tier controlled glow dramatic rim, centered, dark transparent background, no text, original
-### Upgraded R (deeper shadows/rim/veins for 간지)
-- weapon-r: sci-fi game gear icon, solid blue steel sword with faint energy glow deeper volumetric shadows premium etched rim veins, R blue tier clean lines dramatic depth, centered, dark transparent background, no text, original
-- armor-r: sci-fi game gear icon, blue reinforced armor plating minor energy seams deeper shadows premium rim veins, R blue tier functional dramatic depth, centered, dark transparent background, no text, original
-- acc-r: sci-fi game gear icon, blue accel boots/cloak light glow accents deeper shadows premium rim veins, R blue tier simple tech dramatic depth, centered, dark transparent background, no text, original
-- relic-r: sci-fi game gear icon, blue rune stone relic soft glow deeper shadows premium rim veins, R blue tier modest details dramatic depth, centered, dark transparent background, no text, original
-- core-r: sci-fi game gear icon, blue energy core crystal steady pulse deeper shadows premium rim veins, R blue tier clean sci-fi dramatic depth, centered, dark transparent background, no text, original
-### Upgraded N (deeper shadows/rim/veins for even N "간지" not toy)
-- weapon-n: sci-fi game gear icon, basic gray steel sword with subtle volumetric shadows premium etched rim energy veins, N gray tier mass-produced dramatic depth functional cool, centered, dark transparent background, no text, original
-- armor-n: sci-fi game gear icon, basic gray chest plate armor subtle volumetric shadows premium rim veins, N gray tier plain functional dramatic depth, centered, dark transparent background, no text, original
-- acc-n: sci-fi game gear icon, basic gray boots or simple cloak subtle volumetric shadows premium rim veins, N gray tier utilitarian dramatic depth, centered, dark transparent background, no text, original
-- relic-n: sci-fi game gear icon, plain gray relic talisman or rune subtle volumetric shadows premium rim veins, N gray tier minimal dramatic depth, centered, dark transparent background, no text, original
-- core-n: sci-fi game gear icon, basic gray energy core module subtle volumetric shadows premium rim veins, N gray tier standard power unit dramatic depth, centered, dark transparent background, no text, original
-## PNG 생성 대상 (image_gen 추천 — 누락 8종 + 업글 전체 커버 위해 재gen)
-- 누락 PNG: weapon-r.png, armor-r.png, acc-n.png, acc-r.png, core-n.png, core-r.png, relic-n.png, relic-r.png
-- 우선순위: R 5종 (전체 R 완성) → N acc/core/relic (acc-n 등) → 기존 12종 업글 재gen (premium filigree 등 적용)
-- image_gen 호출 예: aspect_ratio=1:1 prompt=위 refined 중 하나. synth fallback 항상 유지 (TG perf). Jordan clean gallery 스타일 통합.
+## ULTIMATE RARITY-DIFFERENTIATED PROMPTS (고급일수록 극적으로 다르게! "간지" 단계별 폭발적 차별화)
+> **핵심**: N은 심플 기능적 / R은 표준 업그레이드 / SR은 화려한 엘리트 / SSR은 전설 아티팩트. 같은 슬롯이라도 고급일수록 완전히 다른 디자인 언어, 실루엣, 디테일 밀도, 이펙트 강도. "다 똑같이 생기면 안 됨".
+> image_gen: 512x512 1:1, centered, dark transparent bg, no text, original premium sci-fi (Warframe + Destiny + HSR icon style, no direct copy). PNG 20종 우선, synth fallback 항상 "더 간지"로.
+> 각 등급은 "하위 등급보다 압도적으로 고급지고 독특하게" 강조. 슬롯별 고유 아이덴티티 + rarity escalation.
+### SSR — 압도적 전설 아티팩트 (완전히 다른 디자인 언어, 극한 화려함·독창성)
+- weapon-ssr: ultra premium sci-fi game gear icon, **legendary unique** ornate golden greatsword with massive glowing energy blade, heavy intricate filigree, orbiting energy shards, multiple layered runes and dramatic god-ray volumetric lighting, exclusive SSR masterwork design (not just upgraded lower tier), intense particles and dramatic shadows, centered, dark transparent background, no text, Warframe+Destiny+HSR god tier icon
+- armor-ssr: ultra premium sci-fi game gear icon, **legendary unique** ornate golden heavy power armor chestplate with complex embedded multi-layered energy conduits, heroic massive etched filigree, floating crystalline accents, dramatic volumetric rim and god light, exclusive SSR artifact design, metallic god sheen, centered, dark transparent background, no text
+- acc-ssr: ultra premium sci-fi game gear icon, **legendary unique** elegant golden acceleration cloak with large thruster wings, jet trails, intricate speed runes and dynamic flowing energy aura, multiple particle layers, exclusive SSR premium design, dramatic volumetric rim, centered, dark transparent background, no text
+- relic-ssr: ultra premium sci-fi game gear icon, **legendary unique** radiant golden holy relic floating orb with dense ancient runes, powerful ethereal beams, orbiting shards and mystical energy storm, exclusive SSR divine artifact, intense inner + outer glow, centered, dark transparent background, no text
+- core-ssr: ultra premium sci-fi game gear icon, **legendary unique** luminous golden energy core heart with complex pulsing plasma, faceted multi-layer crystals, energy conduits, dramatic god-tier inner glow and particles, exclusive SSR power source design, centered, dark transparent background, no text
+
+### SR — 화려한 엘리트 (분명한 업그레이드, 강한 개성)
+- weapon-sr: premium sci-fi game gear icon with energy shards and aura, sleek purple energy sword with detailed rune-etched blade, strong dynamic glow, energy conduit, layered premium plating, clearly more impressive than R, centered, dark transparent background, no text, original elite design
+- armor-sr: premium sci-fi game gear icon with energy shards and aura, reinforced purple chest armor with complex energy lines, rune accents, layered plating and strong aura, visibly higher tier than R, centered, dark transparent background, no text
+- acc-sr: premium sci-fi game gear icon with energy shards and aura, purple acceleration boots/cloak with powerful glowing thrusters, speed runes, motion energy trails and strong aura, clearly premium over lower, centered, dark transparent background, no text
+- relic-sr: premium sci-fi game gear icon with energy shards and aura, purple arcane relic orb with dense floating runes, powerful mystical aura and energy flow, visibly elite, centered, dark transparent background, no text
+- core-sr: premium sci-fi game gear icon with energy shards and aura, pulsing purple energy core with multi faceted crystals, strong inner light and energy conduits, clearly higher grade, centered, dark transparent background, no text
+
+### R — 고급 표준 (기능적이면서 세련됨, R만의 간지)
+- weapon-r: sci-fi game gear icon, solid blue high-quality steel sword with clean energy glow accents, premium military tech details, subtle volumetric depth and etched lines, clearly better than N, centered, dark transparent background, no text, original
+- armor-r: sci-fi game gear icon, blue high-end reinforced armor plating with clean energy seams and tech details, premium functional design with depth, centered, dark transparent background, no text
+- acc-r: sci-fi game gear icon, blue high-quality accel boots/cloak with clean light glow and tech accents, premium utilitarian with subtle motion feel, centered, dark transparent background, no text
+- relic-r: sci-fi game gear icon, blue high-quality rune stone relic with soft premium glow and detailed carvings, clearly upgraded, centered, dark transparent background, no text
+- core-r: sci-fi game gear icon, blue high-quality energy core crystal with steady strong pulse and clean design, premium standard, centered, dark transparent background, no text
+
+### N — 기본 양산 (심플하지만 "간지" 있는 기본, 장난감처럼 보이지 않게)
+- weapon-n: sci-fi game gear icon, basic but cool gray steel sword, mass-produced clean functional design with subtle depth and clean lines (not toy-like), centered, dark transparent background, no text, original
+- armor-n: sci-fi game gear icon, basic but solid gray chest plate armor, clean mass-produced functional plating with minor details, centered, dark transparent background, no text
+- acc-n: sci-fi game gear icon, basic but stylish gray boots or simple cloak, clean utilitarian design, centered, dark transparent background, no text
+- relic-n: sci-fi game gear icon, plain but well-made gray relic talisman or rune, simple clean design, centered, dark transparent background, no text
+- core-n: sci-fi game gear icon, basic but reliable gray energy core module, clean standard power unit design, centered, dark transparent background, no text
+## PNG 생성 대상 (image_gen 추천 — 고급 차별화 극대화)
+**강력 추천**: 위 ULTIMATE RARITY-DIFFERENTIATED PROMPTS 전체로 **20종 전부 재생성**.
+- SSR 5종 가장 먼저 (가장 큰 시각 차이)
+- SR 5종 (R보다 확실히 고급지게)
+- R/N도 "기본이지만 간지있게" 업그레이드
+- image_gen: aspect_ratio=1:1, prompt 위에서 복사, dark transparent bg, no text.
+- 생성 후 art/gear/ 에 정확히 slot-rarity.png 로 저장 (e.g. weapon-ssr.png)
+- synth fallback (game.js + style.css) 도 rarity별로 극적으로 다르게 보이도록 이미 강화함.
+
+이제 N은 "기본이지만 멋진 양산품", SSR은 "전설의 아티팩트" 느낌이 강하게 날 것. 고급일수록 완전히 다른 물건처럼 보이게 설계.
 
 **Verify 2026-06-16 (Morpheus)**: All 20 PNG now present in art/gear/ (list + README COMPLETE). User "12/20 view" likely legacy filter/UI/prior state. Polish: upgraded prompts (volumetric rim veins filigree for 간지 N/R not toy) already baked in prior; gearArt() PNG first + rich synth fallback. No new gen needed for MVP (reversible, quality tier correct fun). If visual low in game, re-gen specific on demand.

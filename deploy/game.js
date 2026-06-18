@@ -647,7 +647,7 @@ function renderSynergyTable() {
   const fac = {}; sq.forEach((u) => { fac[u.faction] = (fac[u.faction] || 0) + 1; });
   // DOM cached version for speed: create cards once, update text/classes (no innerHTML rebuild, less GC/reflow)
   if (!el._synCards) {
-    el.innerHTML = `<div class="syn-h">⚡ 군단 시너지</div><div class="syn-grid"></div>`;
+    el.innerHTML = `<div class="syn-h">${t("synHeader")}</div><div class="syn-grid"></div>`;
     const grid = el.querySelector('.syn-grid');
     const facs = ['Strategist','Executor','Swarm','Guardian','Intel'];
     el._synCards = {};
@@ -691,7 +691,7 @@ function renderSynergyTable() {
   else if (archs >= 3) { dB = "전군+8%"; dNx = (5 - archs) + "종 더 → +12%"; }
   else { dNx = (3 - archs) + "종 더 → +10%"; }
   const dc = el._divCard;
-  dc._nm.textContent = `다양성 ${archs}종`;
+  dc._nm.textContent = t("diversity") + ` ${archs}종`;
   dc._b.textContent = dOn ? `🛡️ ${dB}` : '';
   dc._b.style.display = dOn ? '' : 'none';
   dc._nx.textContent = dNx;
@@ -1002,8 +1002,8 @@ function applyMode() {
     curLevel = META.chapter;
     counts.e = enemyForChapter(META.chapter);
     let st = t("sDeploy", { n: META.chapter });
-    if (META.chapter <= 8) st += " · 초보자 모드 (쉽게 시작!)";
-    else if (META.chapter > 20) st += " · 본격 난이도 ↑ (강한 Legion 유닛/강화 필요)";
+    if (META.chapter <= 8) st += " · " + (LANG==="ko"?"초보자 모드 (쉽게 시작!)":"Beginner mode (easy start!)");
+    else if (META.chapter > 20) st += " · " + (LANG==="ko"?"본격 난이도 ↑":"Full difficulty ↑");
     st += " · 승리하면 챕터 +1";
     $status.textContent = st;
   }
@@ -1060,7 +1060,7 @@ function updateMeta() {
   const ap = $("asc-prompt");
   if (ap) {
     const ch = META.chapter || 1;
-    if (ch >= ASCEND_GATE) { ap.style.display = ""; ap.innerHTML = `🔄 <b>환생 가능</b> · 지금 환생 시 ⬡ +${etherGain(ch)} <span class="asc-prompt-cta">탭 →</span>`; }
+    if (ch >= ASCEND_GATE) { ap.style.display = ""; ap.innerHTML = t("tAscBanner", { e: etherGain(ch) }); }
     else ap.style.display = "none";
   }
   const sv = $("streak-val"); if (sv) sv.textContent = (META.loginStreak || 0);  // visible streak everywhere (click → event for claim)
@@ -1139,7 +1139,7 @@ function updateModeTabs() {
   });
   // Sovereign: 캠페인 탭에 현재 챕터 번호 동적 표시 — "2챕터가 안넘어가" 혼란 방지. 유저가 "이 버튼이 챕터 진행용"임을 즉시 인지.
   const camp = document.querySelector('.modetab[data-m="campaign"]');
-  if (camp) camp.textContent = `📖 캠페인 ch${META.chapter || 1}`;
+  if (camp) camp.textContent = t("tCampaignChLabel") + (META.chapter || 1);
   renderMsHint();
 }
 function setMode(m) {
@@ -1150,14 +1150,14 @@ function setMode(m) {
     // 2026-06-16 Morpheus: decided HIDE (lean MVP, 4-action dopamine focus, reversible no-broken). Stubs remain for future.
     const tdy = today();
     if (!META.arenaDay || META.arenaDay !== tdy) { META.arenaDay = tdy; META.arenaCount = 0; saveMeta(); }
-    if ((META.arenaCount || 0) >= 5) { toast("오늘 아레나 5회 완료", "#ef4444"); return; }
+    if ((META.arenaCount || 0) >= 5) { toast(t("tArenaDone"), "#ef4444"); return; }
     META.arenaCount = (META.arenaCount || 0) + 1; saveMeta();
-    toast("아레나 매칭 (placeholder 자동 1:1) - Phase2에서 풀 구현", "#a855f7");
+    toast(t("tArenaMatch"), "#a855f7");
     return;   // ⚠️ 버그픽스: return 없으면 840줄로 fall-through→META.mode="arena" 영구저장+campaign 둔갑 오염. MVP 숨김 스텁이라 no-op.
   }
   if (m === "mystery") {
     // Sovereign: 아레나 옆 ??? 티저 (중립 호기심, FOMO·압박 금지)
-    toast("❓ ??? : 비밀의 레기온 창. 곧 공개될 새로운 모드! 지금은... 궁금증만 폭발?", "#fbbf24");
+    toast(t("tMystery"), "#fbbf24");
     // optional: openEvent() or bump prestige curiosity
     return;
   }
@@ -2123,7 +2123,26 @@ function showOdds() {
     `<div>${t("oddsPity")}</div>` +
     `<div style="margin-top:6px;opacity:.6;">${t("oddsFict")}</div>` +
     `</div>`;
-  const m = $("odds-modal"); if (m) m.classList.remove("hidden");
+  const m = $("odds-modal");
+  if (m) {
+    m.classList.remove("hidden");
+    m.style.display = "flex";                 // 인라인 직접 제어 — CSS 전파·캐시 무관 보장
+    // close on background click (robust) — direct onclick for max compat
+    m.onclick = (e) => { if (e.target === m) closeOdds(); };
+    const closeBtn = $("odds-close");
+    if (closeBtn) closeBtn.onclick = closeOdds;
+  }
+}
+function closeOdds() {
+  const m = $("odds-modal");
+  if (m) {
+    m.style.display = "none";
+    m.classList.add("hidden");
+    // robust: clear any direct handlers too
+    m.onclick = null;
+    const cb = $("odds-close");
+    if (cb) cb.onclick = null;
+  }
 }
 // ── 🪙 골드 뽑기 + 🔮 소울 분해 루프 (트리니티 SPEC-soul-fodder-loop) ──────────────
 const GOLD_GACHA_COST = 200;
@@ -3171,7 +3190,7 @@ function renderShop() {
 }
 // ── 💳 결제 (Telegram Stars) ─────────────────────────────────────────────────
 // PAY_BACKEND 비어있으면 데모 즉시지급. 채우면 봇 서버가 인보이스 발급 → tg.openInvoice → 결제확인 후 지급.
-const PAY_BACKEND = "https://legion-pay.youraccount.workers.dev";   // 배포 후 실제 Worker URL로 교체. 빈값=데모 모드
+const PAY_BACKEND = "";   // 배포 완료 후 실제 "https://legion-pay.xxxx.workers.dev" 로 교체. 지금은 데모.
 const STARS = { starter: 50, weekly: 250, monthly: 750, vip: 1500, ultra: 5000, growth1: 500, growth2: 2500,
                 gem1: 55, gem2: 280, gem3: 1000, gem4: 2500, gold1: 55, gold2: 280, gold3: 1000 };
 function buyPack(id) {
@@ -3290,7 +3309,15 @@ on("sg-gear10", "click", () => gearGacha(10));
 on("sg-gold1", "click", goldGacha);            // 🪙 골드 뽑기 (소울루프)
 on("sg-gold10", "click", goldGacha10);         // 🪙 골드 10연
 on("odds-view", "click", showOdds);            // 📊 전체 확률 공개 (법적 disclosure)
-on("odds-close", "click", () => $("odds-modal").classList.add("hidden"));
+on("odds-close", "click", closeOdds);
+// also close on background for the odds disclosure modal (robust UX)
+const oddsM = $("odds-modal");
+if (oddsM) {
+  oddsM.addEventListener("click", (e) => { if (e.target === oddsM) closeOdds(); }, {once: false});
+}
+// permanent direct onclick safety for close btn (robust, works even if addEvent timing odd)
+const ocb = $("odds-close");
+if (ocb) ocb.onclick = closeOdds;
 on("ss-gold5k", "click", () => soulBuy(20, { gold: 5000 }));     // 🔮 소울 상점
 on("ss-gold30k", "click", () => soulBuy(100, { gold: 30000 }));
 on("ss-gem50", "click", () => soulBuy(80, { gems: 50 }));
@@ -3902,6 +3929,22 @@ setInterval(() => { try { META.lastSeen = nowMs(); localStorage.setItem(META_KEY
 setInterval(tickPlay, 1000);   // ⏱️ 플레이타임 보상 적립(보이는 동안만)
 document.addEventListener("visibilitychange", () => { if (document.hidden) saveMeta(); });
 window.addEventListener("beforeunload", saveMeta);
+
+// Escape to close common modals (robust for stuck UI)
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    ['odds-modal', 'unit-pop', 'gacha', 'starter', 'char-panel', 'overlay'].forEach(function(id) {
+      const el = $(id);
+      if (el && !el.classList.contains('hidden')) {
+        if (id === 'odds-modal') {
+          closeOdds();  // use full robust closer (display + hidden + cleanup)
+        } else {
+          el.classList.add('hidden');
+        }
+      }
+    });
+  }
+});
 
 bindDeploy();
 applyStaticI18n();
