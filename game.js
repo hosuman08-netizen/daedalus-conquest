@@ -1111,47 +1111,65 @@ function dmg(target, amount, from) {
 }
 
 function addFx(x, y, kind, x2, y2, side) { if (fx.length > 90) return; fx.push({ x, y, kind, x2, y2, side, t: 0, life: kind === "shot" ? 0.12 : kind === "dnum" ? 0.7 : 0.45 }); }
-// 💥 궁극기 발동 시각효과 — 1655 호출처가 미정의로 매 궁극기 throw하던 것 정의(군주 "궁극기 이쁘게"). 중앙 방사 폭발.
-// 군주 20260617 + Grok P2: 궁극기 7종 고유 전투 VFX (간지·도파민). 파티클 상한(≤14)으로 perf 안전.
-function triggerUltVfx(ult, color) {
+// 💥 궁극기 발동 시각효과 — 7종 완전 차별화 + 레벨(k) 스케일 (도파민: 1→2 올라가면 "더 세짐"이 *보이게*)
+// 각 ult별 signature VFX + k에 따라 파티클 수/크기/지속 증가
+function triggerUltVfx(ult, color, lv = 1) {
   const mine = units.filter((u) => u.side === "p" && u.hp > 0);
   const foes = units.filter((u) => u.side === "e" && u.hp > 0);
   const cx = W / 2, cy = H / 2;
   const cap = (arr, n) => arr.slice(0, n);
-  window._ultBurst = { t: 0.7, color: color || "#fbbf24", style: ult };
+  const k = heroScale(lv || 1);
+  const nBase = Math.round(8 + (k - 1) * 7); // lv1~ lv2+ 더 많아짐
+  const lifeMul = 0.9 + (k - 1) * 0.35;
+  window._ultBurst = { t: 0.75 * lifeMul, color: color || "#fbbf24", style: ult, k };
   switch (ult) {
-    case "dragon":   // 🐉 드래곤 강림 — 메테오 낙하 + 적 전체 화염
+    case "dragon":   // 🐉 드래곤 강림 — 하늘에서 용 강림, 불꽃 폭포 + 중심 충격
       window._ultBurst.color = "#ff5a2a";
-      cap(foes, 12).forEach((f) => addFx(f.x, f.y, "die", 0, 0, "e"));
-      for (let i = 0; i < 8; i++) { const x = W * (0.12 + Math.random() * 0.76); addFx(x, 8, "shot", x, cy * (0.5 + Math.random()), "e"); }
+      cap(foes, Math.min(14, nBase + 4)).forEach((f) => addFx(f.x, f.y, "die", 0, 0, "e"));
+      // 하늘에서 내려오는 용의 숨결/메테오
+      for (let i = 0; i < nBase + 2; i++) {
+        const x = W * (0.15 + Math.random() * 0.7);
+        addFx(x, 2, "shot", x + (Math.random()-0.5)*20, H*0.55 + Math.random()*30, "e");
+      }
       break;
-    case "volley":   // 🎯 아크 볼리 — 하늘 정밀 일제사
+    case "volley":   // 🎯 아크 볼리 — 아크라이트 일제사, 하늘에서 정밀 다발 사격
       window._ultBurst.color = "#a3e635";
-      cap(foes, 14).forEach((f) => addFx(f.x, 6, "snipe", f.x, f.y, "e"));
+      cap(foes, Math.min(16, nBase + 6)).forEach((f, i) => addFx(f.x, 3 + (i%4), "snipe", f.x, f.y, "e"));
+      // 연속 볼리: 위에서 여러 줄 일제
+      for (let i = 0; i < nBase; i++) {
+        const sx = W * (0.12 + (i % 7) * 0.11);
+        addFx(sx, 1, "snipe", sx + (i%2-0.5)*8, H * 0.52, "p");
+      }
       break;
-    case "assault":  // 🤖 강습 — 일제 대시 + 충격파
+    case "assault":  // 🤖 강습 — 전군 돌격 강습, 전방으로 쇄도하는 충격
       window._ultBurst.color = "#cbd5e1";
-      cap(mine, 12).forEach((u) => { addFx(u.x, u.y, "charge"); addFx(u.x, u.y - 10, "shot", u.x, u.y - 46, "p"); });
+      cap(mine, nBase).forEach((u) => { addFx(u.x, u.y, "charge"); addFx(u.x + 12, u.y - 6, "shot", u.x + 40, u.y - 30, "p"); });
       break;
-    case "focus":    // 🧠 전술 지휘 — 버프 오라 상승
+    case "focus":    // 🧠 전술 지휘 — 지휘관의 명령, 중앙에서 전군으로 퍼지는 전술 오더
       window._ultBurst.color = "#c4b5fd";
-      cap(mine, 12).forEach((u) => { addFx(u.x, u.y, "evade"); addFx(u.x, u.y, "ctr"); });
+      cap(mine, nBase).forEach((u) => { addFx(u.x, u.y, "evade"); addFx(u.x, u.y - 12, "ctr"); });
+      // 명령 방사
+      for (let i = 0; i < 6; i++) addFx(cx, cy * 0.42, "ctr");
       break;
-    case "wall":     // 🛡️ 철벽 — 푸른 방벽
+    case "wall":     // 🛡️ 철벽 — 단단한 철벽 방벽, 수직으로 솟아오르는 성벽
       window._ultBurst.color = "#67e8f9";
-      cap(mine, 12).forEach((u) => addFx(u.x, u.y, "barrier"));
+      cap(mine, nBase).forEach((u) => addFx(u.x, u.y, "barrier"));
+      // 두껍고 단단한 수직 철벽
+      for (let i = 0; i < 4; i++) addFx(W * (0.18 + i * 0.22), H * 0.45, "barrier");
       break;
-    case "rage":     // ⚡ 광폭화 — 적색 광폭 슬래시
+    case "rage":     // ⚡ 광폭화 — 광폭한 베기, 미친 듯한 연속 슬래시
       window._ultBurst.color = "#ef4444";
-      cap(mine, 12).forEach((u) => { addFx(u.x, u.y, "ctr"); addFx(u.x, u.y, "charge"); });
+      cap(mine, nBase).forEach((u) => { addFx(u.x, u.y, "ctr"); addFx(u.x, u.y, "charge"); });
+      // 광폭 베기 여러 방향
+      for (let i = 0; i < Math.floor(nBase * 0.8); i++) addFx(cx - 60 + (i % 5) * 35, cy * (0.3 + (i % 4) * 0.12), "charge");
       break;
-    case "repair":   // 💉 긴급 수리 — 초록 힐 노바
+    case "repair":   // 💉 긴급 수리 — 긴급 수리, 아군에게 퍼지는 수리 에너지
       window._ultBurst.color = "#4ade80";
-      cap(mine, 12).forEach((u) => { addFx(u.x, u.y, "overclock"); addFx(u.x, u.y, "barrier"); });
+      cap(mine, nBase).forEach((u) => { addFx(u.x, u.y, "overclock"); addFx(u.x, u.y - 5, "barrier"); });
       break;
     default:
       addFx(cx, cy, "overclock");
-      for (let i = 0; i < 8; i++) { const a = (Math.PI * 2 * i) / 8; addFx(cx + Math.cos(a) * 34, cy + Math.sin(a) * 34, "charge"); }
+      for (let i = 0; i < nBase; i++) { const a = (Math.PI * 2 * i) / nBase; addFx(cx + Math.cos(a) * 34, cy + Math.sin(a) * 34, "charge"); }
   }
 }
 // 🎉 승리/가챠 축포 — 1339·1517 호출처가 미정의(try/catch라 죽은 연출)였던 것 정의.
@@ -1288,33 +1306,113 @@ function draw() {
     ctx.stroke();
   }
 
-  // Sovereign 20260616 ULT v2: 궁극기 발동 순간 극적 god-ray + nuclear burst (canvas tie-in으로 더 이쁘고 터지게)
+  // 💥 ULT 전용 렌더 — 궁극기 이름에 정확히 맞는 이팩트 (드래곤 강림 / 아크 볼리 / 강습 / 전술 지휘 / 철벽 / 광폭화 / 긴급 수리)
   if (window._ultBurst && window._ultBurst.t > 0) {
     const bt = window._ultBurst.t, col = window._ultBurst.color || '#fbbf24';
-    const alpha = Math.min(0.95, bt * 1.15);
-    // big radial core burst (player color nuclear)
-    const grad = ctx.createRadialGradient(W/2, H*0.38, 8, W/2, H*0.42, 210);
-    grad.addColorStop(0, `rgba(255,255,255,${alpha*0.9})`);
-    grad.addColorStop(0.25, col.replace('#','#') + Math.floor(alpha*180).toString(16).padStart(2,'0'));
-    grad.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(W/2, H*0.40, 205, 0, 7); ctx.fill();
-    // elegant god-ray lines (command authority)
-    ctx.strokeStyle = col; ctx.lineWidth = 2.2;
-    for (let i = -3; i <= 3; i++) {
-      const ax = W/2 + i * 31;
-      ctx.globalAlpha = alpha * (0.7 + Math.sin(bt*11 + i)*0.15);
-      ctx.beginPath();
-      ctx.moveTo(ax, 12);
-      ctx.lineTo(ax + i*8, H*0.58);
-      ctx.stroke();
+    const k = window._ultBurst.k || 1;
+    const alpha = Math.min(0.96, bt * 1.18);
+    const rBase = 170 + (k - 1) * 45;
+    const style = window._ultBurst.style;
+    if (style === "dragon") {
+      // 🐉 드래곤 강림 — 하늘에서 떨어지는 용의 불길 + 중심 대폭발
+      ctx.fillStyle = `rgba(255,80,30,${alpha * 0.75})`; ctx.beginPath(); ctx.arc(W/2, H*0.48, rBase * 0.95, 0, 7); ctx.fill();
+      // 하강 불꽃 기둥 여러 개 (강림 느낌)
+      for (let i = 0; i < 7 + Math.floor(k * 3); i++) {
+        const x = W * (0.18 + (i % 6) * 0.11);
+        const len = H * (0.22 + bt * 0.3);
+        ctx.strokeStyle = (i % 2 ? "#f97316" : "#ef4444");
+        ctx.lineWidth = 4 + k * 0.8;
+        ctx.beginPath(); ctx.moveTo(x, 10); ctx.lineTo(x + Math.sin(bt*6 + i)*8, 12 + len); ctx.stroke();
+        ctx.fillStyle = "#fbbf24"; ctx.beginPath(); ctx.arc(x, 14 + len * bt, 6 + k * 2, 0, 7); ctx.fill();
+      }
+    } else if (style === "volley") {
+      // 🎯 아크 볼리 — 하늘에서 쏟아지는 아크라이트 일제사 (volley = 다발 사격)
+      ctx.strokeStyle = "#bef575"; ctx.lineWidth = 2.8 + k * 0.8;
+      for (let wave = 0; wave < 3; wave++) {
+        for (let i = 0; i < 4 + Math.floor(k * 2); i++) {
+          const x = W * (0.14 + ((wave + i) % 8) * 0.09);
+          ctx.globalAlpha = alpha * (0.6 - wave * 0.15);
+          ctx.beginPath(); ctx.moveTo(x, 4 + wave * 8); ctx.lineTo(x + (i % 3 - 1) * 5, H * 0.5); ctx.stroke();
+          ctx.fillStyle = "#fde047"; ctx.beginPath(); ctx.arc(x, H * 0.48 + wave * 5, 3 + k, 0, 7); ctx.fill();
+        }
+      }
+      ctx.globalAlpha = 1;
+    } else if (style === "assault") {
+      // 🤖 강습 — 전방으로 쇄도하는 강습 돌격 (assault = 돌격)
+      ctx.strokeStyle = "#e2e8f0"; ctx.lineWidth = 3 + k;
+      for (let i = 0; i < 8 + Math.floor(k * 3); i++) {
+        const progress = (bt * 1.4 + i * 0.08) % 1.2;
+        const ry = H * 0.32 + progress * 110;
+        ctx.beginPath(); ctx.arc(W * 0.5, ry, 18 + i * 2 + k * 5, 0, 7); ctx.stroke();
+      }
+      // 전진 충격파
+      ctx.globalAlpha = alpha * 0.7; ctx.fillStyle = "#cbd5e1";
+      ctx.fillRect(W * 0.12, H * 0.35, W * 0.76, 8 + k * 3);
+      ctx.globalAlpha = 1;
+    } else if (style === "focus") {
+      // 🧠 전술 지휘 — 중앙 지휘소에서 전군으로 퍼지는 명령 (tactical command)
+      ctx.strokeStyle = "#c4b5fd"; ctx.lineWidth = 2.2;
+      // 명령 동심원
+      for (let r = 0; r < 5 + Math.floor(k); r++) {
+        ctx.globalAlpha = alpha * (0.35 + r * 0.1);
+        ctx.beginPath(); ctx.arc(W / 2, H * 0.42, 36 + r * 26 + bt * 8, 0, 7); ctx.stroke();
+      }
+      // 방사형 명령선 (지휘 느낌)
+      ctx.globalAlpha = alpha * 0.6; ctx.lineWidth = 1.5;
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2 + bt * 2;
+        ctx.beginPath(); ctx.moveTo(W/2, H*0.42); ctx.lineTo(W/2 + Math.cos(a)*120, H*0.42 + Math.sin(a)*70); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    } else if (style === "wall") {
+      // 🛡️ 철벽 — 단단하고 두꺼운 철의 벽이 솟아오름 (iron wall)
+      ctx.strokeStyle = "#67e8f9"; ctx.lineWidth = 7 + k * 1.5;
+      for (let i = 0; i < 4; i++) {
+        const wx = W * (0.16 + i * 0.23);
+        // 두꺼운 수직 성벽
+        ctx.beginPath(); ctx.moveTo(wx - 3, H * 0.26); ctx.lineTo(wx - 3, H * 0.64); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(wx + 3, H * 0.26); ctx.lineTo(wx + 3, H * 0.64); ctx.stroke();
+        // 벽 상단 강조 (철 느낌)
+        ctx.fillStyle = "rgba(103,232,249,0.6)"; ctx.fillRect(wx - 5, H * 0.26, 10, 8 + k);
+      }
+    } else if (style === "rage") {
+      // ⚡ 광폭화 — 광폭한 베기와 광란의 슬래시가 미친 듯이 휘몰아침
+      ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 3.5 + k * 1.2;
+      for (let i = 0; i < 9 + Math.floor(k * 4); i++) {
+        const sx = W * (0.08 + (i % 7) * 0.12);
+        const sy = H * (0.28 + ((i * 0.7) % 3) * 0.13);
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(sx + 70 + Math.sin(bt * 14 + i) * 25, sy - 25 + Math.cos(bt * 11 + i) * 30);
+        ctx.stroke();
+      }
+      // 광분 폭발
+      ctx.globalAlpha = alpha * 0.55; ctx.fillStyle = "#f87171";
+      ctx.fillRect(W * 0.18, H * 0.36, W * 0.64, 5 + k * 2);
+      ctx.globalAlpha = 1;
+    } else if (style === "repair") {
+      // 💉 긴급 수리 — 아군 위치 중심으로 퍼지는 수리 에너지 + 응급 패치
+      ctx.fillStyle = `rgba(74,222,128,${alpha * 0.6})`; ctx.beginPath(); ctx.arc(W / 2, H * 0.44, 75 + k * 30, 0, 7); ctx.fill();
+      ctx.strokeStyle = "#4ade80"; ctx.lineWidth = 2.8;
+      for (let i = 0; i < 5 + Math.floor(k); i++) {
+        const px = W / 2 - 30 + (i % 5) * 15;
+        ctx.beginPath(); ctx.arc(px, H * 0.44, 12 + i * 3 + bt * 18, 0, 7); ctx.stroke();
+        // 수리 스파크 (작은 + 또는 점)
+        ctx.fillStyle = "#86efac"; ctx.beginPath(); ctx.arc(px, H*0.44 - 6 - (i%2)*3, 2 + k*0.5, 0, 7); ctx.fill();
+        ctx.beginPath(); ctx.arc(px + 3, H*0.44 - 3, 1.5, 0, 7); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    } else {
+      // fallback
+      const grad = ctx.createRadialGradient(W / 2, H * 0.38, 8, W / 2, H * 0.42, rBase);
+      grad.addColorStop(0, `rgba(255,255,255,${alpha * 0.9})`);
+      grad.addColorStop(0.25, col.replace('#', '#') + Math.floor(alpha * 180).toString(16).padStart(2, '0'));
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(W / 2, H * 0.40, rBase, 0, 7); ctx.fill();
+      ctx.strokeStyle = col; ctx.lineWidth = 2;
+      for (let i = -2; i <= 2; i++) { const ax = W / 2 + i * 28; ctx.beginPath(); ctx.moveTo(ax, 10); ctx.lineTo(ax, H * 0.55); ctx.stroke(); }
     }
     ctx.globalAlpha = 1;
-    // extra peripheral pips for spectacle
-    for (let j=0; j<5; j++) {
-      const px = W*0.2 + j* (W*0.15), py = H*0.32 + (j%2? -18:12);
-      ctx.fillStyle = `rgba(255,255,255,${alpha*0.6})`;
-      ctx.beginPath(); ctx.arc(px, py, 3.5 + Math.sin(bt*7+j)*1.2, 0, 7); ctx.fill();
-    }
   }
 
   for (const u of units) {
@@ -1953,7 +2051,7 @@ function doUlt() {
   else if (h.ult === "rage")    mine.forEach((u) => { u.buff = Math.round(u.atk * 0.5); u.buffT = 5; u.spd = 1.5; u.spdT = 5; });
   else if (h.ult === "wall")    mine.forEach((u) => { u.shield = 4; });
   else if (h.ult === "volley")  {
-    // 아크 볼리 — 진짜 "궁극기" 다중 정밀 일제 (Sovereign 피드백: 멋없는 flat dmg → spectacle barrage)
+    // 아크 볼리 — 하늘에서 퍼붓는 아크 일제 (이름 그대로 volley)
     const k2 = k * 1.1;
     const tgts = foes.slice().sort(() => Math.random() - 0.5).slice(0, Math.min(9, foes.length || 1));
     tgts.forEach((f, i) => {
@@ -1961,26 +2059,34 @@ function doUlt() {
         if (f && f.hp > 0) {
           dmg(f, (24 + (i < 3 ? 10 : 0)) * k2, null);
           addFx(f.x + (Math.random()-0.5)*6, f.y + (Math.random()-0.5)*6, "boom");
-          // precision shot lines from "sky" / center (crosshair lock feel)
-          addFx(W/2 + (i-4)*18, 35, "shot", f.x, f.y, "p");
+          addFx(W/2 + (i-4)*18, 30 + (i%2)*5, "snipe", f.x, f.y, "p"); // 볼리다운 연속 사격
         }
-      }, i * 38);
+      }, i * 32);
     });
-    addFx(W/2, 38, "overclock"); // big lock-on pulse
-    // extra green energy cross + multiple ctr pips for "ultimate" dopamine
-    for (let j = 0; j < 4; j++) setTimeout(() => addFx(W/2 + (j-1.5)*22, 55, "ctr"), 80 + j*25);
+    for (let j=0; j<3; j++) addFx(W*0.2 + j*0.3*W, 25, "snipe", W*0.5, H*0.5, "p");
   }
-  else if (h.ult === "assault") mine.forEach((u) => { if (foes.length) { const t = foes.reduce((a, b) => (dist(u, b) < dist(u, a) ? b : a)); u.x += (t.x - u.x) * 0.5; u.y += (t.y - u.y) * 0.5; } addFx(u.x, u.y, "charge"); });
-  else if (h.ult === "repair")  mine.forEach((u) => { u.hp = Math.min(u.maxHp, u.hp + u.maxHp * 0.4); addFx(u.x, u.y, "barrier"); });
-  else if (h.ult === "dragon")  { foes.forEach((f) => dmg(f, 42 * k, null)); addFx(W / 2, H / 2, "overclock"); }
+  else if (h.ult === "assault") {
+    // 강습 — 전군이 적진으로 쇄도
+    mine.forEach((u) => { if (foes.length) { const t = foes.reduce((a, b) => (dist(u, b) < dist(u, a) ? b : a)); u.x += (t.x - u.x) * 0.6; u.y += (t.y - u.y) * 0.4; } addFx(u.x, u.y, "charge"); });
+  }
+  else if (h.ult === "repair")  {
+    // 긴급 수리 — 아군에게 직접 수리 에너지 주입
+    mine.forEach((u) => { u.hp = Math.min(u.maxHp, u.hp + u.maxHp * 0.4); addFx(u.x, u.y - 4, "overclock"); addFx(u.x + 4, u.y, "barrier"); });
+  }
+  else if (h.ult === "dragon")  {
+    // 드래곤 강림 — 하늘에서 강림한 용의 일격
+    foes.forEach((f) => dmg(f, 42 * k, null));
+    for (let i=0; i<5; i++) addFx(W/2 + (i-2)*18, 20, "shot", W/2, H*0.55, "e");
+    addFx(W / 2, H / 2, "overclock");
+  }
   ultT = h.ultCd;
-  triggerUltVfx(h.ult, getHeroColor(META.hero) || '#fbbf24'); // 궁극기 7종 고유 VFX (드래곤/볼리/강습/지휘/철벽/광폭/수리)
+  triggerUltVfx(h.ult, getHeroColor(META.hero) || '#fbbf24', lv); // lv 전달 → 도파민: 레벨에 따라 궁극기 이팩트 강도/밀도 다르게
   toast(t("tUlt", { x: tUlt(h.ult) }), "#fbbf24");
   haptic("heavy");
 }
 
 // ── 영웅 선택 / 강화 ──────────────────────────────────────────────────────────
-function heroUpCost() { return 150 * (META.heroLv[META.hero] || 1); }
+function heroUpCost() { const lv = META.heroLv[META.hero] || 1; return Math.round(150 * lv * Math.pow(1.6, lv - 1)); }   // 선형→지수(밸런스: heroScale +50%/lv 가파른데 비용 선형이라 영웅 가성비 폭발했던 것. 캐릭 등급비용과 일관)
 function updateHeroUI() {
   HERO_ORDER.forEach((hk) => {
     const b = document.querySelector('.hbtn[data-h="' + hk + '"]'); if (!b) return;
@@ -2036,20 +2142,52 @@ function upgradeHero() {
   if (running) return;
   const cost = heroUpCost();
   if (META.gold < cost) { toast(t("tGoldShort", { n: cost }), "#ef4444"); return; }
-  META.gold -= cost; META.heroLv[META.hero] = (META.heroLv[META.hero] || 1) + 1;
+  const oldLv = META.heroLv[META.hero] || 1;
+  const oldPassive = getLiveHeroPassive(META.hero);
+  META.gold -= cost; META.heroLv[META.hero] = oldLv + 1;
   saveMeta(); updateHeroUI(); updateMeta(); reset();
-  // 도파민: 강화 직후 '효과 UP' 이 즉시 보이게 — affected 보너스 영역에 pop + highlight
+  const newLv = META.heroLv[META.hero];
+  const newPassive = getLiveHeroPassive(META.hero);
+  // 도파민 핵심: 1→2 업글 시 "효과 올라가는 맛" 즉시 보이게 — 패시브 숫자 변화 + 델타 플래시
   const combo = $("battle-combo");
   if (combo) {
     combo.classList.add('powerPop');
-    setTimeout(() => { if (combo) combo.classList.remove('powerPop'); }, 550);
+    setTimeout(() => { if (combo) combo.classList.remove('powerPop'); }, 520);
   }
   const hdesc = $("hero-desc");
   if (hdesc) {
     hdesc.classList.add('powerPop');
-    setTimeout(() => { if (hdesc) hdesc.classList.remove('powerPop'); }, 550);
+    setTimeout(() => { if (hdesc) hdesc.classList.remove('powerPop'); }, 520);
   }
-  toast(t("tHeroUp", { x: tHero(META.hero)[0], n: META.heroLv[META.hero] }) + " · ⚡전력 " + fmtNum(legionPower()), "#a3e635");   // 전력 증가 즉시 피드백
+  // 패시브 변화 시 delta 강조 (전군 공격 +15% → +22% 같은 식)
+  if (oldPassive !== newPassive && combo) {
+    const delta = document.createElement('span');
+    delta.textContent = ' ▲' + (newLv > oldLv ? 'UP' : '');
+    delta.style.color = '#a3e635';
+    delta.style.fontWeight = '900';
+    delta.style.fontSize = '10px';
+    delta.style.marginLeft = '2px';
+    combo.appendChild(delta);
+    setTimeout(() => { if (delta && delta.parentNode) delta.parentNode.removeChild(delta); }, 820);
+  }
+  // hero-desc에도 같은 맛 (책략가/광전사/수호자 등 모두)
+  if (oldPassive !== newPassive && hdesc) {
+    hdesc.style.transition = 'color .1s';
+    hdesc.style.color = '#a3e635';
+    setTimeout(() => { if (hdesc) hdesc.style.color = ''; }, 480);
+  }
+  // battle-combo 강제 갱신 + 패시브 스팬 하이라이트 (광전사·수호자 등 모든 영웅)
+  updateBattleCombo();
+  setTimeout(() => {
+    const el = $("battle-combo");
+    if (el) el.querySelectorAll('span').forEach(s => {
+      if (s.textContent.includes('공격') || s.textContent.includes('체력') || s.textContent.includes('재생') || s.textContent.includes('지능')) {
+        s.style.transition = 'all .1s'; s.style.background = '#14532d'; s.style.color = '#bef575';
+        setTimeout(() => { if (s) { s.style.background = '#1a2a14'; s.style.color = ''; } }, 650);
+      }
+    });
+  }, 60);
+  toast(t("tHeroUp", { x: tHero(META.hero)[0], n: newLv }) + " · ⚡전력 " + fmtNum(legionPower()), "#a3e635");
 }
 
 // ── 자동사냥 토글 ─────────────────────────────────────────────────────────────
@@ -2173,6 +2311,8 @@ function renderPrestige() {
     h += `<button id="prestige-go" class="prestige-btn">${t("ascBtn", { ch: ch })}</button>`;
   } else {
     h += `<div class="asc-locked">${t("ascLocked", { gate: ASCEND_GATE, ch: ch })}</div>`;
+    // Sovereign 즉시 테스트용 (환생 시스템 검증). 실제 배포시 제거하거나 숨김.
+    h += `<button onclick="META.chapter=ASCEND_GATE;saveMeta();updateMeta();renderPrestige();toast('ch18 강제 — 이제 환생 가능',' #a3e635')" style="font-size:10px;margin-top:4px;padding:2px 6px;background:#3a2a1a;border:1px solid #555;color:#c4b5fd;">🔧 ch18 강제 (테스트)</button>`;
   }
   h += `<div class="asc-shop-h">${t("ascShop")}</div>`;
   for (const n of ASC_NODES) {
@@ -2184,8 +2324,13 @@ function renderPrestige() {
       + `</div>`;
   }
   box.innerHTML = h;
-  if (ch >= ASCEND_GATE) on("prestige-go", "click", doAscend);
-  box.querySelectorAll(".asc-buy").forEach((b) => b.addEventListener("click", () => buyAscNode(b.dataset.node)));
+  // 신뢰성 있는 버튼 연결 (innerHTML 동적 생성 후 직접 onclick — on() 헬퍼 다중리스너/타이밍 문제 방지)
+  const goBtn = $("prestige-go");
+  if (goBtn) goBtn.onclick = doAscend;
+  box.querySelectorAll(".asc-buy").forEach((b) => {
+    // 기존 리스너 중복 방지 위해 onclick 사용
+    b.onclick = () => buyAscNode(b.dataset.node);
+  });
 }
 function buyAscNode(node) {
   if (running || !META.asc || !(node in META.asc)) return;
@@ -2268,6 +2413,7 @@ function endMontage() {
 function doAscend() {
   const ch = META.chapter || 1; if (ch < ASCEND_GATE) return;
   const btn = $("prestige-go"), gain = etherGain(ch);
+  const oldPwr = ascPowerMul();
   const ask = t("ascConfirm", { ch: ch, e: gain });
   const go = () => {
     if (btn) { btn.disabled = true; btn.textContent = "..."; }
@@ -2277,9 +2423,14 @@ function doAscend() {
     META.chapter = 1; META.streak = 0;
     META.gold = 550 + ascStartGold();
     saveMeta();
-    applyMode(); reset(); updateMeta(); showPage("battle");
+    const newPwr = ascPowerMul();
+    applyMode(); reset(); updateMeta(); renderPrestige(); renderDash(); showPage("battle");
+    // 도파민: 환생 직후 영구 배율 즉시 표시 + 차이 토스트
+    const dp = $("dash-power");
+    if (dp) dp.textContent = fmtNum((getDeployedUnits().length ? squadPower() : legionPower()) * newPwr);
     SFX.ssr(); haptic("heavy");
-    setTimeout(() => { toast(t("ascDone", { e: gain }), "#c084fc"); playRebirthCeremony(startMontage); }, 300);   // 부활 의식 연출 → 빨리감기 몽타주
+    toast(`🔄 환생! ⬡+${gain} · 영구배율 ${oldPwr.toFixed(2)} → ${newPwr.toFixed(2)}×`, "#c084fc");
+    setTimeout(() => { playRebirthCeremony(startMontage); }, 280);
   };
   const done = () => { if (btn) { btn.disabled = false; renderPrestige(); } };
   if (tg && tg.showConfirm) { tg.showConfirm(ask, (ok) => { if (ok) go(); else done(); }); }
@@ -2892,7 +3043,7 @@ function openCharPanel(id) {
   cpCharId = id;
   const lv = charLv(id), gcs = charGearStats(id);
   const head = $("cp-head");
-  if (head) head.innerHTML = `<div class="cp-art" style="border-color:${u.color}">${artHTML(u, "cpgly", "cpim")}</div>`
+  if (head) head.innerHTML = `<div class="cp-art" style="border-color:${u.color}">${artHTML(u, "cpgly", "cpim", true)}</div>`
     + `<div class="cp-meta"><div class="cp-nm" style="color:${u.color}">${u.name}</div>`
     + `<div class="cp-ti">${u.title || u.arch} · ${u.rarity} · 🏷️${u.faction}</div>`
     + `<div class="cp-st">⚔️ 전력 <b>${charEffPower(id)}</b> · Lv${lv}${cEnh(id) ? " +" + cEnh(id) : ""}${cStar(id) ? " ★" + cStar(id) : ""}${cAwak(id) ? " ✦" + cAwak(id) : ""} · 💪${gcs.str} 🧠${gcs.int} 👟${gcs.agi} 🍀${gcs.luk}</div>`
@@ -2994,10 +3145,10 @@ function grantUnit(rarity) {
 }
 // 캐릭터 아트: art/<slug>.png 있으면 표시, 없으면(404) 이모지 폴백 (onerror로 자동)
 function unitSlug(u) { return (u.name || u.arch || "").toLowerCase().replace(/[^a-z0-9가-힣]+/g, "-").replace(/^-|-$/g, ""); }
-function artHTML(u, glyphCls, imgCls) {
+function artHTML(u, glyphCls, imgCls, noGlyph) {
   const base = u.vis || u.glyph || "●";
   const acc = u.accent ? `<span class="acc" style="font-size:0.55em;opacity:0.7;margin-left:-2px;">${u.accent}</span>` : "";
-  const g = `<span class="${glyphCls}">${base}${acc}</span>`;
+  const g = (noGlyph ? "" : `<span class="${glyphCls}">${base}${acc}</span>`);
   // PNG 우선 (u{id}.png for R "간지" art 76+ 포함) → slug → synth fallback (cool border+color "간지" placeholder)
   const slug = unitSlug(u);
   const col = (u.color || '#60a5fa').replace(/"/g, '');
@@ -3123,7 +3274,7 @@ function showUnit(id) {
   $("unit-card").style.borderColor = u.color;
   $("unit-card").classList.toggle('rSSR', u.rarity === 'SSR');
   $("unit-card").classList.remove('gear-manage');   // 유닛 도감은 기본 세로 레이아웃
-  $("unit-glyph").innerHTML = artHTML(u, "ucgly", "ucim");   // 미보유도 일러스트 노출(보는 맛) — 이름/스탯만 잠금
+  $("unit-glyph").innerHTML = artHTML(u, "ucgly", "ucim", true);   // 깨끗한 누끼 일러스트 (옆 이모티콘 제거) — Anvil 등 SSR 포트레이트에 맞춤
   $("unit-name").innerHTML = `<b style="color:${u.color}">[${u.rarity}]</b> ${has ? u.name : "???"}`;
   $("unit-title").textContent = has ? (u.title || u.arch) : t("locked");
   const lore = (typeof LORE !== "undefined" && LORE[id]) ? `<div class="unit-lore">📖 ${LORE[id]}</div>` : "";   // 군주 20260617: 캐릭터 서사(도파민) — 항상 노출(흥미 유발)
