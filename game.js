@@ -1052,7 +1052,7 @@ function updateMeta() {
   if ($("gold")) $("gold").textContent = META.gold;
   if ($("gems")) $("gems").textContent = META.gems || 0;
   if ($("soul")) $("soul").textContent = META.soul || 0;
-  if ($("soul-shop-have")) $("soul-shop-have").textContent = "보유 🔮 " + (META.soul || 0);
+  if ($("soul-shop-have")) $("soul-shop-have").textContent = t("soulHave") + (META.soul || 0);
   if ($("chapter")) $("chapter").textContent = META.chapter;
   if ($("ether")) $("ether").textContent = META.ether || 0;
   const coh = $("cohesion"); if (coh) coh.textContent = (META.prestige || 0).toFixed(1);
@@ -2123,7 +2123,14 @@ function showOdds() {
     `<div>${t("oddsPity")}</div>` +
     `<div style="margin-top:6px;opacity:.6;">${t("oddsFict")}</div>` +
     `</div>`;
-  const m = $("odds-modal"); if (m) m.classList.remove("hidden");
+  const m = $("odds-modal");
+  if (m) {
+    m.classList.remove("hidden");
+    // close on background click (robust)
+    m.onclick = (e) => { if (e.target === m) m.classList.add("hidden"); };
+    const closeBtn = $("odds-close");
+    if (closeBtn) closeBtn.onclick = () => m.classList.add("hidden");
+  }
 }
 // ── 🪙 골드 뽑기 + 🔮 소울 분해 루프 (트리니티 SPEC-soul-fodder-loop) ──────────────
 const GOLD_GACHA_COST = 200;
@@ -3145,12 +3152,13 @@ function checkPasses() {                                // 활성 패스 = 매�
 }
 function openShop() { renderShop(); showPage("shop"); }
 function renderShop() {
+  try {
   const box = $("shop-list"); if (!box) return;
   box.innerHTML = "";
   if (!PAY_BACKEND) {
     const note = document.createElement("div");
     note.style.cssText = "font-size:11px;color:#f59e0b;margin-bottom:6px;text-align:center;";
-    note.textContent = "🧪 데모 모드 (실제 Telegram Stars 결제는 Worker 배포 후 연동)";
+    note.textContent = t("payDemoNote");
     box.appendChild(note);
   }
   SHOP.forEach((p) => {
@@ -3166,10 +3174,11 @@ function renderShop() {
     if (owned) c.disabled = true; else c.addEventListener("click", () => buyPack(p.id));
     box.appendChild(c);
   });
+  } catch(e) { console.warn('shop render err', e); }
 }
 // ── 💳 결제 (Telegram Stars) ─────────────────────────────────────────────────
 // PAY_BACKEND 비어있으면 데모 즉시지급. 채우면 봇 서버가 인보이스 발급 → tg.openInvoice → 결제확인 후 지급.
-const PAY_BACKEND = "";   // 예: "https://legion-pay.xxxx.workers.dev"
+const PAY_BACKEND = "";   // 배포 완료 후 실제 "https://legion-pay.xxxx.workers.dev" 로 교체. 지금은 데모.
 const STARS = { starter: 50, weekly: 250, monthly: 750, vip: 1500, ultra: 5000, growth1: 500, growth2: 2500,
                 gem1: 55, gem2: 280, gem3: 1000, gem4: 2500, gold1: 55, gold2: 280, gold3: 1000 };
 function buyPack(id) {
@@ -3288,7 +3297,14 @@ on("sg-gear10", "click", () => gearGacha(10));
 on("sg-gold1", "click", goldGacha);            // 🪙 골드 뽑기 (소울루프)
 on("sg-gold10", "click", goldGacha10);         // 🪙 골드 10연
 on("odds-view", "click", showOdds);            // 📊 전체 확률 공개 (법적 disclosure)
-on("odds-close", "click", () => $("odds-modal").classList.add("hidden"));
+on("odds-close", "click", () => { const m=$("odds-modal"); if(m) m.classList.add("hidden"); });
+// also close on background for the odds disclosure modal (robust UX)
+const oddsM = $("odds-modal");
+if (oddsM) {
+  oddsM.addEventListener("click", (e) => {
+    if (e.target === oddsM) oddsM.classList.add("hidden");
+  });
+}
 on("ss-gold5k", "click", () => soulBuy(20, { gold: 5000 }));     // 🔮 소울 상점
 on("ss-gold30k", "click", () => soulBuy(100, { gold: 30000 }));
 on("ss-gem50", "click", () => soulBuy(80, { gems: 50 }));
@@ -3587,9 +3603,34 @@ function artHTML(u, glyphCls, imgCls, noGlyph) {
   const col = (u.color || '#60a5fa').replace(/"/g, '');
   const b64 = (base + (u.accent || '')).replace(/"/g, '&quot;');
   // 3단 + synth: art/u{id} (R 76-90+ cool PNG) → ssr/slug → slug → colored synth fallback (no remove, grid always fills "간지" visual)
-  return g + `<img class="${imgCls}" src="art/u${u.id}.png" alt="" loading="lazy" data-c="${col}" data-b="${b64}" onerror="var s=(+this.dataset.s||0)+1;this.dataset.s=s;if(s===1){this.src='art/ssr/${slug}.png'}else if(s===2){this.src='art/${slug}.png'}else{var c=this.dataset.c||'#60a5fa';var bb=this.dataset.b||'●';this.outerHTML='<span class=\\''+this.className+' synth\\'' style=\\'display:inline-block;border:1px solid '+c+';background:#0b111f;color:#e2e8f0;padding:1px 3px;border-radius:2px;font-size:0.95em;opacity:0.9;\\'>'+bb+'</span>'}">`;
+  const img = `<img class="${imgCls}" src="art/u${u.id}.png" alt="" loading="lazy" data-c="${col}" data-b="${b64}" data-slug="${slug}">`;
+  // safe nukki fallback
+  setTimeout(() => {
+    const imgs = document.querySelectorAll(`.${imgCls}[data-slug="${slug}"]`);
+    imgs.forEach(im => {
+      if (!im._errBound) {
+        im._errBound = true;
+        im.addEventListener('error', function onerr() {
+          const s = (+this.dataset.s || 0) + 1; this.dataset.s = s;
+          if (s === 1) this.src = `art/ssr/${slug}.png`;
+          else if (s === 2) this.src = `art/${slug}.png`;
+          else {
+            const c = this.dataset.c || '#60a5fa'; const bb = this.dataset.b || '●';
+            const span = document.createElement('span');
+            span.className = this.className + ' synth';
+            span.style.cssText = `display:inline-block;border:1px solid ${c};background:#0b111f;color:#e2e8f0;padding:1px 3px;border-radius:2px;font-size:0.95em;opacity:0.9;`;
+            span.textContent = bb;
+            if (this.parentNode) this.parentNode.replaceChild(span, this);
+          }
+          this.removeEventListener('error', onerr);
+        });
+      }
+    });
+  }, 50);
+  return g + img;
 }
 function renderCodex() {
+  try {
   renderConquestMap();   // 🗺️ 정복 연대기
   const grid = $("codex-grid"); if (!grid || typeof ROSTER === "undefined") return;
   const owned = new Set(META.owned || []);
@@ -3615,6 +3656,7 @@ function renderCodex() {
     setTimeout(() => { if (c) c.style.transform = ''; }, 90);
     showUnit(id);
   }));
+  } catch(e) { console.warn('codex render err', e); }
 }
 let gdexFilter = "ALL";
 function renderGearCodex() {
@@ -3706,6 +3748,7 @@ function openGearItem(id) {
   $("unit-pop").classList.remove("hidden");
 }
 function showUnit(id) {
+  try {
   const u = ROSTER.find((x) => x.id === id); if (!u) return;
   const has = (META.owned || []).indexOf(id) >= 0;
   $("unit-card").style.borderColor = u.color;
@@ -3719,6 +3762,7 @@ function showUnit(id) {
     ? `${u.faction ? "🏷️ " + u.faction + " · " : ""}${u.glyph} ${u.arch} ×${u.mul}<br>${u.persona ? "💬 " + u.persona + "<br>" : ""}${u.trait ? "✦ " + u.trait : ""}`
     : t("lockedHint")) + lore;
   $("unit-pop").classList.remove("hidden");
+  } catch(e) { console.warn('showUnit err', e); }
 }
 // ── 장비: 제작 · 장착 · 강화 ──────────────────────────────────────────────────
 function craftGear(forceRar) {

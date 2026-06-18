@@ -6,7 +6,7 @@
       실제 매출 보호가 중요해지면 서버 계정으로 승급(successful_payment에서 서버가 지급). */
 
 const ITEMS = {
-  starter:  { title: "초심자 패키지",   desc: "골드 3000 + 유닛 10연" },
+  starter:  { title: "초심자 패키지",   desc: "2x 속도 영구 + 골드3000 + 유닛10개" },
   weekly:   { title: "주간 패스",        desc: "즉시 💎100 + 7일 매일 💎50" },
   monthly:  { title: "월간 패스",        desc: "즉시 💎300 + 30일 매일 💎100" },
   vip:      { title: "VIP 패키지",       desc: "4x속도·골드+50%·💎600·SR유닛" },

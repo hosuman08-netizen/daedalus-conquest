@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>다이달로스 — AI 군단 전쟁</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="style.css?v=20260617z" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1 data-i18n="title">⚔️ LEGION</h1>
+      <button id="settings-corner">⚙️</button>
+    </header>
+
+    <div id="metabar">
+      <span class="meta gold">💰 <i id="gold">300</i></span>
+      <span class="meta gem">💎 <i id="gems">50</i></span>
+      <span class="meta soul">🔮 <i id="soul">0</i></span>
+      <span class="meta ch">📖 <i id="chapter">1</i></span>
+      <span class="meta eth" style="cursor:pointer" onclick="openSettings();renderPrestige();" title="⬡ 에테르 — 환생으로 얻는 영구 화폐. 에테르 상점에서 아군 공격력·체력을 영구 복리 강화">⬡ <i id="ether">0</i></span>
+      <span class="meta" id="streak-meta" style="color:#fbbf24;font-size:11px;cursor:pointer" onclick="openEvent();" title="일일 연속. 7일 유지 시 AFK 보상 1.5배 등. 매일 클레임으로 쌓음">🔥 연속 <i id="streak-val">0</i></span>
+      <!-- MVP: pity always visible in lobby top per final plan -->
+      <span class="meta pity">🎯 다음 SSR까지 <i id="pity-left">10</i>회</span>
+    </div>
+
+    <!-- 부활 의식 연출 오버레이 -->
+    <div id="rebirth-veil" class="hidden"><div id="rebirth-text"></div></div>
+
+    <div id="page-battle" class="page">
+    <div id="modes">
+      <button class="modetab" data-m="campaign" data-i18n="mode.campaign">📖 캠페인</button>
+      <button class="modetab" data-m="tower" data-i18n="mode.tower">🗼 무한탑</button>
+      <button class="modetab" data-m="boss" data-i18n="mode.boss">🐲 보스</button>
+      <button class="modetab" data-m="turnbased" data-i18n="mode.turnbased">⚔️ 턴제</button>
+      <button class="modetab" data-m="arena" data-i18n="mode.arena">🏟️ 아레나</button>
+      <button class="modetab teaser" data-m="mystery">❓ ???</button>
+    </div>
+    <div id="ms-hint" class="ms-hint"></div>
+    <!-- 🔄 환생 발견성: ch18+ 도달 시 노출 (PRD §6 "환생 가능 · 예상 에테르 N") -->
+    <div id="asc-prompt" style="display:none" onclick="openSettings();renderPrestige();"></div>
+    <!-- §21 indicators (clean, no dev leaks) -->
+    <div id="sacred-host" style="font-size:10px;color:#fbbf24;margin:2px 0 4px;min-height:14px;"></div>
+
+    <div id="heroes">
+      <div class="herorow">
+        <button class="hbtn" data-h="strategist"></button>
+        <button class="hbtn" data-h="berserker"></button>
+        <button class="hbtn" data-h="warden"></button>
+        <button class="hbtn" data-h="ranger"></button>
+        <button class="hbtn" data-h="mech"></button>
+        <button class="hbtn" data-h="engineer"></button>
+        <button class="hbtn" data-h="dragoon"></button>
+      </div>
+      <div id="hero-info">
+        <div><b id="hero-name"></b> <button id="hero-up"></button></div>
+        <div id="hero-desc"></div>
+      </div>
+      <!-- Sovereign 요청: 정적 유닛 상성(legend) 대신, 캐릭터 선택 시 실시간 조합 버프/시너지 표시 -->
+      <div id="battle-combo"></div>
+    </div>
+
+    <div id="status">군대를 배치하고 ▶ 전투 시작</div>
+
+    <!-- MVP quick bar 완전 제거 (Sovereign 요청: 원래 하단바가 더 낫다).
+         이제 하단 #bnav 6탭(전투/캐릭터/장비/도감/상점/이벤트)이 메인 네비.
+         배틀 컨트롤(시작/자동/속도/다시)은 콘텐츠 영역에만.
+         Reversible: 이 블록 복구 가능. -->
+
+    <canvas id="field"></canvas>
+
+    <button id="ult" disabled>💥</button>
+
+    <div id="deploy">
+      <div class="tag"><span data-i18n="armyTitle">🔵 내 군단</span> <small data-i18n="armySub"></small></div>
+      <div class="army b">
+        <span class="step">🛸<button data-side="p" data-t="drone" data-d="-1">−</button><i id="p-drone">4</i><button data-side="p" data-t="drone" data-d="1">+</button><em id="lv-drone"></em><u class="px">35g</u></span>
+        <span class="step">🎯<button data-side="p" data-t="marksman" data-d="-1">−</button><i id="p-marksman">2</i><button data-side="p" data-t="marksman" data-d="1">+</button><em id="lv-marksman"></em><u class="px">60g</u></span>
+        <span class="step">🛡️<button data-side="p" data-t="guardian" data-d="-1">−</button><i id="p-guardian">1</i><button data-side="p" data-t="guardian" data-d="1">+</button><em id="lv-guardian"></em><u class="px">75g</u></span>
+        <span class="step">🤖<button data-side="p" data-t="bruiser" data-d="-1">−</button><i id="p-bruiser">1</i><button data-side="p" data-t="bruiser" data-d="1">+</button><em id="lv-bruiser"></em><u class="px">70g</u></span>
+        <span class="step">🧠<button data-side="p" data-t="commander" data-d="-1">−</button><i id="p-commander">0</i><button data-side="p" data-t="commander" data-d="1">+</button><em id="lv-commander"></em><u class="px">110g</u></span>
+        <span class="step" id="slot-titan" style="display:none">🐉<button data-side="p" data-t="titan" data-d="-1">−</button><i id="p-titan">0</i><button data-side="p" data-t="titan" data-d="1">+</button><em id="lv-titan"></em><u class="px">700g</u></span>
+      </div>
+      <!-- 유저가 보기 쉽게: char에서 배치한 specific (수집한 특수 유닛) 미리보기 -->
+      <div id="deploy-specifics" style="margin-top:4px;font-size:12px;color:#a3e635;min-height:22px;"></div>
+    </div>
+
+    <div id="controls">
+      <button id="start" data-i18n="start">▶ 전투 시작</button>
+      <button id="auto" data-i18n="auto">⚔️ 자동사냥</button>
+      <button id="speed">속도 1x</button>
+    </div>
+    <div id="reset-controls" style="margin-top:6px">
+      <button id="reset" data-i18n="reset">↻ 다시</button>
+      <button id="quick-pull">🎰 뽑기 💎8</button>
+    </div>
+    <!-- 군주 20260616 + Grok P1: 캐릭터 조합 시너지 표 (달성=골드글로우, 미달=실루엣 → 도파민+수집욕) -->
+    <div id="synergy-table"></div>
+
+    <!-- legend-toggle + #legend removed from battle (static info replaced by #battle-combo dynamic synergy per Sovereign). Kept in codex if needed. -->
+    </div><!-- /page-battle -->
+
+    <!-- 캐릭터 페이지 (도감·강화·승급·장비) -->
+    <!-- 도감 페이지 (수집) -->
+    <div id="page-codex" class="page hidden">
+      <div class="set-title">📋 <span data-i18n="dashTitle">군단 도감</span></div>
+      <div id="conquest-map"></div>
+      <div id="codex-bar"><span id="codex-count" class="ddim"></span> <span id="codex-filter"></span></div>
+      <div id="codex-grid"></div>
+    </div>
+
+    <!-- 캐릭터 페이지 (강화·장비·궁극기 육성) -->
+    <div id="page-char" class="page hidden">
+      <div class="set-title">👥 <span data-i18n="navChar">캐릭터</span></div>
+      <div class="dpower">⚡ <span data-i18n="dPower">군단 전력</span> <b id="dash-power">0</b> &nbsp;·&nbsp; 💰<b id="dash-div">0</b>/<span data-i18n="dPerBattle">전투</span></div>
+
+      <!-- ⚔️ 출전 편성 (수집 캐릭터가 곧 부대) -->
+      <div class="set-sec">⚔️ <span data-i18n="sqTitle">출전 편성</span> <span id="squad-info" class="ddim"></span></div>
+      <div id="squad-syn"></div>
+      <div id="squad-slots"></div>
+      <div class="squad-pool-label" data-i18n="sqPool">📋 보유 캐릭터 — 탭해서 편성/해제</div>
+      <div id="squad-pool"></div>
+      <!-- 🔮 소울 루프: 중복 캐릭 일괄 분해 → 소울 (트리니티 SPEC-soul-fodder-loop) -->
+      <button id="dismantle-dupes" class="gbig" style="margin-top:8px;background:linear-gradient(160deg,#3a2c4e,#1a1330);border-color:#c084fc;color:#e9d5ff;">🔮 중복 캐릭터 전부 소울로 분해 <small>(첫 장 보존·SSR 제외)</small></button>
+
+    </div>
+
+    <!-- 장비 페이지 (제작·인벤·도감) -->
+    <div id="page-gear" class="page hidden">
+      <div class="set-title">⚔️ <span data-i18n="gTitle">장비</span></div>
+      <button id="gear-craft" class="craft-big">🔨 <span data-i18n="gCraft">제작</span> · 300g</button>
+      <button id="gear-scrap-junk" class="craft-big" style="background:linear-gradient(160deg,#3a2c1a,#1a1410);border-color:#fbbf24;margin-top:6px">🔨 잡템 일괄 분해 (N/R 미장착 → 골드)</button>
+      <div class="gear-note ddim" data-i18n="gearNote">🔨 장비를 탭하면 강화 · 장착은 캐릭터 탭에서</div>
+      <div class="set-sec">🎒 <span data-i18n="gOwned">보유 장비</span> <span id="gear-count" class="ddim"></span></div>
+      <div id="gear-inv"></div>
+      <button id="gdex-toggle" class="legend-toggle">🛠️ <span data-i18n="gearDexT">장비 도감</span> <span id="gdex-count" class="ddim"></span> ▾</button>
+      <div id="gdex-wrap" class="hidden">
+        <div id="gdex-filter"></div>
+        <div id="gdex-grid"></div>
+      </div>
+    </div>
+
+    <!-- 하단 네비게이션 (설정은 상단 구석으로) -->
+    <nav id="bnav">
+      <button class="navtab sel" data-p="battle">⚔️<span data-i18n="navBattle">전투</span></button>
+      <button class="navtab" data-p="char">👥<span data-i18n="navChar">캐릭터</span></button>
+      <button class="navtab" data-p="gear">⚔️<span data-i18n="gTitle">장비</span></button>
+      <button class="navtab" data-p="codex">📋<span data-i18n="navCodex">도감</span></button>
+      <button class="navtab" data-p="shop">🛒<span data-i18n="navShop">상점</span></button>
+      <button class="navtab" data-p="event">🎁<span data-i18n="navEvent">이벤트</span></button>
+    </nav>
+
+    <!-- 결과 -->
+    <div id="overlay" class="hidden">
+      <div id="overlay-card">
+        <div id="overlay-msg"></div>
+        <button id="overlay-btn"></button>
+      </div>
+    </div>
+
+    <!-- 가챠 -->
+    <div id="gacha" class="hidden">
+      <div id="gacha-card">
+        <div id="gacha-rank">SSR</div>
+        <div id="gacha-msg"></div>
+        <div id="gacha-list"></div>
+        <button id="gacha-close" data-i18n="confirm">확인</button>
+      </div>
+    </div>
+
+    <!-- 📊 전체 확률 공개 (법적 disclosure — 코드값 100% 일치) -->
+    <div id="odds-modal" class="hidden" style="position:fixed;inset:0;z-index:90;background:rgba(3,7,18,.86);display:flex;align-items:center;justify-content:center;padding:18px;">
+      <div style="max-width:340px;width:100%;background:#0b111f;border:1px solid #2b3650;border-radius:10px;padding:16px 18px;color:#e2e8f0;font-size:13px;line-height:1.7;">
+        <div style="font-weight:700;font-size:15px;margin-bottom:8px;" data-i18n="oddsTitle">📊 뽑기 확률 전체 공개</div>
+        <div id="odds-body" style="font-size:12.5px;"></div>
+        <button id="odds-close" class="ghost" style="margin-top:12px;width:100%;" data-i18n="confirm">확인</button>
+      </div>
+    </div>
+
+    <!-- 스타터팩 -->
+    <div id="starter" class="hidden">
+      <div id="starter-card">
+        <div class="sp-badge" data-i18n="spTitle">💎 초심자 패키지</div>
+        <div class="sp-perks">
+          <div data-i18n="sp1"></div><div data-i18n="sp2"></div><div data-i18n="sp3"></div><div data-i18n="sp4"></div>
+        </div>
+        <div class="sp-price" data-i18n="spPrice"></div>
+        <button id="starter-buy" data-i18n="buy">구매하기</button>
+        <button id="starter-close" class="ghost" data-i18n="later">나중에</button>
+      </div>
+    </div>
+
+    <!-- 이벤트 페이지 -->
+    <div id="page-event" class="page hidden">
+      <div class="set-title">🎁 <span data-i18n="evTitle">이벤트</span></div>
+      <div class="set-sec">📅 <span data-i18n="evAttend">일일 출석 (30일)</span></div>
+      <div id="attend-grid"></div>
+      <button id="attend-claim" data-i18n="evClaim">출석 보상 받기</button>
+      <div id="attend-fomo" style="font-size:10px;color:#f59e0b;margin:4px 0;text-align:center;"></div>
+      <div class="set-sec">⏱️ <span data-i18n="playTitle">오늘의 플레이 보상</span> <span id="play-now" class="ddim"></span></div>
+      <div class="play-hint" data-i18n="playHint">접속해 플레이한 시간만큼 보상! (매일 0시 초기화)</div>
+      <div id="play-list"></div>
+      <div id="play-fomo" style="font-size:10px;color:#f59e0b;margin:-2px 0 6px;text-align:center;"></div>
+      <div class="set-sec">🏆 <span data-i18n="evSeason">시즌 이벤트</span></div>
+      <div id="season-list"></div>
+      <div id="vanguard-ritual" style="font-size:10px;color:#fbbf24;margin-top:6px;min-height:12px;"></div>
+    </div>
+
+    <!-- 상점 페이지 -->
+    <div id="page-shop" class="page hidden">
+      <div class="set-title">🛒 <span data-i18n="shopTitle">캐시 상점</span></div>
+      <div class="set-sec">🎰 <span data-i18n="shopGacha">뽑기</span></div>
+      <div id="shop-gacha">
+        <button class="gbig" id="sg-char1">🎰 <span data-i18n="navChar">캐릭터</span> · 💎8</button>
+        <button class="gbig" id="sg-char10">💎 <span data-i18n="navChar">캐릭터</span> 10연 · 💎80</button>
+        <button class="gbig" id="sg-gold1">🪙 <span data-i18n="navChar">캐릭터</span> · 200골드 <small>(N/R/SR)</small></button>
+        <button class="gbig" id="sg-gold10">🪙 <span data-i18n="navChar">캐릭터</span> 10연 · 1,800골드 <small>(SR↑ 1보장)</small></button>
+        <button class="gbig" id="sg-gear1">🔨 <span data-i18n="gTitle">장비</span> · 💎8</button>
+        <button class="gbig" id="sg-gear10">🔨 <span data-i18n="gTitle">장비</span> 10연 · 💎72</button>
+      </div>
+      <div id="gacha-rates">
+        <div class="gr-rates"><span class="gr-n">N 57.5%</span><span class="gr-r">R 24%</span><span class="gr-sr">SR 12%</span><span class="gr-ssr">SSR 3%</span><span class="gr-ssr">UR 1%</span><span class="gr-ssr">EX 0.5%</span></div>
+        <div id="pity-bar"><div id="pity-fill"></div><span id="pity-bar-label">0/10</span></div>
+        <div class="gr-note" data-i18n="grNote">🎯 10회 천장 = SSR 확정 · 7회부터 SSR 확률 상승(최대 15%) · UR/EX는 별도 천장 없음 · 장비도 동일 확률</div>
+        <button id="odds-view" class="ghost" data-i18n="oddsBtn">📊 전체 확률 보기</button>
+      </div>
+      <!-- 🔮 소울 상점 (트리니티 SPEC-soul-fodder-loop §3): 소울 싱크 + 무과금 자원 순환 -->
+      <div class="set-sec">🔮 <span>소울 상점</span> <span id="soul-shop-have" class="ddim"></span></div>
+      <div id="soul-shop">
+        <button class="gbig" id="ss-gold5k">💰 골드 ×5,000 <small>· 🔮20</small></button>
+        <button class="gbig" id="ss-gold30k">💰 골드 ×30,000 <small>· 🔮100</small></button>
+        <button class="gbig" id="ss-gem50">💎 젬 ×50 <small>· 🔮80</small></button>
+      </div>
+      <div class="set-sec">💎 <span data-i18n="shopPack">패키지 · 재화</span></div>
+      <div id="shop-list"></div>
+      <div class="set-ver" data-i18n="shopNote">실제 결제는 텔레그램 Stars 연동 예정</div>
+    </div>
+
+    <!-- 설정 페이지 -->
+    <div id="page-settings" class="page hidden">
+      <div class="set-title">⚙️ <span data-i18n="setTitle">설정</span></div>
+      <div class="set-sec">👤 <span data-i18n="profTitle">내 프로필</span></div>
+      <div id="tg-profile"></div>
+      <div class="set-sec">📊 <span data-i18n="statsTitle">내 군단 통계</span></div>
+      <div id="game-stats"></div>
+      <div class="set-sec">🌐 <span data-i18n="setLang">언어</span></div>
+      <div id="lang-list"></div>
+      <div class="set-row"><span>🔊 <span data-i18n="setSound">사운드</span></span><button id="set-sound" class="toggle">ON</button></div>
+      <div class="set-row"><span>📳 <span data-i18n="setHaptic">진동</span></span><button id="set-haptic" class="toggle">ON</button></div>
+      <div class="set-row"><span>🎵 <span data-i18n="setMusic">배경음악</span></span><button id="set-music" class="toggle">ON</button></div>
+      <div class="set-sec">🎟️ <span data-i18n="setCode">이벤트 코드</span></div>
+      <div class="coderow"><input id="code-input" placeholder="CODE" maxlength="20" autocapitalize="characters" autocomplete="off" /><button id="code-btn" data-i18n="confirm">확인</button></div>
+      <div class="set-sec">🔄 <span data-i18n="prestigeTitle">환생</span></div>
+      <div id="prestige-box"></div>
+      <div class="set-ver">v0.5 · LEGION · <span data-i18n="setComm">커뮤니티 채널 (준비중)</span></div>
+    </div>
+
+    <!-- 유닛 상세 -->
+    <div id="unit-pop" class="hidden">
+      <div id="unit-card">
+        <div id="unit-glyph"></div>
+        <div id="unit-name"></div>
+        <div id="unit-title"></div>
+        <div id="unit-detail"></div>
+        <button id="unit-close" class="ghost" data-i18n="confirm">확인</button>
+      </div>
+    </div>
+
+    <!-- 캐릭터 상세 (편성 탭에서 — 레벨업·캐릭별 장비) -->
+    <div id="char-panel" class="hidden">
+      <div id="char-panel-card">
+        <div id="cp-head"></div>
+        <div id="cp-grow"></div>
+        <div id="cp-gear"></div>
+        <div id="cp-inv-label" class="ddim" data-i18n="cpInv">🎒 슬롯 탭 → 장착 후보</div>
+        <div id="cp-inv"></div>
+        <button id="cp-close" class="ghost" data-i18n="confirm">확인</button>
+      </div>
+    </div>
+
+    <div id="toast"></div>
+  </div>
+  <script src="i18n.js?v=20260617z"></script>
+  <script src="units.js?v=20260617z"></script>
+  <script src="gear.js?v=20260617z"></script>
+  <script src="lore.js?v=20260617z"></script>
+  <script src="game.js?v=20260617z"></script>
+</body>
+</html>
