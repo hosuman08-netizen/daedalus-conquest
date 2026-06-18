@@ -229,8 +229,8 @@ function getLiveHeroPassive(hk) {
 let cv, ctx, W, H, units, fx, running, gameOver, lastT, speed = 1, raf = 0, auto = false, ultT = 0;
 let curLevel = 1, bossFight = false;                 // 모드별 적 레벨/보스전 플래그
 
-// SSR god-tier battle portraits (preload the pretty arts so they appear "저대로" in canvas fight)
-// Only for the 9 Founding (u1~u9.png). Non-SSR stay synthetic for TG perf.
+// High-tier battle portraits (preload the pretty arts so they appear "저대로" in canvas fight)
+// SSR + UR/EX (u1~ + u201/u202). 고퀄 PNG로 보물 느낌 극대화. Non high stay synthetic.
 let ssrPortraits = {};
 function preloadSSRPortraits() {
   if (typeof ROSTER === "undefined") return;
@@ -253,11 +253,12 @@ function loadPortrait(id) {   // 편성된 캐릭 일러스트 lazy 로드 (전 
   ssrPortraits[id] = img;
 }
 
-// Enemy visuals: small set of hostile portraits (art/enemy/*.png) for bosses/elites only (TG perf).
-// All other enemies = rich synthetic procedural (aggressive red, spikes, level scaling) so battles feel worthy vs beautiful player army.
+// Enemy visuals: hostile boss PNGs for real variety (보스 레이드 맛 UP).
+// Bosses use dedicated art/enemy/boss-*.png + final-titan etc. (drawBoss에서 PNG + variant overlay).
+// Non-boss elites use limited PNGs, rest rich synthetic.
 let enemyPortraits = {};
 function preloadEnemyPortraits() {
-  const keys = ["titan", "boss", "drone", "marksman", "guardian", "bruiser", "commander", "elite-drone", "corrupted-titan"];
+  const keys = ["titan", "final-titan", "boss", "drone", "marksman", "guardian", "bruiser", "commander", "elite-drone", "corrupted-titan", "boss-guardian", "boss-commander", "boss-bruiser", "boss-marksman"];
   keys.forEach(k => {
     if (enemyPortraits[k]) return;
     const img = new Image();
@@ -797,6 +798,9 @@ function spawnArmy(side) {
           id: u.id, name: u.name, vis: u.vis, color: u.color, isSpecific: true, rarity: u.rarity, dmgOut: 0,
           r: specR, // larger visual for selected characters to appear properly on field
         });
+        // 고등급은 더 크게 (보물 시각 강조)
+        const lastU = units[units.length-1];
+        if (["UR","EX"].includes(u.rarity) || u.id >= 201) lastU.r *= 1.22;
         // Apply unique gear effects
         const gearEffects = getGearEffectsForChar(u.id);
         gearEffects.forEach(eff => applyGearEffectToUnit(units[units.length-1], eff));
@@ -854,7 +858,13 @@ function spawnArmy(side) {
       atkM *= 1.3;
     }
     const isBoss = side === "e" && bossFight;
-    if (isBoss) { hpM *= 7; atkM *= 2.2; }
+    if (isBoss) { 
+      // 챕터가 높을수록 점점 더 강하고 깨기 어려움
+      const bossScale = 5 + Math.floor(curLevel / 5) * 0.8; 
+      hpM *= bossScale; 
+      atkM *= 1.6 + Math.floor(curLevel / 8) * 0.3; 
+      rr *= 1.1 + Math.min(0.4, curLevel / 100); // bigger for high ch
+    }
     const hp = Math.round(s.hp * hpM), atk = Math.round(s.atk * atkM);
     const ai = Math.min(3, s.ai + hb.aiBonus + aw);   // ✦ 각성마다 AI +1 (소울로만 가능)
     let rr = isBoss ? s.r * 1.8 : s.r;
@@ -864,7 +874,20 @@ function spawnArmy(side) {
     // MVP enemy visual upgrade: wider triggers so tower formations (screenshot like 47층) use more PNGs instead of pure identical synth
     let portraitKey = null, eName = null;
     if (side === "e") {
-      if (isBoss || t === "titan") { 
+      if (isBoss) {
+        // 보스 챕터별 다양성
+        if (t === "titan") {
+          portraitKey = (curLevel >= 50) ? "final-titan" : (curLevel >= 25 ? "corrupted-titan" : "titan");
+        } else if (t === "guardian") portraitKey = "boss-guardian";
+        else if (t === "commander") portraitKey = "boss-commander";
+        else if (t === "bruiser") portraitKey = "boss-bruiser";
+        else if (t === "marksman") portraitKey = "boss-marksman";
+        else if (t === "drone") portraitKey = "elite-drone";
+        else portraitKey = "titan";
+
+        eName = curLevel < 15 ? "약화 보스" : (curLevel < 40 ? "강화 보스" : "최종 보스");
+        eName = "보스 " + (SPEC[t]?.name || t) + (curLevel > 40 ? " (전설)" : "");
+      } else if (t === "titan") {
         portraitKey = "titan"; 
         eName = curLevel < 15 ? "타락 거신" : (curLevel < 40 ? "타락 심연" : "종말의 심판자"); 
       }
@@ -873,7 +896,6 @@ function spawnArmy(side) {
       else if (t === "marksman" && curLevel >= 14) { portraitKey = "marksman"; eName = "적 저격수"; }
       else if (curLevel >= 25 && (i % 3 === 0)) { portraitKey = "elite-drone"; eName = "망령 " + (SPEC[t].name || t); }
       else if (t === "commander" && curLevel > 15) { eName = "그림자 지휘"; }
-      // 추가 매핑 (tower swarm 가시성 업)
       else if (t === "guardian" && curLevel >= 20) { portraitKey = "corrupted-titan"; eName = "타락 방벽"; }
       else if (t === "bruiser" && curLevel >= 16) { portraitKey = "titan"; eName = "적 강습"; }
     }
@@ -885,6 +907,7 @@ function spawnArmy(side) {
       atkT: Math.random() * 0.4, skT: s.skillCd * 0.5, shield: 0, buff: 0, buffT: 0, spd: 0, spdT: 0,
       portraitKey, eName,
       bossVariant: isBoss ? (curLevel < 15 ? 'base' : (curLevel < 40 ? 'corrupted' : 'final')) : undefined,
+      bossSkillT: isBoss ? 4 : 0,  // 보스 전용 스킬 타이머
     });
   });
 }
@@ -962,7 +985,16 @@ function applyMode() {
     $status.textContent = META.dailyDone === today() ? t("sDailyDone") : t("sDaily");
   } else if (m === "boss") {
     curLevel = META.chapter; bossFight = true;
-    counts.e = { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 1 };
+    // 챕터별 보스 다양성 (초반 약해 보이게 → 후반 간지+강력)
+    let bossT = "titan";
+    if (curLevel >= 50) bossT = "titan";       // final titan
+    else if (curLevel >= 35) bossT = "commander";
+    else if (curLevel >= 25) bossT = "bruiser";
+    else if (curLevel >= 15) bossT = "guardian";
+    else if (curLevel >= 8) bossT = "marksman";
+    else bossT = "drone";                      // 초반: 드론 보스 (안 쌔보임)
+    counts.e = { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 };
+    counts.e[bossT] = 1;
     $status.textContent = t("sBoss");
   } else {                                            // campaign
     curLevel = META.chapter;
@@ -1158,6 +1190,7 @@ function step(u, dt) {
   if (u.spdT > 0 && (u.spdT -= dt) <= 0) u.spd = 0;
   if (u.shield > 0) u.shield -= dt;
   u.atkT -= dt; u.skT -= dt;
+  if (u.bossSkillT > 0) u.bossSkillT -= dt;
 
   const foes = enemiesOf(u);
   const tgt = chooseTarget(u, foes);
@@ -1171,6 +1204,47 @@ function step(u, dt) {
     else if (u.skill === "barrier") { u.shield = 3; const m = alliesOf(u).filter((a) => dist(u, a) < 60).sort((a, b) => a.hp - b.hp)[0]; if (m) m.shield = 3; u.skT = u.skillCd; addFx(u.x, u.y, "barrier"); }
     else if (u.skill === "charge" && d > u.range + 6 && d < 120) { const k = Math.min(1, (d - u.range) / d); u.x += (tgt.x - u.x) * k; u.y += (tgt.y - u.y) * k; foes.filter((f) => dist(u, f) < 36).forEach((f) => dmg(f, 16, u)); u.skT = u.skillCd; addFx(u.x, u.y, "charge"); }
     else if (u.skill === "overclock") { const m = alliesOf(u).filter((a) => dist(u, a) < 85); if (m.length) { m.forEach((a) => { a.hp = Math.min(a.maxHp, a.hp + 22); a.buff = 5; a.buffT = 5; }); u.hp = Math.min(u.maxHp, u.hp + 12); u.skT = u.skillCd; addFx(u.x, u.y, "overclock"); } }
+  }
+
+  // ★ 보스 전용 고유 스킬 (챕터/변형별로 다르게, 깨기 어렵고 간지나게 - 다른 게임 레이드 보스 스타일 모방, 원본 아님)
+  if (u.boss && u.bossSkillT <= 0) {
+    const v = u.bossVariant || 'base';
+    const isHigh = curLevel > 25 || v === 'final';
+    const isMid = curLevel > 12 || v === 'corrupted';
+    if (v === 'final' || isHigh) {
+      // Final phase: 대규모 AOE + 자가 회복 (깨기 힘듦)
+      foes.forEach(f => dmg(f, u.atk * 0.8, u));
+      u.hp = Math.min(u.maxHp, u.hp + u.maxHp * 0.12);
+      addFx(u.x, u.y, "charge"); addFx(u.x, u.y, "barrier");
+      for (let k=0; k<3; k++) addFx(u.x + (Math.random()-0.5)*40, u.y - 20, "overclock");
+      u.bossSkillT = 7;
+    } else if (isMid) {
+      // Corrupted/mid: 주변 디버프 + 지속 회복
+      foes.filter(f => dist(u,f) < 70).forEach(f => { f.buff = -4; f.buffT = 5; });
+      u.hp = Math.min(u.maxHp, u.hp + u.maxHp * 0.07);
+      addFx(u.x, u.y, "overclock");
+      u.bossSkillT = 5.5;
+    } else {
+      // Base/low ch: 단순 강타 (안쌔보이게)
+      if (tgt) dmg(tgt, u.atk * 1.4, u);
+      addFx(u.x, u.y, "charge", tgt ? tgt.x : 0, tgt ? tgt.y : 0, u.side);
+      u.bossSkillT = 6;
+    }
+    // 고챕터 보스 phase: 하수인 소환 (다른 게임 레이드처럼, 깨기 어렵게)
+    if ((curLevel > 30 || variant === 'final') && u.hp < u.maxHp * 0.55 && !u.minionsSpawned) {
+      u.minionsSpawned = true;
+      for (let k = 0; k < (curLevel > 45 ? 3 : 2); k++) {
+        const addT = ["drone", "marksman"][k % 2];
+        const sAdd = SPEC[addT] || SPEC.drone;
+        units.push({
+          t: addT, side: "e", x: u.x + (k-1)*30, y: u.y + 30 + Math.random()*20,
+          hp: u.maxHp * 0.15, maxHp: u.maxHp*0.15, atk: u.atk * 0.4, range: sAdd.range *0.8,
+          speed: sAdd.speed, atkCd: sAdd.atkCd *1.2, ai:1, sight:80,
+          atkT:1, skT:3, shield:0, buff:0, buffT:0, spd:0, spdT:0, boss: false
+        });
+      }
+      addFx(u.x, u.y, "barrier");
+    }
   }
 
   // ── 기동 ──
@@ -1201,7 +1275,7 @@ function step(u, dt) {
 function dmg(target, amount, from) {
   if (target.hp <= 0) return;
   let a = amount, ctr = false;
-  if (from && from.crit && Math.random() * 100 < (from.crit + (from.side === "p" ? ascEdgeCrit() : 0))) { a *= (from.critDmgMul || 2.0) + (from.side === "p" ? ascPierceDmg() : 0); ctr = true; }                    // 운→치명타 ×1.6 + Intel bonus
+  { const _ec = (from && from.side === "p") ? ascEdgeCrit() : 0; const _bc = (from && from.crit) || 0; if (from && (_bc + _ec) > 0 && Math.random() * 100 < (_bc + _ec)) { a *= (from.critDmgMul || 2.0) + (from.side === "p" ? ascPierceDmg() : 0); ctr = true; } }                    // 운→치명타 ×1.6 + Intel bonus
   if (from && COUNTER[from.t] && COUNTER[from.t].indexOf(target.t) >= 0) { a *= CTR_MUL; ctr = true; }   // 상성 +30%
   // Gear unique: type slayer
   if (from && from.typeSlayer && from.typeSlayer.target === target.t) {
@@ -1318,7 +1392,7 @@ function confettiBurst() {
   for (let i = 0; i < 14; i++) { addFx(W * (0.15 + Math.random() * 0.7), H * (0.18 + Math.random() * 0.4), i % 2 ? "charge" : "barrier"); }
 }
 
-// 🐲 위압적 보스 전용 렌더 — 보스별 디자인 차별화 (base / corrupted / final)
+// 🐲 위압적 보스 전용 렌더 — 보스별 디자인 차별화 (base / corrupted / final) + 실제 PNG 이미지 다양성
 function drawBoss(u) {
   const t = Date.now();
   const variant = u.bossVariant || 'base';
@@ -1328,6 +1402,10 @@ function drawBoss(u) {
   const cx = u.x, cy = u.y + bob;
   const hpr = u.maxHp ? Math.max(0, u.hp / u.maxHp) : 1;
   ctx.save();
+
+  // 보스 이미지 사용 (다양성 위해 portraitKey 기반 PNG 우선)
+  const pk = u.portraitKey;
+  const hasBossImg = pk && enemyPortraits[pk] && enemyPortraits[pk].complete && enemyPortraits[pk].naturalWidth > 0;
 
   let glow = "#ff2a2a", body1 = "#5a1414", body2 = "#2e0a0a", body3 = "#160404", stroke = "#ff3b3b", core1 = "#fff2c0", core2 = "#ff5a2a";
   let spikeCount = 9, plateSides = 6, eyeColor = "#ff1a1a";
@@ -1341,34 +1419,52 @@ function drawBoss(u) {
     spikeCount = 7; plateSides = 5; eyeColor = "#fde047"; crackAlpha = Math.max(0.2, 0.3 - hpr * 0.3);
   }
 
-  ctx.shadowColor = glow; ctx.shadowBlur = 26;
-  // 스파이크
-  ctx.fillStyle = body1; ctx.strokeStyle = stroke; ctx.lineWidth = 1.5;
-  for (let i = 0; i < spikeCount; i++) {
-    const a = (i / spikeCount) * 6.283 + t / 2600;
-    const sl = R * (1.18 + Math.sin(t / 480 + i) * 0.09);
-    ctx.beginPath();
-    ctx.moveTo(cx + Math.cos(a - 0.13) * R * 0.72, cy + Math.sin(a - 0.13) * R * 0.72);
-    ctx.lineTo(cx + Math.cos(a) * sl, cy + Math.sin(a) * sl);
-    ctx.lineTo(cx + Math.cos(a + 0.13) * R * 0.72, cy + Math.sin(a + 0.13) * R * 0.72);
-    ctx.closePath(); ctx.fill(); ctx.stroke();
-  }
-  ctx.shadowBlur = 0;
+  if (hasBossImg) {
+    // 실제 PNG 이미지로 보스 본체 (챕터별 다양성 + 간지)
+    const img = enemyPortraits[pk];
+    let sz = R * 2.8;
+    if (v === 'final' || curLevel > 35) sz *= 1.15; // high ch bigger more epic
+    ctx.shadowColor = glow; ctx.shadowBlur = (v==='final' ? 45 : 30);
+    ctx.save();
+    ctx.beginPath(); ctx.arc(cx, cy, R * (v==='final' ? 1.4 : 1.25), 0, 7); ctx.clip();
+    ctx.drawImage(img, cx - sz/2, cy - sz * 0.55, sz, sz);
+    ctx.restore();
+    ctx.shadowBlur = 0;
+    // high tier extra aura
+    if (v === 'final' || curLevel > 40) {
+      ctx.strokeStyle = `rgba(251,191,36,${0.3 + Math.sin(t/200)*0.2})`;
+      ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.arc(cx, cy, R * 1.55, 0, 7); ctx.stroke();
+    }
+  } else {
+    // 폴백 procedural (기존)
+    ctx.shadowColor = glow; ctx.shadowBlur = 26;
+    ctx.fillStyle = body1; ctx.strokeStyle = stroke; ctx.lineWidth = 1.5;
+    for (let i = 0; i < spikeCount; i++) {
+      const a = (i / spikeCount) * 6.283 + t / 2600;
+      const sl = R * (1.18 + Math.sin(t / 480 + i) * 0.09);
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(a - 0.13) * R * 0.72, cy + Math.sin(a - 0.13) * R * 0.72);
+      ctx.lineTo(cx + Math.cos(a) * sl, cy + Math.sin(a) * sl);
+      ctx.lineTo(cx + Math.cos(a + 0.13) * R * 0.72, cy + Math.sin(a + 0.13) * R * 0.72);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+    ctx.shadowBlur = 0;
 
-  // 본체
-  const plate = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.3, 2, cx, cy, R * breathe);
-  plate.addColorStop(0, body1); plate.addColorStop(0.6, body2); plate.addColorStop(1, body3);
-  ctx.fillStyle = plate; ctx.beginPath();
-  for (let i = 0; i <= plateSides; i++) {
-    const a = (i / plateSides) * 6.283 - t / 4200;
-    const rr = R * breathe * (1 + Math.sin(t / 720 + i) * 0.02);
-    const x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr;
-    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    const plate = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.3, 2, cx, cy, R * breathe);
+    plate.addColorStop(0, body1); plate.addColorStop(0.6, body2); plate.addColorStop(1, body3);
+    ctx.fillStyle = plate; ctx.beginPath();
+    for (let i = 0; i <= plateSides; i++) {
+      const a = (i / plateSides) * 6.283 - t / 4200;
+      const rr = R * breathe * (1 + Math.sin(t / 720 + i) * 0.02);
+      const x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr;
+      i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    }
+    ctx.closePath(); ctx.fill();
+    ctx.lineWidth = 2.5; ctx.strokeStyle = stroke; ctx.stroke();
   }
-  ctx.closePath(); ctx.fill();
-  ctx.lineWidth = 2.5; ctx.strokeStyle = stroke; ctx.stroke();
 
-  // 크랙
+  // 크랙 (모든 경우 적용, 이미지 위에)
   if (hpr < 0.8) {
     ctx.strokeStyle = `rgba(255,90,40,${crackAlpha})`; ctx.lineWidth = 1.5;
     const crackNum = variant === 'corrupted' ? 8 : 5;
@@ -1379,13 +1475,12 @@ function drawBoss(u) {
     }
   }
 
-  // 코어 (색상 변형)
+  // 코어 + 눈 (항상 위에, variant 색상)
   const cr = R * 0.5;
   const core = ctx.createRadialGradient(cx, cy, 1, cx, cy, cr * (1 + Math.sin(t / 250) * 0.12));
   core.addColorStop(0, core1); core.addColorStop(0.4, core2); core.addColorStop(1, "rgba(120,10,10,0)");
   ctx.fillStyle = core; ctx.beginPath(); ctx.arc(cx, cy, cr, 0, 7); ctx.fill();
 
-  // 눈
   for (const dx of [-0.22, 0.22]) {
     ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(cx + dx * R, cy - R * 0.05, R * 0.075, 0, 7); ctx.fill();
     ctx.fillStyle = eyeColor; ctx.beginPath(); ctx.arc(cx + dx * R, cy - R * 0.05, R * 0.038, 0, 7); ctx.fill();
@@ -1398,9 +1493,16 @@ function drawBoss(u) {
   ctx.fillStyle = hpr > 0.4 ? "#ef4444" : "#fbbf24"; rRect(cx - w / 2, by, w * hpr, 5, 2.5); ctx.fill();
   ctx.fillStyle = "#fbbf24"; ctx.font = "bold 11px sans-serif"; ctx.textAlign = "center";
   let bName = "타락 거신";
-  if (variant === 'corrupted') bName = "타락 심연";
-  else if (variant === 'final') bName = "종말의 심판자";
+  if (curLevel >= 50) bName = "종말의 심판자";
+  else if (variant === 'final' || curLevel >= 40) bName = "최종형 거신";
+  else if (variant === 'corrupted' || curLevel >= 25) bName = "타락 심연";
+  else if (curLevel >= 15) bName = "강화 거신";
   ctx.fillText("🐲 " + (u.eName || u.name || bName), cx, by - 5);
+  // 고챕터 간지 추가 텍스트
+  if (curLevel > 30) {
+    ctx.font = "9px sans-serif"; ctx.fillStyle = "rgba(251,191,36,0.8)";
+    ctx.fillText("CH." + curLevel + (variant==='final' ? " FINAL" : ""), cx, by - 15);
+  }
 }
 
 // ── 그리기 ────────────────────────────────────────────────────────────────────
@@ -1791,13 +1893,13 @@ function finish(p, e) {
       }
       else { extra = `<div class="rwd2">${t("rwDailyDone")}</div>`; }
       title = t("rDaily"); bumpPrestige(1);
-    } else if (m === "boss") {                          // 🐲 보스: 골드 + 난이도별 다이아 + 박스 + 🔮소울
-      reward = bonus(120 + META.chapter * 25);
-      const gemR = 5 + Math.floor(META.chapter / 5);
+    } else if (m === "boss") {                          // 🐲 보스: 골드 + 난이도별 다이아 + 박스 + 🔮소울  (챕터 높을수록 보상 대폭 ↑)
+      reward = bonus(100 + META.chapter * 35);
+      const gemR = 8 + Math.floor(META.chapter / 3);
       META.gems = (META.gems || 0) + gemR;
-      const soulR = 2 + Math.floor(META.chapter / 6);   // 🔮 소울 — 희소(각성 전용 프리미엄)
+      const soulR = 3 + Math.floor(META.chapter / 4);   // 🔮 소울 — 희소
       META.soul = (META.soul || 0) + Math.round(soulR * ascSoulMul());
-      const tier = META.chapter >= 25 ? "epic" : META.chapter >= 10 ? "rare" : "common";
+      const tier = META.chapter >= 40 ? "legend" : META.chapter >= 25 ? "epic" : META.chapter >= 10 ? "rare" : "common";
       const bx = openBox(tier);
       title = t("rBoss");
       extra = `<div class="rwd">${t("rwBoss", { n: reward })} +💎${gemR} +🔮${soulR}</div><div class="rwd2" style="color:${bx.color}">${BOX[tier].icon} ${bx.text}</div>`;
@@ -2075,6 +2177,13 @@ function gacha() {
     setTimeout(() => {
       toast(rar.key==="EX" ? "🌌 초월 영웅 강림!" : (rar.key==="UR" ? "🌀 전설+ 영웅 합류" : "✨ 전설의 영웅이 군단에 합류했습니다"), "#fbbf24");
     }, 650);
+  }
+  // 고등급 전용 보물 획득 멘트 (유저가 아끼게)
+  if (gu && (gu.rarity === "UR" || gu.rarity === "EX")) {
+    setTimeout(() => {
+      const txt = gu.rarity === "EX" ? "🌌 이 존재는 군단의 절대 보물. 소중히 키우세요." : "🌀 운명의 매듭이 맺어졌습니다. 이 유닛은 평범하지 않습니다.";
+      toast(txt, gu.color);
+    }, 1400);
   }
 }
 // 💎 프리미엄 10연 (SR↑ 1개 보장) — 다이아의 핵심 용도
@@ -2489,7 +2598,7 @@ function openSettings() { updateToggles(); buildLangList(); renderProfile(); ren
 const ASC_NODES = [
   { key: "might",    glyph: "⚔️" },
   { key: "bulwark",  glyph: "🛡️" },
-  { key: "momentum", glyph: "â¡" },
+  { key: "momentum", glyph: "⚡" },
   { key: "soulnode", glyph: "🔮" },
   { key: "plunder",  glyph: "💰" },
   { key: "edge",     glyph: "🗡" },
@@ -2536,7 +2645,7 @@ function renderPrestige() {
   });
 }
 function buyAscNode(node) {
-  if (running || !META.asc || !(node in META.asc)) return;
+  if (running || !META.asc) return; if (!(node in META.asc)) META.asc[node] = 0;
   const lv = ascLv(node), cost = ascNodeCost(lv);
   if ((META.ether || 0) < cost) { toast(t("ascNeed"), "#ef4444"); return; }
   META.ether -= cost; META.asc[node] = lv + 1;
