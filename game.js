@@ -2126,11 +2126,16 @@ function showOdds() {
   const m = $("odds-modal");
   if (m) {
     m.classList.remove("hidden");
+    m.style.display = "flex";                 // 인라인 직접 제어 — CSS 전파·캐시 무관 보장
     // close on background click (robust)
-    m.onclick = (e) => { if (e.target === m) m.classList.add("hidden"); };
+    m.onclick = (e) => { if (e.target === m) closeOdds(); };
     const closeBtn = $("odds-close");
-    if (closeBtn) closeBtn.onclick = () => m.classList.add("hidden");
+    if (closeBtn) closeBtn.onclick = closeOdds;
   }
+}
+function closeOdds() {
+  const m = $("odds-modal");
+  if (m) { m.style.display = "none"; m.classList.add("hidden"); }   // 인라인 none = 항상 닫힘
 }
 // ── 🪙 골드 뽑기 + 🔮 소울 분해 루프 (트리니티 SPEC-soul-fodder-loop) ──────────────
 const GOLD_GACHA_COST = 200;
@@ -3297,13 +3302,11 @@ on("sg-gear10", "click", () => gearGacha(10));
 on("sg-gold1", "click", goldGacha);            // 🪙 골드 뽑기 (소울루프)
 on("sg-gold10", "click", goldGacha10);         // 🪙 골드 10연
 on("odds-view", "click", showOdds);            // 📊 전체 확률 공개 (법적 disclosure)
-on("odds-close", "click", () => { const m=$("odds-modal"); if(m) m.classList.add("hidden"); });
+on("odds-close", "click", closeOdds);
 // also close on background for the odds disclosure modal (robust UX)
 const oddsM = $("odds-modal");
 if (oddsM) {
-  oddsM.addEventListener("click", (e) => {
-    if (e.target === oddsM) oddsM.classList.add("hidden");
-  }, {once: false});
+  oddsM.addEventListener("click", (e) => { if (e.target === oddsM) closeOdds(); }, {once: false});
 }
 on("ss-gold5k", "click", () => soulBuy(20, { gold: 5000 }));     // 🔮 소울 상점
 on("ss-gold30k", "click", () => soulBuy(100, { gold: 30000 }));
@@ -3924,6 +3927,7 @@ document.addEventListener('keydown', function(e) {
       const el = $(id);
       if (el && !el.classList.contains('hidden')) {
         el.classList.add('hidden');
+        if (id === 'odds-modal') el.style.display = 'none';   // 인라인 display 제압
       }
     });
   }
