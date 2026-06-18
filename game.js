@@ -234,7 +234,7 @@ let curLevel = 1, bossFight = false;                 // 모드별 적 레벨/보
 let ssrPortraits = {};
 function preloadSSRPortraits() {
   if (typeof ROSTER === "undefined") return;
-  ROSTER.filter(u => u.rarity === "SSR" && !ssrPortraits[u.id]).forEach(u => {
+  ROSTER.filter(u => ["SSR","UR","EX"].includes(u.rarity) && !ssrPortraits[u.id]).forEach(u => {
     const img = new Image();
     img.src = `art/u${u.id}.png`;
     img.onload = () => {
@@ -811,6 +811,27 @@ function spawnArmy(side) {
         // Squad level Guardian shield from synergy
         if (syn.shieldAdd) units[units.length-1].shield = (units[units.length-1].shield || 0) + syn.shieldAdd;
       });
+
+      // ★ UR/EX 전용 고유 패시브 — 보물 같은 존재감 (실제 전투 효과)
+      const hasHelix = squad.some(uu => uu.name === "Helix" || uu.id === 201);
+      const hasAether = squad.some(uu => uu.name === "Aether" || uu.id === 202);
+      if (hasHelix) {
+        // Helix: 운명의 매듭 — 팀 전체 치명 대폭 + 연계 강화
+        units.filter(ut => ut.side === 'p').forEach(ut => {
+          ut.crit = Math.min(85, (ut.crit || 0) + 20);
+          ut.critDmgMul = (ut.critDmgMul || 1) * 1.25;
+        });
+        // 특별 시각 표시용 플래그
+        window._helixFateActive = true;
+      }
+      if (hasAether) {
+        // Aether: 영원의 숨결 — 시작 실드 + 부활 등록
+        units.filter(ut => ut.side === 'p').forEach(ut => {
+          ut.shield = (ut.shield || 0) + Math.round(ut.maxHp * 0.28);
+        });
+        window._aetherBreathActive = true;
+        window._aetherReviveUsed = false;
+      }
       return;   // 편성이 부대 — 제네릭 스폰 생략
     }
   }
@@ -1180,7 +1201,7 @@ function step(u, dt) {
 function dmg(target, amount, from) {
   if (target.hp <= 0) return;
   let a = amount, ctr = false;
-  if (from && from.crit && Math.random() * 100 < from.crit) { a *= (from.critDmgMul || 2.0); ctr = true; }                    // 운→치명타 ×1.6 + Intel bonus
+  if (from && from.crit && Math.random() * 100 < (from.crit + (from.side === "p" ? ascEdgeCrit() : 0))) { a *= (from.critDmgMul || 2.0) + (from.side === "p" ? ascPierceDmg() : 0); ctr = true; }                    // 운→치명타 ×1.6 + Intel bonus
   if (from && COUNTER[from.t] && COUNTER[from.t].indexOf(target.t) >= 0) { a *= CTR_MUL; ctr = true; }   // 상성 +30%
   // Gear unique: type slayer
   if (from && from.typeSlayer && from.typeSlayer.target === target.t) {
@@ -1211,6 +1232,21 @@ function dmg(target, amount, from) {
         al.hp = Math.min(al.maxHp, al.hp + heal);
         addFx(al.x, al.y - 5, "overclock");
       });
+    }
+    // ★ Aether EX 전용: 영원의 숨결 부활 (진짜 보물 각인 - 유저가 아끼게)
+    if (target.hp <= 0 && target.side === 'p' && window._aetherBreathActive && !window._aetherReviveUsed) {
+      const aetherAlive = units.find(ut => ut.side==='p' && (ut.name === 'Aether' || ut.id === 202) && ut.hp > 0);
+      if (aetherAlive) {
+        target.hp = Math.round(target.maxHp * 0.62);
+        target.shield = Math.max(target.shield || 0, 5.5);
+        window._aetherReviveUsed = true;
+        addFx(target.x, target.y, "overclock");
+        addFx(target.x, target.y - 25, "dnum", "부활", 1, 'p');
+        units.filter(al => al.side==='p' && al.hp > 0 && dist(target, al) < 90).forEach(al => {
+          al.hp = Math.min(al.maxHp, al.hp + Math.round(al.maxHp * 0.18));
+          addFx(al.x, al.y - 8, "overclock");
+        });
+      }
     }
   }
 }
@@ -1577,6 +1613,23 @@ function draw() {
         ctx.textAlign = 'center';
         ctx.fillText(u.name || '', u.x, u.y - clipR - 4);
       }
+      // ★ 고등급 특수 시각 (Helix 운명 실, Aether 영원 오라) — 보물 느낌 극대화
+      if (u.name === "Helix" || u.id === 201) {
+        // 운명의 매듭: 주변 아군에게 실 연결 (시각)
+        const allies = units.filter(a => a.side==='p' && a.hp>0 && a !== u && dist(u,a) < 120);
+        ctx.strokeStyle = "rgba(232,121,249,0.55)"; ctx.lineWidth = 1.2;
+        allies.slice(0,3).forEach(al => {
+          ctx.beginPath(); ctx.moveTo(u.x, u.y); ctx.lineTo(al.x, al.y); ctx.stroke();
+          ctx.beginPath(); ctx.arc(al.x, al.y, 3, 0, 7); ctx.fillStyle="rgba(232,121,249,0.7)"; ctx.fill();
+        });
+      }
+      if (u.name === "Aether" || u.id === 202) {
+        // 영원의 숨결: 부드러운 영원 오라
+        ctx.strokeStyle = "rgba(244,114,182,0.35)"; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.arc(u.x, u.y, u.r * 1.35, 0, 7); ctx.stroke();
+        ctx.strokeStyle = "rgba(244,114,182,0.18)"; ctx.lineWidth = 5;
+        ctx.beginPath(); ctx.arc(u.x, u.y, u.r * 1.6, 0, 7); ctx.stroke();
+      }
       // For enemy PNG: clean, no extra circles/lines/rims/spikes (user request for NPC enemies to look proper without unnecessary effects)
     } else {
       ctx.font = (u.r + 8) + "px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
@@ -1743,7 +1796,7 @@ function finish(p, e) {
       const gemR = 5 + Math.floor(META.chapter / 5);
       META.gems = (META.gems || 0) + gemR;
       const soulR = 2 + Math.floor(META.chapter / 6);   // 🔮 소울 — 희소(각성 전용 프리미엄)
-      META.soul = (META.soul || 0) + soulR;
+      META.soul = (META.soul || 0) + Math.round(soulR * ascSoulMul());
       const tier = META.chapter >= 25 ? "epic" : META.chapter >= 10 ? "rare" : "common";
       const bx = openBox(tier);
       title = t("rBoss");
@@ -1753,7 +1806,7 @@ function finish(p, e) {
       const protected = founders >= 3 && META.streak > 0 && Math.random() < 0.15; // ethical: 3+ Founders = 1 miss safe chance (no full reset abuse)
       if (!protected) META.streak = (META.streak || 0) + 1;
       reward = bonus(50 + META.chapter * 22 + Math.min(80, (META.streak - 1) * 10));  // early boost for ch18 reach (치명적 P0)
-      reward = Math.round(reward * ascGoldMul());        // 🔄 환생 「쇄도」 골드획득 가속
+      reward = Math.round(reward * ascGoldMul() * ascPlunderMul());        // 🔄 환생 「쇄도」 골드획득 가속
       if (META.chapter < 999) META.chapter += 1;
       title = t("rChapter");
       extra = `<div class="rwd">${t("rwGold", { n: reward })}` + (META.streak > 1 ? t("rwStreak", { n: META.streak }) : "") + `</div><div class="rwd2">${t("rwChapter", { n: META.chapter })}</div>`;
@@ -1911,24 +1964,30 @@ function getDominionCardText() {
 // ── 가챠 (뽑기) — 등급·천장·전설해금 ─────────────────────────────────────────
 const GACHA_COST = 8;   // 캐릭 단차: 💰골드100 → 💎젬8 (10연 💎80과 화폐 통일·비교가능. 1젬≈100골드라 골드단차=사실상 무한공짜였음. 트리니티 옵션A)
 const RARITY = [
-  { key: "N",   p: 0.60, color: "#9ca3af", lvls: 1 },
-  { key: "R",   p: 0.25, color: "#60a5fa", lvls: 2 },
-  { key: "SR",  p: 0.13, color: "#c084fc", lvls: 3 },
-  { key: "SSR", p: 0.02, color: "#fbbf24", lvls: 5 },
-]; // 캐릭터 N60% R25% SR13% SSR2% (2% base + pity>6 ramp0.06 hard10: low chase "one more" + safety net, Genshin/AFK avoid pity hell, dopamine 최적)
+  { key: "N",   p: 0.575, color: "#9ca3af", lvls: 1 },
+  { key: "R",   p: 0.24,  color: "#60a5fa", lvls: 2 },
+  { key: "SR",  p: 0.12,  color: "#c084fc", lvls: 3 },
+  { key: "SSR", p: 0.03,  color: "#fbbf24", lvls: 5 },
+  { key: "UR",  p: 0.01,  color: "#e879f9", lvls: 6 }, // SSR 위 1%
+  { key: "EX",  p: 0.005, color: "#f472b6", lvls: 7 }, // 최고 0.5% (2명 중 1)
+]; // N57.5% R24% SR12% SSR3% UR1% EX0.5% (고등급 1.5% 총, 2명만 존재 → 1회당 EX 0.5%는 chase용. SSR 대비 6배 희소)
 function rollRarity() {
   let p = (META.pity || 0);
-  if (p >= 10) return RARITY[3]; // hard pity 10
-  let ssrP = 0.02 + (p > 6 ? (p - 6) * 0.06 : 0);
+  if (p >= 10) {
+    // hard pity 10 → SSR 보장 (UR/EX는 순수 운, 별도 천장 없음)
+    const ssr = RARITY.find(x => x.key === "SSR");
+    return ssr || RARITY[3];
+  }
+  let ssrP = 0.03 + (p > 6 ? (p - 6) * 0.06 : 0);  // SSR soft ramp
   let r = Math.random(), a = 0;
-  const adj = RARITY.map(x => x.key==="SSR" ? {...x, p: Math.min(ssrP, 1)} : x);
+  const adj = RARITY.map(x => x.key==="SSR" ? {...x, p: Math.min(ssrP, 0.15)} : x);
   const sum = adj.reduce((s,x)=>s+x.p,0) || 1;
   for (const t of adj) { a += t.p / sum; if (r <= a) return t; }
   return RARITY[0];
 }
 // ── 🪙 골드 뽑기 + 🔮 소울 분해 루프 (트리니티 SPEC-soul-fodder-loop) ──────────────
 const GOLD_GACHA_COST = 200;
-const SOUL_VAL = { N: 2, R: 5, SR: 15, SSR: 60 };   // 분해 시 등급별 소울
+const SOUL_VAL = { N: 2, R: 5, SR: 15, SSR: 60, UR: 150, EX: 300 };   // 분해 시 등급별 소울 (고등급 보호)
 function rollGoldRarity() { const r = Math.random(); if (r < 0.05) return RARITY[2]; if (r < 0.30) return RARITY[1]; return RARITY[0]; }  // SR5/R25/N70, SSR 0%
 function goldGacha() {
   if (running) return;
@@ -1966,7 +2025,7 @@ function dismantleDupes() {
   let soul = 0, count = 0;
   for (const id in META.dupes) {
     const n = META.dupes[id] | 0; if (n <= 0) continue;
-    const u = (typeof ROSTER !== "undefined") && ROSTER.find((x) => x.id === +id); if (!u || u.rarity === "SSR") continue;   // SSR 제외(안전)
+    const u = (typeof ROSTER !== "undefined") && ROSTER.find((x) => x.id === +id); if (!u || ["SSR","UR","EX"].includes(u.rarity)) continue;   // SSR/UR/EX 초희소 보호
     soul += n * (SOUL_VAL[u.rarity] || 2); count += n; META.dupes[id] = 0;
   }
   if (count === 0) { toast("분해할 중복이 없어요 (SSR 제외)", "#9ca3af"); return; }
@@ -1992,8 +2051,11 @@ function gacha() {
   if ((META.gems || 0) < GACHA_COST) { toast(t("tGemShort", { n: GACHA_COST }), "#ef4444"); return; }
   META.gems -= GACHA_COST; META.pulls = (META.pulls || 0) + 1; META.pity = (META.pity || 0) + 1;
   let rar = rollRarity();
-  if (META.pity >= 10) rar = RARITY[3];                 // hard pity 10 SSR (dopamine safety net, low-frust chase)
-  if (rar.key === "SSR" || rar.key === "SR") META.pity = 0;
+  if (META.pity >= 10) {
+    const ssr = RARITY.find(x => x.key === "SSR") || RARITY[3];
+    rar = ssr;
+  }                 // hard pity 10 SSR (UR/EX는 별도 운)
+  if (["SSR","UR","EX","SR"].includes(rar.key)) META.pity = 0;
   let msg;
   if (rar.key === "SSR" && !META.titanOwned) { META.titanOwned = true; counts.p.titan = 1; msg = t("tTitan"); }
   else {
@@ -2007,11 +2069,11 @@ function gacha() {
   bumpPrestige(0.5); saveMeta(); updateMeta(); reset();
   showGacha(rar, msg, gu ? [{ name: gu.name, rarity: rar.key, dupe: !isNew, isNew }] : []);
   // gacha pulse interlock from daily ritual
-  if (rar.key==="SSR" && getLegionSignal()>1.8) setTimeout(()=>toast("✨ SSR 획득! 오프라인·일일 보상도 챙기세요", "#fbbf24"), 900);
-  // §21 Eros Form Gaze tease (Plato eros for ideal + visual desire; god-pose hint on SSR without repeat prior teases)
-  if (rar.key === "SSR") {
+  if (["SSR","UR","EX"].includes(rar.key) && getLegionSignal()>1.8) setTimeout(()=>toast("✨ 고등급 획득! 오프라인·일일 보상도 챙기세요", "#fbbf24"), 900);
+  // §21 high tease
+  if (["SSR","UR","EX"].includes(rar.key)) {
     setTimeout(() => {
-      toast("✨ 전설의 영웅이 군단에 합류했습니다", "#fbbf24");
+      toast(rar.key==="EX" ? "🌌 초월 영웅 강림!" : (rar.key==="UR" ? "🌀 전설+ 영웅 합류" : "✨ 전설의 영웅이 군단에 합류했습니다"), "#fbbf24");
     }, 650);
   }
 }
@@ -2021,15 +2083,18 @@ function gacha10() {
   if (running) return;
   if ((META.gems || 0) < GACHA10_COST) { toast(t("tGemShort", { n: GACHA10_COST }), "#ef4444"); return; }
   META.gems -= GACHA10_COST;
-  const RANK = { N: 0, R: 1, SR: 2, SSR: 3 };
+  const RANK = { N: 0, R: 1, SR: 2, SSR: 3, UR: 4, EX: 5 };
   let best = 0; const results = [];
   for (let i = 0; i < 10; i++) {
     META.pity = (META.pity || 0) + 1;
     let rar = rollRarity();
-    if (META.pity >= 10) rar = RARITY[3]; // hard10
+    if (META.pity >= 10) {
+      const ssr = RARITY.find(x => x.key === "SSR") || RARITY[3];
+      rar = ssr;
+    }
     if (i === 9 && best < 2) rar = RARITY[2];          // 10연 SR↑ 보장 (dopamine)
-    if (rar.key === "SSR" || rar.key === "SR") META.pity = 0;
-    best = Math.max(best, RANK[rar.key]);
+    if (["SSR","UR","EX","SR"].includes(rar.key)) META.pity = 0;
+    best = Math.max(best, RANK[rar.key] || 0);
     const gu = grantUnit(rar.key);
     if (gu) results.push({ name: gu.name, rarity: rar.key, dupe: !window._lastGrantNew, isNew: window._lastGrantNew });
     if (rar.key === "SSR" && !META.titanOwned) { META.titanOwned = true; counts.p.titan = 1; }
@@ -2037,7 +2102,8 @@ function gacha10() {
   }
   saveMeta(); updateMeta(); reset();
   const bestKey = Object.keys(RANK).find((k) => RANK[k] === best);
-  showGacha(RARITY[best], t("tGacha10", { x: bestKey }), results);
+  const showR = RARITY.find(r => r.key === bestKey) || RARITY[best] || RARITY[0];
+  showGacha(showR, t("tGacha10", { x: bestKey }), results);
 }
 function rarColor(k) { const r = RARITY.find((x) => x.key === k); return r ? r.color : "#9ca3af"; }
 function showGacha(rar, msg, results) {
@@ -2045,19 +2111,19 @@ function showGacha(rar, msg, results) {
   $("gacha-rank").textContent = rar.key;
   $("gacha-rank").style.color = rar.color;
   $("gacha-card").style.boxShadow = `0 0 40px ${rar.color}, inset 0 0 0 2px ${rar.color}`;
-  if (rar.key === "SSR") $("gacha-rank").classList.add('ssr-tease'); else $("gacha-rank").classList.remove('ssr-tease');
-  const pity = (META.pity||0); const pct = rar.key==="SSR" ? "2%+" : "visible";
-  $("gacha-msg").innerHTML = msg + `<br><small style="opacity:.7">🎯 천장 ${pity}/10 · 캐릭터 N60% R25% SR13% SSR2% | 장비 동일 | pity 투명 (soft&gt;6 +6%/회 ramp, hard10 SSR 보장)</small>`;
+  if (["SSR","UR","EX"].includes(rar.key)) $("gacha-rank").classList.add('ssr-tease'); else $("gacha-rank").classList.remove('ssr-tease');
+  const pity = (META.pity||0); const pct = ["SSR","UR","EX"].includes(rar.key) ? "고등급!" : "visible";
+  $("gacha-msg").innerHTML = msg + `<br><small style="opacity:.7">🎯 천장 ${pity}/10 · N57.5% R24% SR12% SSR3% UR1% EX0.5% | hard10=SSR 보장 (UR/EX는 순수 럭키)</small>`;
   const listEl = $("gacha-list");   // 🎰 뽑힌 목록 (10연 = 10개 다, 단차 = 신규/중복)
   if (listEl) listEl.innerHTML = (results && results.length)
     ? results.map((r) => `<div class="gres r${r.rarity}" style="border-color:${rarColor(r.rarity)}"><b style="color:${rarColor(r.rarity)}">${r.rarity}</b><span class="gres-nm">${r.name}</span>${r.dupe ? '<span class="gres-dup">중복</span>' : (r.isNew ? '<span class="gres-new">NEW</span>' : '')}</div>`).join("")
     : "";
   g.classList.remove("hidden");
-  if (rar.key === "SSR") {
+  if (["SSR","UR","EX"].includes(rar.key)) {
     SFX.ssr();
     haptic("heavy");
     try { confettiBurst(); } catch(e){}
-    try { ssrSpectacle(); } catch(e){}   // ⭐ 전설 강림 스펙터클
+    try { ssrSpectacle(); } catch(e){}   // ⭐ 고등급 강림 (UR/EX 포함)
   } else {
     SFX.gacha();
     haptic("light");
@@ -2423,8 +2489,22 @@ function openSettings() { updateToggles(); buildLangList(); renderProfile(); ren
 const ASC_NODES = [
   { key: "might",    glyph: "⚔️" },
   { key: "bulwark",  glyph: "🛡️" },
-  { key: "momentum", glyph: "⚡" },
+  { key: "momentum", glyph: "â¡" },
+  { key: "soulnode", glyph: "🔮" },
+  { key: "plunder",  glyph: "💰" },
+  { key: "edge",     glyph: "🗡" },
+  { key: "pierce",   glyph: "💥" },
+  { key: "vanguard", glyph: "🚩" },
+  { key: "prosper",  glyph: "💎" },
+  { key: "insight",  glyph: "🌟" },
 ];
+function ascSoulMul()    { return 1 + ascLv("soulnode") * 0.25; }
+function ascPlunderMul() { return 1 + ascLv("plunder") * 0.12; }
+function ascEdgeCrit()   { return ascLv("edge") * 2; }
+function ascPierceDmg()  { return ascLv("pierce") * 0.08; }
+function ascVanguardCh() { return Math.min(5, ascLv("vanguard")); }
+function ascProsperGem() { return ascLv("prosper") * 3; }
+function ascInsightDisc(){ return Math.min(0.40, ascLv("insight") * 0.04); }
 function ascNodeKey(key, suf) { return "n" + key.charAt(0).toUpperCase() + key.slice(1) + (suf || ""); } // might→nMight / nMightD
 function renderPrestige() {
   const box = $("prestige-box"); if (!box) return;
@@ -2540,10 +2620,10 @@ function doAscend() {
   const ask = t("ascConfirm", { ch: ch, e: gain });
   const go = () => {
     if (btn) { btn.disabled = true; btn.textContent = "..."; }
-    META.ether = (META.ether || 0) + gain;
+    META.ether = (META.ether || 0) + gain; META.gems = (META.gems || 0) + ascProsperGem();
     META.ascCount = (META.ascCount || 0) + 1;
     // 비파괴 리셋: 챕터·골드·연승만. 유닛·장비·가챠·캐릭·타워는 전부 유지.
-    META.chapter = 1; META.streak = 0;
+    META.chapter = 1 + ascVanguardCh(); META.streak = 0;
     META.gold = 550 + ascStartGold();
     saveMeta();
     const newPwr = ascPowerMul();
@@ -2983,13 +3063,17 @@ function gearGacha(count) {
   if ((META.gems || 0) < cost) { toast(t("tGemShort", { n: cost }), "#ef4444"); return; }
   if (META.gear.length + count > 500) { toast(t("gFull"), "#ef4444"); return; }   // 60→500(군주): 중복 쌓아 합성·각성 가능하게
   META.gems -= cost;
-  const RK = { N: 0, R: 1, SR: 2, SSR: 3 }; let best = null; const results = [];
+  const RK = { N: 0, R: 1, SR: 2, SSR: 3, UR: 4, EX: 5 }; let best = null; const results = [];
   for (let i = 0; i < count; i++) {
     META.pity = (META.pity || 0) + 1;
     let rar = rollRarity();
-    if (META.pity >= 10) rar = RARITY[3]; // hard10 SSR (dopamine safety net)
-    if (count === 10 && i === 9 && (!best || RK[best.rarity] < 2)) rar = RARITY[2];   // 🔨 장비 10연 SR↑ 1보장 (캐릭 10연과 동일 인센티브)
-    if (rar.key === "SSR" || rar.key === "SR") META.pity = 0;
+    if (META.pity >= 10) {
+      const ssr = RARITY.find(x => x.key === "SSR") || RARITY[3];
+      rar = ssr;
+    }
+    if (["UR","EX"].includes(rar.key)) rar = RARITY.find(x => x.key === "SSR") || rar;  // 장비는 고등급 미지원 → SSR 폴백
+    if (count === 10 && i === 9 && (!best || RK[best.rarity] < 2)) rar = RARITY[2];   // 🔨 장비 10연 SR↑ 1보장
+    if (["SSR","UR","EX","SR"].includes(rar.key)) META.pity = 0;
     const g = newGear(rar.key); META.gear.push(g);
     results.push({ name: (SLOT_ICON[g.slot] || "🔨") + " " + (g.name || g.slot), rarity: g.rarity });
     if (!best || RK[g.rarity] > RK[best.rarity]) best = g;
@@ -3135,7 +3219,7 @@ function cStar(id) { return (META.charStar && META.charStar[id]) || 0; }
 function cAwak(id) { return (META.charAwak && META.charAwak[id]) || 0; }
 function cEnhCost(id) { return Math.round(120 * (cEnh(id) + 1) * charRarityCost(id)); }
 function cEnhRate(id) { return Math.max(35, 100 - cEnh(id) * 6); }
-function cAwakCost(id) { return 30 * Math.pow(2, cAwak(id)); }
+function cAwakCost(id) { return Math.round(30 * Math.pow(2, cAwak(id)) * (1 - ascInsightDisc())); }
 function charEnhance(id) {
   if (running) return;
   const e = cEnh(id), cost = cEnhCost(id);
