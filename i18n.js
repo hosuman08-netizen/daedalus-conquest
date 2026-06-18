@@ -3,7 +3,7 @@ const LANGS = ["ko", "en", "ja", "zh", "hi", "ru"];
 const LANG_LABEL = { ko: "한국어", en: "English", ja: "日本語", zh: "中文", hi: "हिन्दी", ru: "Русский" };
 
 const I18N = {
-  ko: {
+  ko: { carryVolume:"물량 군집",carrySeal:"캐리 — 네 지휘가 봉인했다",carryLed:"주도",vanguardFocus:"🔥 선봉대 24시간 집중",
     title: "AI 군단 전쟁",
     "mode.campaign": "📖 캠페인", "mode.tower": "🗼 무한탑", "mode.daily": "📅 일일", "mode.boss": "🐲 보스", "mode.turnbased": "⚔️ 턴제", "mode.arena": "🏟️ 아레나",
     start: "▶ 전투 시작", pause: "⏸ 일시정지", resume: "▶ 재개", auto: "⚔️ 자동사냥", autoOn: "⚔️ 자동 ON",
@@ -29,7 +29,7 @@ const I18N = {
     heroes: { strategist: ["책략가", "전군 AI 지능"], berserker: ["광전사", "전군 공격력"], warden: ["수호자", "전군 체력"], ranger: ["사격대장", "드론·사수 공격"], mech: ["기갑사령", "돌격봇·가디언 체력"], engineer: ["정비공", "전군 체력 재생"], dragoon: ["용기사", "전군 · 강력 궁극기"] },
     ultName: { focus: "전술 지휘", rage: "광폭화", wall: "철벽", volley: "아크 볼리", assault: "강습", repair: "긴급 수리", dragon: "드래곤 강림" }, // Sovereign 20260616: ranger ULT 이름 업그레이드 (평범한 일제사격 → 진짜 궁극기 "아크 볼리")
   },
-  en: {
+  en: { carryVolume:"Swarm volume",carrySeal:"carried — your command sealed it",carryLed:"led",vanguardFocus:"🔥 Vanguard 24h Focus",
     title: "AI Legion War",
     "mode.campaign": "📖 Campaign", "mode.tower": "🗼 Tower", "mode.daily": "📅 Daily", "mode.boss": "🐲 Boss", "mode.turnbased": "⚔️ Tactics", "mode.arena": "🏟️ Arena",
     start: "▶ Start", pause: "⏸ Pause", resume: "▶ Resume", auto: "⚔️ Auto-hunt", autoOn: "⚔️ Auto ON",
@@ -55,7 +55,7 @@ const I18N = {
     heroes: { strategist: ["Strategist", "All units AI"], berserker: ["Berserker", "All ATK"], warden: ["Warden", "All HP"], ranger: ["Ranger Lord", "Drone·Marksman ATK"], mech: ["Mech Cmdr", "Bruiser·Guardian HP"], engineer: ["Engineer", "All units regen HP"], dragoon: ["Dragoon", "All · strong ult"] },
     ultName: { focus: "Tactical Order", rage: "Berserk", wall: "Iron Wall", volley: "Arclight Volley", assault: "Assault", repair: "Repair", dragon: "Dragon Descent" }, // Sovereign 20260616: ranger ULT name upgrade
   },
-  ja: {
+  ja: { carryVolume:"物量スウォーム",carrySeal:"キャリー — 君の指揮が決めた",carryLed:"主導",vanguardFocus:"🔥 先鋒隊24時間集中",
     title: "AI軍団戦争",
     "mode.campaign": "📖 物語", "mode.tower": "🗼 無限塔", "mode.daily": "📅 デイリー", "mode.boss": "🐲 ボス", "mode.turnbased": "⚔️ 戦術", "mode.arena": "🏟️ 闘技場",
     start: "▶ 戦闘開始", pause: "⏸ 一時停止", resume: "▶ 再開", auto: "⚔️ 自動狩り", autoOn: "⚔️ 自動 ON",
@@ -81,7 +81,7 @@ const I18N = {
     heroes: { strategist: ["策略家", "全軍AI知能"], berserker: ["狂戦士", "全軍攻撃"], warden: ["守護者", "全軍HP"], ranger: ["射撃隊長", "ドローン·射手攻撃"], mech: ["機甲司令", "突撃兵·ガーディアンHP"], engineer: ["整備士", "全軍HP回復"], dragoon: ["竜騎士", "全軍+ · 強力な奥義"] },
     ultName: { focus: "戦術指揮", rage: "狂暴化", wall: "鉄壁", volley: "一斉射撃", assault: "強襲", repair: "緊急修理", dragon: "竜の降臨" },
   },
-  zh: {
+  zh: { carryVolume:"数量蜂群",carrySeal:"carry — 你的指挥锁定胜局",carryLed:"主导",vanguardFocus:"🔥 先锋队24小时专注",
     title: "AI军团战争",
     "mode.campaign": "📖 战役", "mode.tower": "🗼 无限塔", "mode.daily": "📅 每日", "mode.boss": "🐲 首领", "mode.turnbased": "⚔️ 战术", "mode.arena": "🏟️ 竞技场",
     start: "▶ 开始战斗", pause: "⏸ 暂停", resume: "▶ 继续", auto: "⚔️ 自动狩猎", autoOn: "⚔️ 自动开",
@@ -107,7 +107,7 @@ const I18N = {
     heroes: { strategist: ["策略家", "全军AI智能+1"], berserker: ["狂战士", "全军攻击+15%"], warden: ["守护者", "全军血量+20%"], ranger: ["射击队长", "无人机·射手攻击+30%"], mech: ["机甲司令", "突击兵·守卫血量+40%"], engineer: ["工程师", "全军回血"], dragoon: ["龙骑士", "全军+8% · 强力必杀"] },
     ultName: { focus: "战术指挥", rage: "狂暴", wall: "铁壁", volley: "齐射", assault: "强袭", repair: "紧急维修", dragon: "巨龙降临" },
   },
-  hi: {
+  hi: { carryVolume:"झुंड दम",carrySeal:"carry — आपकी कमान ने जीत दिलाई",carryLed:"नेतृत्व",vanguardFocus:"🔥 अग्रदल 24घं फोकस",
     title: "एआई सेना युद्ध",
     "mode.campaign": "📖 अभियान", "mode.tower": "🗼 मीनार", "mode.daily": "📅 दैनिक", "mode.boss": "🐲 बॉस", "mode.turnbased": "⚔️ रणनीति", "mode.arena": "🏟️ अखाड़ा",
     start: "▶ युद्ध शुरू", pause: "⏸ रोकें", resume: "▶ जारी", auto: "⚔️ ऑटो-शिकार", autoOn: "⚔️ ऑटो चालू",
@@ -133,7 +133,7 @@ const I18N = {
     heroes: { strategist: ["रणनीतिकार", "पूरी सेना AI +1"], berserker: ["योद्धा", "पूरी सेना ATK +15%"], warden: ["रक्षक", "पूरी सेना HP +20%"], ranger: ["निशानेबाज़ नायक", "ड्रोन·निशानेबाज़ ATK +30%"], mech: ["मैक कमांडर", "ब्रूज़र·रक्षक HP +40%"], engineer: ["इंजीनियर", "पूरी सेना HP रिजेन"], dragoon: ["ड्रैगून", "पूरी सेना +8% · तेज़ अल्टी"] },
     ultName: { focus: "रणनीतिक आदेश", rage: "उन्माद", wall: "लौह दीवार", volley: "वॉली", assault: "हमला", repair: "मरम्मत", dragon: "ड्रैगन अवतरण" },
   },
-  ru: {
+  ru: { carryVolume:"Рой массой",carrySeal:"вынес — твоё командование решило",carryLed:"вёл",vanguardFocus:"🔥 Авангард 24ч фокус",
     title: "Война ИИ-Легионов",
     "mode.campaign": "📖 Кампания", "mode.tower": "🗼 Башня", "mode.daily": "📅 Ежедн.", "mode.boss": "🐲 Босс", "mode.turnbased": "⚔️ Тактика", "mode.arena": "🏟️ Арена",
     start: "▶ В бой", pause: "⏸ Пауза", resume: "▶ Продолжить", auto: "⚔️ Автобой", autoOn: "⚔️ Авто ВКЛ",

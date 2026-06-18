@@ -339,7 +339,7 @@ function loadMeta() {
                 prestige: 0, // cohesion "numbers go up" on claims
                 ether: 0, asc: { might: 0, bulwark: 0, momentum: 0 }, ascCount: 0, // 🔄 환생 루프: 에테르(영구화폐)+복리노드(공세/불굴/쇄도)
                 ritualWin: "", // exact claim window seed for variable ritual bonuses
-                vanguard: "", // 24h FOMO Vanguard Focus god-VFX unlock
+                vanguard: "", // 24h focus (FOMO pressure 금지 — neutral celebration only)
                 deployed: [], // 편성: 출전할 보유 캐릭터 id 배열 (이들이 곧 부대)
                 charLv: {}, charGear: {}, // 캐릭별 레벨 / 캐릭별 장비 {charId:{slot:gearId}}
                 charEnh: {}, charStar: {}, charAwak: {}, // 캐릭별 강화/승급/각성
@@ -1153,7 +1153,7 @@ function setMode(m) {
     return;   // ⚠️ 버그픽스: return 없으면 840줄로 fall-through→META.mode="arena" 영구저장+campaign 둔갑 오염. MVP 숨김 스텁이라 no-op.
   }
   if (m === "mystery") {
-    // Sovereign: 아레나 옆 ??? 티저로 유저 궁금증/FOMO 유발
+    // Sovereign: 아레나 옆 ??? 티저 (중립 호기심, FOMO·압박 금지)
     toast("❓ ??? : 비밀의 레기온 창. 곧 공개될 새로운 모드! 지금은... 궁금증만 폭발?", "#fbbf24");
     // optional: openEvent() or bump prestige curiosity
     return;
@@ -1558,7 +1558,7 @@ function draw() {
   // Militia aura on high-invest regulars (endowment "MY elites" visual)
   // (applied per-unit below in synthetic path)
 
-  // Vanguard Focus 24h visual cue (FOMO carry teaser on Founders)
+  // Vanguard Focus 24h visual cue (fair teaser, no FOMO pressure)
   const isVanguard = !!(META.vanguard && META.vanguard === today());
 
   // subtle separator for player squad area (when selected chars deployed) vs enemy grid – makes "my team" clearer
@@ -1977,7 +1977,7 @@ function finish(p, e) {
   }
   // Vanguard Focus 24h FOMO + first-win stronger overlay (limited window carry teaser + personal belonging)
   const isV = META.vanguard && META.vanguard === today();
-  if (win && isV) carried = '<div class="rwd2" style="color:#fde047;font-size:11px;">🔥 선봉대 24h 집중</div>' + carried;
+  if (win && isV) carried = '<div class="rwd2" style="color:#fde047;font-size:11px;">' + t("vanguardFocus") + '</div>' + carried;
   if (win && (META.chapter||1) <= 2) {
     const fwin = (typeof t === "function" && t("firstWinOverlay")) || "🏆 첫 승리! 내 군단이 {carried}% 활약 — 네 지휘였다";
     carried = `<div class="rwd2" style="color:#fbbf24;font-size:12px;">${fwin.replace('{carried}', getCarriedFeedback().match(/(\d+)%/)?.[1]||'42')}</div>`;
@@ -2017,7 +2017,7 @@ function getCarriedFeedback() {
   const distinct = ORDER.filter(tt => (counts.p||META.army)[tt]>0).length;
   const syn = distinct>=4 ? 42 : distinct>=3 ? 28 : 12;
   const specifics = getDeployedUnits();
-  let carry = "물량 군집";
+  let carry = t("carryVolume");
   if (specifics.length && units.length) {
     // real contrib: use live dmgOut if tracked (specifics), else power-share proxy
     const contribs = [];
@@ -2041,9 +2041,9 @@ function getCarriedFeedback() {
       const pct = Math.max(8, Math.floor((c.w / totalW) * 72));
       return `${c.name} ${pct}%`;
     }).join(" · ");
-    carry = top + " 캐리 — 네 지휘가 봉인했다";
+    carry = top + " " + t("carrySeal");
   } else if (!specifics.length) {
-    carry = ["Arclight 심판", "Solace 수복", "Dominus 지휘", "Vespera 군집", "Vector 동기화"][(META.pulls||0)%5];
+    carry = ["Arclight","Solace","Dominus","Vespera","Vector"][(META.pulls||0)%5] + " " + t("carryLed");
   }
   return `Synergy +${syn}% | ${carry}`;
 }
