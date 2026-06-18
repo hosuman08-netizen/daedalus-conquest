@@ -1627,7 +1627,7 @@ function finish(p, e) {
       const founders = getFounderCount();
       const protected = founders >= 3 && META.streak > 0 && Math.random() < 0.15; // ethical: 3+ Founders = 1 miss safe chance (no full reset abuse)
       if (!protected) META.streak = (META.streak || 0) + 1;
-      reward = bonus(40 + META.chapter * 20 + Math.min(80, (META.streak - 1) * 10));
+      reward = bonus(50 + META.chapter * 22 + Math.min(80, (META.streak - 1) * 10));  // early boost for ch18 reach (치명적 P0)
       reward = Math.round(reward * ascGoldMul());        // 🔄 환생 「쇄도」 골드획득 가속
       if (META.chapter < 999) META.chapter += 1;
       title = t("rChapter");
@@ -2311,8 +2311,6 @@ function renderPrestige() {
     h += `<button id="prestige-go" class="prestige-btn">${t("ascBtn", { ch: ch })}</button>`;
   } else {
     h += `<div class="asc-locked">${t("ascLocked", { gate: ASCEND_GATE, ch: ch })}</div>`;
-    // Sovereign 즉시 테스트용 (환생 시스템 검증). 실제 배포시 제거하거나 숨김.
-    h += `<button onclick="META.chapter=ASCEND_GATE;saveMeta();updateMeta();renderPrestige();toast('ch18 강제 — 이제 환생 가능',' #a3e635')" style="font-size:10px;margin-top:4px;padding:2px 6px;background:#3a2a1a;border:1px solid #555;color:#c4b5fd;">🔧 ch18 강제 (테스트)</button>`;
   }
   h += `<div class="asc-shop-h">${t("ascShop")}</div>`;
   for (const n of ASC_NODES) {
@@ -2727,6 +2725,12 @@ function openShop() { renderShop(); showPage("shop"); }
 function renderShop() {
   const box = $("shop-list"); if (!box) return;
   box.innerHTML = "";
+  if (!PAY_BACKEND) {
+    const note = document.createElement("div");
+    note.style.cssText = "font-size:11px;color:#f59e0b;margin-bottom:6px;text-align:center;";
+    note.textContent = "🧪 데모 모드 (실제 Telegram Stars 결제는 Worker 배포 후 연동)";
+    box.appendChild(note);
+  }
   SHOP.forEach((p) => {
     const owned = (p.starter && META.starter) || (p.vip && META.vip) || (p.ultra && META.ultra);
     const active = p.id === "monthly" ? passActive("monthly") : p.id === "weekly" ? passActive("weekly") : false;
@@ -3444,4 +3448,14 @@ checkPasses();
 checkMilestones();   // 🏆 기존 진행분 백필(해금/보상 누락 방지)
 updateAutoBtn();
 updateMeta(); // ensure cohesion dash shows on load
+// Daily 미션 힌트 (치명적 루프)
+if (!META.dailyMissionsClaimed && ((META.dailyBattles||0) + (META.dailyPulls||0)) < 2) {
+  setTimeout(() => toast("📅 이벤트 → 일일 미션 확인! (전투/뽑 1회씩)", "#a3e635"), 2500);
+}
+// 기본 FTUE (신규 첫 경험 유도 — 출시 임박 최소 가이드)
+if ((META.chapter || 1) <= 2 && ((META.pulls || 0) + (META.owned || []).length) < 5) {
+  setTimeout(() => {
+    toast("⚔️ 전투 시작 → 🎰 가챠로 유닛 모으기 → 🦸 영웅 골라 강화!", "#a3e635");
+  }, 1400);
+}
 setTimeout(() => { try { maybeSortie(); } catch (e) {} }, 700);   // ⚔️ 일일 출정식 의례
