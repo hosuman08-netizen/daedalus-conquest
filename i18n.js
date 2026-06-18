@@ -26,7 +26,7 @@ const I18N = {
     tGachaUp: "유닛 +{n}강화", tTitan: "🐉 전설 타이탄 해금!!", tDaily: "🎁 일일 보상 +150 골드!", tIdle: "🌙 방치 보상 ({t}) +{n} 골드!", tRitual: "🌀 ritual +{n} (Legion var)", tForecast: "Legion Forecast: +var cohesion",
     tStarter: "💎 스타터팩 획득! 속도 2x 해금 +골드3000", tOwned: "이미 보유 중 — 속도 2x 사용 가능",
     tUlt: "💥 {x}!", tHeroUp: "🦸 {x} 강화! Lv{n}",
-    heroes: { strategist: ["책략가", "전군 AI 지능 +1"], berserker: ["광전사", "전군 공격력 +15%"], warden: ["수호자", "전군 체력 +20%"], ranger: ["사격대장", "드론·사수 공격 +30%"], mech: ["기갑사령", "돌격봇·가디언 체력 +40%"], engineer: ["정비공", "전군 체력 재생"], dragoon: ["용기사", "전군 +8% · 강력 궁극기"] },
+    heroes: { strategist: ["책략가", "전군 AI 지능"], berserker: ["광전사", "전군 공격력"], warden: ["수호자", "전군 체력"], ranger: ["사격대장", "드론·사수 공격"], mech: ["기갑사령", "돌격봇·가디언 체력"], engineer: ["정비공", "전군 체력 재생"], dragoon: ["용기사", "전군 · 강력 궁극기"] },
     ultName: { focus: "전술 지휘", rage: "광폭화", wall: "철벽", volley: "아크 볼리", assault: "강습", repair: "긴급 수리", dragon: "드래곤 강림" }, // Sovereign 20260616: ranger ULT 이름 업그레이드 (평범한 일제사격 → 진짜 궁극기 "아크 볼리")
   },
   en: {
@@ -52,7 +52,7 @@ const I18N = {
     tGachaUp: "Units +{n} upgraded", tTitan: "🐉 Legendary Titan unlocked!!", tDaily: "🎁 Daily reward +150 gold!", tIdle: "🌙 Idle reward ({t}) +{n} gold!", tRitual: "🌀 ritual +{n} (Legion var)", tForecast: "Legion Forecast: +var cohesion",
     tStarter: "💎 Starter Pack! 2x speed +3000 gold", tOwned: "Already owned — 2x speed available",
     tUlt: "💥 {x}!", tHeroUp: "🦸 {x} upgraded! Lv{n}",
-    heroes: { strategist: ["Strategist", "All units AI +1"], berserker: ["Berserker", "All ATK +15%"], warden: ["Warden", "All HP +20%"], ranger: ["Ranger Lord", "Drone·Marksman ATK +30%"], mech: ["Mech Cmdr", "Bruiser·Guardian HP +40%"], engineer: ["Engineer", "All units regen HP"], dragoon: ["Dragoon", "All +8% · strong ult"] },
+    heroes: { strategist: ["Strategist", "All units AI"], berserker: ["Berserker", "All ATK"], warden: ["Warden", "All HP"], ranger: ["Ranger Lord", "Drone·Marksman ATK"], mech: ["Mech Cmdr", "Bruiser·Guardian HP"], engineer: ["Engineer", "All units regen HP"], dragoon: ["Dragoon", "All · strong ult"] },
     ultName: { focus: "Tactical Order", rage: "Berserk", wall: "Iron Wall", volley: "Arclight Volley", assault: "Assault", repair: "Repair", dragon: "Dragon Descent" }, // Sovereign 20260616: ranger ULT name upgrade
   },
   ja: {
@@ -78,7 +78,7 @@ const I18N = {
     tGachaUp: "ユニット+{n}強化", tTitan: "🐉 伝説タイタン解放!!", tDaily: "🎁 デイリー報酬+150ゴールド!", tIdle: "🌙 放置報酬 ({t}) +{n}ゴールド!",
     tStarter: "💎 スターターパック獲得! 速度2x +3000ゴールド", tOwned: "所持済み — 速度2x使用可能",
     tUlt: "💥 {x}!", tHeroUp: "🦸 {x} 強化! Lv{n}",
-    heroes: { strategist: ["策略家", "全軍AI知能+1"], berserker: ["狂戦士", "全軍攻撃+15%"], warden: ["守護者", "全軍HP+20%"], ranger: ["射撃隊長", "ドローン·射手攻撃+30%"], mech: ["機甲司令", "突撃兵·ガーディアンHP+40%"], engineer: ["整備士", "全軍HP回復"], dragoon: ["竜騎士", "全軍+8% · 強力な奥義"] },
+    heroes: { strategist: ["策略家", "全軍AI知能"], berserker: ["狂戦士", "全軍攻撃"], warden: ["守護者", "全軍HP"], ranger: ["射撃隊長", "ドローン·射手攻撃"], mech: ["機甲司令", "突撃兵·ガーディアンHP"], engineer: ["整備士", "全軍HP回復"], dragoon: ["竜騎士", "全軍+ · 強力な奥義"] },
     ultName: { focus: "戦術指揮", rage: "狂暴化", wall: "鉄壁", volley: "一斉射撃", assault: "強襲", repair: "緊急修理", dragon: "竜の降臨" },
   },
   zh: {
