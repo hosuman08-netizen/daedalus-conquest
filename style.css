@@ -967,3 +967,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .gres-nm { color: #ddd; font-weight: 600; }
 .gres-dup { color: #c084fc; font-size: 9px; font-weight: 800; background: rgba(192,132,252,0.15); padding: 0 4px; border-radius: 4px; }
 .gres-new { color: #4ade80; font-size: 9px; font-weight: 800; background: rgba(74,222,128,0.15); padding: 0 4px; border-radius: 4px; }
+
+/* 에테르 노드 현재→다음 스탯 표시 (강화 시 얼마 오르는지) */
+.asc-node-now { font-size: 10.5px; color: #8b93a7; margin-top: 2px; }
+.asc-node-now b { color: #c4b5fd; font-weight: 700; }

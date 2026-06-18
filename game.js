@@ -344,7 +344,8 @@ function loadMeta() {
                 charLv: {}, charGear: {}, // 캐릭별 레벨 / 캐릭별 장비 {charId:{slot:gearId}}
                 charEnh: {}, charStar: {}, charAwak: {}, // 캐릭별 강화/승급/각성
                 loginStreak: 0, // daily login streak for bonus
-                dailyBattles: 0, dailyPulls: 0, dailyUlts: 0, dailyTower: 0, dailyMissionsClaimed: false }; // daily cycle missions for habit loop
+                dailyBattles: 0, dailyPulls: 0, dailyUlts: 0, dailyTower: 0, dailyMissionsClaimed: false, // daily cycle missions for habit loop
+                bossClears: 0 }; // 하이브리드 보스 보상: 누적 복리 (클리어 수에 따라 미래 보상 증가)
   if (!def.owned) def.owned = [];
   try {
     const m = JSON.parse(localStorage.getItem(META_KEY));
@@ -395,6 +396,7 @@ function loadMeta() {
       if (typeof merged.charEnh !== "object" || !merged.charEnh) merged.charEnh = {};
       if (typeof merged.charStar !== "object" || !merged.charStar) merged.charStar = {};
       if (typeof merged.charAwak !== "object" || !merged.charAwak) merged.charAwak = {};
+      if (typeof merged.bossClears !== "number") merged.bossClears = 0;
       return merged;
     }
   } catch (e) {}
@@ -1893,21 +1895,36 @@ function finish(p, e) {
       }
       else { extra = `<div class="rwd2">${t("rwDailyDone")}</div>`; }
       title = t("rDaily"); bumpPrestige(1);
-    } else if (m === "boss") {                          // 🐲 보스: 난이도 배율 + 즉시 큰 보상 + 복리 (bossClears) 하이브리드
-      const diffMul = Math.max(1, (META.chapter / 8));  // 난이도에 비례 즉시 배율
-      reward = Math.round(bonus(100 + META.chapter * 35) * diffMul);
-      const gemR = Math.round((8 + Math.floor(META.chapter / 3)) * diffMul * 0.8);
-      META.gems = (META.gems || 0) + gemR;
-      const soulR = Math.round((3 + Math.floor(META.chapter / 4)) * diffMul);
-      META.soul = (META.soul || 0) + Math.round(soulR * ascSoulMul());
+    } else if (m === "boss") {                          // 🐲 보스: 난이도 배율 + 즉시 큰 보상 + 복리 하이브리드 (어려울수록 즉시↑, 클리어할수록 미래↑)
+      // 난이도 배율: 챕터 높을수록 (보스 강함에 비례) 즉시 보상 크게
+      const diffMul = 1 + (META.chapter * 0.05);  // e.g. ch20=2x, ch50=3.5x
+      let baseGold = bonus(80 + META.chapter * 40);
+      let baseGem = 10 + Math.floor(META.chapter / 4);
+      let baseSoul = 4 + Math.floor(META.chapter / 5);
+
+      // 즉시 난이도 적용
+      let rGold = Math.round(baseGold * diffMul);
+      let rGem = Math.round(baseGem * diffMul);
+      let rSoul = Math.round(baseSoul * diffMul);
+
+      // 복리 (과거 클리어 보너스) - 미래 보스 보상에 영구 적용
       META.bossClears = (META.bossClears || 0) + 1;
-      const compMul = 1 + Math.min(0.75, META.bossClears * 0.012); // 복리 1.2% per clear, cap ~75%
-      reward = Math.round(reward * compMul);
+      const compMul = 1 + Math.min(1.0, (META.bossClears - 1) * 0.01); // 클리어당 +1%, 최대 100% (2배)
+      rGold = Math.round(rGold * compMul);
+      rGem = Math.round(rGem * compMul);
+      rSoul = Math.round(rSoul * compMul);
+
+      reward = rGold;
+      META.gems = (META.gems || 0) + rGem;
+      META.soul = (META.soul || 0) + Math.round(rSoul * ascSoulMul());
+
       const tier = META.chapter >= 40 ? "legend" : META.chapter >= 25 ? "epic" : META.chapter >= 10 ? "rare" : "common";
       const bx = openBox(tier);
       title = t("rBoss");
-      extra = `<div class="rwd">${t("rwBoss", { n: reward })} +💎${gemR} +🔮${soulR}</div><div class="rwd2" style="color:${bx.color}">${BOX[tier].icon} ${bx.text}</div>`;
-      if (compMul > 1.05) extra += `<div class="rwd2">복리 +${Math.round((compMul-1)*100)}% (누적 ${META.bossClears}회)</div>`;
+      const effMul = diffMul * compMul;
+      extra = `<div class="rwd">${t("rwBoss", { n: reward })} +💎${rGem} +🔮${rSoul}</div><div class="rwd2" style="color:${bx.color}">${BOX[tier].icon} ${bx.text}</div>`;
+      extra += `<div class="rwd2">난이도×${diffMul.toFixed(2)} · 복리×${compMul.toFixed(2)} = 총 ${effMul.toFixed(2)}배</div>`;
+      if (compMul > 1.01) extra += `<div class="rwd2">🔥 복리 +${Math.round((compMul-1)*100)}% (총 ${META.bossClears}회 보스 클리어)</div>`;
     } else {                                            // 📖 캠페인: 다음 챕터
       const founders = getFounderCount();
       const protected = founders >= 3 && META.streak > 0 && Math.random() < 0.15; // ethical: 3+ Founders = 1 miss safe chance (no full reset abuse)
@@ -2619,6 +2636,21 @@ function ascPierceDmg()  { return ascLv("pierce") * 0.08; }
 function ascVanguardCh() { return Math.min(5, ascLv("vanguard")); }
 function ascProsperGem() { return ascLv("prosper") * 3; }
 function ascInsightDisc(){ return Math.min(0.40, ascLv("insight") * 0.04); }
+function ascNodeStat(key, lv) {
+  switch (key) {
+    case "might":    return "+" + Math.round((Math.pow(1.08, lv) - 1) * 100) + "% 공격";
+    case "bulwark":  return "+" + Math.round((Math.pow(1.08, lv) - 1) * 100) + "% 체력";
+    case "momentum": return "+" + (lv * 18) + "% 골드 · 시작 +" + (lv * 300) + "g";
+    case "soulnode": return "+" + (lv * 25) + "% 소울";
+    case "plunder":  return "+" + (lv * 12) + "% 전투골드";
+    case "edge":     return "+" + (lv * 2) + "% 치명";
+    case "pierce":   return "+" + (lv * 8) + "% 치명피해";
+    case "vanguard": return "+" + Math.min(5, lv) + " 시작챕터";
+    case "prosper":  return "+" + (lv * 3) + " 젬/환생";
+    case "insight":  return "-" + Math.round(Math.min(0.40, lv * 0.04) * 100) + "% 각성비용";
+    default: return "";
+  }
+}
 function ascNodeKey(key, suf) { return "n" + key.charAt(0).toUpperCase() + key.slice(1) + (suf || ""); } // might→nMight / nMightD
 function renderPrestige() {
   const box = $("prestige-box"); if (!box) return;
@@ -2636,7 +2668,8 @@ function renderPrestige() {
     const lv = ascLv(n.key), cost = ascNodeCost(lv), can = e >= cost;
     h += `<div class="asc-node">`
       + `<div class="asc-node-main"><b>${n.glyph} ${t(ascNodeKey(n.key))}</b> <span class="asc-lv">${t("ascLvN", { n: lv })}</span>`
-      + `<div class="asc-node-d">${t(ascNodeKey(n.key, "D"))}</div></div>`
+      + `<div class="asc-node-d">${t(ascNodeKey(n.key, "D"))}</div>`
+      + `<div class="asc-node-now">현재 <b>${ascNodeStat(n.key, lv)}</b> → <b style="color:#a3e635">${ascNodeStat(n.key, lv + 1)}</b></div></div>`
       + `<button class="asc-buy${can ? "" : " off"}" data-node="${n.key}"${can ? "" : " disabled"}>${t("ascUp", { c: cost })}</button>`
       + `</div>`;
   }
