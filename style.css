@@ -412,7 +412,7 @@ h1::first-letter { color: var(--crimson); }
 #modes { display: flex; gap: 5px; overflow-x: auto; padding: 2px 0 4px; -webkit-overflow-scrolling: touch; }
 #modes::-webkit-scrollbar { display: none; }
 .modetab { flex: 0 0 auto; padding: 7px 11px; font-size: 12.5px; font-weight: 700; border-radius: 8px;
-  background: #1c1730; color: var(--dim); border: 1.5px solid transparent; }
+  background: #1c1730; color: var(--dim); border: 1.5px solid transparent; display: inline-flex; align-items: center; gap: 4px; }
 .modetab.sel { color: #fff; background: linear-gradient(135deg, #3a1d5e, #2a1840); border-color: var(--purple); }
 .modetab.locked { opacity: .5; position: relative; }
 .modetab.locked::after { content: "🔒"; font-size: 9px; margin-left: 3px; }
@@ -420,6 +420,16 @@ h1::first-letter { color: var(--crimson); }
   border-color: #fbbf24;
   animation: teaser-pulse 2s infinite ease-in-out;
   opacity: 0.85;
+}
+/* 간지 아이콘 스타일 — 고급스러운 glow, 크기 */
+.modetab .mode-icon {
+  font-size: 14px;
+  line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.6));
+}
+.modetab.sel .mode-icon {
+  filter: drop-shadow(0 0 4px currentColor) drop-shadow(0 1px 2px rgba(0,0,0,0.6));
+  transform: scale(1.05);
 }
 @keyframes teaser-pulse {
   0%,100% { box-shadow: 0 0 0 0 #fbbf2466; }
@@ -964,6 +974,15 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .cq-node.here .cq-n { color: #67e8f9; }
 .cq-node.lock { opacity: .4; }
 @keyframes cqPulse { 0%,100% { box-shadow: 0 0 6px -2px #67e8f966; } 50% { box-shadow: 0 0 12px -1px #67e8f9bb; } }
+/* 🎁 정복 보상 상자 노드 */
+.cq-node.rwd .cq-ic { font-size: 17px; }
+.cq-node.rwd.ready { border-color: #fbbf24; background: linear-gradient(160deg, #4a3410, #2a1d08); cursor: pointer; animation: cqChest .9s infinite ease-in-out; }
+.cq-node.rwd.ready .cq-n { color: #fde047; }
+.cq-node.rwd.done { border-color: #3f6212; background: linear-gradient(160deg, #1a240f, #11160a); opacity: .8; }
+.cq-node.rwd.done .cq-n { color: #84cc16; }
+.cq-node.rwd.lock { border-color: #3a3550; opacity: .55; }
+@keyframes cqChest { 0%,100% { box-shadow: 0 0 8px -2px #fbbf2488; transform: translateY(0); } 50% { box-shadow: 0 0 16px 0 #fbbf24cc; transform: translateY(-2px); } }
+.cq-badge { font-size: 10px; font-weight: 800; color: #fde047; background: #4a3410; border: 1px solid #fbbf24; border-radius: 6px; padding: 1px 6px; margin-left: 4px; animation: cqChest .9s infinite ease-in-out; }
 
 /* 🎰 가챠 결과 목록 (10연 10개 다 + 단차 신규/중복) */
 #gacha-list { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin: 10px 0 4px; max-height: 40vh; overflow-y: auto; }

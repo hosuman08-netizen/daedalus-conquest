@@ -335,7 +335,7 @@ function loadMeta() {
                 play: { day: "", sec: 0, claimed: [] },
                 soul: 0, awak: { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 },
                 pass: { monthly: "", weekly: "" }, passClaim: { monthly: "", weekly: "" },
-                milestones: [],
+                milestones: [], cqClaimed: [],   // 🗺️ 정복 연대기 보상 트랙(탭해서 상자 클레임)
                 prestige: 0, // cohesion "numbers go up" on claims
                 ether: 0, asc: { might: 0, bulwark: 0, momentum: 0 }, ascCount: 0, // 🔄 환생 루프: 에테르(영구화폐)+복리노드(공세/불굴/쇄도)
                 ritualWin: "", // exact claim window seed for variable ritual bonuses
@@ -379,6 +379,7 @@ function loadMeta() {
       merged.pass = Object.assign({}, def.pass, m.pass || {});
       merged.passClaim = Object.assign({}, def.passClaim, m.passClaim || {});
       if (!Array.isArray(merged.milestones)) merged.milestones = [];
+      if (!Array.isArray(merged.cqClaimed)) merged.cqClaimed = [];
       if (typeof merged.gems !== "number") merged.gems = 50;
       if (!merged.mode || merged.mode === "daily") merged.mode = "campaign";
       if (!merged.tower || merged.tower < 1) merged.tower = 1;
@@ -1048,8 +1049,7 @@ function reset() {
   // 하단바 전체 6탭 강제 표시 완료
   document.querySelectorAll('#bnav .navtab').forEach(el => el.style.display = '');
   delete window._ultBurst;
-  // legend-toggle removed
-  if (leg) leg.style.display = 'none'; // Sovereign: 정적 유닛·상성 정보는 전투에서 제거. 동적 조합 버프로 대체
+  // legend-toggle removed (정적 유닛·상성은 전투에서 제거 · 동적 조합 버프로 대체)
   const legDiv = $("legend");
   if (legDiv) legDiv.style.display = 'none';
 }
@@ -2808,16 +2808,59 @@ function maybeSortie() {
   if (SFX && SFX.win) SFX.win(); haptic("medium");
   setTimeout(() => { v.classList.remove("play-sortie"); v.classList.add("hidden"); if (txt) txt.textContent = ""; }, 2000);
 }
-// 세계 정복 지도 (역사·정복 서사 — 정복지가 내 색으로 물든다). 토론 TOP2.
+// 🗺️ 정복 연대기 — 챕터 진행 + 탭해서 까는 보상 상자 트랙 (도파민 후크). 기존 MILESTONES와 별개 레이어.
+const CQ_REWARDS = [
+  { ch: 3,   gold: 800,    soul: 10 },
+  { ch: 6,   gold: 1800,   soul: 20,   gem: 20 },
+  { ch: 10,  gold: 3500,   soul: 40,   gem: 30 },
+  { ch: 15,  gold: 7000,   soul: 70,   gem: 40 },
+  { ch: 20,  gold: 14000,  soul: 120,  gem: 60 },
+  { ch: 30,  gold: 28000,  soul: 220,  gem: 90 },
+  { ch: 45,  gold: 60000,  soul: 380,  gem: 130 },
+  { ch: 60,  gold: 120000, soul: 650,  gem: 200 },
+  { ch: 80,  gold: 240000, soul: 1100, gem: 320 },
+  { ch: 100, gold: 600000, soul: 2200, gem: 550 },
+];
+function cqRewardAt(ch) { return CQ_REWARDS.find((r) => r.ch === ch); }
+function cqClaimable(ch) { return (META.chapter || 1) >= ch && !(META.cqClaimed || []).includes(ch); }
 function renderConquestMap() {
   const el = $("conquest-map"); if (!el) return;
-  const cur = META.chapter || 1, maxShow = Math.max(cur + 3, 14);
+  const cur = META.chapter || 1;
+  const nextRwd = CQ_REWARDS.find((r) => cur < r.ch);
+  const maxShow = Math.max(cur + 2, nextRwd ? nextRwd.ch : 0, 14);
+  const claimableCount = CQ_REWARDS.filter((r) => cqClaimable(r.ch)).length;
   let nodes = "";
   for (let c = 1; c <= maxShow; c++) {
     const won = c < cur, here = c === cur;
-    nodes += `<div class="cq-node ${won ? "won" : here ? "here" : "lock"}"><span class="cq-ic">${won ? "🚩" : here ? "⚔️" : "·"}</span><span class="cq-n">${c}</span></div>`;
+    const rwd = cqRewardAt(c);
+    if (rwd) {
+      const claimed = (META.cqClaimed || []).includes(c);
+      const can = cqClaimable(c);
+      const cls = claimed ? "rwd done" : can ? "rwd ready" : "rwd lock";
+      const ic = claimed ? "✅" : can ? "🎁" : "🔒";
+      nodes += `<div class="cq-node ${cls}" ${can ? `onclick="claimCq(${c})"` : ""}><span class="cq-ic">${ic}</span><span class="cq-n">${c}</span></div>`;
+    } else {
+      nodes += `<div class="cq-node ${won ? "won" : here ? "here" : "lock"}"><span class="cq-ic">${won ? "🚩" : here ? "⚔️" : "·"}</span><span class="cq-n">${c}</span></div>`;
+    }
   }
-  el.innerHTML = `<div class="cq-title">🗺️ 정복 연대기 · <b>${cur - 1}</b>개 폐허 함락</div><div class="cq-strip">${nodes}</div>`;
+  const badge = claimableCount ? ` <span class="cq-badge">🎁 ${t("cqClaimN", { n: claimableCount })}</span>` : "";
+  el.innerHTML = `<div class="cq-title">🗺️ ${t("cqTitle")} · <b>${cur - 1}</b> ${t("cqFell")}${badge}</div><div class="cq-strip">${nodes}</div>`;
+}
+function claimCq(ch) {
+  if (running) return;
+  const rwd = cqRewardAt(ch); if (!rwd || !cqClaimable(ch)) return;
+  if (!Array.isArray(META.cqClaimed)) META.cqClaimed = [];
+  META.cqClaimed.push(ch);
+  if (rwd.gold) META.gold = (META.gold || 0) + rwd.gold;
+  if (rwd.soul) META.soul = (META.soul || 0) + rwd.soul;
+  if (rwd.gem)  META.gems = (META.gems || 0) + rwd.gem;
+  bumpPrestige(0.5); saveMeta(); updateMeta();
+  const parts = [rwd.gold ? "💰" + fmtNum(rwd.gold) : "", rwd.soul ? "🔮" + rwd.soul : "", rwd.gem ? "💎" + rwd.gem : ""].filter(Boolean).join(" ");
+  toast("🎁 " + t("cqReward", { n: ch }) + " · " + parts, "#fbbf24");
+  try { confettiBurst(); } catch (e) {}
+  if (typeof SFX !== "undefined" && SFX.claim) SFX.claim();
+  haptic("heavy");
+  renderConquestMap();
 }
 // 부활 의식 연출 (캠벨 영웅여정 — 죽음→심연 정적→빛과 함께 더 강하게 귀환). 트리니티 토론 TOP1.
 function playRebirthCeremony(cb) {

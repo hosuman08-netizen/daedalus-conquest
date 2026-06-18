@@ -350,6 +350,17 @@ const ODDS_I18N = {
 };
 for (const l in ODDS_I18N) Object.assign(I18N[l], ODDS_I18N[l]);
 
+// 🗺️ 정복 연대기 보상 트랙
+const CQ_I18N = {
+  ko: { cqTitle: "정복 연대기", cqFell: "폐허 함락", cqClaimN: "보상 {n}개!", cqReward: "ch{n} 정복 보상" },
+  en: { cqTitle: "Conquest Chronicle", cqFell: "ruins fallen", cqClaimN: "{n} reward!", cqReward: "Ch{n} conquest reward" },
+  ja: { cqTitle: "征服年代記", cqFell: "の廃墟制圧", cqClaimN: "報酬{n}個!", cqReward: "ch{n} 制圧報酬" },
+  zh: { cqTitle: "征服编年史", cqFell: "处废墟攻陷", cqClaimN: "{n}个奖励!", cqReward: "ch{n} 征服奖励" },
+  hi: { cqTitle: "विजय गाथा", cqFell: "खंडहर जीते", cqClaimN: "{n} इनाम!", cqReward: "ch{n} विजय इनाम" },
+  ru: { cqTitle: "Хроника завоеваний", cqFell: "руин пало", cqClaimN: "{n} награда!", cqReward: "гл.{n} награда" },
+};
+for (const l in CQ_I18N) Object.assign(I18N[l], CQ_I18N[l]);
+
 // 🎵 배경음악 토글
 const MUSIC_I18N = { ko: "배경음악", en: "Music", ja: "BGM", zh: "背景音乐", hi: "संगीत", ru: "Музыка" };
 for (const l in MUSIC_I18N) I18N[l].setMusic = MUSIC_I18N[l];
