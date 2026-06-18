@@ -30,8 +30,8 @@
 - 가챠: RARITY 항상 표시 (N55% R30% SR12% SSR3%). Soft pity 7풀부터 +4%/pull, hard 12풀 SSR. Featured 50/50 + 다음 100%. Wishlist 3픽.
 - Legion 테마 (security): 영웅/유닛 = fictional codenames only (Arclight 등). Real mapping 우리만 아는 내부 지식. No exposure in code/docs strings. Abstract "Legion mirror" for immersion.
 - Prestige (Ascension): ch50/5만g reset → 영구 +1.5% 전군 스탯. Exponential.
-- Streak: 일일미션 + freeze (500g or 주1 free). Duolingo loss aversion.
-- 이벤트: 주 1회 7일 한정 Founder Banner (FOMO).
+- Streak: 일일미션 (압박 framing 금지, 선택적 보너스만).
+- 이벤트: FOMO·한정 타이머 **적극 활용** (Sovereign 2026-06-19). featured 배너 scarcity + countdown. 법 미꾸라지로 slip (정확 공개).
 
 ### Phase 2 — 육성 깊이 (키울맛)
 - [ ] 메인 영웅 장비/스킬트리 · ⭐승급 · 유닛 도감
@@ -61,9 +61,9 @@
 콘텐츠 모드(캠페인/무한탑/일일던전) **모드 허브**부터. 엔진 재활용이라 싸게 "사이클" 완성.
 
 ## v2 기획안 패치 백로그 (lean scope)
-Phase 1 현실 추가: 가챠 %/pity 상시표시 + 일일미션 UI/보상 + 1-2 제한 이벤트 배너(FOMO 타이머) + 9SSR god-tier 시각 강화(canvas glow/trait + lazy PNG). 
+Phase 1 현실 추가: 가챠 %/pity 상시표시 + 일일미션 UI/보상 + 1-2 이벤트 (featured FOMO scarcity) + 9SSR god-tier 시각 강화.
 lean 79 (9/20/50) 엄수 — 9SSR god "멋지게" must-collect + 70 fodder (archetype pool for hybrid/synergy volume). 
-Later drip new SSR releases (retention/FOMO).  full uid/manual 6slot / P2P Bazaar / 369+ 는 Phase2+ 지연. 리스크(퍼프/압도) 금지. dopamine 즉시 4개만. 기존 Phase1 lean + TG 3-8min + synthetic 우선 엄수.
+Later drip new SSR (FOMO 금지). P2P Bazaar 사행성 금지. 공정 진행 + 투명 피드백만. 기존 lean + TG + synthetic 우선.
 
 ## 🏟️ 아레나 설계 (Phase 3, 군주 구상 2026-06-14)
 **비동기 파워 랭킹 아레나** (실시간 X):

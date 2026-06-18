@@ -1090,7 +1090,10 @@ function updateMeta() {
   const ts = $("slot-titan");
   if (ts) ts.style.display = META.titanOwned ? "" : "none";
   const sb = $("starter-btn"); if (sb) sb.style.display = META.starter ? "none" : "";
-  const sp = $("speed"); if (sp && !running) sp.textContent = t("speed", { n: speed });
+  const sp = $("speed"); if (sp && !running) {
+    const eff = speed * (META.starter ? 2 : 1);
+    sp.textContent = t("speed", { n: eff });
+  }
   updateModeTabs(); // 챕터 변경(환생·승리 등) 시 '캠페인 chX' 탭 라벨 즉시 갱신
 }
 
@@ -1842,7 +1845,8 @@ function rRect(x, y, w, h, r) {   // 둥근 사각형 path (HP바·UI)
 function loop(ts) {
   if (!running) return;
   if (!lastT) lastT = ts;
-  let dt = Math.min(0.05, (ts - lastT) / 1000) * speed;
+  const starterMul = (META.starter ? 2 : 1);
+  let dt = Math.min(0.05, (ts - lastT) / 1000) * speed * starterMul;
   lastT = ts;
   _aliveP = units.filter((u) => u.side === "p" && u.hp > 0);   // 프레임당 1회
   _aliveE = units.filter((u) => u.side === "e" && u.hp > 0);
@@ -2108,6 +2112,18 @@ function rollRarity() {
   const sum = adj.reduce((s,x)=>s+x.p,0) || 1;
   for (const t of adj) { a += t.p / sum; if (r <= a) return t; }
   return RARITY[0];
+}
+// 📊 전체 확률 공개 — RARITY 배열에서 직접 생성하므로 코드값과 영원히 일치(법적 안전)
+function showOdds() {
+  const rows = RARITY.map(x => `<div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2638;padding:3px 0;"><span style="color:${x.color};font-weight:600;">${x.key}</span><span>${(x.p * 100).toFixed(x.p < 0.01 ? 1 : (x.p * 100 % 1 ? 1 : 0))}%</span></div>`).join("");
+  const body = $("odds-body");
+  if (body) body.innerHTML =
+    rows +
+    `<div style="margin-top:10px;font-size:11.5px;opacity:.85;line-height:1.6;">` +
+    `<div>${t("oddsPity")}</div>` +
+    `<div style="margin-top:6px;opacity:.6;">${t("oddsFict")}</div>` +
+    `</div>`;
+  const m = $("odds-modal"); if (m) m.classList.remove("hidden");
 }
 // ── 🪙 골드 뽑기 + 🔮 소울 분해 루프 (트리니티 SPEC-soul-fodder-loop) ──────────────
 const GOLD_GACHA_COST = 200;
@@ -3104,7 +3120,7 @@ $("code-btn").addEventListener("click", redeemCode);
 
 // ── 캐시 상점 (별도, Stars 결제 자리 — 지금은 데모 지급) ─────────────────────
 const SHOP = [
-  { id: "starter", starter: true, price: "₩990", tag: "BEST" },
+  { id: "starter", starter: true, price: "₩990", tag: "BEST", k: "pkStarter" },
   { id: "monthly", k: "pkMonthly", price: "₩14,900", tag: "30일·💎" },
   { id: "weekly", k: "pkWeekly", price: "₩4,900", tag: "7일·💎" },
   { id: "vip", vip: true, price: "₩29,900", tag: "VIP·4x·💎600" },
@@ -3141,7 +3157,7 @@ function renderShop() {
     const owned = (p.starter && META.starter) || (p.vip && META.vip) || (p.ultra && META.ultra);
     const active = p.id === "monthly" ? passActive("monthly") : p.id === "weekly" ? passActive("weekly") : false;
     const c = document.createElement("button"); c.className = "packcard" + (p.vip || p.ultra ? " vip" : "") + (p.k ? " grow" : "") + (active ? " active" : "") + (owned ? " owned" : "");
-    const what = p.starter ? "💎 " + t("spTitle") : p.vip ? t("tVip") : p.ultra ? t("tUltra") : p.k ? t(p.k) : (p.gem ? "💎 " + p.gem : "💰 " + p.g);
+    const what = p.k ? t(p.k) : p.vip ? t("tVip") : p.ultra ? t("tUltra") : (p.gem ? "💎 " + p.gem : "💰 " + p.g);
     const sub = active ? '<div class="psub">✓ ~' + META.pass[p.id] + "</div>" : "";
     const price = owned ? "✓ " + t("ownedShort") : p.price;  // 보유중이면 가격 대신 표시(사라지지 않게)
     const isFB = !((META.firstBuy || {})[p.id]) && (p.gem || p.g) && !owned;  // 🎁 첫구매 2배 대상(젬·골드 팩, 미구매)
@@ -3271,6 +3287,8 @@ on("sg-gear1", "click", () => gearGacha(1));
 on("sg-gear10", "click", () => gearGacha(10));
 on("sg-gold1", "click", goldGacha);            // 🪙 골드 뽑기 (소울루프)
 on("sg-gold10", "click", goldGacha10);         // 🪙 골드 10연
+on("odds-view", "click", showOdds);            // 📊 전체 확률 공개 (법적 disclosure)
+on("odds-close", "click", () => $("odds-modal").classList.add("hidden"));
 on("ss-gold5k", "click", () => soulBuy(20, { gold: 5000 }));     // 🔮 소울 상점
 on("ss-gold30k", "click", () => soulBuy(100, { gold: 30000 }));
 on("ss-gem50", "click", () => soulBuy(80, { gems: 50 }));

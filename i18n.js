@@ -19,12 +19,12 @@ const I18N = {
     legend1: "🛸 드론 다수·빠름·회피 · 🎯 사수 원거리·저격 · 🛡️ 가디언 탱커·방어막",
     legend2: "🤖 돌격봇 근접·돌진 · 🧠 지휘관 최고지능·전군강화 · 🐉 타이탄 전설",
     legend3: "티어 높을수록 AI가 똑똑해 몰살. 뽑기로 강화·전설🐉 해금.",
-    spTitle: "💎 초심자 패키지", sp1: "⚡ 전투 속도 2x 영구 해금", sp2: "💰 골드 3,000 즉시 지급", sp3: "📈 골드 획득 영구 +20%", sp4: "🎰 10연 뽑기 효과", spPrice: "단 한 번 · ₩990",
+    spTitle: "💎 초심자 패키지", sp1: "📈 골드 획득 영구 +20%", sp2: "💰 골드 3,000 즉시 지급", sp3: "🎰 유닛 10개 즉시", sp4: "✅ 영구 혜택 적용", spPrice: "단 한 번 · ₩990",
     tComingTb: "⚔️ 턴제 전술 — 곧 출시!", tComingAr: "🏟️ PvP 아레나 — 곧 출시!", tNoSwitch: "전투 중엔 모드 변경 불가",
     tGoldShort: "골드 부족! {n}g 필요", tBought: "🛒 구매 −{n}g", tSold: "💸 판매 +{n}g", tMaxUnit: "이 유닛 최대치(12)",
     tAutoStart: "⚔️ 자동사냥 시작 — 알아서 싸웁니다", tAutoStop: "자동사냥 중지", tAutoRun: "⚔️ 자동사냥 진행…",
     tGachaUp: "유닛 +{n}강화", tTitan: "🐉 전설 타이탄 해금!!", tDaily: "🎁 일일 보상 +150 골드!", tIdle: "🌙 방치 보상 ({t}) +{n} 골드!", tRitual: "🌀 ritual +{n} (Legion var)", tForecast: "Legion Forecast: +var cohesion",
-    tStarter: "💎 스타터팩 획득! 속도 2x 해금 +골드3000", tOwned: "이미 보유 중 — 속도 2x 사용 가능",
+    tStarter: "💎 초심자 패키지 획득! 2x 속도 영구 + 골드 3000 + 유닛 10개", tOwned: "이미 보유 — 2x 속도 적용 중",
     tUlt: "💥 {x}!", tHeroUp: "🦸 {x} 강화! Lv{n}",
     heroes: { strategist: ["책략가", "전군 AI 지능"], berserker: ["광전사", "전군 공격력"], warden: ["수호자", "전군 체력"], ranger: ["사격대장", "드론·사수 공격"], mech: ["기갑사령", "돌격봇·가디언 체력"], engineer: ["정비공", "전군 체력 재생"], dragoon: ["용기사", "전군 · 강력 궁극기"] },
     ultName: { focus: "전술 지휘", rage: "광폭화", wall: "철벽", volley: "아크 볼리", assault: "강습", repair: "긴급 수리", dragon: "드래곤 강림" }, // Sovereign 20260616: ranger ULT 이름 업그레이드 (평범한 일제사격 → 진짜 궁극기 "아크 볼리")
@@ -45,7 +45,7 @@ const I18N = {
     legend1: "🛸 Drone swarm·fast·evade · 🎯 Marksman ranged·snipe · 🛡️ Guardian tank·barrier",
     legend2: "🤖 Bruiser melee·charge · 🧠 Commander smartest·rally · 🐉 Titan legendary",
     legend3: "Higher tier = smarter AI = wipeouts. Pull to upgrade & unlock 🐉.",
-    spTitle: "💎 Starter Pack", sp1: "⚡ Unlock 2x speed forever", sp2: "💰 3,000 gold instantly", sp3: "📈 +20% gold gain forever", sp4: "🎰 10-pull worth", spPrice: "One time · $0.99",
+    spTitle: "💎 Starter Pack", sp1: "📈 +20% gold gain forever", sp2: "💰 3,000 gold instantly", sp3: "🎰 10 units immediately", sp4: "✅ Permanent benefits", spPrice: "One time · $0.99",
     tComingTb: "⚔️ Turn-based tactics — coming soon!", tComingAr: "🏟️ PvP Arena — coming soon!", tNoSwitch: "Can't switch mode mid-battle",
     tGoldShort: "Not enough gold! Need {n}g", tBought: "🛒 Bought −{n}g", tSold: "💸 Sold +{n}g", tMaxUnit: "Max for this unit (12)",
     tAutoStart: "⚔️ Auto-hunt on — it fights for you", tAutoStop: "Auto-hunt off", tAutoRun: "⚔️ Auto-hunt running…",
@@ -313,8 +313,8 @@ for (const l in SOULHINT_I18N) I18N[l].soulAwakHint = SOULHINT_I18N[l];
 
 // 캐시 상점 확장(패스·성장팩)
 const SHOP2_I18N = {
-  ko: { pkMonthly: "📅 월간 패스 · 즉시💎300 + 30일 매일💎100", pkWeekly: "📅 주간 패스 · 즉시💎150 + 7일 매일💎100", pkGrow1: "📦 성장 패키지 · 💰5만+💎200+SR장비×2", pkGrow2: "🎁 고급 성장팩 · 💰20만+💎800+SSR유닛+장비", passDaily: "패스 보상 💎+{n}", tMonthly: "📅 월간 패스 활성! 💎300 + 매일💎100", tWeekly: "📅 주간 패스 활성! 💎150 + 매일💎100", tGrowth: "🎁 성장 패키지 획득!" },
-  en: { pkMonthly: "📅 Monthly Pass · 💎300 now + 💎100/day×30", pkWeekly: "📅 Weekly Pass · 💎150 now + 💎100/day×7", pkGrow1: "📦 Growth Pack · 💰50k+💎200+2 SR gear", pkGrow2: "🎁 Premium Growth · 💰200k+💎800+SSR unit+gear", passDaily: "Pass reward 💎+{n}", tMonthly: "📅 Monthly Pass active! 💎300 + 💎100/day", tWeekly: "📅 Weekly Pass active! 💎150 + 💎100/day", tGrowth: "🎁 Growth pack acquired!" },
+  ko: { pkMonthly: "📅 월간 패스 · 즉시💎300 + 30일 매일💎100", pkWeekly: "📅 주간 패스 · 즉시💎150 + 7일 매일💎100", pkGrow1: "📦 성장 패키지 · 💰5만+💎200+SR장비×2", pkGrow2: "🎁 고급 성장팩 · 💰20만+💎800+SSR유닛+장비", pkStarter: "💎 초심자 패키지 · 2x 속도 영구 + 골드+20% 영구 + 즉시 3,000골드 + 유닛 10개", passDaily: "패스 보상 💎+{n}", tMonthly: "📅 월간 패스 활성! 💎300 + 매일💎100", tWeekly: "📅 주간 패스 활성! 💎150 + 매일💎100", tGrowth: "🎁 성장 패키지 획득!" },
+  en: { pkMonthly: "📅 Monthly Pass · 💎300 now + 💎100/day×30", pkWeekly: "📅 Weekly Pass · 💎150 now + 💎100/day×7", pkGrow1: "📦 Growth Pack · 💰50k+💎200+2 SR gear", pkGrow2: "🎁 Premium Growth · 💰200k+💎800+SSR unit+gear", pkStarter: "💎 Starter Pack · +20% gold forever + 3,000 gold + 10 units", passDaily: "Pass reward 💎+{n}", tMonthly: "📅 Monthly Pass active! 💎300 + 💎100/day", tWeekly: "📅 Weekly Pass active! 💎150 + 💎100/day", tGrowth: "🎁 Growth pack acquired!" },
   ja: { pkMonthly: "📅 月間パス · 即💎300 + 30日毎日💎100", pkWeekly: "📅 週間パス · 即💎150 + 7日毎日💎100", pkGrow1: "📦 成長パック · 💰5万+💎200+SR装備×2", pkGrow2: "🎁 上級成長パック · 💰20万+💎800+SSR", passDaily: "パス報酬 💎+{n}", tMonthly: "📅 月間パス有効! 💎300 + 毎日💎100", tWeekly: "📅 週間パス有効! 💎150 + 毎日💎100", tGrowth: "🎁 成長パック獲得!" },
   zh: { pkMonthly: "📅 月卡 · 立即💎300 + 30天每日💎100", pkWeekly: "📅 周卡 · 立即💎100 + 7天每日💎50", pkGrow1: "📦 成长礼包 · 💰5万+💎200+SR装备×2", pkGrow2: "🎁 高级成长礼包 · 💰20万+💎800+SSR", passDaily: "通行证奖励 💎+{n}", tMonthly: "📅 月卡激活! 💎300 + 每日💎100", tWeekly: "📅 周卡激活! 💎100 + 每日💎50", tGrowth: "🎁 获得成长礼包!" },
   hi: { pkMonthly: "📅 मासिक पास · तुरंत💎300 + 30दिन💎100/दिन", pkWeekly: "📅 साप्ताहिक पास · 💎100 + 7दिन💎50/दिन", pkGrow1: "📦 ग्रोथ पैक · 💰50k+💎200+2 SR गियर", pkGrow2: "🎁 प्रीमियम ग्रोथ · 💰200k+💎800+SSR", passDaily: "पास इनाम 💎+{n}", tMonthly: "📅 मासिक पास चालू! 💎300 + 💎100/दिन", tWeekly: "📅 साप्ताहिक पास चालू! 💎100 + 💎50/दिन", tGrowth: "🎁 ग्रोथ पैक मिला!" },
@@ -332,6 +332,17 @@ const PAY_I18N = {
   ru: { payDemo: "🧪 Демо-выдача (оплата не подключена)", payOpening: "💳 Открываем оплату…", payOk: "✅ Оплачено — выдано!", payFail: "❌ Ошибка оплаты", payCancel: "Оплата отменена", payErr: "⚠️ Ошибка платёжного сервера" },
 };
 for (const l in PAY_I18N) Object.assign(I18N[l], PAY_I18N[l]);
+
+// 📊 전체 확률 공개 (법적 disclosure — 코드값과 100% 일치)
+const ODDS_I18N = {
+  ko: { oddsBtn: "📊 전체 확률 보기", oddsTitle: "📊 뽑기 확률 전체 공개", oddsPity: "천장: 10회 뽑으면 SSR 확정 · 7회부터 SSR 확률 상승(최대 15%) · UR/EX는 별도 천장 없음. 표시 확률은 게임 코드와 100% 일치합니다.", oddsFict: "※ 이 가챠는 Legion Chronicles 내 가상의 연출이며, 모든 재화는 게임 내 전용입니다.", grNote: "🎯 10회 천장 = SSR 확정 · 7회부터 SSR 확률 상승(최대 15%) · UR/EX는 별도 천장 없음 · 장비도 동일 확률" },
+  en: { oddsBtn: "📊 View full odds", oddsTitle: "📊 Full Pull Rate Disclosure", oddsPity: "Pity: a guaranteed SSR on the 10th pull · SSR rate rises from pull 7 (up to 15%) · UR/EX have no separate pity. Displayed rates match the game code 100%.", oddsFict: "※ This gacha is a fictional feature within Legion Chronicles; all currencies are in-game only.", grNote: "🎯 10-pull pity = guaranteed SSR · SSR rate rises from pull 7 (up to 15%) · UR/EX no separate pity · gear uses same rates" },
+  ja: { oddsBtn: "📊 全確率を見る", oddsTitle: "📊 ガチャ確率 完全公開", oddsPity: "天井: 10回でSSR確定 · 7回目からSSR確率上昇(最大15%) · UR/EXに別途天井なし。表示確率はゲームコードと100%一致。", oddsFict: "※ このガチャはLegion Chronicles内の架空の演出で、全ての通貨はゲーム内専用です。", grNote: "🎯 10回天井=SSR確定 · 7回目からSSR確率上昇(最大15%) · UR/EXは別途天井なし · 装備も同確率" },
+  zh: { oddsBtn: "📊 查看全部概率", oddsTitle: "📊 抽卡概率完整公示", oddsPity: "保底: 第10抽必出SSR · 第7抽起SSR概率提升(最高15%) · UR/EX无单独保底。显示概率与游戏代码100%一致。", oddsFict: "※ 本抽卡为Legion Chronicles内的虚构演出，所有货币仅限游戏内使用。", grNote: "🎯 10抽保底=必出SSR · 第7抽起SSR概率提升(最高15%) · UR/EX无单独保底 · 装备同概率" },
+  hi: { oddsBtn: "📊 पूरी संभावना देखें", oddsTitle: "📊 पूर्ण दर प्रकटीकरण", oddsPity: "पिटी: 10वें पुल पर SSR पक्का · पुल 7 से SSR दर बढ़ती है (15% तक) · UR/EX की अलग पिटी नहीं। दिखाई गई दरें गेम कोड से 100% मेल खाती हैं।", oddsFict: "※ यह गाचा Legion Chronicles का काल्पनिक फीचर है; सभी मुद्राएँ केवल इन-गेम हैं।", grNote: "🎯 10-पुल पिटी = पक्का SSR · पुल 7 से SSR दर बढ़ती है (15% तक) · UR/EX अलग पिटी नहीं · गियर समान दर" },
+  ru: { oddsBtn: "📊 Все шансы", oddsTitle: "📊 Полное раскрытие шансов", oddsPity: "Гарант: SSR на 10-й крутке · шанс SSR растёт с 7-й крутки (до 15%) · у UR/EX нет отдельного гаранта. Показанные шансы на 100% совпадают с кодом игры.", oddsFict: "※ Эта гача — вымышленный элемент Legion Chronicles; вся валюта только внутриигровая.", grNote: "🎯 Гарант 10 круток = SSR · шанс SSR растёт с 7-й (до 15%) · у UR/EX нет гаранта · снаряжение по тем же шансам" },
+};
+for (const l in ODDS_I18N) Object.assign(I18N[l], ODDS_I18N[l]);
 
 // 🎵 배경음악 토글
 const MUSIC_I18N = { ko: "배경음악", en: "Music", ja: "BGM", zh: "背景音乐", hi: "संगीत", ru: "Музыка" };

@@ -10,13 +10,13 @@ Common suffix: anime gacha splash art, original sci-fi "AI Legion" theme, dramat
 Save as art/mvp-lobby.png (or integrate to existing)
 
 ## 2. Summon / Gacha (소환)
-"Premium gacha summon screen, big pull button, 3-stage near-miss build visual, SSR god-tier reveal with gold explosion and god-pose Arclight/Cipher etc preview, rates % visible clean, wishlist stub area, dark sci-fi with god-ray burst from core, no text in art, vertical crop for popup, high dopamine"
+"Premium gacha summon screen, big pull button, clean SSR god-tier reveal with gold explosion (no near-miss pressure animation), rates % visible clean, wishlist stub area, dark sci-fi with god-ray burst from core, no text in art, vertical crop for popup, fair transparent fun"
 
 ## 3. Battle / Canvas (전투)
 "Real-time auto battle canvas view, player army (SSR Founders with gold rims + Host Weave tethers) vs enemy (red jagged corruption spikes, menacing), carried % overlay teaser, speed/ult buttons, vertical phone optimized, dramatic lighting, no UI text in art layer, premium vs threat contrast"
 
 ## 4. AFK / Claim + Streak (AFK)
-"Offline claim screen, '8h while you slept — Legion grew X gold. Time is your asset.' , 7-day streak counter with 1.5x boost glow, cohesion pop, ritual window FOMO, dark gold theme, premium idle harvest feel, vertical, subtle carried flex"
+"Offline claim screen, '8h while you slept — Legion grew X gold. Time is your asset.' , 7-day streak counter (no loss aversion pressure), cohesion pop, ritual window (fair celebration, no FOMO), dark gold theme, premium idle harvest feel, vertical, subtle carried flex"
 
 Use for index.html lazy or direct img in mvp view. Generate 4 tonight, drop to art/, code will prefer PNG.
 

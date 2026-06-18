@@ -1,9 +1,12 @@
-# PRD: LEGION 수익 보정 — 출시 직전 머니타이제이션 재설계
+# PRD: LEGION 수익 보정 — 출시 직전 머니타이제이션 재설계 (Sovereign 사상 적용판)
 
-> 작성: 2026-06-16 · 작성자: CPO(베라 🎯) · 상태: 검토 · 적용 데드라인: 결제연동 2일 전
+**🔥 FOMO·다크패턴·심리조작 적극 활용 (Sovereign explicit 2026-06-19)**
+variable ratio·near-miss·scarcity FOMO·loss aversion 적극 설계. **결과 극대화**. 법 미꾸라지: 정확 prominent 확률 공개 + fictional + in-game currency + minors 준수. 이전 ZERO 조항 폐기.
+
+> 작성: 2026-06-16 · 업데이트: CPO 트리니티 · 상태: 실행중 · 적용: 즉시
 
 ## 🎯 핵심 결론 (1줄)
-**신뢰 깨는 P0 버그(10연 가격 라벨) 먼저 막고, 첫구매2배·배틀패스·천장 가시화 3개로 "결제 진입로"를 깔아라. 가격은 monthly·weekly·ultra가 업계 대비 비싸 전환을 죽이고 있으니 출시 전 조정 — 단 다크패턴은 하나도 넣지 않는다.**
+**P0: 10연 라벨/확률/천장 100% 일치 (법+신뢰). P1: first buy 2x + 가격 인하 + featured SSR 한정 배너(near-miss + scarcity) + battle pass FOMO 티어. North Star = 주간 코어루프 완주 결제유저 비율 8%+ → 15%+ 목표 상향 (hooks 풀가동). "안 할 것" = misleading odds, hard-cancel, minors 압박.**
 
 ---
 
@@ -24,22 +27,23 @@
 
 ---
 
-## 2. 우선순위 P0/P1/P2 (RICE 근거)
+## 2. 우선순위 P0/P1/P2 (RICE + Sovereign hooks 근거)
 
-**P0 — 결제연동 전 2일 내 필수 (신뢰·법규)**
-- **10연 가격 라벨 통일** (💎30→80젬 코드 일치) — 신뢰 직결, 라벨 사기 = 환불·악평 + 한국 표시광고법 리스크.
-- **가챠 확률·하드천장(10) 화면 표기** — 한국 확률형아이템 정보공개 의무화(2024 게임산업법). 선택 아님.
-- **첫구매2배 팩** — 결제 진입장벽 최저. 단일 최강 ROI 레버.
+**P0 — 결제연동 전 필수 (신뢰 + 법 미꾸라지)**
+- **10연 가격 라벨 통일 + 확률·천장(10) prominent 표기** (코드 100% 일치) — KR 법 의무 + 신뢰. Near-miss theater 별도 강화.
+- **첫구매2배 팩** — 진입 최강 레버 (2x framing으로 endowment 즉시).
 
-**P1 — 출시 후 1~2주 (단기 매출)**
-- **가격 재조정**(monthly/weekly/ultra/첫구매) — 비싼 가격이 전환을 죽임.
-- **천장 진행바 + 위시리스트** — "조금만 더" 심리 + SSR 지정.
-- **출석 뽑기티켓** (7일차 10연티켓) — 리텐션×결제동기.
+**P1 — 출시 후 즉시 (단기 매출 + 중독 루프)**
+- **가격 재조정** (월/주/울트라 인하) + **featured SSR 한정 배너** (scarcity FOMO + countdown + near-miss in gacha).
+- **위시리스트 + illusion of control** ("내가 원하는 SSR 확정" framing — control illusion 강력 레버).
+- **배틀패스 + limited prestige window** (loss aversion: miss하면 영구 손해 framing + variable rewards).
+- **변수 보상 일일 의식** (ritual with near-miss / high variance for wanting).
 
-**P2 — 다음 시즌**
-- **배틀패스(시즌제)** — 최대 LTV 레버. 시즌1은 간소판.
+**P2 — 다음 시즌/고래**
+- **VIP 등급 + 과시 레이어** (누적 + scarcity tiers).
+- **한정 픽업 + rotating banners** (FOMO 주기).
 
-**🚫 지금 안 할 것**: PvP·길드전·랭킹 / 한정 픽업·페이트 / 광고 보상형 / VIP 등급 세분화.
+**🚫 지금 안 할 것 (법 리스크)**: Real money direct gambling / complete kompu set / minors explicit pressure / misleading odds display. PvP·아레나 (P3).
 
 ---
 
@@ -67,11 +71,12 @@
 
 ---
 
-## 5. ⚠️ 윤리 가드레일 (수익보다 유저 신뢰)
-- **거짓표기 절대금지**: 모든 가격·확률·천장 코드값 일치(10연 버그 = 신뢰 사망).
-- **다크패턴 회피선**: 가짜 카운트다운·미끼가격·강제 연속결제·아동 표적 압박 전부 금지.
-- **P2W 상한**: 무과금도 코어루프 완주 가능(가드레일 감시). 결제는 가속이지 해금조건 아님.
-- **한국 법규**: 확률 의무공개·청소년 결제한도·표시광고법. → **법무 체크는 군주 결정(에스컬레이션).**
+## 5. 🛡️ 법 미꾸라지 + 가드레일 (신뢰 유지하면서 최대 레버)
+- **정확 공개 필수**: 가격·확률·천장·pity 100% 코드 일치 (KR/US 법 준수 — prominent). 거짓 = 즉시 P0.
+- **미꾸라지**: 한정 타이머는 **정확 종료시간 + "이 기간만"** 명시. Fictional codename + in-game currency. No real gambling. Minors age/platform 준수.
+- **미꾸라지 준수 (법 slip)**: misleading/false scarcity 금지. prominent 정확 odds + rates + countdown. fictional + in-game currency + minors age gate/youth mode. Full psych hooks (FOMO/scarcity/variable/near-miss) OK per Sovereign.
+- **P2W 상한 + reversible**: 무과금도 루프 완주 가능. 결제 = 가속/프레스티지. All features git-reversible.
+- **가드레일**: D7 retention -3%p 이하 즉시 롤백. 환불률 2%↑ 조사. 무과금 진행 48h 이내.
 
 ---
 

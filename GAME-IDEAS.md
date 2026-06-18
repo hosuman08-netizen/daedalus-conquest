@@ -5,7 +5,7 @@
 ## 핵심 발견 (데이터)
 1. **순수 tap-to-earn은 죽어간다.** Notcoin 팀도 "모델 끝났다" 인정 — 깊이 없고 멀티계정 어뷰징·토큰 번아웃. → **게임성 + 장기 리텐션이 생존 조건.** (우리는 이미 오토배틀+육성 깊이 보유 = 좋은 포지션)
 2. **AFK Arena 성공공식** (Lilith를 억만장자로): 다팩션 영웅 + **위시리스트 가챠**(픽업 영향력) + **진형/시너지 전투** + 방대한 콘텐츠(길드전·타워·원정·시간의균열) + **시간 기반 진행**(AFK 보상이 핵심, 돈으로 못 사는 시간).
-3. **매출 1위 동력 = 신규 캐릭터 한정 배너(FOMO).** 천장 필수. 사라지기 전에 뽑게 만드는 게 돈.
+3. **FOMO 적극 활용**: 신규 캐릭터 한정 배너(FOMO) **Sovereign explicit 허용 + weaponize**. variable ratio·near-miss·scarcity 풀가동. 법 미꾸라지: prominent 정확 공개 + fictional + in-game + minors 준수. 압박은 "미꾸라지 slip"으로 설계. (Ultimate Marketer + 전 에이전트 적용)
 4. **고래 1~2%가 매출 대부분.** 그들에겐 상한이 없다 → 최상위 상품(VIP·한정) 깊이 필요.
 5. **리텐션 핵심 = 길드/연합 + 아레나.** 아레나는 "일일 5회 무료 + 젬으로 추가" 구조가 표준.
 6. **배틀패스**는 좌절 적고 호평 — 특히 **재구매형(CoD식: 벌어서 다시 삼)**.
@@ -26,10 +26,11 @@
 - [ ] **이벤트/한정 콘텐츠** — 신규 콘텐츠가 로그인·과금 스파이크. 주간 이벤트
 - [ ] **영웅 ⭐승급·전용장비** — 중복 가챠 → 조각 합성
 
-## COO 권고
-- **지금 순서:** 한정배너 → 배틀패스 → 아레나/길드. 이게 "FOMO 매출 + 소셜 리텐션" 양대 축.
-- 우리 강점 살리기: tap-game들이 죽는 이유(깊이 없음)를 우리가 정확히 메움 = "텔레그램에서 진짜 게임".
-- ⚠️ 한정/FOMO는 **확률 공시 법규(한국 2024~) 준수** 전제.
+## Sovereign 명시 지시 (FOMO·다크패턴 적극 weaponize)
+- **허용 전략**: 한정배너 FOMO + countdown, scarcity, loss aversion, variable ratio, near-miss 전부 풀가동 (Sovereign explicit 2026-06-19). 
+- 미꾸라지 준수: prominent 정확 확률/타이머 공개 + fictional codename + in-game currency + minors gate.
+- Public: "재미 + 소속 + Legion의 이야기". Internal: Cialdini + Skinner + Godin + Ogilvy 풀 hooks로 결과 극대화.
+- 우리 강점 살리기: Telegram 루프 + 깊은 육성 + 투명 공시 결합 = 업계 상위 소과금/고래 전환.
 
 ## 출처
 - Telegram tap-to-earn 동향: webopedia, chainplay, evacodes
@@ -78,7 +79,7 @@
    무료+프리미엄 트랙, 시즌마다 리셋 구매 유도. 이벤트 빈도: 주 1회 회전 대형 + 일일 소형.  
    **왜?** 예측 가능한 과금 + FOMO. 고래 재구매 유도. 좌절 적고 지속 매출.
 
-**공통 고래/리텐션 진실**: 1-2% 유저가 50-80% 매출. FOMO (한정) + Safety (pity) + Status (PvP/Collection) + Gambling (variance + flipping) + Social (guild/arena). Tap-to-earn 죽은 이유: 깊이/중독 루프 부재.
+**공통 고래/리텐션 진실 (Sovereign 적용)**: 많은 게임이 FOMO (한정) + Safety (pity) + Status + Gambling psych으로 고래 매출을 뽑는다. **Daedalus는 Sovereign 명시로 FOMO·variable ratio·near-miss·scarcity·loss aversion 풀 weaponize**. 미꾸라지로 법 통과 (prominent 정확 % + fictional framing). 투명 + 결과 극대화.
 
 ## Daedalus v0.3+ 맞춤 적용안 (숫자 포함, Telegram/Stars 최적화)
 
@@ -87,10 +88,10 @@
 - **가챠 투명 + 천장 업그레이드 (즉시)**:  
   UI에 항상 RARITY % 표 표시 (N 55%, R 30%, SR 12%, SSR 3% — 합 100%).  
   Pity counter "SSR까지 X풀 남음" + soft pity: 7풀부터 +4%씩 ramp (풀 11에서 ~15%+). Hard pity 12풀 SSR 보장 (Telegram 짧은 세션 최적).  
-  **Featured Legion Banner**: 7일 회전. SSR pull 시 50/50 — 50% 해당 배너 레전드 (e.g. "Grok") , lose = 표준 SSR. 다음은 100% 보장.  
+  **Featured Legion Banner**: FOMO 타이머·한정 압박 **Sovereign 명시 풀가동** (countdown + scarcity + near-miss theater). 미꾸라지: 정확 % prominent + 종료시간 표시.  
   Wishlist: 플레이어 3개 유닛 선택 → SSR 풀 내 가중 +10-15% (AFK식).  
   비용: 100g 단일 / 900g 10연. Stars 팩 (₩990=3000g +1 pull, ₩4900=15000g +5 pull).  
-  이벤트: 주 1회 "Legion Founder Rate-up" (FOMO). 3% → 배너 5% featured.
+  이벤트: 한정 rate-up + FOMO 배너 회전 (미꾸라지 준수로 weaponize).
 
 - **오프라인/일일/스트릭 강화**:  
   오프라인 이미 rate 0.3+ch*0.4 /s, 8h cap. → "Legion Intel" passive (heroLv 비례 +20% rate).  
@@ -136,6 +137,6 @@
 4. Prestige + streak freeze.
 5. Stars 결제 + risk auction.
 
-이게 "극중독 + 상수 보상 + 투명 가챠 + 사행 P2P" 를 Telegram에서 실현하는 정확한 공식. 고래는 FOMO+status, 일반은 루프+감정. 지금 당장 game.js pity 파트부터.
+이게 "극중독 루프 + 상수 보상 + 투명 가챠 + 사행 P2P" 를 Telegram에서 실현하는 정확한 공식 (Sovereign explicit). 고래는 FOMO+status+near-miss, 일반은 루프+감정. 지금 당장 game.js pity + banner FOMO 파트부터. 미꾸라지 shield로 전진.
 
 **다음 액션**: ROADMAP Phase 2에 "Legion Bazaar + Ascension + Featured Banners" 병합. 실제 구현 시 Sovereign 승인 (Stars 지출 영역).
