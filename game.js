@@ -505,6 +505,7 @@ function heroBuffText() {
 
 // ── 편성(스쿼드) 시스템 ───────────────────────────────────────────────────────
 const DEPLOY_MAX = 8;
+const MAX_COMBINED = 500; // 장비 인스턴스 + 캐릭터 보유(owned) 총합 500까지 허용
 function charLv(id) { return (META.charLv && META.charLv[id]) || 0; }
 function charGearStats(id) {                            // 캐릭별 장착 장비 합산
   const tot = { str: 0, int: 0, agi: 0, luk: 0 }, eq = (META.charGear && META.charGear[id]) || {};
@@ -559,8 +560,10 @@ function gearArt(g) {
   if (!g) return gearSynthHTML(null);
   const slot = g.slot || 'weapon';
   const rar = (g.rarity || 'N').toLowerCase();
-  // NEW: slot-rarity 20 PNG 우선 (art/gear/weapon-ssr.png 등, 5x4 간소화). onerror: synth fallback (veins/shards/volumetric badass)
-  return `<img class="g-art" src="art/gear/${slot}-${rar}.png" alt="" loading="lazy" onerror="this.outerHTML=gearSynthHTML(${JSON.stringify(g).replace(/"/g,'&quot;')});">`;
+  // 아트 폴백 체인: ①per-item art/gear/i{id}.png(120종 개별) → ②슬롯-등급 공유 → ③synth.
+  // 그록이 i{id}.png 떨구면 즉시 개별 아트 적용(같은 슬롯·등급도 전부 다르게). 비파괴·되돌림 가능.
+  const tid = g.tplId || g.id || 0;
+  return `<img class="g-art" src="art/gear/i${tid}.png" alt="" loading="lazy" data-s="0" onerror="var s=(+this.dataset.s||0)+1;this.dataset.s=s;if(s===1){this.src='art/gear/${slot}-${rar}.png'}else{this.outerHTML=gearSynthHTML(${JSON.stringify(g).replace(/"/g,'&quot;')})}">`;
 }
 function gearSynthHTML(g) {
   if (!g) return `<div class="gear-synth empty" style="opacity:.55">⚙️</div>`;
@@ -3350,7 +3353,8 @@ on("gacha10-btn", "click", gacha10);
 function gearGacha(count) {
   const cost = count === 10 ? 72 : 8; // 장비: 단차💎8(캐릭과 동일단가 — 가치역전 해소) / 10연💎72(8×10에서 10%할인 — 10연 인센티브). 트리니티 옵션A
   if ((META.gems || 0) < cost) { toast(t("tGemShort", { n: cost }), "#ef4444"); return; }
-  if (META.gear.length + count > 500) { toast(t("gFull"), "#ef4444"); return; }   // 60→500(군주): 중복 쌓아 합성·각성 가능하게
+  const _combined = ((META.owned || []).length) + (META.gear || []).length;
+  if (_combined + count > MAX_COMBINED) { toast(t("gFull"), "#ef4444"); return; }   // 총합(캐릭+장비) 500 한도
   META.gems -= cost;
   const RK = { N: 0, R: 1, SR: 2, SSR: 3, UR: 4, EX: 5 }; let best = null; const results = [];
   for (let i = 0; i < count; i++) {
@@ -3456,14 +3460,26 @@ function renderDash() {
 function renderSquad() {
   const slots = $("squad-slots"); if (!slots) return;
   const sq = getDeployedUnits();
-  if ($("squad-info")) $("squad-info").textContent = sq.length + "/" + DEPLOY_MAX + " · ⚡" + Math.round(squadPower() * ascPowerMul());
+  const squadInfo = $("squad-info");
+  if (squadInfo) {
+    squadInfo.textContent = sq.length + "/" + DEPLOY_MAX + " · ⚡" + Math.round(squadPower() * ascPowerMul());
+    // 초대 버튼을 헤더에 깔끔하게 배치 (시너지 칩에서 분리)
+    let inv = squadInfo.querySelector('.invite-btn');
+    if (!inv) {
+      inv = document.createElement('button');
+      inv.className = 'invite-btn';
+      inv.innerHTML = '👥 초대';
+      inv.style.cssText = 'font-size:10px;margin-left:8px;padding:2px 8px;border-radius:999px;background:#3b82f6;color:#fff;border:none;vertical-align:middle;cursor:pointer;';
+      inv.onclick = (e) => { e.stopImmediatePropagation(); inviteFriend(); };
+      squadInfo.appendChild(inv);
+    }
+  }
   // 시너지 칩
   const synBox = $("squad-syn");
   if (synBox) {
     const syn = squadSynergy();
     let html = syn.bonuses.length ? syn.bonuses.map((b) => `<span class="syn-chip">${b}</span>`).join("") : `<div class="ddim" style="font-size:11px">같은 진영 2+ / 다양한 아키타입으로 시너지 발동</div>`;
     if (META.vanguard && META.vanguard===today()) html += ` <span class="syn-chip" style="color:#fde047;border-color:#fbbf24">Vanguard 24h • MY carried tease</span>`;
-    html += ` <button onclick="inviteFriend()" style="font-size:9px;padding:1px 4px;">👥 초대</button>`;
     synBox.innerHTML = html;
   }
   // 출전 슬롯
@@ -3674,7 +3690,11 @@ function grantUnit(rarity) {
   if (!pool.length) return null;
   const u = pool[(Math.random() * pool.length) | 0];
   if (!META.owned) META.owned = [];
-  if (META.owned.indexOf(u.id) < 0) { META.owned.push(u.id); window._lastGrantNew = true; }
+  if (META.owned.indexOf(u.id) < 0) {
+    const _c = META.owned.length + (META.gear || []).length;
+    if (_c >= MAX_COMBINED) { toast(t("gFull"), "#ef4444"); window._lastGrantNew = false; return u; }
+    META.owned.push(u.id); window._lastGrantNew = true;
+  }
   else { META.dupes = META.dupes || {}; META.dupes[u.id] = (META.dupes[u.id] || 0) + 1; window._lastGrantNew = false; }   // 신규 vs 중복(분해/합성 대상)
   return u;
 }
@@ -3777,7 +3797,22 @@ function showGearDex(tid) {
   $("unit-card").style.borderColor = g.color;
   $("unit-card").classList.toggle('rSSR', g.rarity === 'SSR');
   $("unit-card").classList.remove('gear-manage');   // 도감은 기본 세로 레이아웃
-  $("unit-glyph").innerHTML = (g.vis || SLOT_ICON[g.slot] || "⚙️");
+  // 장비 도감 일러스트: tiny vis 대신 gearArt 큰 프리뷰 사용 (미보유도 미리보기)
+  const artHtml = gearArt(g);
+  const previewExtra = has ? '' : 'filter:grayscale(0.65) brightness(0.82);opacity:0.82;';
+  $("unit-glyph").innerHTML = `<div class="gdex-gear-preview" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#0b111f;border-radius:8px;border:2px solid ${g.color};${previewExtra}">${artHtml}</div>`;
+  // 강제로 큰 사이즈 부여 (img / synth)
+  setTimeout(() => {
+    const preview = $("unit-glyph").querySelector('.gdex-gear-preview');
+    if (preview) {
+      const inner = preview.querySelector('img, .g-art, .gear-synth');
+      if (inner) {
+        inner.style.width = '120px';
+        inner.style.height = '120px';
+        inner.style.objectFit = 'contain';
+      }
+    }
+  }, 0);
   const e = (disp.enh || 0), s = (disp.star || 0), a = (disp.awak || 0);
   $("unit-name").innerHTML = `<b style="color:${g.color}">[${g.rarity}${e?"+"+e:""}${s?" ★"+s:""}${a?" ✦"+a:""}]</b> ${has ? nm : "???"}`;
   $("unit-title").textContent = has ? (t("st_" + SLOT_MAIN[g.slot]) || g.slot) : t("locked");
@@ -3854,7 +3889,8 @@ function showUnit(id) {
 function craftGear(forceRar) {
   const cost = 300;
   if (META.gold < cost) { toast(t("tGoldShort", { n: cost }), "#ef4444"); return; }
-  if (META.gear.length >= 500) { toast(t("gFull"), "#ef4444"); return; }   // 40→500(군주): 장비 보유량 확대
+  const _combined = ((META.owned || []).length) + (META.gear || []).length;
+  if (_combined >= MAX_COMBINED) { toast(t("gFull"), "#ef4444"); return; }   // 총합(캐릭+장비) 500 한도
   META.gold -= cost; const g = newGear(forceRar); g.enh=0; g.star=0; g.awak=0; META.gear.push(g);
   saveMeta(); updateMeta(); renderGear();
   toast(t("gGot", { x: SLOT_ICON[g.slot] + " " + g.rarity }), g.color); SFX.gacha();

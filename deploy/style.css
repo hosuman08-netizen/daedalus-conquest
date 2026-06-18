@@ -174,6 +174,18 @@ h1::first-letter { color: var(--crimson); }
 .gm-art { position: relative; width: 56px; height: 56px; flex: 0 0 56px; border: 2px solid; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #05040c; box-shadow: inset 0 0 14px rgba(0,0,0,0.9), 0 0 0 1px rgba(0,0,0,0.5); }
 .gm-art .gear-synth, .gm-art .g-art, .gm-art img { width: 48px; height: 48px; object-fit: contain; border-radius: 5px; filter: contrast(1.15) saturate(1.2); } /* gear icon: contain keeps full visible inside gold border */
 .gm-art .gear-synth .gear-r { font-size: 8px; }
+/* Gear codex detail preview (unit-glyph 재활용 시 큰 일러스트) */
+#unit-glyph .gdex-gear-preview {
+  box-shadow: inset 0 0 12px rgba(0,0,0,0.7);
+}
+#unit-glyph .gdex-gear-preview img,
+#unit-glyph .gdex-gear-preview .g-art,
+#unit-glyph .gdex-gear-preview .gear-synth {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  filter: contrast(1.15) saturate(1.25);
+}
 .gm-meta { min-width: 0; flex: 1; }
 .gm-nm { font-size: 14px; font-weight: 800; line-height: 1.25; }
 .gm-ti { font-size: 10px; color: var(--dim); margin: 3px 0; line-height: 1.2; }
@@ -577,10 +589,10 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .sq-empty { font-size: 24px; color: #3a3550; }
 .squad-pool-label { font-size: 12px; color: var(--dim); margin: 4px 0 6px; }
 #squad-pool { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px; }
-.sq-pool-item { position: relative; aspect-ratio: 1/1.3; background: #16101f; border: 1.5px solid; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer; overflow: hidden; padding: 2px; }
+.sq-pool-item { position: relative; aspect-ratio: 1/1.18; background: #16101f; border: 1.5px solid; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; overflow: hidden; padding: 1px; }
 .sq-pool-item.on { background: #241a3a; box-shadow: inset 0 0 0 1px var(--gold); }
-.sq-pool-item .sq-art { position: relative; width: 84%; aspect-ratio: 1/1; max-width: 56px; display: flex; align-items: center; justify-content: center; font-size: 22px; overflow: hidden; border-radius: 6px; }
-.sq-pool-item .sqim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 17%; border-radius: 5px; } /* nukki pool: larger fill, tight border alignment */
+.sq-pool-item .sq-art { position: relative; width: 100%; aspect-ratio: 1/1; background: #0c0813; display: flex; align-items: center; justify-content: center; font-size: 22px; overflow: hidden; border-radius: 7px; }
+.sq-pool-item .sqim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 17%; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); } /* nukki pool: tight border alignment, art hugs card frame */
 .sq-pnm { font-size: 9px; font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sq-prr { font-size: 8.5px; font-weight: 900; }
 .sq-pool-item.rSSR { box-shadow: inset 0 0 12px rgba(245,196,81,0.22); }
@@ -780,8 +792,8 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 #gear-inv { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 10px; }
 .ginv-tile { position: relative; aspect-ratio: 1/1.05; background: #16101f; border: 1.5px solid; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer; overflow: hidden; transition: transform .06s, box-shadow .1s; }
 .ginv-tile:active { transform: scale(.92); box-shadow: 0 0 0 2px #fbbf24; }
-.ginv-tile .gt-art { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 24px; } /* consistent 48px+ premium size + carried aura */
-.ginv-tile .gt-art .g-art { width: 100%; height: 100%; object-fit: contain; filter: contrast(1.12) saturate(1.22) brightness(1.04); box-shadow: 0 0 8px rgba(251,191,36,0.18); } /* premium aura on art for "MY power carried" visual */
+.ginv-tile .gt-art { width: 78%; aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; font-size: 22px; } /* larger fill for better nukki, art hugs frame more */
+.ginv-tile .gt-art .g-art { width: 100%; height: 100%; object-fit: contain; filter: contrast(1.15) saturate(1.25) brightness(1.05); box-shadow: 0 0 6px rgba(251,191,36,0.15); } /* premium aura on art for "MY power carried" visual */
 .ginv-tile .gt-rr { font-size: 8px; font-weight: 900; }
 .ginv-tile .gt-eq { position: absolute; top: 1px; right: 2px; font-size: 9px; }
 .ginv-tile.rSSR { box-shadow: inset 0 0 12px rgba(245,196,81,0.22); }
