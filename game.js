@@ -1246,7 +1246,7 @@ function step(u, dt) {
       u.bossSkillT = 6;
     }
     // 고챕터 보스 phase: 하수인 소환 (다른 게임 레이드처럼, 깨기 어렵게)
-    if ((curLevel > 30 || variant === 'final') && u.hp < u.maxHp * 0.55 && !u.minionsSpawned) {
+    if ((curLevel > 30 || v === 'final') && u.hp < u.maxHp * 0.55 && !u.minionsSpawned) {
       u.minionsSpawned = true;
       for (let k = 0; k < (curLevel > 45 ? 3 : 2); k++) {
         const addT = ["drone", "marksman"][k % 2];
@@ -1254,7 +1254,7 @@ function step(u, dt) {
         units.push({
           t: addT, side: "e", x: u.x + (k-1)*30, y: u.y + 30 + Math.random()*20,
           hp: u.maxHp * 0.15, maxHp: u.maxHp*0.15, atk: u.atk * 0.4, range: sAdd.range *0.8,
-          speed: sAdd.speed, atkCd: sAdd.atkCd *1.2, ai:1, sight:80,
+          speed: sAdd.speed, atkCd: sAdd.atkCd *1.2, ai:1, sight:80, r: sAdd.r||9,
           atkT:1, skT:3, shield:0, buff:0, buffT:0, spd:0, spdT:0, boss: false
         });
       }
@@ -1438,15 +1438,15 @@ function drawBoss(u) {
     // 실제 PNG 이미지로 보스 본체 (챕터별 다양성 + 간지)
     const img = enemyPortraits[pk];
     let sz = R * 2.8;
-    if (v === 'final' || curLevel > 35) sz *= 1.15; // high ch bigger more epic
-    ctx.shadowColor = glow; ctx.shadowBlur = (v==='final' ? 45 : 30);
+    if (variant === 'final' || curLevel > 35) sz *= 1.15; // high ch bigger more epic
+    ctx.shadowColor = glow; ctx.shadowBlur = (variant==='final' ? 45 : 30);
     ctx.save();
-    ctx.beginPath(); ctx.arc(cx, cy, R * (v==='final' ? 1.4 : 1.25), 0, 7); ctx.clip();
+    ctx.beginPath(); ctx.arc(cx, cy, R * (variant==='final' ? 1.4 : 1.25), 0, 7); ctx.clip();
     ctx.drawImage(img, cx - sz/2, cy - sz * 0.55, sz, sz);
     ctx.restore();
     ctx.shadowBlur = 0;
     // high tier extra aura
-    if (v === 'final' || curLevel > 40) {
+    if (variant === 'final' || curLevel > 40) {
       ctx.strokeStyle = `rgba(251,191,36,${0.3 + Math.sin(t/200)*0.2})`;
       ctx.lineWidth = 4;
       ctx.beginPath(); ctx.arc(cx, cy, R * 1.55, 0, 7); ctx.stroke();
@@ -2102,21 +2102,21 @@ function getDominionCardText() {
 // ── 가챠 (뽑기) — 등급·천장·전설해금 ─────────────────────────────────────────
 const GACHA_COST = 8;   // 캐릭 단차: 💰골드100 → 💎젬8 (10연 💎80과 화폐 통일·비교가능. 1젬≈100골드라 골드단차=사실상 무한공짜였음. 트리니티 옵션A)
 const RARITY = [
-  { key: "N",   p: 0.575, color: "#9ca3af", lvls: 1 },
-  { key: "R",   p: 0.24,  color: "#60a5fa", lvls: 2 },
-  { key: "SR",  p: 0.12,  color: "#c084fc", lvls: 3 },
-  { key: "SSR", p: 0.03,  color: "#fbbf24", lvls: 5 },
-  { key: "UR",  p: 0.01,  color: "#e879f9", lvls: 6 }, // SSR 위 1%
-  { key: "EX",  p: 0.005, color: "#f472b6", lvls: 7 }, // 최고 0.5% (2명 중 1)
-]; // N57.5% R24% SR12% SSR3% UR1% EX0.5% (고등급 1.5% 총, 2명만 존재 → 1회당 EX 0.5%는 chase용. SSR 대비 6배 희소)
+  { key: "N",   p: 0.60, color: "#9ca3af", lvls: 1 },
+  { key: "R",   p: 0.25,  color: "#60a5fa", lvls: 2 },
+  { key: "SR",  p: 0.13,  color: "#c084fc", lvls: 3 },
+  { key: "SSR", p: 0.02,  color: "#fbbf24", lvls: 5 },
+  { key: "UR",  p: 0, color: "#e879f9", lvls: 6 }, // 출시 후 활성(유닛 채운 뒤). 시스템 보존, 확률 0
+  { key: "EX",  p: 0, color: "#f472b6", lvls: 7 }, // 출시 후 활성. 확률 0이라 grantUnit 폴백·연출 미발화
+]; // 활성 4등급 합 = 1.000 정확 (N60 R25 SR13 SSR2). 표시=코드 100% · UR/EX는 출시예정
 function rollRarity() {
   let p = (META.pity || 0);
   if (p >= 10) {
-    // hard pity 10 → SSR 보장 (UR/EX는 순수 운, 별도 천장 없음)
+    // hard pity 10 → SSR 보장
     const ssr = RARITY.find(x => x.key === "SSR");
     return ssr || RARITY[3];
   }
-  let ssrP = 0.03 + (p > 6 ? (p - 6) * 0.06 : 0);  // SSR soft ramp
+  let ssrP = 0.02 + (p > 6 ? (p - 6) * 0.06 : 0);  // SSR soft ramp (base = SSR 표시값 0.02)
   let r = Math.random(), a = 0;
   const adj = RARITY.map(x => x.key==="SSR" ? {...x, p: Math.min(ssrP, 0.15)} : x);
   const sum = adj.reduce((s,x)=>s+x.p,0) || 1;
@@ -2125,7 +2125,7 @@ function rollRarity() {
 }
 // 📊 전체 확률 공개 — RARITY 배열에서 직접 생성하므로 코드값과 영원히 일치(법적 안전)
 function showOdds() {
-  const rows = RARITY.map(x => `<div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2638;padding:3px 0;"><span style="color:${x.color};font-weight:600;">${x.key}</span><span>${(x.p * 100).toFixed(x.p < 0.01 ? 1 : (x.p * 100 % 1 ? 1 : 0))}%</span></div>`).join("");
+  const rows = RARITY.filter(x => x.p > 0).map(x => `<div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2638;padding:3px 0;"><span style="color:${x.color};font-weight:600;">${x.key}</span><span>${(x.p * 100).toFixed(x.p * 100 % 1 ? 1 : 0)}%</span></div>`).join("");
   const body = $("odds-body");
   if (body) body.innerHTML =
     rows +
@@ -2291,7 +2291,7 @@ function gacha10() {
       const ssr = RARITY.find(x => x.key === "SSR") || RARITY[3];
       rar = ssr;
     }
-    if (i === 9 && best < 2) rar = RARITY[2];          // 10연 SR↑ 보장 (dopamine)
+    if (i === 9 && best < 2 && (META.pity || 0) < 10) rar = RARITY[2];          // 10연 SR↑ 보장 (단 천장 SSR은 보존)
     if (["SSR","UR","EX","SR"].includes(rar.key)) META.pity = 0;
     best = Math.max(best, RANK[rar.key] || 0);
     const gu = grantUnit(rar.key);
@@ -2312,7 +2312,7 @@ function showGacha(rar, msg, results) {
   $("gacha-card").style.boxShadow = `0 0 40px ${rar.color}, inset 0 0 0 2px ${rar.color}`;
   if (["SSR","UR","EX"].includes(rar.key)) $("gacha-rank").classList.add('ssr-tease'); else $("gacha-rank").classList.remove('ssr-tease');
   const pity = (META.pity||0); const pct = ["SSR","UR","EX"].includes(rar.key) ? "고등급!" : "visible";
-  $("gacha-msg").innerHTML = msg + `<br><small style="opacity:.7">🎯 천장 ${pity}/10 · N57.5% R24% SR12% SSR3% UR1% EX0.5% | hard10=SSR 보장 (UR/EX는 순수 럭키)</small>`;
+  $("gacha-msg").innerHTML = msg + `<br><small style="opacity:.7">🎯 천장 ${pity}/10 · N60% R25% SR13% SSR2% | hard10=SSR 보장</small>`;
   const listEl = $("gacha-list");   // 🎰 뽑힌 목록 (10연 = 10개 다, 단차 = 신규/중복)
   if (listEl) listEl.innerHTML = (results && results.length)
     ? results.map((r) => `<div class="gres r${r.rarity}" style="border-color:${rarColor(r.rarity)}"><b style="color:${rarColor(r.rarity)}">${r.rarity}</b><span class="gres-nm">${r.name}</span>${r.dupe ? '<span class="gres-dup">중복</span>' : (r.isNew ? '<span class="gres-new">NEW</span>' : '')}</div>`).join("")

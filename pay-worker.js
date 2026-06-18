@@ -22,6 +22,9 @@ const ITEMS = {
   gold3:    { title: "💰 140000",        desc: "골드 140000" },
 };
 
+// 🔒 서버 고정 가격(⭐ Stars) — game.js STARS와 일치. 클라가 보낸 stars 파라미터는 무시(금액 위조 차단: 1⭐로 비싼 팩 결제 방지).
+const STARS = { starter: 50, weekly: 250, monthly: 750, vip: 1500, ultra: 5000, growth1: 500, growth2: 2500, gem1: 55, gem2: 280, gem3: 1000, gem4: 2500, gold1: 55, gold2: 280, gold3: 1000 };
+
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
@@ -46,9 +49,9 @@ export default {
     if (req.method === "GET" && url.pathname === "/invoice") {
       if (!token) return json({ error: "BOT_TOKEN not set" }, 500);
       const item = url.searchParams.get("item");
-      const stars = parseInt(url.searchParams.get("stars") || "0", 10);
       const uid = url.searchParams.get("uid") || "0";
       const meta = ITEMS[item];
+      const stars = STARS[item];           // 🔒 서버 고정가 (클라 stars 파라미터 무시 — 1⭐로 울트라 결제 등 금액 위조 차단)
       if (!meta || !stars) return json({ error: "bad item" }, 400);
       const res = await tg(token, "createInvoiceLink", {
         title: meta.title,
