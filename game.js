@@ -843,14 +843,17 @@ function spawnArmy(side) {
     // MVP enemy visual upgrade: wider triggers so tower formations (screenshot like 47층) use more PNGs instead of pure identical synth
     let portraitKey = null, eName = null;
     if (side === "e") {
-      if (isBoss || t === "titan") { portraitKey = "titan"; eName = "타락 거신"; }
+      if (isBoss || t === "titan") { 
+        portraitKey = "titan"; 
+        eName = curLevel < 15 ? "타락 거신" : (curLevel < 40 ? "타락 심연" : "종말의 심판자"); 
+      }
       else if (curLevel >= 40) { portraitKey = "corrupted-titan"; eName = "타락 " + (SPEC[t].name || t); }
       else if (t === "drone" && (curLevel >= 18 || (curLevel >= 10 && (i % 2 === 0)))) { portraitKey = "drone"; eName = "적 정찰기"; }
       else if (t === "marksman" && curLevel >= 14) { portraitKey = "marksman"; eName = "적 저격수"; }
       else if (curLevel >= 25 && (i % 3 === 0)) { portraitKey = "elite-drone"; eName = "망령 " + (SPEC[t].name || t); }
       else if (t === "commander" && curLevel > 15) { eName = "그림자 지휘"; }
       // 추가 매핑 (tower swarm 가시성 업)
-      else if (t === "guardian" && curLevel >= 20) { portraitKey = "corrupted-titan"; eName = "타락 방벽"; } // reuse existing for now
+      else if (t === "guardian" && curLevel >= 20) { portraitKey = "corrupted-titan"; eName = "타락 방벽"; }
       else if (t === "bruiser" && curLevel >= 16) { portraitKey = "titan"; eName = "적 강습"; }
     }
     units.push({
@@ -860,10 +863,8 @@ function spawnArmy(side) {
       regen: side === "p" ? hb.regen : 0,
       atkT: Math.random() * 0.4, skT: s.skillCd * 0.5, shield: 0, buff: 0, buffT: 0, spd: 0, spdT: 0,
       portraitKey, eName,
+      bossVariant: isBoss ? (curLevel < 15 ? 'base' : (curLevel < 40 ? 'corrupted' : 'final')) : undefined,
     });
-    if (isBoss) {
-      units[units.length-1].bossVariant = curLevel < 15 ? 'base' : (curLevel < 40 ? 'corrupted' : 'final');
-    }
   });
 }
 
@@ -1281,22 +1282,34 @@ function confettiBurst() {
   for (let i = 0; i < 14; i++) { addFx(W * (0.15 + Math.random() * 0.7), H * (0.18 + Math.random() * 0.4), i % 2 ? "charge" : "barrier"); }
 }
 
-// 🐲 위압적 보스 전용 렌더 (거대 layered construct + 맥동 코어 + 스파이크 + 글로우)
+// 🐲 위압적 보스 전용 렌더 — 보스별 디자인 차별화 (base / corrupted / final)
 function drawBoss(u) {
   const t = Date.now();
-  const R = u.r * 2.5;                              // 히트박스보다 크게 — 위압감
-  const breathe = 1 + Math.sin(t / 430) * 0.03;    // 호흡 맥동
-  const bob = Math.sin(t / 640) * 3;               // 상하 흔들림
+  const variant = u.bossVariant || 'base';
+  const R = u.r * 2.5;
+  const breathe = 1 + Math.sin(t / 430) * 0.03;
+  const bob = Math.sin(t / 640) * 3;
   const cx = u.x, cy = u.y + bob;
   const hpr = u.maxHp ? Math.max(0, u.hp / u.maxHp) : 1;
   ctx.save();
-  // 강한 적색 외곽 글로우
-  ctx.shadowColor = "#ff2a2a"; ctx.shadowBlur = 26;
-  // 스파이크 9개 (회전 + 개별 맥동)
-  ctx.fillStyle = "#3a0e0e"; ctx.strokeStyle = "#7a1414"; ctx.lineWidth = 1.5;
-  const spikes = 9;
-  for (let i = 0; i < spikes; i++) {
-    const a = (i / spikes) * 6.283 + t / 2600;
+
+  let glow = "#ff2a2a", body1 = "#5a1414", body2 = "#2e0a0a", body3 = "#160404", stroke = "#ff3b3b", core1 = "#fff2c0", core2 = "#ff5a2a";
+  let spikeCount = 9, plateSides = 6, eyeColor = "#ff1a1a";
+  let crackAlpha = 0.7 - hpr;
+
+  if (variant === 'corrupted') {
+    glow = "#a855f7"; body1 = "#3a0a3a"; body2 = "#1a0520"; body3 = "#0a0310"; stroke = "#c026d3"; core1 = "#e0b0ff"; core2 = "#c026d3";
+    spikeCount = 12; plateSides = 8; eyeColor = "#c026d3"; crackAlpha = 0.5;
+  } else if (variant === 'final') {
+    glow = "#fbbf24"; body1 = "#3a2a12"; body2 = "#1a1408"; body3 = "#0a0804"; stroke = "#fde047"; core1 = "#fff"; core2 = "#fbbf24";
+    spikeCount = 7; plateSides = 5; eyeColor = "#fde047"; crackAlpha = Math.max(0.2, 0.3 - hpr * 0.3);
+  }
+
+  ctx.shadowColor = glow; ctx.shadowBlur = 26;
+  // 스파이크
+  ctx.fillStyle = body1; ctx.strokeStyle = stroke; ctx.lineWidth = 1.5;
+  for (let i = 0; i < spikeCount; i++) {
+    const a = (i / spikeCount) * 6.283 + t / 2600;
     const sl = R * (1.18 + Math.sin(t / 480 + i) * 0.09);
     ctx.beginPath();
     ctx.moveTo(cx + Math.cos(a - 0.13) * R * 0.72, cy + Math.sin(a - 0.13) * R * 0.72);
@@ -1305,45 +1318,53 @@ function drawBoss(u) {
     ctx.closePath(); ctx.fill(); ctx.stroke();
   }
   ctx.shadowBlur = 0;
-  // 중장갑 본체 (육각 플레이트, 역회전)
+
+  // 본체
   const plate = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.3, 2, cx, cy, R * breathe);
-  plate.addColorStop(0, "#5a1414"); plate.addColorStop(0.6, "#2e0a0a"); plate.addColorStop(1, "#160404");
+  plate.addColorStop(0, body1); plate.addColorStop(0.6, body2); plate.addColorStop(1, body3);
   ctx.fillStyle = plate; ctx.beginPath();
-  const sides = 6;
-  for (let i = 0; i <= sides; i++) {
-    const a = (i / sides) * 6.283 - t / 4200;
+  for (let i = 0; i <= plateSides; i++) {
+    const a = (i / plateSides) * 6.283 - t / 4200;
     const rr = R * breathe * (1 + Math.sin(t / 720 + i) * 0.02);
     const x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr;
     i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
   }
   ctx.closePath(); ctx.fill();
-  ctx.lineWidth = 2.5; ctx.strokeStyle = "#ff3b3b"; ctx.stroke();
-  // 크랙 (HP 낮을수록 진해짐)
-  if (hpr < 0.7) {
-    ctx.strokeStyle = "rgba(255,90,40," + (0.7 - hpr).toFixed(2) + ")"; ctx.lineWidth = 1.5;
-    for (let i = 0; i < 5; i++) {
-      const a = i * 1.3 + 0.4;
+  ctx.lineWidth = 2.5; ctx.strokeStyle = stroke; ctx.stroke();
+
+  // 크랙
+  if (hpr < 0.8) {
+    ctx.strokeStyle = `rgba(255,90,40,${crackAlpha})`; ctx.lineWidth = 1.5;
+    const crackNum = variant === 'corrupted' ? 8 : 5;
+    for (let i = 0; i < crackNum; i++) {
+      const a = i * (6.28 / crackNum) + 0.4;
       ctx.beginPath(); ctx.moveTo(cx, cy);
       ctx.lineTo(cx + Math.cos(a) * R * 0.78, cy + Math.sin(a) * R * 0.78); ctx.stroke();
     }
   }
-  // 맥동 코어
+
+  // 코어 (색상 변형)
   const cr = R * 0.5;
   const core = ctx.createRadialGradient(cx, cy, 1, cx, cy, cr * (1 + Math.sin(t / 250) * 0.12));
-  core.addColorStop(0, "#fff2c0"); core.addColorStop(0.4, "#ff5a2a"); core.addColorStop(1, "rgba(120,10,10,0)");
+  core.addColorStop(0, core1); core.addColorStop(0.4, core2); core.addColorStop(1, "rgba(120,10,10,0)");
   ctx.fillStyle = core; ctx.beginPath(); ctx.arc(cx, cy, cr, 0, 7); ctx.fill();
-  // 눈 2개 (적색)
+
+  // 눈
   for (const dx of [-0.22, 0.22]) {
     ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(cx + dx * R, cy - R * 0.05, R * 0.075, 0, 7); ctx.fill();
-    ctx.fillStyle = "#ff1a1a"; ctx.beginPath(); ctx.arc(cx + dx * R, cy - R * 0.05, R * 0.038, 0, 7); ctx.fill();
+    ctx.fillStyle = eyeColor; ctx.beginPath(); ctx.arc(cx + dx * R, cy - R * 0.05, R * 0.038, 0, 7); ctx.fill();
   }
   ctx.restore();
-  // 큰 HP 바 + 이름
+
+  // HP 바 + 이름 (변형에 따라 아이콘/이름)
   const w = R * 1.8, by = cy - R * 1.28;
   ctx.fillStyle = "rgba(0,0,0,0.7)"; rRect(cx - w / 2 - 1, by - 1, w + 2, 7, 3); ctx.fill();
   ctx.fillStyle = hpr > 0.4 ? "#ef4444" : "#fbbf24"; rRect(cx - w / 2, by, w * hpr, 5, 2.5); ctx.fill();
   ctx.fillStyle = "#fbbf24"; ctx.font = "bold 11px sans-serif"; ctx.textAlign = "center";
-  ctx.fillText("🐲 " + (u.name || "타락 거신"), cx, by - 5);
+  let bName = "타락 거신";
+  if (variant === 'corrupted') bName = "타락 심연";
+  else if (variant === 'final') bName = "종말의 심판자";
+  ctx.fillText("🐲 " + (u.eName || u.name || bName), cx, by - 5);
 }
 
 // ── 그리기 ────────────────────────────────────────────────────────────────────
