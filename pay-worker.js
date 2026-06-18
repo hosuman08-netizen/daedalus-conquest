@@ -7,7 +7,7 @@
 
 const ITEMS = {
   starter:  { title: "초심자 패키지",   desc: "2x 속도 영구 + 골드3000 + 유닛10개" },
-  weekly:   { title: "주간 패스",        desc: "즉시 💎100 + 7일 매일 💎50" },
+  weekly:   { title: "주간 패스",        desc: "즉시 💎150 + 7일 매일 💎100" },
   monthly:  { title: "월간 패스",        desc: "즉시 💎300 + 30일 매일 💎100" },
   vip:      { title: "VIP 패키지",       desc: "4x속도·골드+50%·💎600·SR유닛" },
   ultra:    { title: "울트라 패키지",    desc: "8x속도·VIP혜택·💎2000·💰50k·SSR유닛+장비" },
@@ -15,8 +15,8 @@ const ITEMS = {
   growth2:  { title: "고급 성장팩",      desc: "💰20만 + 💎800 + SSR유닛+장비" },
   gem1:     { title: "💎 60",            desc: "다이아 60" },
   gem2:     { title: "💎 330",           desc: "다이아 330" },
-  gem3:     { title: "💎 1180",          desc: "다이아 1180" },
-  gem4:     { title: "💎 3200",          desc: "다이아 3200" },
+  gem3:     { title: "💎 1280",          desc: "다이아 1280" },
+  gem4:     { title: "💎 3400",          desc: "다이아 3400" },
   gold1:    { title: "💰 6000",          desc: "골드 6000" },
   gold2:    { title: "💰 35000",         desc: "골드 35000" },
   gold3:    { title: "💰 140000",        desc: "골드 140000" },

@@ -121,7 +121,7 @@ h1::first-letter { color: var(--crimson); }
 .cxc:active { transform: scale(0.93); box-shadow: 0 0 0 1.5px #fbbf2488; }
 .cxc .cxg { font-size: 16px; position: relative; width: 100%; flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 7px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03); border: none; background: #05040c; }
 .cxc .cxgly { line-height: 1; }
-.cxc .cxim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 17%; border-radius: 6px; } /* nukki grid: cover fills .cxg exactly, gold box-shadow on .cxc frames tightly. */
+.cxc .cxim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 17%; border-radius: 6px; border: 1.5px solid rgba(255,255,255,0.12); box-shadow: 0 0 0 1px rgba(0,0,0,0.5); } /* nukki codex: direct border on art for tight hug */
 .cxc.rSSR:not(.lock) { box-shadow: 0 0 0 1.5px rgba(251,191,36,0.38); }
 .cxc:not(.lock):hover { transform: scale(1.015); }
 .cxc:not(.lock):active { transform: scale(0.94); box-shadow: 0 0 0 2px #fbbf24cc; }
@@ -161,7 +161,7 @@ h1::first-letter { color: var(--crimson); }
 .gxc .gxi.gear-codex-art { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
 .gxc .gxi.gear-codex-art .gear-synth,
 .gxc .gxi.gear-codex-art .g-art,
-.gxc .gxi.gear-codex-art img { width: 52px; height: 52px; font-size: 20px; filter: contrast(1.18) saturate(1.28) brightness(1.06); box-shadow: 0 2px 8px rgba(0,0,0,0.6), 0 0 6px rgba(251,191,36,0.12); }
+.gxc .gxi.gear-codex-art img { width: 92%; height: 92%; max-width: 52px; max-height: 52px; font-size: 20px; object-fit: contain; filter: contrast(1.18) saturate(1.28) brightness(1.06); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 2px 8px rgba(0,0,0,0.6), 0 0 6px rgba(251,191,36,0.12); } /* fill container + border for tight comfortable gear icon nukki */
 .gxc .gxi.gear-codex-art .gear-synth .gear-r { font-size: 8px; }
 /* Rarity visual escalation in codex (고급일수록 강하게) */
 .gxc .gxi.gear-codex-art .gear-synth.rSSR { filter: contrast(1.3) saturate(1.5) brightness(1.15) drop-shadow(0 0 8px #fbbf24); }
@@ -182,16 +182,26 @@ h1::first-letter { color: var(--crimson); }
 .gm-art .gear-synth .gear-r { font-size: 8px; }
 /* Gear codex detail preview (unit-glyph 재활용 시 큰 일러스트) */
 #unit-glyph .gdex-gear-preview {
-  box-shadow: inset 0 0 12px rgba(0,0,0,0.7);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #05040c;
+  border-radius: 8px;
+  overflow: hidden;
 }
 #unit-glyph .gdex-gear-preview img,
 #unit-glyph .gdex-gear-preview .g-art,
 #unit-glyph .gdex-gear-preview .gear-synth {
-  width: 120px;
-  height: 120px;
+  width: 92%;
+  height: 92%;
+  max-width: 140px;
+  max-height: 140px;
   object-fit: contain;
-  filter: contrast(1.15) saturate(1.25);
-}
+  filter: contrast(1.18) saturate(1.28) brightness(1.08);
+  border: 1px solid rgba(255,255,255,0.1);
+} /* gear codex preview: generous fill, tight inner border for comfortable hug in modal */
 .gm-meta { min-width: 0; flex: 1; }
 .gm-nm { font-size: 14px; font-weight: 800; line-height: 1.25; }
 .gm-ti { font-size: 10px; color: var(--dim); margin: 3px 0; line-height: 1.2; }
@@ -212,7 +222,7 @@ h1::first-letter { color: var(--crimson); }
 } /* tighter padding, nukki art priority */
 /* NUKKI GOLD FRAME (tight fit): #unit-glyph yellow/gold border now hugs the illustration edge with zero gap. Container relative + absolute inset img (cover + tuned pos) ensures perfect alignment regardless of PNG intrinsic size/aspect. No padding inside border. Consistent bust crop for all nukki. */
 #unit-glyph { font-size: 11px; position: relative; width: 100%; max-width: 280px; aspect-ratio: 1 / 1.02; max-height: 36vh; margin: 0 auto 4px; display: block; overflow: hidden; background: #05040c; border-radius: 12px; }
-#unit-glyph img.ucim, #unit-glyph .ucim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 15%; border-radius: 9px; display: block; border: 2px solid rgba(245,196,81,0.55); box-shadow: inset 0 0 20px rgba(0,0,0,0.95), 0 0 0 1px rgba(0,0,0,0.5); } /* nukki: border and shadow directly on the img for tight frame hug, no gap. cover + pos for character focus. */
+#unit-glyph img.ucim, #unit-glyph .ucim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 17%; border-radius: 9px; display: block; border: 2px solid rgba(245,196,81,0.55); box-shadow: inset 0 0 20px rgba(0,0,0,0.95), 0 0 0 1px rgba(0,0,0,0.5); } /* nukki unit modal: cover + 17% for consistent character focus crop, border directly on img for perfect tight hug, comfortable premium view */
 #unit-glyph .ucgly { line-height: 1; }
 /* Elegant premium SSR gold rim — border now directly on frame for "must own" shine. */
 #unit-card.rSSR #unit-glyph img.ucim, #unit-card.rSSR #unit-glyph .ucim, #char-panel-card.rSSR #unit-glyph img, #char-panel-card.rSSR #unit-glyph .ucim { border-color: #fbbf24; box-shadow: inset 0 0 22px rgba(0,0,0,0.92), 0 0 0 1px rgba(0,0,0,0.6), 0 0 0 2px rgba(251,191,36,0.55); } 
@@ -227,9 +237,9 @@ h1::first-letter { color: var(--crimson); }
 #char-panel-card .cpim {
   max-height: none; /* rely on parent frame for tight nukki fit */
   width: 100%; max-width: 100%; height: auto;
-  object-fit: cover; display: block;
+  display: block;
   filter: contrast(1.18) saturate(1.26) brightness(1.05);
-} /* nukki fill: cover, parent glyph/card frame controls. */
+} /* nukki: specific rules ( .ucim etc ) control object-fit/position for tight comfortable frames; no blanket override */
 #unit-card .gear-synth {
   max-width: 52px;
   max-height: 52px;
@@ -597,10 +607,10 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 /* ⚔️ 편성(스쿼드) 시스템 */
 .syn-chip { display: inline-block; font-size: 10.5px; font-weight: 700; color: #a3e635; background: #1c2a14; border: 1px solid #3a5a1e; border-radius: 6px; padding: 2px 7px; margin: 0 4px 4px 0; }
 #squad-slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
-.sq-slot { position: relative; aspect-ratio: 1/1.18; background: #16101f; border: 1.5px solid #2c2142; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; overflow: hidden; padding: 3px 2px; }
+.sq-slot { position: relative; aspect-ratio: 1/1.18; background: #16101f; border: 1.5px solid #2c2142; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; overflow: hidden; padding: 1px; }
 .sq-slot.filled { background: #1d1535; }
-.sq-slot .sq-art { position: relative; width: 82%; aspect-ratio: 1/1; max-width: 62px; display: flex; align-items: center; justify-content: center; font-size: 24px; overflow: hidden; border-radius: 7px; }
-.sq-slot .sqim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 17%; border-radius: 6px; } /* nukki squad: larger % to fill slot frame better, gold/colored border hugs art */
+.sq-slot .sq-art { position: relative; width: 100%; aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; font-size: 24px; overflow: hidden; border-radius: 7px; }
+.sq-slot .sqim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 17%; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 0 0 1px rgba(0,0,0,0.5); } /* nukki squad: tight full fill, border+shadow on img for hug, comfortable frame */
 .sq-nm { font-size: 9.5px; font-weight: 800; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 2px; }
 .sq-lv { font-size: 8px; color: var(--dim); }
 .sq-x { position: absolute; top: 2px; right: 4px; font-size: 11px; color: #f87171; }
@@ -610,7 +620,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .sq-pool-item { position: relative; aspect-ratio: 1/1.18; background: #16101f; border: 1.5px solid; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; overflow: hidden; padding: 1px; }
 .sq-pool-item.on { background: #241a3a; box-shadow: inset 0 0 0 1px var(--gold); }
 .sq-pool-item .sq-art { position: relative; width: 100%; aspect-ratio: 1/1; background: #0c0813; display: flex; align-items: center; justify-content: center; font-size: 22px; overflow: hidden; border-radius: 7px; }
-.sq-pool-item .sqim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 17%; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); } /* nukki pool: tight border alignment, art hugs card frame */
+.sq-pool-item .sqim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 17%; border-radius: 6px; border: 2px solid rgba(255,255,255,0.12); box-shadow: 0 0 0 1px rgba(0,0,0,0.6); } /* nukki pool: full tight hug with stronger border+shadow on art for premium comfortable view */
 .sq-pnm { font-size: 9px; font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sq-prr { font-size: 8.5px; font-weight: 900; }
 .sq-pool-item.rSSR { box-shadow: inset 0 0 12px rgba(245,196,81,0.22); }
@@ -621,7 +631,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 #char-panel-card { background: var(--panel); border-radius: 7px; padding: 2px 3px 3px; width: 94vw; max-width: 264px; max-height: 74vh; overflow-y: hidden; border: 1.5px solid #3a2f5e; box-shadow: 0 6px 18px rgba(0,0,0,0.72); }
 #cp-head { display: flex; gap: 1px; align-items: center; margin-bottom: 0; }
 .cp-art { position: relative; width: 30px; height: 30px; flex: 0 0 30px; border: 1px solid rgba(245,196,81,0.32); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 11px; overflow: hidden; background:#05040c; }
-.cp-art .cpim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 17%; border-radius: 3px; } /* nukki char head: tight gold border frame, consistent crop */
+.cp-art .cpim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 17%; border-radius: 3px; border: 1px solid rgba(245,196,81,0.35); box-shadow: 0 0 0 1px rgba(0,0,0,0.5); } /* nukki char panel head: direct border on img for tight comfortable frame hug */
 .cp-meta { min-width: 0; flex: 1; }
 .cp-nm { font-size: 10px; font-weight: 800; line-height: 1.0; }
 .cp-ti { font-size: 6.5px; color: var(--dim); margin: 0; line-height: 1.0; }
@@ -772,8 +782,8 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .gear-synth.rR .gear-vein, .gear-synth.rR .gear-vein2 { color:#60a5fa; opacity:.48; }
 /* Exact CSS polish: larger .gxc slots (scannable premium), .g-art contrast + aura (Jordan visual consistency, MY power pop) */
 .gxc { aspect-ratio: 1/1; padding: 5px; }
-.gxc .gxi.gear-codex-art .gear-synth, .gxc .gxi.gear-codex-art .g-art, .gxc .gxi.gear-codex-art img { width: 42px; height: 42px; font-size: 17px; filter: contrast(1.32) saturate(1.38) brightness(1.1); box-shadow: 0 3px 11px rgba(0,0,0,0.68), 0 0 10px rgba(251,191,36,0.22); }
-.gxc .gxi.gear-codex-art .g-art, .gxc .gxi.gear-codex-art img { box-shadow: 0 3px 12px rgba(0,0,0,0.72), 0 0 14px rgba(245,196,81,0.25); } /* aura for art PNG too */
+.gxc .gxi.gear-codex-art .gear-synth, .gxc .gxi.gear-codex-art .g-art, .gxc .gxi.gear-codex-art img { width: 92%; height: 92%; max-width: 42px; max-height: 42px; font-size: 17px; object-fit: contain; filter: contrast(1.32) saturate(1.38) brightness(1.1); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 3px 11px rgba(0,0,0,0.68), 0 0 10px rgba(251,191,36,0.22); }
+.gxc .gxi.gear-codex-art .g-art, .gxc .gxi.gear-codex-art img { box-shadow: 0 3px 12px rgba(0,0,0,0.72), 0 0 14px rgba(245,196,81,0.25); } /* fill + border for tight hug */
 .gear-art, .slot-art { filter: contrast(1.28) saturate(1.35) brightness(1.08); box-shadow: inset 0 0 18px rgba(0,0,0,0.82), 0 5px 12px rgba(0,0,0,0.7), 0 0 9px rgba(255,255,255,0.18); border-color:#4a5065; }
 
 .legend-toggle { display:block; margin: 10px auto 0; padding: 4px 12px; font-size: 11px; color: var(--dim); background: transparent; border: 1px solid #2c2142; border-radius: 8px; }
@@ -810,8 +820,8 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 #gear-inv { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 10px; }
 .ginv-tile { position: relative; aspect-ratio: 1/1.05; background: #16101f; border: 1.5px solid; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer; overflow: hidden; transition: transform .06s, box-shadow .1s; }
 .ginv-tile:active { transform: scale(.92); box-shadow: 0 0 0 2px #fbbf24; }
-.ginv-tile .gt-art { width: 78%; aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; font-size: 22px; } /* larger fill for better nukki, art hugs frame more */
-.ginv-tile .gt-art .g-art { width: 100%; height: 100%; object-fit: contain; filter: contrast(1.15) saturate(1.25) brightness(1.05); box-shadow: 0 0 6px rgba(251,191,36,0.15); } /* premium aura on art for "MY power carried" visual */
+.ginv-tile .gt-art { width: 82%; aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; font-size: 22px; } /* generous fill for comfortable viewing, art prominent in tile */
+.ginv-tile .gt-art .g-art { width: 100%; height: 100%; object-fit: contain; filter: contrast(1.18) saturate(1.28) brightness(1.08); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 0 8px rgba(251,191,36,0.18); } /* premium aura + thin border on art for tight frame hug */
 .ginv-tile .gt-rr { font-size: 8px; font-weight: 900; }
 .ginv-tile .gt-eq { position: absolute; top: 1px; right: 2px; font-size: 9px; }
 .ginv-tile.rSSR { box-shadow: inset 0 0 12px rgba(245,196,81,0.22); }

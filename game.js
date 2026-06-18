@@ -3797,22 +3797,9 @@ function showGearDex(tid) {
   $("unit-card").style.borderColor = g.color;
   $("unit-card").classList.toggle('rSSR', g.rarity === 'SSR');
   $("unit-card").classList.remove('gear-manage');   // 도감은 기본 세로 레이아웃
-  // 장비 도감 일러스트: tiny vis 대신 gearArt 큰 프리뷰 사용 (미보유도 미리보기)
+  // 장비 도감 일러스트: gearArt 큰 프리뷰 (미보유도 미리보기). CSS가 tight nukki와 fill 담당
   const artHtml = gearArt(g);
-  const previewExtra = has ? '' : 'filter:grayscale(0.65) brightness(0.82);opacity:0.82;';
-  $("unit-glyph").innerHTML = `<div class="gdex-gear-preview" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#0b111f;border-radius:8px;border:2px solid ${g.color};${previewExtra}">${artHtml}</div>`;
-  // 강제로 큰 사이즈 부여 (img / synth)
-  setTimeout(() => {
-    const preview = $("unit-glyph").querySelector('.gdex-gear-preview');
-    if (preview) {
-      const inner = preview.querySelector('img, .g-art, .gear-synth');
-      if (inner) {
-        inner.style.width = '120px';
-        inner.style.height = '120px';
-        inner.style.objectFit = 'contain';
-      }
-    }
-  }, 0);
+  $("unit-glyph").innerHTML = `<div class="gdex-gear-preview">${artHtml}</div>`;
   const e = (disp.enh || 0), s = (disp.star || 0), a = (disp.awak || 0);
   $("unit-name").innerHTML = `<b style="color:${g.color}">[${g.rarity}${e?"+"+e:""}${s?" ★"+s:""}${a?" ✦"+a:""}]</b> ${has ? nm : "???"}`;
   $("unit-title").textContent = has ? (t("st_" + SLOT_MAIN[g.slot]) || g.slot) : t("locked");
