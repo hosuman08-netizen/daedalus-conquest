@@ -606,8 +606,8 @@ function squadSynergy() {                               // 진영/아키타입 �
     }
   }
   const archs = new Set(sq.map((u) => u.arch)).size;
-  if (archs >= 5) { hp += 0.20; bonuses.push("🔀 다양성 ×" + archs + " 체력+20%"); }
-  else if (archs >= 3) { hp += 0.10; bonuses.push("🔀 다양성 ×" + archs + " 체력+10%"); }
+  if (archs >= 5) { atk += 0.12; hp += 0.12; bonuses.push("🔀 다양성 ×" + archs + " 전군+12%"); }
+  else if (archs >= 3) { atk += 0.08; hp += 0.08; bonuses.push("🔀 다양성 ×" + archs + " 전군+8%"); }
   // §21 Human Core: Effervescent Host Weave (Durkheim group effervescence + fusion surge in 3+ Founding or 4+ faction; secular sacred "we" heat from real proxy signals)
   const founders = sq.filter(u => ["SSR","UR","EX"].includes(u.rarity)).length;
   const highFac = Object.values(fac).some(v => v >= 4);
@@ -685,8 +685,8 @@ function renderSynergyTable() {
     c.classList.toggle('off', !on);
   }
   const archs = new Set(sq.map((u) => u.arch)).size; const dOn = archs >= 3; let dB = "", dNx;
-  if (archs >= 5) { dB = "체+20%"; dNx = "★ MAX"; }
-  else if (archs >= 3) { dB = "체+10%"; dNx = (5 - archs) + "종 더 → +20%"; }
+  if (archs >= 5) { dB = "전군+12%"; dNx = "★ MAX"; }
+  else if (archs >= 3) { dB = "전군+8%"; dNx = (5 - archs) + "종 더 → +12%"; }
   else { dNx = (3 - archs) + "종 더 → +10%"; }
   const dc = el._divCard;
   dc._nm.textContent = `다양성 ${archs}종`;
@@ -1893,16 +1893,21 @@ function finish(p, e) {
       }
       else { extra = `<div class="rwd2">${t("rwDailyDone")}</div>`; }
       title = t("rDaily"); bumpPrestige(1);
-    } else if (m === "boss") {                          // 🐲 보스: 골드 + 난이도별 다이아 + 박스 + 🔮소울  (챕터 높을수록 보상 대폭 ↑)
-      reward = bonus(100 + META.chapter * 35);
-      const gemR = 8 + Math.floor(META.chapter / 3);
+    } else if (m === "boss") {                          // 🐲 보스: 난이도 배율 + 즉시 큰 보상 + 복리 (bossClears) 하이브리드
+      const diffMul = Math.max(1, (META.chapter / 8));  // 난이도에 비례 즉시 배율
+      reward = Math.round(bonus(100 + META.chapter * 35) * diffMul);
+      const gemR = Math.round((8 + Math.floor(META.chapter / 3)) * diffMul * 0.8);
       META.gems = (META.gems || 0) + gemR;
-      const soulR = 3 + Math.floor(META.chapter / 4);   // 🔮 소울 — 희소
+      const soulR = Math.round((3 + Math.floor(META.chapter / 4)) * diffMul);
       META.soul = (META.soul || 0) + Math.round(soulR * ascSoulMul());
+      META.bossClears = (META.bossClears || 0) + 1;
+      const compMul = 1 + Math.min(0.75, META.bossClears * 0.012); // 복리 1.2% per clear, cap ~75%
+      reward = Math.round(reward * compMul);
       const tier = META.chapter >= 40 ? "legend" : META.chapter >= 25 ? "epic" : META.chapter >= 10 ? "rare" : "common";
       const bx = openBox(tier);
       title = t("rBoss");
       extra = `<div class="rwd">${t("rwBoss", { n: reward })} +💎${gemR} +🔮${soulR}</div><div class="rwd2" style="color:${bx.color}">${BOX[tier].icon} ${bx.text}</div>`;
+      if (compMul > 1.05) extra += `<div class="rwd2">복리 +${Math.round((compMul-1)*100)}% (누적 ${META.bossClears}회)</div>`;
     } else {                                            // 📖 캠페인: 다음 챕터
       const founders = getFounderCount();
       const protected = founders >= 3 && META.streak > 0 && Math.random() < 0.15; // ethical: 3+ Founders = 1 miss safe chance (no full reset abuse)
