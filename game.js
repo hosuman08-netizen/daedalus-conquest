@@ -2112,6 +2112,29 @@ function rollRarity() {
 // ── 🪙 골드 뽑기 + 🔮 소울 분해 루프 (트리니티 SPEC-soul-fodder-loop) ──────────────
 const GOLD_GACHA_COST = 200;
 const SOUL_VAL = { N: 2, R: 5, SR: 15, SSR: 60, UR: 150, EX: 300 };   // 분해 시 등급별 소울 (고등급 보호)
+// 🔨 장비 분해 → 골드 (군주: 쓸모없는 장비 정리. 캐릭=소울 / 장비=골드 역할분리)
+const GEAR_SCRAP = { N: 80, R: 200, SR: 600, SSR: 1500 };
+function gearScrapGold(g){ return Math.round((GEAR_SCRAP[g.rarity]||80) * (1 + (g.enh||0)*0.1 + (g.star||0)*0.3 + (g.awak||0)*0.5)); }
+function dismantleGear(id){
+  if(running) return;
+  const g = META.gear.find(x=>x.id===id); if(!g) return;
+  if(gearOwnerName(id)){ toast("장착중 — 분해 불가","#ef4444"); return; }
+  const gold = gearScrapGold(g);
+  if((g.rarity==="SSR"||g.rarity==="SR") && !confirm(g.rarity+" 장비를 분해할까요? +"+gold+"골드")) return;
+  META.gear = META.gear.filter(x=>x.id!==id);
+  META.gold = (META.gold||0) + gold; saveMeta(); updateMeta(); if(typeof renderGear==="function")renderGear();
+  toast("🔨 +"+gold+" 골드 · 장비 분해","#fbbf24"); haptic("medium");
+}
+function dismantleJunkGear(){
+  let gold=0, cnt=0;
+  META.gear = (META.gear||[]).filter(g=>{
+    if((g.rarity==="N"||g.rarity==="R") && !gearOwnerName(g.id) && !((g.enh||0)>0||(g.star||0)>0)){ gold+=gearScrapGold(g); cnt++; return false; }
+    return true;
+  });
+  if(cnt===0){ toast("분해할 잡템 없어요 (N/R 미장착·미강화)","#9ca3af"); return; }
+  META.gold = (META.gold||0) + gold; saveMeta(); updateMeta(); if(typeof renderGear==="function")renderGear();
+  toast("🔨 +"+gold+" 골드 · "+cnt+"개 분해","#fbbf24"); if(typeof SFX!=="undefined"&&SFX.claim)SFX.claim();
+}
 function rollGoldRarity() { const r = Math.random(); if (r < 0.05) return RARITY[2]; if (r < 0.30) return RARITY[1]; return RARITY[0]; }  // SR5/R25/N70, SSR 0%
 function goldGacha() {
   if (running) return;
@@ -3645,12 +3668,14 @@ function openGearItem(id) {
   }
   const dupG = (g.tplId != null) && META.gear.find((x) => x.id !== id && x.tplId === g.tplId && !gearOwnerName(x.id));   // 같은 장비(미장착) 합성용
   if (dupG && s < 5) html += `<button id="gpop-fuse" class="gpop-star">✨ 합성 ★${s}→★${s + 1} (같은 장비 소모)</button>`;
+  if (!gearOwnerName(id)) html += `<button id="gpop-scrap" class="gpop-enh" style="border-color:#fbbf24;background:linear-gradient(160deg,#3a2c1a,#1a1410)">🔨 분해 +${gearScrapGold(g)}골드</button>`;
   html += `</div>`;
   $("unit-detail").innerHTML = html;
   on("gpop-enh", "click", () => { enhanceGear(id); setTimeout(() => openGearItem(id), 50); });
   if (e >= 10 && s < 5) on("gpop-star", "click", () => { gearStar(id); setTimeout(() => openGearItem(id), 50); });
   if (s >= 3 && a < 5) on("gpop-awk", "click", () => { gearAwaken(id); setTimeout(() => openGearItem(id), 50); });
   if (dupG && s < 5) on("gpop-fuse", "click", () => { fuseGear(id); setTimeout(() => openGearItem(id), 50); });
+  if (!gearOwnerName(id)) on("gpop-scrap", "click", () => dismantleGear(id));
   $("unit-pop").classList.remove("hidden");
 }
 function showUnit(id) {
