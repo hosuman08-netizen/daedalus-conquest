@@ -420,7 +420,7 @@ function legionPower() {
   let p = 0; for (const t of ORDER) p += (META.army[t] || 0) * ((META.lv[t] || 0) + (META.enh[t] || 0) * 2 + (META.star[t] || 0) * 12 + (META.awak[t] || 0) * 40);
   return Math.round((p + gearPower()) * heroPowerMul());   // ⚔️ 장비 + ✦각성 + 영웅 강화 반영
 }
-function dividendGold() { return Math.floor(legionPower() * 0.6); }
+function dividendGold() { return Math.floor(legionPower() * 0.9); }   // 🔧 0.6→0.9 골드복리 후하게(군주) — 무과금 플라이휠 가속
 
 // ── 장비 시스템 (gear.js의 5슬롯·120종 카탈로그 사용) ────────────────────────
 // SLOTS/SLOT_ICON/SLOT_MAIN/STAT_KEYS/GEAR_RARITY/makeGear/gearStat 는 gear.js에 정의됨
@@ -3060,7 +3060,7 @@ function openEvent() { renderAttend(); renderPlay(); renderSeason(); showPage("e
   if (miss) {
     const b = META.dailyBattles || 0, p = META.dailyPulls || 0, u = META.dailyUlts || 0, t = META.dailyTower || 0;
     const allDone = b >= 3 && p >= 1 && u >= 1 && t >= 1;
-    miss.innerHTML = `오늘 미션: 전투 ${b}/3 · 뽑 ${p}/1 · ULT ${u}/1 · 탑 ${t}/1 ${allDone && !META.dailyMissionsClaimed ? '<button onclick="claimDailyMissions()">보상 받기 +500g + 내일 AFK 20% 부스트</button>' : ''} (매일 1번씩! claim으로 스트릭 유지)`;
+    miss.innerHTML = `오늘 미션: 전투 ${b}/3 · 뽑 ${p}/1 · ULT ${u}/1 · 탑 ${t}/1 ${allDone && !META.dailyMissionsClaimed ? '<button onclick="claimDailyMissions()">보상 받기 +800g + 내일 AFK 15% 부스트</button>' : ''} (매일 1번씩! claim으로 스트릭 유지)`;
   }
   // FOMO + cycle in event: "claim before reset" + streak visible
   if ($("play-now")) $("play-now").textContent = (META.play.sec||0) + "s (0시 리셋)";
@@ -3130,13 +3130,13 @@ function claimDailyMissions() {  // MVP daily cycle claim — forces 1 action lo
   if (META.dailyMissionsClaimed) return;
   const b = META.dailyBattles || 0, p = META.dailyPulls || 0, u = META.dailyUlts || 0, t = META.dailyTower || 0;
   if (!(b >= 3 && p >= 1 && u >= 1 && t >= 1)) { toast("미션 미완 — 전투/뽑/ULT/탑 1회씩", "#ef4444"); return; }
-  META.gold = (META.gold || 0) + 350;
+  META.gold = (META.gold || 0) + 800;   // 🔧 350→800 (군주: 골드복리 후하게에 맞춰 미션 비례)
   META.dailyMissionsClaimed = true;
   META.afkBoostDay = dayPlus(1);  // 내일 전체 AFK 15% 부스트 (tie to progression)
   bumpPrestige(1); saveMeta(); updateMeta();
   if (curPage === "event") openEvent();
   haptic("medium"); SFX.claim();
-  toast("🎁 미션 완료! +350g + 내일 AFK +15% (오프라인 가속)", "#fbbf24");
+  toast("🎁 미션 완료! +800g + 내일 AFK +15% (오프라인 가속)", "#fbbf24");
   setTimeout(() => toast("전투 1판 더 → 스트릭/보상 업! (3-5분 루프)", "#a3e635"), 1100);
 }
 
@@ -3703,7 +3703,8 @@ function artHTML(u, glyphCls, imgCls, noGlyph) {
   const col = (u.color || '#60a5fa').replace(/"/g, '');
   const b64 = (base + (u.accent || '')).replace(/"/g, '&quot;');
   // 3단 + synth: art/u{id} (R 76-90+ cool PNG) → ssr/slug → slug → colored synth fallback (no remove, grid always fills "간지" visual)
-  const img = `<img class="${imgCls}" src="art/u${u.id}.png" alt="" loading="lazy" data-c="${col}" data-b="${b64}" data-slug="${slug}">`;
+  const imgSrc = (u.id === 8) ? 'art/u8-nukki.jpg' : `art/u${u.id}.png`;
+  const img = `<img class="${imgCls}" src="${imgSrc}" alt="" loading="lazy" data-c="${col}" data-b="${b64}" data-slug="${slug}">`;
   // safe nukki fallback
   setTimeout(() => {
     const imgs = document.querySelectorAll(`.${imgCls}[data-slug="${slug}"]`);
@@ -3737,7 +3738,8 @@ function renderCodex() {
   if ($("codex-count")) $("codex-count").textContent = owned.size + " / " + ROSTER.length;
   const fbar = $("codex-filter");
   if (fbar && !fbar.dataset.built) {
-    fbar.innerHTML = ["ALL", "EX", "UR", "SSR", "SR", "R", "N"].map((r) => `<button class="cfil" data-r="${r}">${r}</button>`).join("");
+    const _present = ["EX", "UR", "SSR", "SR", "R", "N"].filter((r) => ROSTER.some((u) => u.rarity === r));   // 유닛 있는 등급만(UR/EX 0개면 숨김, 출시후 채우면 자동부활)
+    fbar.innerHTML = ["ALL", ..._present].map((r) => `<button class="cfil" data-r="${r}">${r}</button>`).join("");
     fbar.querySelectorAll(".cfil").forEach((b) => b.addEventListener("click", () => { codexFilter = b.dataset.r; renderCodex(); }));
     fbar.dataset.built = "1";
   }
