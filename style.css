@@ -431,10 +431,10 @@ h1::first-letter { color: var(--crimson); }
 #field { display: block; width: 100%; border-radius: 12px; background: #0f121a; border: 1px solid #241b3a; touch-action: manipulation; }
 
 /* 모드 사이클 탭 */
-#modes { display: flex; gap: 5px; overflow-x: auto; padding: 2px 0 4px; -webkit-overflow-scrolling: touch; }
+#modes { display: flex; gap: 4px; padding: 2px 0 4px; }  /* 가로스크롤 제거 — 6탭 한 줄에 맞춤 */
 #modes::-webkit-scrollbar { display: none; }
-.modetab { flex: 0 0 auto; padding: 7px 11px; font-size: 12.5px; font-weight: 700; border-radius: 8px;
-  background: #1c1730; color: var(--dim); border: 1.5px solid transparent; display: inline-flex; align-items: center; gap: 4px; }
+.modetab { flex: 1 1 0; min-width: 0; padding: 6px 3px; font-size: 11px; font-weight: 700; border-radius: 8px; white-space: nowrap; overflow: hidden; justify-content: center;
+  background: #1c1730; color: var(--dim); border: 1.5px solid transparent; display: inline-flex; align-items: center; gap: 2px; }
 .modetab.sel { color: #fff; background: linear-gradient(135deg, #3a1d5e, #2a1840); border-color: var(--purple); }
 .modetab.locked { opacity: .5; position: relative; }
 .modetab.locked::after { content: "🔒"; font-size: 9px; margin-left: 3px; }
@@ -986,7 +986,8 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 /* 🗺️ 세계 정복 지도 (정복지가 내 색으로 물든다) */
 #conquest-map { margin: 4px 0 8px; }
 .cq-title { font-size: 12px; font-weight: 800; color: #fbbf24; letter-spacing: .5px; margin-bottom: 5px; }
-.cq-strip { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 4px; }
+.cq-strip { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; padding-bottom: 4px; }  /* 보상 10개 줄바꿈 — 가로스크롤 제거 */
+.cq-next { font-size: 10px; font-weight: 700; color: #67e8f9; margin-left: 4px; }
 .cq-node { flex: 0 0 auto; width: 38px; height: 44px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-size: 9px; border: 1px solid #2a2536; background: #14121c; transition: all .2s; }
 .cq-node .cq-ic { font-size: 15px; line-height: 1; }
 .cq-node .cq-n { color: #9ca3af; font-weight: 700; }

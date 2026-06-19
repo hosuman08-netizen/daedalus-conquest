@@ -871,16 +871,16 @@ function spawnArmy(side) {
       atkM *= 1.3;
     }
     const isBoss = side === "e" && bossFight;
-    if (isBoss) { 
+    let rr = isBoss ? s.r * 1.8 : s.r;                 // 🔧 선언을 isBoss 블록 위로 (TDZ 크래시 수정 — 879서 선언전 사용했었음)
+    if (isBoss) {
       // 챕터가 높을수록 점점 더 강하고 깨기 어려움
-      const bossScale = 5 + Math.floor(curLevel / 5) * 0.8; 
-      hpM *= bossScale; 
-      atkM *= 1.6 + Math.floor(curLevel / 8) * 0.3; 
+      const bossScale = 5 + Math.floor(curLevel / 5) * 0.8;
+      hpM *= bossScale;
+      atkM *= 1.6 + Math.floor(curLevel / 8) * 0.3;
       rr *= 1.1 + Math.min(0.4, curLevel / 100); // bigger for high ch
     }
     const hp = Math.round(s.hp * hpM), atk = Math.round(s.atk * atkM);
     const ai = Math.min(3, s.ai + hb.aiBonus + aw);   // ✦ 각성마다 AI +1 (소울로만 가능)
-    let rr = isBoss ? s.r * 1.8 : s.r;
     if (t === "titan" && side==="p") rr *= 1.4; // 6hr visual: higher rarity scale
     // Enemy flavor: portraitKey for rare PNG (bosses/elites use art/enemy/*.png like titan/corrupted-titan/drone/marksman)
     // non-PNG enemies stay rich synthetic. Red hostile frame + dark overlay applied in draw for cool vs player army.
@@ -2829,24 +2829,18 @@ function cqClaimable(ch) { return (META.chapter || 1) >= ch && !(META.cqClaimed 
 function renderConquestMap() {
   const el = $("conquest-map"); if (!el) return;
   const cur = META.chapter || 1;
-  const nextRwd = CQ_REWARDS.find((r) => cur < r.ch);
-  const maxShow = Math.max(cur + 2, nextRwd ? nextRwd.ch : 0, 14);
   const claimableCount = CQ_REWARDS.filter((r) => cqClaimable(r.ch)).length;
-  let nodes = "";
-  for (let c = 1; c <= maxShow; c++) {
-    const won = c < cur, here = c === cur;
-    const rwd = cqRewardAt(c);
-    if (rwd) {
-      const claimed = (META.cqClaimed || []).includes(c);
-      const can = cqClaimable(c);
-      const cls = claimed ? "rwd done" : can ? "rwd ready" : "rwd lock";
-      const ic = claimed ? "✅" : can ? "🎁" : "🔒";
-      nodes += `<div class="cq-node ${cls}" ${can ? `onclick="claimCq(${c})"` : ""}><span class="cq-ic">${ic}</span><span class="cq-n">${c}</span></div>`;
-    } else {
-      nodes += `<div class="cq-node ${won ? "won" : here ? "here" : "lock"}"><span class="cq-ic">${won ? "🚩" : here ? "⚔️" : "·"}</span><span class="cq-n">${c}</span></div>`;
-    }
-  }
-  const badge = claimableCount ? ` <span class="cq-badge">🎁 ${t("cqClaimN", { n: claimableCount })}</span>` : "";
+  const nextRwd = CQ_REWARDS.find((r) => cur < r.ch);
+  // 보상 마일스톤 10개만 콤팩트 노출(전 챕터 나열 X → 가로스크롤 제거, flex-wrap로 한눈에)
+  const nodes = CQ_REWARDS.map((r) => {
+    const c = r.ch;
+    const claimed = (META.cqClaimed || []).includes(c);
+    const can = cqClaimable(c);
+    const cls = claimed ? "rwd done" : can ? "rwd ready" : "rwd lock";
+    const ic = claimed ? "✅" : can ? "🎁" : (cur >= c ? "🚩" : "🔒");
+    return `<div class="cq-node ${cls}" ${can ? `onclick="claimCq(${c})"` : ""}><span class="cq-ic">${ic}</span><span class="cq-n">${c}</span></div>`;
+  }).join("");
+  const badge = claimableCount ? ` <span class="cq-badge">🎁 ${t("cqClaimN", { n: claimableCount })}</span>` : (nextRwd ? ` <span class="cq-next">▶ ch${nextRwd.ch}</span>` : "");
   el.innerHTML = `<div class="cq-title">🗺️ ${t("cqTitle")} · <b>${cur - 1}</b> ${t("cqFell")}${badge}</div><div class="cq-strip">${nodes}</div>`;
 }
 function claimCq(ch) {
