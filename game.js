@@ -236,7 +236,8 @@ function preloadSSRPortraits() {
   if (typeof ROSTER === "undefined") return;
   ROSTER.filter(u => ["SSR","UR","EX"].includes(u.rarity) && !ssrPortraits[u.id]).forEach(u => {
     const img = new Image();
-    img.src = `art/u${u.id}.png`;
+    const src = (u.id === 8) ? 'art/u8-nukki.jpg' : `art/u${u.id}.png`;
+    img.src = src;
     img.onload = () => {
       ssrPortraits[u.id] = img;
       if (running) draw(); // re-draw battle as soon as god art loads
@@ -248,7 +249,8 @@ preloadSSRPortraits(); // safe early call (ROSTER from units.js)
 function loadPortrait(id) {   // 편성된 캐릭 일러스트 lazy 로드 (전 등급 — art/u<id>.png)
   if (!id || ssrPortraits[id]) return;
   const img = new Image();
-  img.src = `art/u${id}.png`;
+  const src = (id === 8) ? 'art/u8-nukki.jpg' : `art/u${id}.png`;
+  img.src = src;
   img.onload = () => { if (running) draw(); };
   ssrPortraits[id] = img;
 }
@@ -437,11 +439,11 @@ const $status = $("status"), $score = $("score"), $overlay = $("overlay"), $over
 function fit() {
   cv = $("field");
   const w = Math.min(460, cv.parentElement.clientWidth);
-  // 화면 높이에 맞춰 캔버스 높이 제한 (폰에서 한 화면에 들어오게)
-  let h = Math.round(w * 1.0);
+  // 화면 높이에 맞춰 캔버스 높이 제한 (폰에서 배치·전투시작까지 한 화면에)
+  let h = Math.round(w * 0.82);
   const vh = (tg && tg.viewportStableHeight) || window.innerHeight || 700;
-  h = Math.min(h, Math.round(vh * 0.46));
-  h = Math.max(h, 240);
+  h = Math.min(h, Math.round(vh * 0.36));
+  h = Math.max(h, 220);
   cv.width = w; cv.height = h;
   W = cv.width; H = cv.height; ctx = cv.getContext("2d");
   buildBgCache();   // perf: 배경+그리드 1회만 그려 캐시 → draw()는 drawImage 1회 (매프레임 그리드 path 제거)

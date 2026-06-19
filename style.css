@@ -49,7 +49,7 @@ h1::first-letter { color: var(--crimson); }
 /* hero bar premium sel per subagent: scale + gold rim + pulse for "MY POWER" identity */
 .hcode { color: var(--crimson); font-weight: 900; font-size: 12px; padding: 1px 5px; border: 1px solid #7f1d1d; border-radius: 5px; }
 /* 2026-06-16 Morpheus UI polish (heroicon bar critical): .him for god-pose icons (64-128 fit), premium sel scale/glow + per tint bleed. Clean one-view micro: tighter hero row, ult prominent. Reversible. */
-.hbtn .him { width: 22px; height: 22px; object-fit: cover; border-radius: 3px; vertical-align: middle; margin-right: 1px; border: 1px solid rgba(255,255,255,0.2); }
+.hbtn .him { width: 22px; height: 22px; object-fit: contain; border-radius: 3px; vertical-align: middle; margin-right: 1px; border: 1px solid rgba(255,255,255,0.2); background: #05040c; } /* consistent nukki */
 .hbtn.sel .him { box-shadow: 0 0 8px currentColor; }
 #heroes { margin: 4px 0; }
 #ult { font-size:12px; padding:6px 10px; } /* cleaned flat, no effects */
@@ -121,7 +121,7 @@ h1::first-letter { color: var(--crimson); }
 .cxc:active { transform: scale(0.93); box-shadow: 0 0 0 1.5px #fbbf2488; }
 .cxc .cxg { font-size: 16px; position: relative; width: 100%; flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 7px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03); border: none; background: #05040c; }
 .cxc .cxgly { line-height: 1; }
-.cxc .cxim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 17%; border-radius: 6px; border: 1.5px solid rgba(255,255,255,0.12); box-shadow: 0 0 0 1px rgba(0,0,0,0.5); } /* nukki codex: direct border on art for tight hug */
+.cxc .cxim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; border-radius: 6px; border: none; box-shadow: none; background: #05040c; } /* nukki codex: contain + center, clean fill, no extra inner border/white frame, outer glow from .cxc.rSSR handles premium */
 .cxc.rSSR:not(.lock) { box-shadow: 0 0 0 1.5px rgba(251,191,36,0.38); }
 .cxc:not(.lock):hover { transform: scale(1.015); }
 .cxc:not(.lock):active { transform: scale(0.94); box-shadow: 0 0 0 2px #fbbf24cc; }
@@ -222,7 +222,7 @@ h1::first-letter { color: var(--crimson); }
 } /* tighter padding, nukki art priority */
 /* NUKKI GOLD FRAME (tight fit): #unit-glyph yellow/gold border now hugs the illustration edge with zero gap. Container relative + absolute inset img (cover + tuned pos) ensures perfect alignment regardless of PNG intrinsic size/aspect. No padding inside border. Consistent bust crop for all nukki. */
 #unit-glyph { font-size: 11px; position: relative; width: 100%; max-width: 280px; aspect-ratio: 1 / 1.02; max-height: 36vh; margin: 0 auto 4px; display: block; overflow: hidden; background: #05040c; border-radius: 12px; }
-#unit-glyph img.ucim, #unit-glyph .ucim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 17%; border-radius: 9px; display: block; border: 2px solid rgba(245,196,81,0.55); box-shadow: inset 0 0 20px rgba(0,0,0,0.95), 0 0 0 1px rgba(0,0,0,0.5); } /* nukki unit modal: cover + 17% for consistent character focus crop, border directly on img for perfect tight hug, comfortable premium view */
+#unit-glyph img.ucim, #unit-glyph .ucim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; border-radius: 9px; display: block; border: none; box-shadow: none; background: #05040c; } /* nukki unit modal: contain + center, clean no extra white frame, outer card border + glow handles it */
 #unit-glyph .ucgly { line-height: 1; }
 /* Elegant premium SSR gold rim — border now directly on frame for "must own" shine. */
 #unit-card.rSSR #unit-glyph img.ucim, #unit-card.rSSR #unit-glyph .ucim, #char-panel-card.rSSR #unit-glyph img, #char-panel-card.rSSR #unit-glyph .ucim { border-color: #fbbf24; box-shadow: inset 0 0 22px rgba(0,0,0,0.92), 0 0 0 1px rgba(0,0,0,0.6), 0 0 0 2px rgba(251,191,36,0.55); } 
@@ -235,11 +235,11 @@ h1::first-letter { color: var(--crimson); }
 #unit-card .cpim,
 #char-panel-card img,
 #char-panel-card .cpim {
-  max-height: none; /* rely on parent frame for tight nukki fit */
+  max-height: none;
   width: 100%; max-width: 100%; height: auto;
   display: block;
   filter: contrast(1.18) saturate(1.26) brightness(1.05);
-} /* nukki: specific rules ( .ucim etc ) control object-fit/position for tight comfortable frames; no blanket override */
+} /* nukki: rely on the contain/center rules in .cxim/.ucim/.cpim */
 #unit-card .gear-synth {
   max-width: 52px;
   max-height: 52px;
@@ -255,13 +255,8 @@ h1::first-letter { color: var(--crimson); }
 #dash-list { display: flex; flex-direction: column; gap: 6px; }
 .dcard { display: flex; align-items: center; gap: 8px; background: #1d1535; border-radius: 10px; padding: 8px 10px; }
 
-/* Formation / Deploy UI - 유저가 보기 쉽게 (scannable, larger targets, clear state) */
-/* MVP: larger touch for +/- buttons */
-#deploy .step button { min-width:48px; min-height:48px; font-size:22px; }
-/* MVP: larger touch targets for +/- */
-#deploy .step button { min-width:48px; min-height:48px; font-size:22px; }
-/* MVP larger touch for +/- buttons */
-#deploy .step button { min-width:48px; min-height:48px; font-size:22px; padding:0 4px; }
+/* Formation / Deploy UI — 탭하기 좋되 뚱뚱하지 않게 (중복 3룰 정리, 48→40px) */
+#deploy .step button { min-width:40px; min-height:40px; font-size:20px; padding:0 4px; }
 .deploy-preview {
   display: flex;
   flex-wrap: wrap;
@@ -474,7 +469,7 @@ h1::first-letter { color: var(--crimson); }
   display: flex; align-items: center; justify-content: center;
 }
 .hbtn .hgly { display:none; } /* 20260616 Sovereign: hero bar pure PNG — 겹치는 이모지 완전 제거 (fallback 시에만 사용) */
-.hbtn .him { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center top; z-index:1; opacity:.82; }
+.hbtn .him { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; object-position:center center; z-index:1; opacity:.82; background: #05040c; } /* consistent nukki */
 .hbtn:active { transform: scale(0.88); }
 .hbtn.sel {
   border-color: #fbbf24; transform: scale(1.1); z-index:8;  /* 2026-06-16 Sovereign 복구: 과한 82px 형광 후광 제거 → 은은하고 보기 쉬운 선택 강조 */
@@ -631,7 +626,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 #char-panel-card { background: var(--panel); border-radius: 7px; padding: 2px 3px 3px; width: 94vw; max-width: 264px; max-height: 74vh; overflow-y: hidden; border: 1.5px solid #3a2f5e; box-shadow: 0 6px 18px rgba(0,0,0,0.72); }
 #cp-head { display: flex; gap: 1px; align-items: center; margin-bottom: 0; }
 .cp-art { position: relative; width: 30px; height: 30px; flex: 0 0 30px; border: 1px solid rgba(245,196,81,0.32); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 11px; overflow: hidden; background:#05040c; }
-.cp-art .cpim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 17%; border-radius: 3px; border: 1px solid rgba(245,196,81,0.35); box-shadow: 0 0 0 1px rgba(0,0,0,0.5); } /* nukki char panel head: direct border on img for tight comfortable frame hug */
+.cp-art .cpim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; border-radius: 3px; border: none; box-shadow: none; background: #05040c; } /* consistent nukki */
 .cp-meta { min-width: 0; flex: 1; }
 .cp-nm { font-size: 10px; font-weight: 800; line-height: 1.0; }
 .cp-ti { font-size: 6.5px; color: var(--dim); margin: 0; line-height: 1.0; }
