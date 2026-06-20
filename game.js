@@ -3868,7 +3868,7 @@ function openEvent() { renderAttend(); renderPlay(); renderSeason(); showPage("e
   if (miss) {
     const b = META.dailyBattles || 0, p = META.dailyPulls || 0, u = META.dailyUlts || 0, t = META.dailyTower || 0;
     const allDone = b >= 3 && p >= 1 && u >= 1 && t >= 1;
-    miss.innerHTML = `오늘 미션: 전투 ${b}/3 · 뽑 ${p}/1 · ULT ${u}/1 · 탑 ${t}/1 ${allDone && !META.dailyMissionsClaimed ? '<button onclick="claimDailyMissions()">보상 받기 +800g + 내일 AFK 15% 부스트</button>' : ''} <span style="color:#f59e0b;font-weight:700">⚠️ 오늘 안 하면 내일 AFK 영구 약해짐! 놓치지마 FOMO</span> (매일 1번씩! claim으로 스트릭 유지)`;
+    miss.innerHTML = `오늘 미션: 전투 ${b}/3 · 뽑 ${p}/1 · ULT ${u}/1 · 탑 ${t}/1 ${allDone && !META.dailyMissionsClaimed ? '<button onclick="claimDailyMissions()">보상 받기 +800g + 내일 AFK 15% 부스트</button>' : ''} <span style="color:#a3e635;">오늘 완료 시 내일 AFK +15% (습관 루프)</span>`;
   }
   // FOMO + cycle in event: "claim before reset" + streak visible
   if ($("play-now")) $("play-now").textContent = (META.play.sec||0) + "s (0시 리셋)";

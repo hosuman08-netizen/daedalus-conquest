@@ -583,8 +583,8 @@ h1::first-letter { color: var(--crimson); }
 .ms-hint b { color: var(--gold); }
 
 /* ULTIMATE PREMIUM LEGION (Alex Rivera world-class + Grok CEO + Jordan): Hero bar = 최상급 "군단 지휘 본부 — MY POWER" cinematic command center. AFK Arena power fantasy + HSR "MY HERO" identity fusion + E7 prestige. Dramatic elite frame (thicker + inner gold), epic sel scale/glow/art bleed screams "이게 내 진짜 힘이다". Per-hero tint bleed. TG mobile one-thumb. Pure visual dopamine. Korean "군단의 핵" MY ARMY. */
-#heroes { margin: 3px 0 2px; background: linear-gradient(150deg, #03030a, #0d0b16); border: 5px solid #2c274a; border-radius: 24px; padding: 9px 4px 7px; box-shadow: inset 0 10px 24px rgba(0,0,0,0.98), 0 0 0 3px #221f38, 0 8px 18px rgba(0,0,0,0.94); position: relative; contain: layout paint; } /* contain helps perf with internal changes */
-#heroes::before { content: "⚔️ 군단 지휘 본부 • MY POWER • ULT"; position: absolute; top: -2px; left: 12px; font-size: 6.5px; font-weight: 900; letter-spacing: 2.5px; color: #6b5f8a; opacity: .95; }
+#heroes { margin: 3px 0 2px; background: linear-gradient(150deg, #03030a, #0d0b16); border: 5px solid #2c274a; border-radius: 24px; padding: 14px 4px 7px; box-shadow: inset 0 10px 24px rgba(0,0,0,0.98), 0 0 0 3px #221f38, 0 8px 18px rgba(0,0,0,0.94); position: relative; contain: layout paint; } /* contain helps perf with internal changes; padding-top 확보로 캡션 안 잘리게 */
+#heroes::before { content: "⚔️ 군단 지휘 본부 • MY POWER • ULT"; position: absolute; top: 3px; left: 12px; font-size: 6.5px; line-height: 1; font-weight: 900; letter-spacing: 2.5px; color: #6b5f8a; opacity: .95; }
 .herorow { display: flex; gap: 2px; justify-content: space-between; }
 .hbtn { 
   flex: 1; min-height: 46px; padding: 4px 2px; font-size: 21px; 
@@ -692,6 +692,10 @@ button:active { transform: scale(0.975); filter: brightness(0.95); box-shadow: 0
 #tb-controls.morning { border-color:#a3e635; box-shadow: 0 0 0 1px rgba(163,230,53,0.25); }
 #tb-controls select { background:#0f172a; color:#e2e8f0; border:1px solid #475569; border-radius:4px; }
 #tb-controls button { font-size:11px; padding:3px 8px; min-height:24px; flex:none; }
+#tb-tactic { font-size:11px; background:rgba(15,23,42,0.85); border:1px solid #475569; border-radius:6px; padding:4px; }
+#tb-tactic button { margin:2px; font-size:10px; padding:2px 6px; background:#1e2937; color:#e2e8f0; border:1px solid #475569; border-radius:4px; }
+#daily-missions-hint { background:rgba(15,23,42,0.6); padding:2px 4px; border-radius:4px; }
+.gr-rates { font-weight:600; letter-spacing:0.5px; }
 
 #legend { margin-top: 10px; font-size: 10px; color: #6f6685; line-height: 1.55; text-align: center; opacity: .8; }
 #legend small { color: #6b7280; font-size: 9.5px; } #legend b { color: var(--gold); }

@@ -22,7 +22,7 @@
       } catch (e) {}
     })();
   </script>
-  <link rel="stylesheet" href="style.css?v=20260620s" />
+  <link rel="stylesheet" href="style.css?v=20260620t" />
   <!-- © Sovereign - Personal property. All cheats/hacks prohibited. Security active. -->
 </head>
 <body>
@@ -48,7 +48,7 @@
       <span class="meta eth" style="cursor:pointer" onclick="openSettings();renderPrestige();" title="⬡ 에테르 — 환생으로 얻는 영구 화폐. 에테르 상점에서 아군 공격력·체력을 영구 복리 강화">⬡ <i id="ether">0</i></span>
       <span class="meta" id="streak-meta" style="color:#fbbf24;font-size:11px;cursor:pointer" onclick="openEvent();" title="일일 연속. 7일 유지 시 AFK 보상 1.5배 등. 매일 클레임으로 쌓음">🔥 연속 <i id="streak-val">0</i></span>
       <!-- MVP: pity always visible in lobby top per final plan -->
-      <span class="meta pity">🎯 다음 SSR까지 <i id="pity-left">10</i>회</span>
+      <span class="meta pity">🎯 다음 SSR까지 <i id="pity-left">12</i>회 (soft 7+)</span>
     </div>
 
     <!-- 부활 의식 연출 오버레이 -->
@@ -140,6 +140,9 @@
     <!-- 군주 20260616 + Grok P1: 캐릭터 조합 시너지 표 (달성=골드글로우, 미달=실루엣 → 도파민+수집욕) -->
     <div id="synergy-table"></div>
 
+    <!-- 📅 일일 미션 (ROADMAP Phase1 habit engine: 전투/뽑/ULT/탑 → 보상 + 내일 AFK tie, 미꾸라지 FOMO but transparent) -->
+    <div id="daily-missions-hint" style="font-size:11px;margin:4px 0;color:#64748b;min-height:18px;"></div>
+
     <!-- legend-toggle + #legend removed from battle (static info replaced by #battle-combo dynamic synergy per Sovereign). Kept in codex if needed. -->
     </div><!-- /page-battle -->
 
@@ -171,7 +174,7 @@
 
     <!-- 장비 페이지 (제작·인벤·도감) -->
     <div id="page-gear" class="page hidden">
-      <div class="set-title">⚔️ <span data-i18n="gTitle">장비</span></div>
+      <div class="set-title">🛡️ <span data-i18n="gTitle">장비</span></div>
       <button id="gear-craft" class="craft-big">🔨 <span data-i18n="gCraft">제작</span> · 300g</button>
       <button id="gear-scrap-junk" class="craft-big" style="background:linear-gradient(160deg,#3a2c1a,#1a1410);border-color:#fbbf24;margin-top:6px">🔨 잡템 일괄 분해 (N/R 미장착 → 골드)</button>
       <div class="gear-note ddim" data-i18n="gearNote">🔨 장비를 탭하면 강화 · 장착은 캐릭터 탭에서</div>
@@ -188,7 +191,7 @@
     <nav id="bnav">
       <button class="navtab sel" data-p="battle">⚔️<span data-i18n="navBattle">전투</span></button>
       <button class="navtab" data-p="char">👥<span data-i18n="navChar">캐릭터</span></button>
-      <button class="navtab" data-p="gear">⚔️<span data-i18n="gTitle">장비</span></button>
+      <button class="navtab" data-p="gear">🛡️<span data-i18n="gTitle">장비</span></button>
       <button class="navtab" data-p="codex">📋<span data-i18n="navCodex">도감</span></button>
       <button class="navtab" data-p="shop">🛒<span data-i18n="navShop">상점</span></button>
       <button class="navtab" data-p="event">🎁<span data-i18n="navEvent">이벤트</span></button>
@@ -282,9 +285,9 @@
         <button class="gbig" id="sg-gear10">🔨 <span data-i18n="gTitle">장비</span> 10연 · 💎72</button>
       </div>
       <div id="gacha-rates" class="notranslate" translate="no">
-        <div class="gr-rates"><span class="gr-n">N 60%</span><span class="gr-r">R 25%</span><span class="gr-sr">SR 13%</span><span class="gr-ssr">SSR 2%</span></div>
-        <div id="pity-bar"><div id="pity-fill"></div><span id="pity-bar-label">0/10</span></div>
-        <div class="gr-note" data-i18n="grNote">🎯 10회 천장 = SSR 확정 · 7회부터 SSR 확률 상승(최대 15%) · 장비도 동일 확률</div>
+        <div class="gr-rates"><span class="gr-n">N 55%</span><span class="gr-r">R 30%</span><span class="gr-sr">SR 12%</span><span class="gr-ssr">SSR 3%</span></div>
+        <div id="pity-bar"><div id="pity-fill"></div><span id="pity-bar-label">0/12</span></div>
+        <div class="gr-note">🎯 하드 천장 12회 SSR 확정 · 7회부터 +4%/pull 소프트 pity · 전체 확률 항상 공개 (법 준수)</div>
         <button id="odds-view" class="ghost" data-i18n="oddsBtn">📊 전체 확률 보기</button>
       </div>
 
@@ -343,10 +346,10 @@
 
     <div id="toast"></div>
   </div>
-  <script src="i18n.js?v=20260620s"></script>
-  <script src="units.js?v=20260620s"></script>
-  <script src="gear.js?v=20260620s"></script>
-  <script src="lore.js?v=20260620s"></script>
-  <script src="game.js?v=20260620s"></script>
+  <script src="i18n.js?v=20260620t"></script>
+  <script src="units.js?v=20260620t"></script>
+  <script src="gear.js?v=20260620t"></script>
+  <script src="lore.js?v=20260620t"></script>
+  <script src="game.js?v=20260620t"></script>
 </body>
 </html>
