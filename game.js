@@ -1219,7 +1219,7 @@ function spawnArmy(side) {
     const y = baseY + dir * row * 34;
     const s = SPEC[t];
     // 아군: 가챠 레벨 + 영웅 패시브 / 적군: 레벨 스탯 배율 (+보스전 강화)
-    const epm = side === "e" ? enemyPowerMul(curLevel) : 1;
+    const epm = side === "e" ? enemyPowerMul(curLevel) * (META.mode === "tower" ? towerExtraMul(META.tower) : 1) : 1;
     const aw = side === "p" ? (META.awak[t] || 0) : 0;                                                   // ✦ 각성(소울)
     const es = side === "p" ? (1 + (META.enh[t] || 0) * 0.06) * (1 + (META.star[t] || 0) * 0.25) * (1 + aw * 0.35) : 1;   // 강화·승급·각성
     let hpM = (side === "p" ? lvMul(t, "hp") * ascHpMul() : epm) * hb.hpMul * (1 + (hb.typeHp[t] || 0)) * powerComp * es * gHp * (side === "p" ? cohesionMul() : 1);     // 🔄 환생 복리 HP배율
@@ -1332,6 +1332,13 @@ function enemyPowerMul(ch) {
   if (ch <= 20) return 1.0;                     // 중반까지 base (시스템 투자 유도)
   return 1 + Math.max(0, ch - 20) * 0.022;      // 21챕+ 램프 — 환생 루프 균형 위해 0.028→0.022 완화 (PRD sim 검증)
 }
+// 🗼 무한탑 난이도 곡선 — 완만한 층별 램프 + 50층마다 계단형 벽(밸런스: 초반 쉽고 깊을수록 가팔라짐)
+function towerExtraMul(f) {
+  f = f | 0;
+  const ramp = 1 + Math.max(0, f - 10) * 0.012;     // 10층까지 base, 이후 +1.2%/층 완만
+  const wall = 1 + Math.floor(f / 50) * 0.25;        // 50·100·150…층 +25% 계단(보스벽)
+  return ramp * wall;
+}
 
 // ── 🔄 환생(Ascension) 루프 — 에테르(영구화폐) + 복리노드. PRD-prestige-loop.md 확정 수치 ──
 const ASCEND_GATE = 18;                                   // ch18 도달 시 환생 가능
@@ -1353,7 +1360,8 @@ function applyMode() {
   if (m === "tower") {
     curLevel = META.tower + 8;                        // 탑은 챕터보다 빡셈
     counts.e = enemyForChapter(META.tower);
-    $status.textContent = t("sTower", { n: META.tower, b: META.towerBest || 0 });
+    if (META.tower % 50 === 0) bossFight = true;       // 🗼 50층마다 보스 관문(벽)
+    $status.textContent = (META.tower % 50 === 0 ? "🐲 " + META.tower + "층 보스 관문! · " : "") + t("sTower", { n: META.tower, b: META.towerBest || 0 });
   } else if (m === "daily") {
     curLevel = META.chapter + 4;
     counts.e = enemyForChapter(META.chapter + 4);
@@ -1526,6 +1534,16 @@ function updateModeTabs() {
   if (camp) camp.textContent = t("tCampaignChLabel") + (META.chapter || 1);
   const tower = document.querySelector('.modetab[data-m="tower"]');
   if (tower) tower.textContent = t("tTowerLabel", { n: Math.max(1, META.tower || 1) });   // 🗼 현재 층수 표시
+  // 🗼 헤더 층수 뱃지 — 무한탑 모드일 때만 노출 (다음 50층 벽까지 표시)
+  const tf = $("tower-floor");
+  if (tf) {
+    if (META.mode === "tower") {
+      const f = Math.max(1, META.tower || 1);
+      const toWall = 50 - ((f - 1) % 50) - 1;            // 다음 50층 보스벽까지 남은 층
+      tf.style.display = "";
+      tf.innerHTML = "🗼 " + f + "층" + (f % 50 === 0 ? " 🐲" : (toWall <= 5 && toWall > 0 ? ' <span style="color:#f97316">·벽까지' + toWall + '</span>' : ""));
+    } else tf.style.display = "none";
+  }
   renderMsHint();
 }
 function setMode(m) {
@@ -2396,9 +2414,28 @@ function finish(p, e) {
       reward = bonus(30 + curLevel * 15);
       META.dailyTower = (META.dailyTower || 0) + 1;
       if (META.tower > (META.towerBest || 0)) META.towerBest = META.tower;
+      const cleared = META.tower;                       // 방금 깬 층
       META.tower += 1;
-      title = t("rTower", { n: META.tower - 1 });
+      title = t("rTower", { n: cleared });
       extra = `<div class="rwd">${t("rwGold", { n: reward })}</div><div class="rwd2">${t("rwTowerNext", { n: META.tower, b: META.towerBest })}</div>`;
+      // 🎁 5층 마일스톤 보상 (조작방지: towerBest 갱신분만 = 첫 도달 시에만 지급)
+      if (cleared % 5 === 0 && cleared > (META.towerRewarded || 0)) {
+        if (cleared % 50 === 0) {                        // 🏆 50층 대형 보상 + 난이도 돌파 축포
+          const bigGem = 500 + cleared * 10;
+          META.gems = (META.gems || 0) + bigGem;
+          if (typeof grantUnit === "function") grantUnit("SSR");
+          if (typeof newGear === "function") { if (!META.gear) META.gear = []; META.gear.push(newGear("SSR")); }
+          extra += `<div class="rwd2" style="color:#fbbf24;font-weight:800">🏆 ${cleared}층 돌파! 💎${bigGem.toLocaleString("en-US")} + 🌟SSR유닛 + ⚔️SSR장비</div><div class="rwd2" style="color:#f97316">🐲 이후 난이도 +25% — 더 깊은 지옥</div>`;
+          try { confettiBurst(); } catch (e) {}
+        } else {                                         // 🎁 5층 기본 마일스톤
+          const g = 40 + cleared * 6;
+          META.gems = (META.gems || 0) + g;
+          const soul = 5 + Math.floor(cleared / 5);
+          META.soul = (META.soul || 0) + soul;
+          extra += `<div class="rwd2" style="color:#a3e635">🎁 ${cleared}층 보상 💎${g} + 🔮${soul}</div>`;
+        }
+        META.towerRewarded = cleared;
+      }
     } else if (m === "daily") {                         // 📅 일일: 하루 1회 보너스 (ritual window var)
       if (META.dailyDone !== today()) {
         const sig = getLegionSignal(); const win = (META.ritualWin === today() || sig>2.0);

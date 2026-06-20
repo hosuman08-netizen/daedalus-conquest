@@ -39,6 +39,7 @@ html, body {
 .navtab.sel { color: var(--gold); position: relative; }
 .navtab.sel::after { content:""; position:absolute; bottom:2px; left:50%; transform:translateX(-50%); width:16px; height:2px; background:linear-gradient(to right, #f5c451, #fde047); border-radius:1px; }
 header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 4px; }
+#tower-floor { margin-left: auto; margin-right: 10px; font-size: 13px; font-weight: 800; letter-spacing: .5px; color: #fde047; background: linear-gradient(135deg, rgba(168,85,247,.25), rgba(124,58,237,.25)); border: 1px solid #a855f7; border-radius: 999px; padding: 3px 11px; text-shadow: 0 0 8px rgba(253,224,71,.5); box-shadow: 0 0 12px rgba(168,85,247,.35); }
 h1 { font-size: 17px; font-weight: 800; margin: 2px 0; letter-spacing: .8px; }
 h1::first-letter { color: var(--crimson); }
 .meta.gem i { color: #67e8f9; }
