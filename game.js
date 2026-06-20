@@ -1633,14 +1633,18 @@ function updateModeTabs() {
   if (camp) { const ch = META.chapter || 1; camp.textContent = ch >= 10 ? t("mode.campaign") : (t("tCampaignChLabel") + ch); }
   const tower = document.querySelector('.modetab[data-m="tower"]');
   if (tower) tower.textContent = t("mode.tower");   // 🗼 무한탑만 — 층수는 헤더 뱃지(🗼N층)에 표시(넘침 방지)
-  // 🗼 헤더 층수 뱃지 — 무한탑 모드일 때만 노출 (다음 50층 벽까지 표시)
+  // 🗼/🐲 헤더 뱃지 — 무한탑(층수) · 보스(탄수) 모드일 때 노출
   const tf = $("tower-floor");
   if (tf) {
     if (META.mode === "tower") {
       const f = Math.max(1, META.tower || 1);
       const toWall = 50 - ((f - 1) % 50) - 1;            // 다음 50층 보스벽까지 남은 층
-      tf.style.display = "";
+      tf.style.display = ""; tf.style.borderColor = "#a855f7"; tf.style.color = "#fde047";
       tf.innerHTML = "🗼 " + f + "층" + (f % 50 === 0 ? " 🐲" : (toWall <= 5 && toWall > 0 ? ' <span style="color:#f97316">·벽까지' + toWall + '</span>' : ""));
+    } else if (META.mode === "boss") {
+      const stage = (META.bossClears || 0) + 1;          // 현재 도전 보스 = 클리어수+1
+      tf.style.display = ""; tf.style.borderColor = "#ef4444"; tf.style.color = "#fca5a5";
+      tf.innerHTML = "🐲 보스 <b style=\"color:#fde047\">" + stage + "</b>탄" + (stage % 25 === 0 ? " 👑" : (stage % 5 === 0 ? " 🎁" : ""));
     } else tf.style.display = "none";
   }
   renderMsHint();
@@ -1731,30 +1735,56 @@ function step(u, dt) {
     else if (u.skill === "overclock") { const m = alliesOf(u).filter((a) => dist(u, a) < 85); if (m.length) { m.forEach((a) => { a.hp = Math.min(a.maxHp, a.hp + 22 * skillScale); a.buff = 5 * skillScale; a.buffT = 5; }); u.hp = Math.min(u.maxHp, u.hp + 12 * skillScale); u.skT = u.skillCd; addFx(u.x, u.y, "overclock"); } }
   }
 
-  // ★ 보스 전용 고유 스킬 (챕터/변형별로 다르게, 깨기 어렵고 간지나게 - 다른 게임 레이드 보스 스타일 모방, 원본 아님)
-  if (u.boss && u.bossSkillT <= 0) {
+  // ★ 보스 전용 스킬 — 명명 로테이션 + 깊이 스케일(데미지↑·쿨다운↓) + 시네마틱 배너 (뒤로 갈수록 간지·강·잦음)
+  if (u.boss && u.bossSkillT <= 0 && foes.length) {
     const v = u.bossVariant || 'base';
-    const isHigh = curLevel > 25 || v === 'final';
-    const isMid = curLevel > 12 || v === 'corrupted';
-    if (v === 'final' || isHigh) {
-      // Final phase: 대규모 AOE + 자가 회복 (깨기 힘듦)
-      foes.forEach(f => dmg(f, u.atk * 0.8, u));
-      u.hp = Math.min(u.maxHp, u.hp + u.maxHp * 0.12);
-      addFx(u.x, u.y, "charge"); addFx(u.x, u.y, "barrier");
-      for (let k=0; k<3; k++) addFx(u.x + (Math.random()-0.5)*40, u.y - 20, "overclock");
-      u.bossSkillT = 7;
-    } else if (isMid) {
-      // Corrupted/mid: 주변 디버프 + 지속 회복
-      foes.filter(f => dist(u,f) < 70).forEach(f => { f.buff = -4; f.buffT = 5; });
-      u.hp = Math.min(u.maxHp, u.hp + u.maxHp * 0.07);
-      addFx(u.x, u.y, "overclock");
-      u.bossSkillT = 5.5;
-    } else {
-      // Base/low ch: 단순 강타 (안쌔보이게)
-      if (tgt) dmg(tgt, u.atk * 1.4, u);
+    const cl = curLevel;
+    const sc = 1 + Math.max(0, cl - 10) * 0.022;                         // 깊을수록 스킬 데미지↑
+    const cdK = Math.max(0.6, 1 - Math.max(0, cl - 20) * 0.012);          // 깊을수록 쿨다운↓ (더 자주 = 난이도↑)
+    let name = "", col = "#ff3b3b";
+    if (v === 'final' || cl > 40) {                                       // 🔴 최종 — 4종 로테이션
+      const r = (u._bsk = (u._bsk || 0) + 1) % 4;
+      if (r === 0) {            // 멸절의 빔 (전체 강타)
+        name = "☄️ 멸절의 빔"; col = "#fde047";
+        foes.forEach((f) => dmg(f, u.atk * 1.1 * sc, u));
+        for (let k = 0; k < 7; k++) { const x = W * (0.16 + k * 0.11); addFx(x, 3, "snipe", x, H * 0.5, "e"); }
+        u.bossSkillT = 6.5 * cdK;
+      } else if (r === 1) {     // 광란의 진노 (자버프 + 흡혈)
+        name = "🔥 광란의 진노"; col = "#ef4444";
+        u.buff = Math.round(u.atk * 0.6); u.buffT = 5; u.hp = Math.min(u.maxHp, u.hp + u.maxHp * 0.1);
+        for (let k = 0; k < 5; k++) addFx(u.x + (Math.random() - 0.5) * 55, u.y, "charge");
+        u.bossSkillT = 5.5 * cdK;
+      } else if (r === 2) {     // 절대 방벽 + 전체 약화
+        name = "🛡️ 절대 방벽"; col = "#a855f7";
+        u.shield = 4.5; foes.forEach((f) => { f.buff = -6; f.buffT = 5; });
+        for (let k = 0; k < 4; k++) addFx(u.x + (Math.random() - 0.5) * 50, u.y, "barrier");
+        u.bossSkillT = 6 * cdK;
+      } else {                  // 중력 붕괴 (광역 + 둔화)
+        name = "🌀 중력 붕괴"; col = "#c026d3";
+        foes.forEach((f) => { dmg(f, u.atk * 0.7 * sc, u); f.spd = 0.4; f.spdT = 2.5; });
+        for (let k = 0; k < 5; k++) addFx(u.x + (Math.random() - 0.5) * 80, u.y + (Math.random() - 0.5) * 50, "overclock");
+        u.bossSkillT = 6 * cdK;
+      }
+    } else if (v === 'corrupted' || cl > 12) {                            // 🟣 중간 — 2종
+      const r = (u._bsk = (u._bsk || 0) + 1) % 2;
+      if (r === 0) {            // 부식 충격파 (광역)
+        name = "💥 부식 충격파"; col = "#c026d3";
+        foes.filter((f) => dist(u, f) < 95).forEach((f) => dmg(f, u.atk * 0.85 * sc, u));
+        addFx(u.x, u.y, "overclock"); addFx(u.x, u.y, "charge");
+        u.bossSkillT = 5.5 * cdK;
+      } else {                  // 부식 흡혈
+        name = "🩸 부식 흡혈"; col = "#a855f7";
+        foes.filter((f) => dist(u, f) < 75).forEach((f) => { f.buff = -4; f.buffT = 5; });
+        u.hp = Math.min(u.maxHp, u.hp + u.maxHp * 0.08); addFx(u.x, u.y, "overclock");
+        u.bossSkillT = 5 * cdK;
+      }
+    } else {                                                              // ⚪ 초반 — 강타
+      name = "⚔️ 강타"; col = "#ff3b3b";
+      if (tgt) dmg(tgt, u.atk * 1.4 * sc, u);
       addFx(u.x, u.y, "charge", tgt ? tgt.x : 0, tgt ? tgt.y : 0, u.side);
-      u.bossSkillT = 6;
+      u.bossSkillT = 6 * cdK;
     }
+    if (name) window._bossFlash = { name, color: col, t: 1.2 };           // 캔버스 보스 스킬 배너
     // 고챕터 보스 phase: 하수인 소환 (다른 게임 레이드처럼, 깨기 어렵게)
     if ((curLevel > 30 || v === 'final') && u.hp < u.maxHp * 0.55 && !u.minionsSpawned) {
       u.minionsSpawned = true;
@@ -2267,6 +2297,16 @@ function draw() {
     ctx.beginPath(); ctx.moveTo(W * 0.26, H * 0.30 - rise); ctx.lineTo(W * 0.74, H * 0.30 - rise); ctx.stroke();
     ctx.restore(); ctx.globalAlpha = 1;
   }
+  // 🐲 보스 스킬 발동 배너 — 상단(보스 위치)에 위압적으로 (플레이어 SSR 배너와 분리)
+  if (window._bossFlash && window._bossFlash.t > 0) {
+    const bf = window._bossFlash, a = Math.min(1, bf.t);
+    ctx.save(); ctx.textAlign = "center"; ctx.globalAlpha = a;
+    ctx.fillStyle = `rgba(0,0,0,${a * 0.45})`; ctx.fillRect(0, H * 0.40, W, 26);
+    ctx.font = "bold 18px sans-serif"; ctx.lineWidth = 4; ctx.strokeStyle = "rgba(0,0,0,0.8)";
+    ctx.strokeText("🐲 " + bf.name, W / 2, H * 0.40 + 19);
+    ctx.fillStyle = bf.color; ctx.fillText("🐲 " + bf.name, W / 2, H * 0.40 + 19);
+    ctx.restore(); ctx.globalAlpha = 1;
+  }
   // 💥 ULT 전용 렌더 — 궁극기 이름에 정확히 맞는 이팩트 (드래곤 강림 / 아크 볼리 / 강습 / 전술 지휘 / 철벽 / 광폭화 / 긴급 수리)
   if (window._ultBurst && window._ultBurst.t > 0) {
     const bt = window._ultBurst.t, col = window._ultBurst.color || '#fbbf24';
@@ -2569,6 +2609,7 @@ function loop(ts) {
   if (ultT > 0) ultT -= dt;
   if (window._ultBurst) { window._ultBurst.t -= dt; if (window._ultBurst.t <= 0) delete window._ultBurst; }
   if (window._ssrFlash) { window._ssrFlash.t -= dt; if (window._ssrFlash.t <= 0) delete window._ssrFlash; }
+  if (window._bossFlash) { window._bossFlash.t -= dt; if (window._bossFlash.t <= 0) delete window._bossFlash; }
   if (!window._lastDraw || ts - window._lastDraw >= 14) { draw(); updateScore(); window._lastDraw = ts; }   // perf: draw ~60fps 쓰로틀 (120Hz 기기 과draw 방지)
   // throttle heavy UI updates (was per-frame DOM writes + style recalc causing lag on TG mobile after ULT/table polish)
   if (!window._lastUI || ts - window._lastUI > 100) {
