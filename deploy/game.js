@@ -3642,11 +3642,33 @@ let cpCharId = null, cpSlotFilter = null;
 const RARITY_COST = { N: 1, R: 1.5, SR: 2.5, SSR: 4 };
 function charRarityCost(id) { const u = (typeof ROSTER !== "undefined") && ROSTER.find((x) => x.id === id); return (u && RARITY_COST[u.rarity]) || 1; }
 function charLvCost(id) { return Math.round(200 * (charLv(id) + 1) * charRarityCost(id)); }
-function charLevelUp(id) {
-  if (running) return;
-  const cost = charLvCost(id);
-  if (META.gold < cost) { toast(t("tGoldShort", { n: cost }), "#ef4444"); return; }
-  META.gold -= cost; if (!META.charLv) META.charLv = {}; META.charLv[id] = charLv(id) + 1;
+
+function maxLevelsWithGold(id) {
+  let count = 0;
+  let g = META.gold || 0;
+  let l = charLv(id);
+  while (true) {
+    const c = Math.round(200 * (l + 1) * charRarityCost(id));
+    if (g < c) break;
+    g -= c;
+    l++;
+    count++;
+  }
+  return count;
+}
+function charLevelUp(id, times = 1) {
+  if (running || times < 1) return;
+  let totalCost = 0;
+  let l = charLv(id);
+  for (let i = 0; i < times; i++) {
+    const c = Math.round(200 * (l + 1) * charRarityCost(id));
+    totalCost += c;
+    l++;
+  }
+  if (META.gold < totalCost) { toast(t("tGoldShort", { n: totalCost }), "#ef4444"); return; }
+  META.gold -= totalCost;
+  if (!META.charLv) META.charLv = {};
+  META.charLv[id] = charLv(id) + times;
   saveMeta(); updateMeta(); SFX.claim(); haptic("medium");
   openCharPanel(id); renderSquad(); if (!running) reset();
 }
@@ -3715,13 +3737,20 @@ function openCharPanel(id) {
   if (cpCharId !== id) cpSlotFilter = null;   // 새 캐릭터면 슬롯필터 초기화 (깔끔 시작)
   cpCharId = id;
   const lv = charLv(id), gcs = charGearStats(id);
+  const maxB = maxLevelsWithGold(id);
   const head = $("cp-head");
   if (head) head.innerHTML = `<div class="cp-art" style="border-color:${u.color}">${artHTML(u, "cpgly", "cpim", true)}</div>`
     + `<div class="cp-meta"><div class="cp-nm" style="color:${u.color}">${u.name}</div>`
     + `<div class="cp-ti">${u.title || u.arch} · ${u.rarity} · 🏷️${u.faction}</div>`
     + `<div class="cp-st">⚔️ 전력 <b>${charEffPower(id)}</b> · Lv${lv}${cEnh(id) ? " +" + cEnh(id) : ""}${cStar(id) ? " ★" + cStar(id) : ""}${cAwak(id) ? " ✦" + cAwak(id) : ""} · 💪${gcs.str} 🧠${gcs.int} 👟${gcs.agi} 🍀${gcs.luk}</div>`
-    + `<button id="cp-lvup">⬆️ 레벨업 Lv${lv + 1} · 💰${charLvCost(id)}</button></div>`;
+    + `<button id="cp-lvup">⬆️ 레벨업 Lv${lv + 1} · 💰${charLvCost(id)}</button>`
+    + `<div style="margin-top:3px;font-size:10px;display:flex;gap:2px;align-items:center;">일괄 <input id="cp-lv-num" type="number" value="${maxB||1}" min="1" max="${maxB||1}" style="width:32px">`
+    + `<button id="cp-lv-batch" style="padding:0 4px;font-size:9px">실행</button>`
+    + `<button id="cp-lv-max" style="padding:0 4px;font-size:9px">전부</button></div></div>`;
   on("cp-lvup", "click", () => charLevelUp(id));
+  const numEl = $("cp-lv-num");
+  on("cp-lv-batch", "click", () => { const n = numEl ? (parseInt(numEl.value)||1) : 1; charLevelUp(id, n); });
+  on("cp-lv-max", "click", () => { const m = maxLevelsWithGold(id); if(m>0){ if(numEl) numEl.value=m; charLevelUp(id, m); } });
   // 강화 · 승급 · 각성 (캐릭별)
   const gw = $("cp-grow");
   if (gw) {
