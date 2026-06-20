@@ -40,7 +40,7 @@ run('T1', `
   var R=[];
   running=false; META.gems=999999; META.pity=0;
   var origRandom = Math.random;
-  Math.random = function(){ return 0.999; };  // 최저등급(N) 강제
+  Math.random = function(){ return 0.01; };  // 최저등급(N) 강제 (r 낮음 = 첫 버킷 N)
   var p0 = META.pity; gacha(); var p1 = META.pity;
   R.push((p1===p0+1 ? '✅' : '🔴')+' T1 pity N뽑기: '+p0+'→'+p1+(p1===p0+1?' (정상 +1)':' [버그!]'));
   Math.random = origRandom;

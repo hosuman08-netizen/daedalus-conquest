@@ -434,7 +434,25 @@ function processReferralBonus() {
     toast("🎉 초대 링크로 가입 보너스! 💎100 + 💰1000 + 🔮10", "#a3e635");
   }, 1400);
 }
-// 👥 초대한 친구 보상 클레임 — 워커(KV) 카운트 기반(조작방지). 친구당 💎50 + 마일스톤
+// 👥 초대 보상 — 워커(KV) 카운트 기반(조작방지). 친구당 💎50 + 마일스톤 사다리(1→10000)
+const REF_MILESTONES = [
+  { n: 1, gem: 100 }, { n: 3, ssr: true }, { n: 5, gem: 500 }, { n: 10, gem: 1500 },
+  { n: 30, gem: 5000, ssrGear: true }, { n: 100, gem: 20000 }, { n: 350, gem: 70000 },
+  { n: 750, gem: 150000 }, { n: 1500, gem: 300000 }, { n: 3000, gem: 700000 }, { n: 10000, gem: 2000000 },
+];
+function refMilestoneReward(m) {
+  const a = [];
+  if (m.gem) a.push("💎" + m.gem.toLocaleString("en-US"));
+  if (m.ssr) a.push("🏆SSR 유닛");
+  if (m.ssrGear) a.push("⚔️SSR 장비");
+  return a.join(" + ");
+}
+function refPendingValue(count) {   // 받을 수 있는 총 보상 미리보기
+  const friend = (count - (META.refClaimed || 0)) * 50;
+  const done = META.refMsClaimed || [];
+  let ms = 0; REF_MILESTONES.forEach((m) => { if (count >= m.n && done.indexOf(m.n) < 0 && m.gem) ms += m.gem; });
+  return friend + ms;
+}
 function refreshReferrals() {
   if (typeof PAY_BACKEND === "undefined" || !PAY_BACKEND) return;
   const myId = String(getTGUserId());
@@ -445,27 +463,49 @@ function refreshReferrals() {
       const count = (d && d.count) || 0;
       META._refCount = count;
       const el = $("ref-status");
-      const pending = count - (META.refClaimed || 0);
-      if (el) el.innerHTML = "👥 초대한 친구 <b>" + count + "</b>명" + (pending > 0 ? ' · <span style="color:#a3e635">받을 보상 💎' + (pending * 50) + " 🎁</span>" : ' · <span class="ddim">보상 모두 수령</span>');
-      const btn = $("ref-claim"); if (btn) btn.style.display = pending > 0 ? "" : "none";
+      const pendGem = refPendingValue(count);
+      const done = META.refMsClaimed || [];
+      const anyMs = REF_MILESTONES.some((m) => count >= m.n && done.indexOf(m.n) < 0);
+      const hasPending = pendGem > 0 || anyMs;
+      if (el) el.innerHTML = "👥 초대한 친구 <b>" + count + "</b>명" + (hasPending ? ' · <span style="color:#a3e635">보상 받기 🎁</span>' : ' · <span class="ddim">모두 수령</span>') + ' <span style="color:#67e8f9">(보상표 ▸)</span>';
+      const btn = $("ref-claim"); if (btn) btn.style.display = hasPending ? "" : "none";
     })
     .catch(() => {});
 }
 function claimReferralRewards() {
   const count = META._refCount || 0;
-  const before = META.refClaimed || 0;
-  const pending = count - before;
-  if (pending <= 0) { toast("새로 가입한 친구가 없어요", "#8b93a7"); return; }
-  let gems = pending * 50, extra = "";
-  if (before < 3 && count >= 3 && typeof grantUnit === "function") { grantUnit("SSR"); extra += " + 🏆SSR"; }   // 3명 돌파 SSR
-  if (before < 10 && count >= 10) { gems += 1000; extra += " + 💎1000(10명!)"; }                                 // 10명 대박
-  META.gems = (META.gems || 0) + gems;
-  META.refClaimed = count;
+  const friendPending = count - (META.refClaimed || 0);
+  if (!META.refMsClaimed) META.refMsClaimed = [];
+  let gems = Math.max(0, friendPending) * 50, gotSSR = false, gotGear = false, msHit = 0;
+  REF_MILESTONES.forEach((m) => {
+    if (count >= m.n && META.refMsClaimed.indexOf(m.n) < 0) {
+      META.refMsClaimed.push(m.n); msHit++;
+      if (m.gem) gems += m.gem;
+      if (m.ssr && typeof grantUnit === "function") { grantUnit("SSR"); gotSSR = true; }
+      if (m.ssrGear && typeof newGear === "function") { if (!META.gear) META.gear = []; META.gear.push(newGear("SSR")); gotGear = true; }
+    }
+  });
+  if (gems <= 0 && !gotSSR && !gotGear) { toast("받을 보상이 없어요", "#8b93a7"); return; }
+  META.gems = (META.gems || 0) + gems; META.refClaimed = count;
   bumpPrestige(1); saveMeta(); updateMeta();
-  toast("🎁 친구 " + pending + "명 보상! 💎" + gems + extra, "#fbbf24"); haptic("heavy");
-  try { confettiBurst(); } catch (e) {}
-  refreshReferrals();
+  toast("🎁 초대 보상! 💎" + gems.toLocaleString("en-US") + (gotSSR ? " +🏆SSR" : "") + (gotGear ? " +⚔️장비" : "") + (msHit ? " (마일스톤 " + msHit + ")" : ""), "#fbbf24");
+  haptic("heavy"); try { confettiBurst(); } catch (e) {}
+  refreshReferrals(); renderRefModal();
 }
+// 🏆 초대 보상 사다리 모달
+function renderRefModal() {
+  const body = $("ref-modal-body"); if (!body) return;
+  const count = META._refCount || 0;
+  const done = META.refMsClaimed || [];
+  body.innerHTML = REF_MILESTONES.map((m) => {
+    const claimed = done.indexOf(m.n) >= 0;
+    const reached = count >= m.n;
+    const cls = claimed ? "rm-done" : reached ? "rm-ready" : "rm-lock";
+    const ic = claimed ? "✅" : reached ? "🎁" : "🔒";
+    return '<div class="rm-row ' + cls + '"><span class="rm-n">' + ic + " " + m.n.toLocaleString("en-US") + '명</span><span class="rm-rw">' + refMilestoneReward(m) + "</span></div>";
+  }).join("");
+}
+function openRefModal() { renderRefModal(); const m = $("ref-modal"); if (m) m.style.display = "flex"; }
 let META = loadMeta();
 // 유닛 구매 가격 (티어 = 가격. 타이탄은 가챠 전용 프리미엄)
 const PRICE = { drone: 35, marksman: 60, guardian: 75, bruiser: 70, commander: 110, titan: 700 };
@@ -1311,11 +1351,12 @@ function reset() {
 
 // ── 메타 UI 갱신 ──────────────────────────────────────────────────────────────
 function updateMeta() {
-  if ($("gold")) $("gold").textContent = META.gold;
-  if ($("gems")) $("gems").textContent = META.gems || 0;
-  if ($("soul")) $("soul").textContent = META.soul || 0;
-  if ($("chapter")) $("chapter").textContent = META.chapter;
-  if ($("ether")) $("ether").textContent = META.ether || 0;
+  const vals = {gold:META.gold, gems:META.gems||0, soul:META.soul||0, chapter:META.chapter, ether:META.ether||0};
+  Object.keys(vals).forEach(k => {
+    const el = $(k); if (!el) return;
+    if (String(el.textContent) !== String(vals[k])) { el.classList.add('pop'); setTimeout(()=>el && el.classList.remove('pop'), 380); }
+    el.textContent = vals[k];
+  });
   // cohesion display removed (no #cohesion element; prestige surfaced via ether)
   // 🔄 환생 발견성 배너: ch18+ 도달 시 "환생 가능 · ⬡+N" 노출 (배틀화면)
   const ap = $("asc-prompt");
@@ -2579,7 +2620,8 @@ function toast(text, color) {
   const t = $("toast"); if (!t) return;
   t.textContent = text; t.style.borderColor = color || "#fbbf24";
   t.classList.add("show"); clearTimeout(t._tm);
-  t._tm = setTimeout(() => t.classList.remove("show"), 2200);
+  const dur = Math.max(2200, Math.min(7000, (text ? text.length : 0) * 55));   // 긴 설명은 더 오래 표시(가독성)
+  t._tm = setTimeout(() => t.classList.remove("show"), dur);
 }
 
 // ── 일일 보상 (ritual claim window + Legion var seed) ─────────────────────────────────────────────────────────────────
@@ -2956,6 +2998,9 @@ function renderProfile() {
   const sb = $("share-profile"); if (sb) sb.onclick = () => { haptic("medium"); shareProfile(); };
   const ib = $("invite-friend"); if (ib) ib.onclick = () => { haptic("medium"); if (typeof inviteFriend === "function") inviteFriend(); };
   const rc = $("ref-claim"); if (rc) rc.onclick = () => { haptic("medium"); claimReferralRewards(); };
+  const rs = $("ref-status"); if (rs) rs.onclick = () => { haptic("light"); openRefModal(); };
+  const rmc = $("ref-modal-claim"); if (rmc) rmc.onclick = () => { haptic("medium"); claimReferralRewards(); };
+  const rmx = $("ref-modal-close"); if (rmx) rmx.onclick = () => { const m = $("ref-modal"); if (m) m.style.display = "none"; };
   if (typeof refreshReferrals === "function") refreshReferrals();
 }
 
@@ -4336,7 +4381,7 @@ document.querySelectorAll(".hbtn").forEach((b) => b.addEventListener("click", ()
 (function () {
   const mb = document.getElementById("metabar"); if (!mb) return;
   const INFO = {
-    gold: "💰 골드 — 전투·배당으로 얻는 기본 재화. 유닛/장비 강화에 사용",
+    gold: "💰 골드 — 유닛·장비 강화의 기본 재화. 🔄 골드 복리: 영웅을 모을수록 군단 전력↑ → 전투마다 자동 배당 골드↑. 즉 컬렉션이 곧 이자(복리)다. 더 모으면 가만히 있어도 골드 수입이 눈덩이처럼 커진다 (무과금 플라이휠).",
     gem: "💎 젬 — 프리미엄 재화. 영웅 가챠 소환에 사용 (상점 충전·이벤트)",
     soul: "🔮 소울 — 중복 캐릭 분해로 획득. 소울 상점·각성에 사용",
     ch: "📖 챕터 — 현재 진행 챕터. 클리어할수록 보상·전력↑",
