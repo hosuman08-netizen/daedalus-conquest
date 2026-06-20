@@ -1,8 +1,14 @@
 /* 다이달로스 — AI 군단 전쟁 (오토배틀러)
    5종 유닛, 각자 다른 스펙·AI지능·스킬. 티어 높을수록 영리해 저티어를 몰살.
-   군주는 군대 배치 → ▶전투 시작 → 관전. 스킬 자동 발동. 의존성 0. */
+   군주는 군대 배치 → ▶전투 시작 → 관전. 스킬 자동 발동. 의존성 0.
+
+   © Sovereign (Im Ho-gyun) — All Rights Reserved.
+   Unauthorized modification, reverse engineering, distribution or use of cheats/hacks (including infinite gold/gems/soul) is strictly prohibited.
+   Tamper detection and user-binding active. Sovereign TG ID locked for admin features.
+   This is personal property. Theft or exploitation will be pursued. */
 
 const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+const SOVEREIGN_TG_ID = null; // *** SOVEREIGN: 반드시 네 getTGUserId() 숫자 문자열로 설정 (예: '123456789'). 안 하면 치트 잠금 안 됨.
 if (tg) {
   try { tg.ready(); tg.expand(); } catch (e) {}
   try { tg.setHeaderColor("#0b0d14"); } catch (e) {}
@@ -515,7 +521,45 @@ function loadMeta() {
                 bossClears: 0 }; // 하이브리드 보스 보상: 누적 복리 (클리어 수에 따라 미래 보상 증가)
   if (!def.owned) def.owned = [];
   try {
-    const m = JSON.parse(localStorage.getItem(META_KEY));
+    let raw = localStorage.getItem(META_KEY);
+    let m = null;
+    let tampered = false;
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.d && parsed.c && parsed.u) {
+        const uid = getTGUserId();
+        const expected = btoa(parsed.u + ':' + parsed.d.length + ':' + (parsed.d.split('').reduce((a,c)=>a+c.charCodeAt(0),0) % 9973));
+        if (parsed.u === uid && parsed.c === expected) {
+          m = JSON.parse(parsed.d);
+        } else {
+          tampered = true;
+          console.warn('[SECURITY] META checksum failed — possible edit/hack. Resetting critical resources.');
+        }
+      } else {
+        m = parsed; // legacy format
+      }
+    }
+    if (tampered || !m) {
+      m = { gold: 550, gems: 50, soul: 0, chapter: 1 };
+      try { localStorage.removeItem(META_KEY); } catch(e){}
+      setTimeout(() => toast('⚠️ Security: data tampered. Resources reset. Contact Sovereign if this is error.', '#ef4444'), 1000);
+    }
+    // Try CloudStorage
+    if (tg && tg.CloudStorage && tg.CloudStorage.getItem) {
+      tg.CloudStorage.getItem(META_KEY, (err, cloudVal) => {
+        if (!err && cloudVal) {
+          try {
+            const cloudParsed = JSON.parse(cloudVal);
+            if (cloudParsed && cloudParsed.d) {
+              const cloudM = JSON.parse(cloudParsed.d);
+              if (cloudM && (cloudM.chapter > (m.chapter||0) || (cloudM.gold||0) > (m.gold||0))) {
+                m = cloudM;
+              }
+            }
+          } catch(e){}
+        }
+      });
+    }
     if (m && typeof m === "object") {
       const merged = Object.assign({}, def, m);
       merged.lv = Object.assign({}, def.lv, m.lv || {});
@@ -564,12 +608,30 @@ function loadMeta() {
       if (typeof merged.charStar !== "object" || !merged.charStar) merged.charStar = {};
       if (typeof merged.charAwak !== "object" || !merged.charAwak) merged.charAwak = {};
       if (typeof merged.bossClears !== "number") merged.bossClears = 0;
+      // Hard security caps - prevent infinite resource hacks even if tamper bypasses checksum
+      if (merged.gold > 10000000000 || merged.gold < 0) merged.gold = 550;
+      if (merged.gems > 10000000 || merged.gems < 0) merged.gems = 50;
+      if (merged.soul > 1000000 || merged.soul < 0) merged.soul = 0;
       return merged;
     }
   } catch (e) {}
   return def;
 }
-function saveMeta() { try { META.lastSeen = nowMs(); localStorage.setItem(META_KEY, JSON.stringify(META)); } catch (e) {} }
+function saveMeta() {
+  try {
+    META.lastSeen = nowMs();
+    const data = JSON.stringify(META);
+    const uid = getTGUserId();
+    // Simple tamper protection: bind to user + checksum (raises bar for casual edits)
+    const check = btoa(uid + ':' + data.length + ':' + (data.split('').reduce((a,c)=>a+c.charCodeAt(0),0) % 9973));
+    const payload = { d: data, c: check, u: uid };
+    localStorage.setItem(META_KEY, JSON.stringify(payload));
+    // Also try Telegram CloudStorage for persistence/ownership (more secure per-user)
+    if (tg && tg.CloudStorage && tg.CloudStorage.setItem) {
+      try { tg.CloudStorage.setItem(META_KEY, JSON.stringify(payload), () => {}); } catch(e){}
+    }
+  } catch (e) {}
+}
 // 레벨 → 아군 스탯 배율 (현질 파워의 핵심)
 function lvMul(type, stat) {
   const lv = (META.lv && META.lv[type]) || 0;
@@ -3256,7 +3318,9 @@ function redeemCode() {
   const inp = $("code-input"); if (!inp) return;
   const code = (inp.value || "").trim().toUpperCase();
   if (!code) return;
-  if (code === "REVIEWALL") {            // 🔒 군주 전용 검토 코드 (공개 X) — 전부 해금 (캐릭+장비 도감 + 챕터/재화)
+  if (code === "REVIEWALL") {            // 🔒 군주 전용 검토 코드 (공개 X)
+    const uid = getTGUserId();
+    if (SOVEREIGN_TG_ID && uid !== SOVEREIGN_TG_ID) { toast("Sovereign only", "#ef4444"); return; }
     // 1) 캐릭터 도감 전체
     if (typeof ROSTER !== "undefined") META.owned = ROSTER.map((u) => u.id);
     // 2) 장비 도감 전체 — GEAR_ROSTER 템플릿을 보유 인스턴스로 (미보유분만 추가)

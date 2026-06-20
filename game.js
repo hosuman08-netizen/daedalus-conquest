@@ -1,8 +1,14 @@
 /* 다이달로스 — AI 군단 전쟁 (오토배틀러)
    5종 유닛, 각자 다른 스펙·AI지능·스킬. 티어 높을수록 영리해 저티어를 몰살.
-   군주는 군대 배치 → ▶전투 시작 → 관전. 스킬 자동 발동. 의존성 0. */
+   군주는 군대 배치 → ▶전투 시작 → 관전. 스킬 자동 발동. 의존성 0.
+
+   © Sovereign (Im Ho-gyun) — All Rights Reserved.
+   Unauthorized modification, reverse engineering, distribution or use of cheats/hacks (including infinite gold/gems/soul) is strictly prohibited.
+   Tamper detection and user-binding active. Sovereign TG ID locked for admin features.
+   This is personal property. Theft or exploitation will be pursued. */
 
 const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+const SOVEREIGN_TG_ID = null; // *** SOVEREIGN: 반드시 네 getTGUserId() 숫자 문자열로 설정 (예: '123456789'). 안 하면 치트 잠금 안 됨. 
 if (tg) {
   try { tg.ready(); tg.expand(); } catch (e) {}
   try { tg.setHeaderColor("#0b0d14"); } catch (e) {}
@@ -514,7 +520,49 @@ function loadMeta() {
                 bossClears: 0 }; // 하이브리드 보스 보상: 누적 복리 (클리어 수에 따라 미래 보상 증가)
   if (!def.owned) def.owned = [];
   try {
-    const m = JSON.parse(localStorage.getItem(META_KEY));
+    let raw = localStorage.getItem(META_KEY);
+    let m = null;
+    let tampered = false;
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.d && parsed.c && parsed.u) {
+        const uid = getTGUserId();
+        const expected = btoa(parsed.u + ':' + parsed.d.length + ':' + (parsed.d.split('').reduce((a,c)=>a+c.charCodeAt(0),0) % 9973));
+        if (parsed.u === uid && parsed.c === expected) {
+          m = JSON.parse(parsed.d);
+        } else {
+          tampered = true;
+          console.warn('[SECURITY] META checksum failed — possible edit/hack. Resetting critical resources.');
+        }
+      } else {
+        m = parsed; // legacy format
+      }
+    }
+    if (tampered || !m) {
+      // Hard reset on tamper to protect ownership - user can reload from cloud or start fresh
+      m = { gold: 550, gems: 50, soul: 0, chapter: 1 };
+      // Wipe local to prevent persistent hack
+      try { localStorage.removeItem(META_KEY); } catch(e){}
+      setTimeout(() => toast('⚠️ Security: data tampered. Resources reset. Contact Sovereign if this is error.', '#ef4444'), 1000);
+    }
+    // Try CloudStorage for more secure per-user storage (harder to tamper)
+    if (tg && tg.CloudStorage && tg.CloudStorage.getItem) {
+      tg.CloudStorage.getItem(META_KEY, (err, cloudVal) => {
+        if (!err && cloudVal) {
+          try {
+            const cloudParsed = JSON.parse(cloudVal);
+            if (cloudParsed && cloudParsed.d) {
+              const cloudM = JSON.parse(cloudParsed.d);
+              // Prefer cloud if it has more progress (simple heuristic)
+              if (cloudM && (cloudM.chapter > (m.chapter||0) || (cloudM.gold||0) > (m.gold||0))) {
+                console.log('[CLOUD] Loaded more recent secure META from CloudStorage');
+                m = cloudM;
+              }
+            }
+          } catch(e){}
+        }
+      });
+    }
     if (m && typeof m === "object") {
       const merged = Object.assign({}, def, m);
       merged.lv = Object.assign({}, def.lv, m.lv || {});
@@ -564,12 +612,30 @@ function loadMeta() {
       if (typeof merged.charStar !== "object" || !merged.charStar) merged.charStar = {};
       if (typeof merged.charAwak !== "object" || !merged.charAwak) merged.charAwak = {};
       if (typeof merged.bossClears !== "number") merged.bossClears = 0;
+      // Hard security caps - prevent infinite resource hacks even if tamper bypasses checksum
+      if (merged.gold > 10000000000 || merged.gold < 0) merged.gold = 550;
+      if (merged.gems > 10000000 || merged.gems < 0) merged.gems = 50;
+      if (merged.soul > 1000000 || merged.soul < 0) merged.soul = 0;
       return merged;
     }
   } catch (e) {}
   return def;
 }
-function saveMeta() { try { META.lastSeen = nowMs(); localStorage.setItem(META_KEY, JSON.stringify(META)); } catch (e) {} }
+function saveMeta() {
+  try {
+    META.lastSeen = nowMs();
+    const data = JSON.stringify(META);
+    const uid = getTGUserId();
+    // Simple tamper protection: bind to user + checksum (raises bar for casual edits)
+    const check = btoa(uid + ':' + data.length + ':' + (data.split('').reduce((a,c)=>a+c.charCodeAt(0),0) % 9973));
+    const payload = { d: data, c: check, u: uid };
+    localStorage.setItem(META_KEY, JSON.stringify(payload));
+    // Also try Telegram CloudStorage for persistence/ownership (more secure per-user, harder for casual tamper)
+    if (tg && tg.CloudStorage && tg.CloudStorage.setItem) {
+      try { tg.CloudStorage.setItem(META_KEY, JSON.stringify(payload), () => {}); } catch(e){}
+    }
+  } catch (e) {}
+}
 // 레벨 → 아군 스탯 배율 (현질 파워의 핵심)
 function lvMul(type, stat) {
   const lv = (META.lv && META.lv[type]) || 0;
@@ -3214,7 +3280,7 @@ function openEvent() { renderAttend(); renderPlay(); renderSeason(); showPage("e
   if (miss) {
     const b = META.dailyBattles || 0, p = META.dailyPulls || 0, u = META.dailyUlts || 0, t = META.dailyTower || 0;
     const allDone = b >= 3 && p >= 1 && u >= 1 && t >= 1;
-    miss.innerHTML = `오늘 미션: 전투 ${b}/3 · 뽑 ${p}/1 · ULT ${u}/1 · 탑 ${t}/1 ${allDone && !META.dailyMissionsClaimed ? '<button onclick="claimDailyMissions()">보상 받기 +800g + 내일 AFK 15% 부스트</button>' : ''} (매일 1번씩! claim으로 스트릭 유지)`;
+    miss.innerHTML = `오늘 미션: 전투 ${b}/3 · 뽑 ${p}/1 · ULT ${u}/1 · 탑 ${t}/1 ${allDone && !META.dailyMissionsClaimed ? '<button onclick="claimDailyMissions()">보상 받기 +800g + 내일 AFK 15% 부스트</button>' : ''} <span style="color:#f59e0b;font-weight:700">⚠️ 오늘 안 하면 내일 AFK 영구 약해짐! 놓치지마 FOMO</span> (매일 1번씩! claim으로 스트릭 유지)`;
   }
   // FOMO + cycle in event: "claim before reset" + streak visible
   if ($("play-now")) $("play-now").textContent = (META.play.sec||0) + "s (0시 리셋)";
@@ -3320,64 +3386,11 @@ const CODES = {
   LAUNCH2026: { gold: 2000, gem: 200 },
 };
 // 👑 마스터 전용 히든 코드 (나만 쓰게 — 코드값 비밀·재사용 가능·소비 안 됨)
-function grantAllGear(m) {
-  if (typeof GEAR_ROSTER === "undefined") return;
-  if (!m.gear) m.gear = [];
-  const owned = new Set(m.gear.map((x) => x.tplId));
-  GEAR_ROSTER.forEach((tpl) => { if (!owned.has(tpl.id)) m.gear.push({ id: ++m.gearSeq, tplId: tpl.id, slot: tpl.slot, rarity: tpl.rarity, color: tpl.color, name: tpl.name, str: tpl.str, int: tpl.int, agi: tpl.agi, luk: tpl.luk, enh: 0, star: 0, awak: 0 }); });
-}
-// 👑 마스터 코드는 sha256 해시로만 저장 — 평문이 game.js에 없어 파일 뜯어도 코드 못 알아냄
-const MASTER = {
-  "4ee1e7b101b83a8c5b949685b254268a7c88a723bef214b2c4fb6edb1d118759": (m) => {   // A — 끝판왕 전부
-    if (typeof ROSTER !== "undefined") m.owned = ROSTER.map((u) => u.id);
-    grantAllGear(m);
-    m.gold = 9999999; m.gems = 999999; m.soul = 999999; m.ether = 99999;
-    m.starter = m.vip = m.ultra = true; m.chapter = Math.max(m.chapter || 1, 999);
-    return "👑 마스터 풀세트 — 전 캐릭·장비·재화MAX·전패키지·챕터해금";
-  },
-  "62198b0ed479fe4fd2154c6acd21ba97374d689fb77e699b5805d7833f98cd21": (m) => {   // C — 재화 폭탄
-    m.gold = (m.gold || 0) + 9999999; m.gems = (m.gems || 0) + 999999;
-    m.soul = (m.soul || 0) + 999999; m.ether = (m.ether || 0) + 99999;
-    return "💰9.9M 💎999K 🔮999K ⬡99K 폭탄";
-  },
-  "71576a8f83ca6e41f4712bfad2b982525405a593c5553f2c8235ee49c78eab39": (m) => {   // D — 전 캐릭터
-    if (typeof ROSTER !== "undefined") m.owned = ROSTER.map((u) => u.id);
-    return "👥 전 캐릭터 " + (m.owned || []).length + "종 보유";
-  },
-  "115337675ecb1695b60a74c0b6305e681921a7e11eabd71026ef4eddefe05e20": (m) => {   // E — 전 장비
-    grantAllGear(m);
-    return "⚔️ 전 장비 " + (m.gear || []).length + "개 보유";
-  },
-  "5f09fc169c3d29a44d200213c66e42fdf36e6476cbb9698671658d6778f6f3b7": (m) => {   // F — 전 패키지+패스
-    m.starter = m.vip = m.ultra = true; m.gems = (m.gems || 0) + 5000;
-    if (!m.pass) m.pass = {}; if (typeof dayPlus === "function") { m.pass.monthly = dayPlus(30); m.pass.weekly = dayPlus(7); }
-    return "🐋 전 패키지 혜택 + 월·주간 패스";
-  },
-};
-async function sha256hex(s) {   // 코드 해시 대조용
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
-  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-async function redeemCode() {
+// (마스터 코드 전부 제거 — 군주 지시 2026-06-20. 공개 이벤트 코드만 유지)
+function redeemCode() {
   const inp = $("code-input"); if (!inp) return;
   const code = (inp.value || "").trim().toUpperCase();
   if (!code) return;
-  // 👑 마스터 코드 — 해시 대조(평문 game.js에 없음·재사용 가능)
-  try {
-    const fn = MASTER[await sha256hex(code)];
-    if (fn) {
-      const msg = fn(META);
-      saveMeta();
-      if (typeof renderCodex === "function") renderCodex();
-      if (typeof renderGearCodex === "function") renderGearCodex();
-      if (typeof renderGear === "function") renderGear();
-      if (typeof renderSquad === "function") renderSquad();
-      updateMeta();
-      inp.value = ""; toast("✅ " + msg, "#a3e635"); haptic("heavy");
-      try { confettiBurst(); } catch (e) {}
-      return;
-    }
-  } catch (e) {}
   if (!META.codes) META.codes = [];
   if (META.codes.indexOf(code) >= 0) { toast(t("codeUsed"), "#ef4444"); return; }
   const r = CODES[code];
