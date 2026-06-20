@@ -111,12 +111,9 @@ export default {
             }
           }
         } catch (e) {}
-        // 🌐 언어 자동분기: ko → 한국어 / 그외 → 영어(글로벌 첫인상)
-        const ko = (((u.message.from && u.message.from.language_code) || "").indexOf("ko") === 0);
-        const caption = ko
-          ? "⚔️ <b>Daedalus Conquest</b> — AI 군단 전쟁\n\n🤖 200+ AI 영웅을 모아 키우고\n🐉 거대 보스를 격파하며\n🏆 끝없이 정복하라.\n\n👇 지금 군단을 일으켜라:"
-          : "⚔️ <b>Daedalus Conquest</b> — AI Legion War\n\n🤖 Collect & raise 200+ AI heroes\n🐉 Raid colossal bosses · 🏆 Conquer endless chapters\n🔄 Idle — your legion grows even while you're away.\n\n👇 Rise your legion now:";
-        const btn = ko ? "🎮 플레이 시작" : "🎮 Play Now";
+        // 🌐 영어 고정 (글로벌 첫인상 — 군주 지시)
+        const caption = "⚔️ <b>Daedalus Conquest</b> — AI Legion War\n\n🤖 Collect & raise 200+ AI heroes\n🐉 Raid colossal bosses · 🏆 Conquer endless chapters\n🔄 Idle — your legion grows even while you're away.\n\n👇 Rise your legion now:";
+        const btn = "🎮 Play Now";
         await tg(token, "sendPhoto", {
           chat_id: u.message.chat.id,
           photo: GAME + "/art/marketing-arclight-banner.jpg",
