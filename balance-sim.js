@@ -12,7 +12,8 @@ const SPEC = {
   titan:    { hp: 280,atk: 26, atkCd: 1.1,  range: 28, ai: 3 },
 };
 const PRICE = { drone: 35, marksman: 60, guardian: 75, bruiser: 70, commander: 110, titan: 700 };
-const COUNTER = { drone: ["marksman"], marksman: ["guardian", "bruiser"], guardian: ["drone"], bruiser: ["drone"] };
+// 순환 상성(가위바위보 — 각 유닛 2승 2패): titan OP/drone 쓰레기 해결 (트리니티 SPEC-unit-counter-balance)
+const COUNTER = { drone: ["marksman", "commander"], marksman: ["guardian", "titan"], guardian: ["bruiser", "drone"], bruiser: ["commander", "marksman"], commander: ["titan", "guardian"], titan: ["drone", "bruiser"] };
 const CTR = 1.5;
 const ARCHES = Object.keys(SPEC);
 

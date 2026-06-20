@@ -687,6 +687,12 @@ button:active { transform: scale(0.975); filter: brightness(0.95); box-shadow: 0
 @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 #65a30d88; } 50% { box-shadow: 0 0 0 4px #65a30d22; } }
 #controls button:active { transform: scale(.97); }
 
+/* 🧠 턴제 panel: glass + 아침고로 highlight for dopamine (minimal, reversible) */
+#tb-controls { background: rgba(15,23,42,0.92); border:1px solid #475569; border-radius:8px; backdrop-filter: blur(6px); }
+#tb-controls.morning { border-color:#a3e635; box-shadow: 0 0 0 1px rgba(163,230,53,0.25); }
+#tb-controls select { background:#0f172a; color:#e2e8f0; border:1px solid #475569; border-radius:4px; }
+#tb-controls button { font-size:11px; padding:3px 8px; min-height:24px; flex:none; }
+
 #legend { margin-top: 10px; font-size: 10px; color: #6f6685; line-height: 1.55; text-align: center; opacity: .8; }
 #legend small { color: #6b7280; font-size: 9.5px; } #legend b { color: var(--gold); }
 /* Alex Rivera mobile-first TG portrait overrides (safe-area, one-thumb 3-8min sessions). Premium hero/ult/popup no regression. Illust 24-34vh strict contain. */

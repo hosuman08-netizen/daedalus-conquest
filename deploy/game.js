@@ -341,7 +341,7 @@ return tr ? tr[1] : '';
 
 let cv, ctx, W, H, units, fx, running, gameOver, lastT, speed = 1, raf = 0, auto = false, ultT = 0;
 let curLevel = 1, bossFight = false; 
-let tbActive = false, tbTurn = 0, tbPriority = "balanced", tbLog = []; 
+let tbActive = false, tbTurn = 0, tbPriority = "balanced", tbLog = [], tbMomentum = 0, tbStreak = 0; 
 
 let ssrPortraits = {};
 function preloadSSRPortraits() {
@@ -713,14 +713,52 @@ cv.width = w; cv.height = h;
 W = cv.width; H = cv.height; ctx = cv.getContext("2d");
 buildBgCache(); 
 }
+
+const BIOMES = [
+{ id: "hangar", name: "🛰️ 강철 격납고", top: "#0f121a", bot: "#171d2c", grid: "#1b2230", accent: "#67e8f9", style: "calm" },
+{ id: "crimson", name: "🩸 진홍 전선", top: "#1a0e0e", bot: "#2c1414", grid: "#3a1c1c", accent: "#ef4444", style: "ember" },
+{ id: "toxic", name: "☠️ 맹독 늪지", top: "#0a1410", bot: "#102a1c", grid: "#163a26", accent: "#22c55e", style: "toxic" },
+{ id: "magma", name: "🌋 마그마 코어", top: "#1a0a06", bot: "#2e0f08", grid: "#48180c", accent: "#f97316", style: "lava" },
+{ id: "void", name: "🌀 공허의 균열", top: "#0d0820", bot: "#190b32", grid: "#2c1a4e", accent: "#a855f7", style: "star" },
+{ id: "apoc", name: "💀 종말의 핏빛", top: "#160305", bot: "#280509", grid: "#3c0810", accent: "#dc2626", style: "doom" },
+];
+function chapterBiome(ch) { return BIOMES[Math.min(BIOMES.length - 1, Math.floor(((ch || 1) - 1) / 10))]; }
 function buildBgCache() {
 if (!W || !H || typeof document === "undefined") return;
 const c = document.createElement("canvas"); c.width = W; c.height = H;
 const g = c.getContext("2d");
-g.fillStyle = "#0f121a"; g.fillRect(0, 0, W, H);
-g.strokeStyle = "#1b2030"; g.lineWidth = 1;
+const b = chapterBiome((typeof META !== "undefined" && META.chapter) || curLevel || 1);
+window._biome = b;
+
+const grad = g.createLinearGradient(0, 0, 0, H);
+grad.addColorStop(0, b.top); grad.addColorStop(1, b.bot);
+g.fillStyle = grad; g.fillRect(0, 0, W, H);
+
+g.strokeStyle = b.grid; g.lineWidth = 1;
 for (let x = 0; x < W; x += 40) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
 for (let y = 0; y < H; y += 40) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+
+const rnd = (s) => { let x = Math.sin(s * 99.13) * 43758.5; return x - Math.floor(x); }; 
+if (b.style === "ember" || b.style === "lava") {
+for (let i = 0; i < 26; i++) { const x = rnd(i) * W, y = rnd(i + 7) * H, r = 1 + rnd(i + 3) * 2.2; g.fillStyle = b.style === "lava" ? (i % 2 ? "#f97316" : "#fbbf24") : "#ef4444"; g.globalAlpha = 0.18 + rnd(i + 1) * 0.3; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); }
+if (b.style === "lava") { g.globalAlpha = 0.5; g.strokeStyle = "#7c2d12"; g.lineWidth = 2.5; for (let i = 0; i < 5; i++) { g.beginPath(); let px = rnd(i + 20) * W, py = H; g.moveTo(px, py); for (let s = 0; s < 4; s++) { px += (rnd(i * 4 + s) - 0.5) * 40; py -= H / 4; g.lineTo(px, py); } g.stroke(); } }
+g.globalAlpha = 1;
+} else if (b.style === "toxic") {
+for (let i = 0; i < 16; i++) { const x = rnd(i) * W; g.fillStyle = "#22c55e"; g.globalAlpha = 0.12 + rnd(i + 5) * 0.18; const rr = 14 + rnd(i + 2) * 30; g.beginPath(); g.arc(x, H + 4, rr, Math.PI, 0); g.fill(); }
+g.globalAlpha = 1;
+} else if (b.style === "star") {
+for (let i = 0; i < 40; i++) { const x = rnd(i) * W, y = rnd(i + 11) * H; g.fillStyle = i % 5 ? "#c4b5fd" : "#a855f7"; g.globalAlpha = 0.3 + rnd(i + 2) * 0.6; g.fillRect(x, y, 1.4, 1.4); }
+g.globalAlpha = 1;
+} else if (b.style === "doom") {
+g.strokeStyle = "#dc2626"; for (let i = 0; i < 7; i++) { g.globalAlpha = 0.14 + rnd(i) * 0.16; g.lineWidth = 1 + rnd(i + 1) * 1.5; let px = rnd(i + 30) * W, py = 0; g.beginPath(); g.moveTo(px, py); for (let s = 0; s < 5; s++) { px += (rnd(i * 5 + s) - 0.5) * 36; py += H / 5; g.lineTo(px, py); } g.stroke(); }
+for (let i = 0; i < 20; i++) { const x = rnd(i + 50) * W, y = rnd(i + 60) * H; g.fillStyle = "#7f1d1d"; g.globalAlpha = 0.2 + rnd(i) * 0.25; g.beginPath(); g.arc(x, y, 1 + rnd(i) * 2, 0, 7); g.fill(); }
+g.globalAlpha = 1;
+}
+
+const vig = Math.min(0.6, 0.22 + Math.floor(((((typeof META !== "undefined" && META.chapter) || 1)) - 1) / 10) * 0.07);
+const rg = g.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.9);
+rg.addColorStop(0, "rgba(0,0,0,0)"); rg.addColorStop(1, "rgba(0,0,0," + vig + ")");
+g.fillStyle = rg; g.fillRect(0, 0, W, H);
 window._bgCache = c;
 
 window._glowP = makeGlowSprite("rgba(90,140,255,0.55)");
@@ -885,6 +923,24 @@ const archs = new Set(sq.map((u) => u.arch)).size;
 if (archs >= 5) { atk += 0.12; hp += 0.12; bonuses.push("🔀 다양성 ×" + archs + " 전군+12%"); }
 else if (archs >= 3) { atk += 0.08; hp += 0.08; bonuses.push("🔀 다양성 ×" + archs + " 전군+8%"); }
 
+const srCount = sq.filter((u) => u.rarity === "SR").length;
+const ssrCount = sq.filter((u) => ["SSR", "UR", "EX"].includes(u.rarity)).length;
+if (srCount > 0) { 
+const c = Math.min(9, srCount * 1.5);
+crit += c;
+bonuses.push("✦ SR 정밀 ×" + srCount + " 치명+" + c.toFixed(0) + "%");
+}
+let openShield = 0, openBuffMul = 0, openBuffT = 0; 
+if (ssrCount > 0) { 
+const m = Math.min(0.10, ssrCount * 0.02);
+atk += m; hp += m;
+bonuses.push("🌟 SSR 지휘 ×" + ssrCount + " 공·체+" + Math.round(m * 100) + "%");
+openShield = 2 + Math.min(2, (ssrCount - 1) * 0.5); 
+openBuffMul = 0.20 + Math.min(0.15, (ssrCount - 1) * 0.04); 
+openBuffT = 3;
+bonuses.push("⚡ SSR 개전 가속 — 시작 " + openBuffT + "초 공격+" + Math.round(openBuffMul * 100) + "%·실드");
+}
+
 const founders = sq.filter(u => ["SSR","UR","EX"].includes(u.rarity)).length;
 const highFac = Object.values(fac).some(v => v >= 4);
 if (founders >= 3 || highFac) {
@@ -905,7 +961,7 @@ atk += surge; hp += surge * 0.5;
 bonuses.push("🪖 Militia Surge (proxy weave +" + Math.round(surge*100) + "%) — invested regulars anchored");
 }
 }
-return { atk, hp, crit, spd, shieldAdd, critDmgMul, bonuses, archs, count: sq.length, founders };
+return { atk, hp, crit, spd, shieldAdd, critDmgMul, bonuses, archs, count: sq.length, founders, openShield, openBuffMul, openBuffT };
 }
 
 function renderSynergyTable() {
@@ -1078,6 +1134,9 @@ const gearEffects = getGearEffectsForChar(u.id);
 gearEffects.forEach(eff => applyGearEffectToUnit(units[units.length-1], eff));
 loadPortrait(u.id); 
 
+const sa = SSR_ACTIVE[u.name];
+if (sa) { const lu = units[units.length - 1]; lu.ssrActive = sa.key; lu.ssrCd = sa.cd; lu.ssrT = sa.delay; }
+
 const uGearEffects = gearEffects;
 uGearEffects.forEach(eff => {
 if (eff.type === 'ssr_skill' && eff.trigger === 'on_start') {
@@ -1106,6 +1165,15 @@ ut.shield = (ut.shield || 0) + Math.round(ut.maxHp * 0.28);
 });
 window._aetherBreathActive = true;
 window._aetherReviveUsed = false;
+}
+
+if (syn.openBuffT > 0) {
+units.filter(ut => ut.side === 'p').forEach(ut => {
+ut.shield = Math.max(ut.shield || 0, syn.openShield);
+ut.buff = Math.round(ut.atk * syn.openBuffMul);
+ut.buffT = syn.openBuffT;
+});
+window._ssrOpeningActive = true;
 }
 return; 
 }
@@ -1284,7 +1352,13 @@ counts.p = META.army;
 applyMode(); 
 units = []; fx = []; running = false; gameOver = false; lastT = 0; ultT = 0;
 tbActive = false; tbTurn = 0; tbLog = []; tbPriority = "balanced";
+tbMomentum = 0; tbStreak = 0;
+if (META.mode === "turnbased") {
+tbMomentum = META.tbCarry || 0; tbStreak = 0;
+
+}
 delete window._ultBurst; 
+delete window._tbTactic; 
 spawnArmy("p"); spawnArmy("e");
 preloadSSRPortraits(); 
 if (typeof preloadEnemyPortraits === "function") preloadEnemyPortraits();
@@ -1412,7 +1486,8 @@ if (m === "turnbased") {
 
 META.mode = m; saveMeta(); reset();
 tbActive = true; tbTurn = 0; tbPriority = "balanced";
-$("status").textContent = "🧠 턴제: 배치 후 ▶ 시작 → '다음 턴' 클릭으로 진행. 우선순위 선택으로 스킬/공격 순서 수동 제어";
+
+$("status").textContent = "🧠 턴제: 배치 후 ▶ 시작 → '다음 턴' 클릭. 전술 선택으로 군단 흐름 제어";
 showTbControls(true);
 updateModeTabs();
 return;
@@ -1466,11 +1541,14 @@ if (u.spdT > 0 && (u.spdT -= dt) <= 0) u.spd = 0;
 if (u.shield > 0) u.shield -= dt;
 u.atkT -= dt; u.skT -= dt;
 if (u.bossSkillT > 0) u.bossSkillT -= dt;
+if (u.ssrActive) u.ssrT -= dt;
 
 const foes = enemiesOf(u);
 const tgt = chooseTarget(u, foes);
 if (!tgt) return;
 const d = dist(u, tgt);
+
+if (u.ssrActive && u.ssrT <= 0 && !u.boss && foes.length) { fireSSRActive(u, foes); u.ssrT = u.ssrCd; }
 
 if (u.skT <= 0) {
 if (u.skill === "evade" && u.hp < u.maxHp * 0.5) { u.shield = 1.6; u.spd = 1.8; u.spdT = 1.6; u.skT = u.skillCd; addFx(u.x, u.y, "evade"); }
@@ -1546,6 +1624,10 @@ combatPop();
 function dmg(target, amount, from) {
 if (target.hp <= 0) return;
 let a = amount, ctr = false;
+
+if (tbActive && window._tbDmgMul) {
+a *= window._tbDmgMul * (1 + Math.min(0.9, (tbMomentum || 0) / 140));
+}
 { const _ec = (from && from.side === "p") ? ascEdgeCrit() : 0; const _bc = (from && from.crit) || 0; if (from && (_bc + _ec) > 0 && Math.random() * 100 < (_bc + _ec)) { a *= (from.critDmgMul || 2.0) + (from.side === "p" ? ascPierceDmg() : 0); ctr = true; } } 
 if (from && COUNTER[from.t] && COUNTER[from.t].indexOf(target.t) >= 0) { a *= CTR_MUL; ctr = true; } 
 
@@ -1660,6 +1742,86 @@ for (let i = 0; i < nBase; i++) { const a = (Math.PI * 2 * i) / nBase; addFx(cx 
 
 function confettiBurst() {
 for (let i = 0; i < 14; i++) { addFx(W * (0.15 + Math.random() * 0.7), H * (0.18 + Math.random() * 0.4), i % 2 ? "charge" : "barrier"); }
+}
+
+const SSR_ACTIVE = {
+Arclight: { key: "judgment", cd: 8.0, delay: 1.6 }, 
+Solace: { key: "renewal", cd: 7.0, delay: 2.2 }, 
+Cipher: { key: "decrypt", cd: 7.0, delay: 2.0 }, 
+Ignis: { key: "frenzy", cd: 6.0, delay: 1.4 }, 
+Vector: { key: "rally", cd: 8.0, delay: 1.8 }, 
+Vespera: { key: "swarm", cd: 6.0, delay: 1.2 }, 
+Aegis: { key: "bulwark", cd: 9.0, delay: 0.8 }, 
+Anvil: { key: "forge", cd: 7.0, delay: 2.6 }, 
+Dominus: { key: "command", cd: 9.0, delay: 2.4 }, 
+};
+function fireSSRActive(u, foes) {
+const allies = (u.hp > 0 ? [u] : []).concat(alliesOf(u));
+let name = "", col = "#fbbf24";
+switch (u.ssrActive) {
+case "judgment": { 
+name = "⚖️ 심판의 일제사"; col = "#bef575";
+foes.slice().sort((a, b) => b.hp - a.hp).slice(0, 3).forEach((f) => {
+dmg(f, u.atk * 1.8, u); addFx(f.x, 4, "snipe", f.x, f.y, "p"); addFx(f.x, f.y, "die", 0, 0, "e");
+});
+allies.forEach((a) => { a.crit = Math.min(90, (a.crit || 0) + 15); });
+break;
+}
+case "renewal": { 
+name = "🌊 재생의 물결"; col = "#4ade80";
+allies.slice().sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp).slice(0, 3)
+.forEach((a) => { a.hp = Math.min(a.maxHp, a.hp + a.maxHp * 0.25); addFx(a.x, a.y, "overclock"); });
+allies.forEach((a) => { a.hp = Math.min(a.maxHp, a.hp + a.maxHp * 0.08); });
+break;
+}
+case "decrypt": { 
+name = "🔭 정밀 해독"; col = "#67e8f9";
+const tgt = chooseTarget(u, foes);
+if (tgt) { dmg(tgt, u.atk * 2.4, u); addFx(u.x, u.y, "snipe", tgt.x, tgt.y, "p"); tgt.spd = 0.4; tgt.spdT = 2.5; }
+allies.slice(0, 4).forEach((a) => { a.crit = Math.min(90, (a.crit || 0) + 25); addFx(a.x, a.y - 10, "ctr"); });
+break;
+}
+case "frenzy": { 
+name = "🔥 광란의 폭주"; col = "#f97316";
+foes.filter((f) => dist(u, f) < 90).forEach((f) => { dmg(f, u.atk * 1.3, u); addFx(f.x, f.y, "die", 0, 0, "e"); });
+u.buff = Math.round(u.atk * 0.6); u.buffT = 4; u.spd = 1.4; u.spdT = 4;
+for (let i = 0; i < 6; i++) addFx(u.x + (Math.random() - 0.5) * 60, u.y + (Math.random() - 0.5) * 40, "charge");
+break;
+}
+case "rally": { 
+name = "↯ 동시 지휘"; col = "#e2e8f0";
+allies.slice(0, 3).forEach((a) => {
+a.buff = Math.round(a.atk * 0.4); a.buffT = 4; a.spd = 1.5; a.spdT = 4;
+addFx(a.x, a.y, "charge"); addFx(a.x + 12, a.y - 6, "shot", a.x + 40, a.y - 30, "p");
+});
+break;
+}
+case "swarm": { 
+name = "🐝 군집 분열"; col = "#fde047";
+const tgt = chooseTarget(u, foes);
+if (tgt) for (let i = 0; i < 5; i++) { dmg(tgt, u.atk * 0.5, u); addFx(u.x, u.y, "shot", tgt.x + (Math.random() - 0.5) * 22, tgt.y + (Math.random() - 0.5) * 22, "p"); }
+break;
+}
+case "bulwark": { 
+name = "🛡️ 수호의 방벽"; col = "#67e8f9";
+allies.forEach((a) => { a.shield = Math.max(a.shield || 0, 4); addFx(a.x, a.y, "barrier"); });
+break;
+}
+case "forge": { 
+name = "🔨 건설 프로토콜"; col = "#fbbf24";
+const tgt = chooseTarget(u, foes);
+if (tgt) { dmg(tgt, u.atk * 2.0, u); addFx(tgt.x, tgt.y, "charge"); foes.filter((f) => dist(tgt, f) < 42).forEach((f) => { f.spd = 0.3; f.spdT = 2; }); }
+allies.forEach((a) => { a.hp = Math.min(a.maxHp, a.hp + a.maxHp * 0.1); });
+break;
+}
+case "command": { 
+name = "👑 군단의 호령"; col = "#fbbf24";
+allies.forEach((a) => { a.buff = Math.round(a.atk * 0.5); a.buffT = 5; a.spd = 1.4; a.spdT = 5; addFx(a.x, a.y, "evade"); addFx(a.x, a.y - 12, "ctr"); });
+break;
+}
+default: return;
+}
+if (name) window._ssrFlash = { name, color: col, t: 1.05 }; 
 }
 
 function drawBoss(u) {
@@ -1778,7 +1940,13 @@ else { ctx.fillStyle = "#0f121a"; ctx.fillRect(0, 0, W, H); ctx.strokeStyle = "#
 drawHpGauge(); 
 if (tbActive) { 
 ctx.fillStyle = "#a5b4fc"; ctx.font = "11px sans-serif"; ctx.textAlign = "center";
-ctx.fillText(`🧠 TURN ${tbTurn} · ${tbPriority.toUpperCase()}`, W/2, 22);
+const mg = (new Date().getHours()>=6 && new Date().getHours()<11) || (new Date().getHours()>=20 && new Date().getHours()<24) ? "🌅" : "";
+ctx.fillText(`🧠 T${tbTurn} ${tbPriority.toUpperCase()} S${tbStreak||0}M${tbMomentum||0}${mg}`, W/2, 22);
+if ((tbMomentum || 0) > 12) {
+ctx.fillStyle = "#a3e635"; ctx.font = "9px sans-serif";
+const buf = Math.floor((tbMomentum||0) / 5);
+ctx.fillText(`⚡ 모멘텀 +${buf}% 전력 캐리`, W/2, 34);
+}
 ctx.textAlign = "left";
 }
 
@@ -1821,6 +1989,17 @@ ctx.beginPath();
 ctx.moveTo(0, H * 0.60);
 ctx.lineTo(W, H * 0.60);
 ctx.stroke();
+}
+
+if (window._ssrFlash && window._ssrFlash.t > 0) {
+const sf = window._ssrFlash, a = Math.min(1, sf.t), rise = (1.05 - sf.t) * 18;
+ctx.save(); ctx.textAlign = "center"; ctx.globalAlpha = a;
+ctx.font = "bold 21px sans-serif"; ctx.lineWidth = 4.5; ctx.strokeStyle = "rgba(0,0,0,0.72)";
+ctx.strokeText(sf.name, W / 2, H * 0.28 - rise);
+ctx.fillStyle = sf.color; ctx.fillText(sf.name, W / 2, H * 0.28 - rise);
+ctx.globalAlpha = a * 0.55; ctx.strokeStyle = sf.color; ctx.lineWidth = 2;
+ctx.beginPath(); ctx.moveTo(W * 0.26, H * 0.30 - rise); ctx.lineTo(W * 0.74, H * 0.30 - rise); ctx.stroke();
+ctx.restore(); ctx.globalAlpha = 1;
 }
 
 if (window._ultBurst && window._ultBurst.t > 0) {
@@ -1945,6 +2124,11 @@ else { const glow = ctx.createRadialGradient(u.x, u.y, 1, u.x, u.y, gr); glow.ad
 if (u.boss) { ctx.strokeStyle = "#fbbf24"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 5, 0, 7); ctx.stroke(); }
 if (u.shield > 0) { ctx.strokeStyle = "#67e8f9"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 4.5, 0, 7); ctx.stroke(); }
 if (u.buff > 0) { ctx.strokeStyle = "#a3e635"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 6.5, 0, 7); ctx.stroke(); }
+
+if (tbActive && (tbMomentum || 0) > 15 && u.side === "p") {
+ctx.strokeStyle = "rgba(163,230,53,0.6)"; ctx.lineWidth = 1.1;
+ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 8.2, 0, 7); ctx.stroke();
+}
 
 const hasPlayerPortrait = u.id && ssrPortraits[u.id] && ssrPortraits[u.id].complete && ssrPortraits[u.id].naturalWidth > 0;
 const hasEnemyPortrait = u.side === "e" && u.portraitKey && u.portraitKey!=="drone" && u.portraitKey!=="marksman" && enemyPortraits[u.portraitKey] && enemyPortraits[u.portraitKey].complete && enemyPortraits[u.portraitKey].naturalWidth > 0;
@@ -2103,6 +2287,7 @@ fx = fx.filter((f) => f.t < f.life);
 units = units.filter((u) => u.hp > 0);
 if (ultT > 0) ultT -= dt;
 if (window._ultBurst) { window._ultBurst.t -= dt; if (window._ultBurst.t <= 0) delete window._ultBurst; }
+if (window._ssrFlash) { window._ssrFlash.t -= dt; if (window._ssrFlash.t <= 0) delete window._ssrFlash; }
 if (!window._lastDraw || ts - window._lastDraw >= 14) { draw(); updateScore(); window._lastDraw = ts; } 
 
 if (!window._lastUI || ts - window._lastUI > 100) {
@@ -2123,7 +2308,7 @@ function finish(p, e) {
 running = false; gameOver = true;
 const win = p && !e, dr = !p && !e;
 if (win) { META.dailyBattles = (META.dailyBattles || 0) + 1; META.totalWins = (META.totalWins || 0) + 1; } 
-if (tbActive) { tbActive = false; showTbControls(false); $("start").textContent = t("start"); }
+if (tbActive) { tbActive = false; showTbControls(false); $("start").textContent = t("start"); delete window._tbTactic; }
 const m = META.mode;
 let extra = "", title = win ? t("rWin") : dr ? t("rDraw") : t("rLose");
 let bonus = (x) => Math.floor(x * (META.vip ? 1.5 : META.starter ? 1.2 : 1)); 
@@ -2175,6 +2360,27 @@ const effMul = diffMul * compMul;
 extra = `<div class="rwd">${t("rwBoss", { n: reward })} +💎${rGem} +🔮${rSoul}</div><div class="rwd2" style="color:${bx.color}">${BOX[tier].icon} ${bx.text}</div>`;
 extra += `<div class="rwd2">난이도×${diffMul.toFixed(2)} · 복리×${compMul.toFixed(2)} = 총 ${effMul.toFixed(2)}배</div>`;
 if (compMul > 1.01) extra += `<div class="rwd2">🔥 복리 +${Math.round((compMul-1)*100)}% (총 ${META.bossClears}회 보스 클리어)</div>`;
+} else if (m === "turnbased") {
+
+const hour = new Date().getHours();
+const isMorning = (hour >= 6 && hour < 11) || (hour >= 20 && hour < 24);
+let base = 55 + (tbTurn || 1) * 7 + Math.floor((tbStreak || 0) * 11);
+reward = bonus(base + Math.min(55, (tbMomentum || 0)));
+
+const vr = Math.random();
+let vrNote = "";
+if (vr < 0.12) { reward = Math.round(reward * 3.1); vrNote = "💥 VARIABLE JACKPOT!"; }
+else if (vr < 0.28) { reward = Math.round(reward * 1.75); vrNote = "🔥 큰 수확!"; }
+else if (vr > 0.82) { reward = Math.round(reward * 0.6); vrNote = "아슬아슬 (다음이 크다)"; }
+if (isMorning) reward = Math.round(reward * 1.32);
+reward = Math.round(reward * ascGoldMul());
+title = "🧠 턴제 승리";
+extra = `<div class="rwd">${t("rwGold", { n: reward })}</div><div class="rwd2">턴${tbTurn||0} · S${tbStreak||0} · M${tbMomentum||0}${isMorning?" · 🌅아침고로":""}</div>`;
+if (isMorning) extra += `<div class="rwd2" style="color:#a3e635">🌅 아침고로 — 첫 턴 보너스 + 약간 추가 금화 적용</div>`;
+if (vrNote) extra += `<div class="rwd2" style="color:#fde047">${vrNote}</div>`;
+
+if (tbMomentum > 20) { META.tbCarry = Math.min(45, Math.floor(tbMomentum * 0.6)); }
+tbMomentum = 0; tbStreak = 0;
 } else { 
 const founders = getFounderCount();
 const protected = founders >= 3 && META.streak > 0 && Math.random() < 0.15; 
@@ -2182,6 +2388,9 @@ if (!protected) META.streak = (META.streak || 0) + 1;
 reward = bonus(50 + META.chapter * 22 + Math.min(80, (META.streak - 1) * 10)); 
 reward = Math.round(reward * ascGoldMul() * ascPlunderMul()); 
 if (META.chapter < 999) META.chapter += 1; if (META.chapter > (META.maxChapter || 0)) META.maxChapter = META.chapter;
+
+const nb = chapterBiome(META.chapter);
+if (META._biomeId !== nb.id) { META._biomeId = nb.id; setTimeout(() => toast("⚔️ 새 전장 진입: " + nb.name, nb.accent), 900); if (typeof buildBgCache === "function") buildBgCache(); }
 title = t("rChapter");
 extra = `<div class="rwd">${t("rwGold", { n: reward })}` + (META.streak > 1 ? t("rwStreak", { n: META.streak }) : "") + `</div><div class="rwd2">${t("rwChapter", { n: META.chapter })}</div>`;
 if (protected) extra += '<div class="rwd2" style="color:#67e8f9">🛡️ Founders protect streak</div>';
@@ -2261,45 +2470,152 @@ updateMeta(); draw();
 
 function showTbControls(show) {
 const el = $("tb-controls");
-if (el) el.style.display = show ? "block" : "none";
+if (el) { el.style.display = show ? "block" : "none"; if (!show) el.classList.remove('morning'); }
 const autoBtn = $("auto");
 if (autoBtn) autoBtn.style.opacity = (tbActive || META.mode === "turnbased") ? "0.4" : "1";
 const startBtn = $("start");
 if (startBtn && tbActive) startBtn.textContent = "다음 턴 ▶";
+
+if (show && el) {
+const hour = new Date().getHours();
+const isM = (hour>=6&&hour<11)||(hour>=20&&hour<24);
+const mg = isM ? "🌅아침고로 " : "";
+if (isM) el.classList.add('morning'); else el.classList.remove('morning');
+const stats = `${mg}S${tbStreak||0} M${tbMomentum||0}`;
+let hint = el.querySelector('.tb-stats');
+if (!hint) { hint = document.createElement('div'); hint.className='tb-stats'; hint.style.cssText='font-size:10px;color:#a3e635;margin-top:2px;'; el.appendChild(hint); }
+const momBuf = (tbMomentum||0) > 12 ? ` (+${Math.floor((tbMomentum||0)/5)}% 전력)` : "";
+hint.textContent = stats + momBuf + " · 지휘 교리 선택으로 군단 흐름 제어";
+}
 }
 function executeTbTurn() {
 if (!tbActive || !running) return;
+if (window._tbTactic) {
+
+} else {
 tbTurn++;
+}
 const beforeP = units.filter(u => u.side === "p").reduce((s,u)=>s + Math.max(0,u.hp), 0);
 const beforeE = units.filter(u => u.side === "e").reduce((s,u)=>s + Math.max(0,u.hp), 0);
 _aliveP = units.filter((u) => u.side === "p" && u.hp > 0);
 _aliveE = units.filter((u) => u.side === "e" && u.hp > 0);
 if (!_aliveP.length || !_aliveE.length) { finish(_aliveP.length > 0, _aliveE.length > 0); tbActive = false; showTbControls(false); return; }
 
+const isTacticEvent = (tbTurn > 1 && (tbTurn % 3 === 0 || tbTurn % 4 === 1) && Math.random() < 0.55);
+if (isTacticEvent && !window._tbTactic) {
+showTbTacticChoice();
+tbLog.push("🧠 전술 지휘 교리 선택 대기 — 측면/순환/돌파 중 결정하라. 선택이 이번 턴을 바꾼다");
+const logEl = $("tb-log"); if (logEl) { logEl.innerHTML = tbLog.slice(-6).join("<br>"); logEl.scrollTop = logEl.scrollHeight; }
+$("status").textContent = `🧠 턴 ${tbTurn} · 지휘 교리 선택 중...`;
+return; 
+}
+
 let orderedP = _aliveP.slice();
+let dmgMul = 1.0;
+let riskBackfire = 0;
+let buildNext = 0;
+
 if (tbPriority === "skill") {
 orderedP.sort((a,b) => ((b.skill && b.skT<=0 ? 10 : 0) + b.ai) - ((a.skill && a.skT<=0 ? 10 : 0) + a.ai));
+dmgMul = 1.12;
 } else if (tbPriority === "atk") {
 orderedP.sort((a,b) => b.atk - a.atk);
-} 
+dmgMul = 1.18;
+} else if (tbPriority === "conserve") {
+dmgMul = 0.58;
+buildNext = 1.32;
+tbMomentum = Math.max(0, (tbMomentum || 0) + 22);
+} else if (tbPriority === "aggressive") {
+dmgMul = 1.42 + (Math.random() * 1.1 - 0.55); 
+if (Math.random() < 0.28) riskBackfire = 0.75; 
+tbStreak = Math.max(0, (tbStreak || 0) - 1);
+} else {
+dmgMul = 1.0 + (Math.random()*0.3 - 0.15);
+}
+
+const hour = new Date().getHours();
+const isMorningHigh = (hour >= 6 && hour < 11) || (hour >= 20 && hour < 24);
+if (isMorningHigh) {
+if (tbTurn === 1) {
+dmgMul *= 1.35;
+tbMomentum = (tbMomentum || 0) + 32;
+tbStreak = (tbStreak || 0) + 1;
+tbLog.push("🌅 아침고로 — 첫 전술 사이클 변동성 극대! (아침고로 보너스 로그)");
+} else if (tbTurn % 3 === 0 && Math.random() < 0.6) {
+dmgMul *= 1.18;
+if (Math.random() < 0.5) tbLog.push("☀️ 아침고로 잔여 — 추가 전력");
+}
+if (tbTurn % 2 === 0 && Math.random() < 0.4) {
+tbMomentum = Math.min(90, (tbMomentum||0) + 8);
+tbLog.push("🌅 아침고로 루틴 — 모멘텀 충전");
+}
+}
+
+if (window._tbTactic) {
+const t = window._tbTactic; delete window._tbTactic;
+if (t === 'flank') {
+dmgMul *= 1.35; tbMomentum = (tbMomentum || 0) + 14;
+tbLog.push("⚔️ 측면 타격 교리 발동 — 적 측면 노출 포착. 전과 확정 + 모멘텀");
+} else if (t === 'cycle') {
+dmgMul *= 0.62; buildNext = 1.45;
+tbMomentum = Math.max(0, (tbMomentum || 0) + 36);
+tbLog.push("🛡️ 보존 순환 교리 발동 — 이번 약화 대신 다음 대폭 강화. 캐리 체감");
+} else if (t === 'break') {
+dmgMul *= (1.48 + (Math.random() * 1.0 - 0.45));
+if (Math.random() < 0.30) riskBackfire = 0.78;
+tbStreak = Math.max(0, (tbStreak || 0) - 1);
+tbLog.push("🔥 전면 돌파 교리 발동 — 고위험 고보상. 돌파 성공 시 대박!");
+}
+}
 
 orderedP.forEach(u => { u.atkT = 0; u.skT = 0; u.bossSkillT = 0; });
 _aliveE.forEach(u => { u.atkT = 0; u.skT = 0; u.bossSkillT = 0; });
 
-orderedP.forEach(u => { if (u.hp > 0) step(u, 0.6); }); 
+window._tbDmgMul = dmgMul;
+orderedP.forEach(u => {
+if (u.hp > 0) {
+step(u, 0.6);
+if (dmgMul > 1.3 && Math.random() < 0.42) {
+tbLog.push(`⚡ ${u.name} 거의 처치! 다음 턴이 승부처 (near-miss tease)`);
+addFx(u.x, u.y - 14, "dnum", "!", 1, "p"); combatPop();
+}
+}
+});
+delete window._tbDmgMul;
 
 _aliveE = units.filter((u) => u.side === "e" && u.hp > 0);
 _aliveE.forEach(u => { if (u.hp > 0) step(u, 0.6); });
+
+if (riskBackfire > 0) {
+const p = units.filter(u=>u.side==="p"&&u.hp>0);
+if (p.length) p[0].hp = Math.max(1, p[0].hp * riskBackfire);
+tbLog.push("💥 공격적 과감 — 아군 약간 손실 (투명 리스크)");
+}
 
 units = units.filter((u) => u.hp > 0);
 const afterP = units.filter(u => u.side === "p").reduce((s,u)=>s + Math.max(0,u.hp), 0);
 const afterE = units.filter(u => u.side === "e").reduce((s,u)=>s + Math.max(0,u.hp), 0);
 const pD = Math.max(0, Math.round(beforeP - afterP));
 const eD = Math.max(0, Math.round(beforeE - afterE));
-tbLog.push(`턴${tbTurn}: 아군-${pD} 적군-${eD}`);
-$("status").textContent = `🧠 턴 ${tbTurn} · 우선:${tbPriority} · 아군 피해 ${pD} / 적 ${eD}`;
+
+const enemyRem = units.filter(u => u.side === "e").reduce((s,u)=>s + Math.max(0,u.hp), 0);
+if (beforeE > 10 && enemyRem > 0 && (enemyRem / beforeE) < 0.22) {
+tbLog.push("💥 적 잔여 병력 아슬아슬! 마무리 지휘의 순간 — near-miss 압박");
+addFx(W * 0.72, 26, "dnum", "!", 1.1, "e");
+combatPop();
+try { if (typeof tg !== "undefined" && tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred("light"); } catch(e){}
+}
+
+if (eD > pD * 0.7) { tbStreak = (tbStreak || 0) + 1; }
+else if (pD > eD * 1.3) { tbStreak = Math.max(0, (tbStreak||0) - 1); }
+
+tbMomentum = Math.max(0, Math.round((tbMomentum || 0) + (buildNext ? 28 : -7) + (isMorningHigh ? 3 : 0)));
+if (tbMomentum > 90) tbMomentum = 90; 
+
+tbLog.push(`턴${tbTurn}: 아군-${pD} 적군-${eD} ${tbStreak>2? "🔥STREAK"+tbStreak:""} ${tbMomentum>20?"⚡M"+tbMomentum:""}`);
+$("status").textContent = `🧠 턴 ${tbTurn} · ${tbPriority} · 피해${pD}/${eD} · S${tbStreak||0} M${tbMomentum||0} ${isMorningHigh?"🌅":""}`;
 const logEl = $("tb-log");
-if (logEl) { logEl.innerHTML = tbLog.slice(-5).join("<br>"); logEl.scrollTop = logEl.scrollHeight; }
+if (logEl) { logEl.innerHTML = tbLog.slice(-6).join("<br>"); logEl.scrollTop = logEl.scrollHeight; }
 
 if (!window._lastDraw || Date.now() - window._lastDraw >= 10) { draw(); updateScore(); window._lastDraw = Date.now(); }
 
@@ -2316,7 +2632,35 @@ showTbControls(true);
 function setTbPriority(pri) {
 tbPriority = pri || "balanced";
 const s = $("status");
-if (s && tbActive) s.textContent = `🧠 턴제 (우선:${tbPriority}) · 다음 턴 클릭`;
+if (s && tbActive) s.textContent = `🧠 턴제 (우선:${tbPriority}) · S${tbStreak||0} M${tbMomentum||0} · 다음 턴`;
+}
+
+function showTbTacticChoice() {
+let ch = $("tb-tactic");
+if (!ch) return;
+ch.innerHTML = `<div style="color:#bae6fd;margin-bottom:3px;font-weight:600;">🧠 군단 지휘 선택 — 이번 턴 전술 교리 결정 (선택이 결과 좌우)</div>`;
+const opts = [
+{k:'flank', label:'측면 타격 교리', desc:'적 허점 집중 타격 · dmg+35% 모멘텀+ · 리스크 낮음'},
+{k:'cycle', label:'보존 순환 교리', desc:'이번 전력 아껴 축적 · dmg- · 다음 턴 모멘텀 대폭+ (캐리)'},
+{k:'break', label:'전면 돌파 교리', desc:'과감 정면 승부 · 고변동 dmg · backfire 리스크 있음'}
+];
+opts.forEach(o => {
+const b = document.createElement('button');
+b.textContent = `${o.label}: ${o.desc}`;
+b.style.cssText = 'display:block;width:100%;margin:2px 0;padding:4px 6px;font-size:10px;text-align:left;background:#0f172a;color:#e0f2fe;border:1px solid #475569;border-radius:4px;cursor:pointer;';
+b.onclick = () => {
+window._tbTactic = o.k;
+ch.style.display = 'none'; ch.innerHTML = '';
+try { if (typeof tg !== "undefined" && tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred("medium"); } catch(e){}
+if (tbActive) executeTbTurn();
+};
+ch.appendChild(b);
+});
+ch.style.display = 'block';
+ch.style.background = 'rgba(15,23,42,0.96)';
+ch.style.border = '1px solid #64748b';
+ch.style.padding = '4px';
+ch.style.borderRadius = '5px';
 }
 
 function getCarriedFeedback() {
@@ -2645,9 +2989,11 @@ if (gameOver) reset();
 if (META.mode === "turnbased" || tbActive) {
 if (!tbActive) {
 tbActive = true; tbTurn = 0; tbLog = []; tbPriority = "balanced";
+tbMomentum = META.tbCarry||0; tbStreak = 0; if(META.tbCarry) delete META.tbCarry; 
+delete window._tbTactic;
 running = true; gameOver = false;
 $("start").textContent = "다음 턴 ▶";
-$status.textContent = "🧠 턴제 전투 시작 — '다음 턴'으로 수동 진행 (우선순위로 스킬 순서 제어)";
+$status.textContent = "🧠 턴제 시작 — 전술 지휘 개시. 아침 우위 반영";
 showTbControls(true);
 draw();
 }
@@ -2708,7 +3054,12 @@ const res = $("tb-resolve");
 if (res) res.addEventListener("click", () => {
 if (!tbActive) return;
 let safety=0;
-while (tbActive && safety++ < 50) executeTbTurn(); 
+while (tbActive && safety++ < 50) {
+if (!window._tbTactic && tbTurn > 1 && (tbTurn % 3 === 0 || tbTurn % 4 === 1) && Math.random() < 0.55) {
+window._tbTactic = ["flank","cycle","break"][Math.floor(Math.random()*3)]; 
+}
+executeTbTurn();
+}
 });
 }, 120);
 
@@ -3921,6 +4272,32 @@ META.charGear[id][g.slot] = gearId;
 saveMeta(); SFX.equip && SFX.equip(); haptic("light");
 openCharPanel(id); renderSquad(); if (!running) reset();
 }
+
+const SSR_ACTIVE_DESC = {
+Arclight: "⚖️ <b>심판의 일제사</b>: 강적 3체에 천공 강타 + 전군 치명타 +15%",
+Solace: "🌊 <b>재생의 물결</b>: 약한 아군 3체 HP 25% 대회복 + 전군 8% 회복",
+Cipher: "🔭 <b>정밀 해독</b>: 단일 적 약점노출 240% 강타·둔화 + 아군 치명 +25%",
+Ignis: "🔥 <b>광란의 폭주</b>: 주변 적 화염 AOE + 자신 공격+60%·속도+40%",
+Vector: "↯ <b>동시 지휘</b>: 아군 3체 즉시 돌격 + 공격·속도 버프",
+Vespera: "🐝 <b>군집 분열</b>: 최근접 적에 벌떼 5연타 폭격",
+Aegis: "🛡️ <b>수호의 방벽</b>: 전군에 보호막 부여(피해 절반)",
+Anvil: "🔨 <b>건설 프로토콜</b>: 망치 200% 강타 + 광역 둔화 + 팀 10% 재생",
+Dominus: "👑 <b>군단의 호령</b>: 전군 공격 +50%·속도 +40% 대버프",
+};
+
+function raritySkillHTML(u) {
+const rarity = u && u.rarity;
+if (["SSR", "UR", "EX"].includes(rarity)) {
+const uniq = (u && SSR_ACTIVE_DESC[u.name]) ? '<br><span style="color:#fde047">' + SSR_ACTIVE_DESC[u.name] + " <i>(고유 액티브)</i></span>" : "";
+return '<div class="cp-skill"><b style="color:#fbbf24">🌟 SSR 스킬</b><br>'
++ '🛡️ <b>지휘</b>(패시브): 편성한 SSR+ 1체당 전군 공격·체력 +2% (최대 +10%)' + uniq + "</div>";
+}
+if (rarity === "SR") {
+return '<div class="cp-skill"><b style="color:#c084fc">✦ SR 스킬</b><br>'
++ '🎯 <b>정밀</b>(패시브): 편성한 SR 1체당 전군 치명타 +1.5% (최대 +9%)</div>';
+}
+return "";
+}
 function openCharPanel(id) {
 const u = ROSTER.find((x) => x.id === id); if (!u) return;
 if (cpCharId !== id) cpSlotFilter = null; 
@@ -3935,7 +4312,8 @@ if (head) head.innerHTML = `<div class="cp-art" style="border-color:${u.color}">
 + `<button id="cp-lvup">⬆️ 레벨업 Lv${lv + 1} · 💰${charLvCost(id)}</button>`
 + `<div style="margin-top:3px;font-size:10px;display:flex;gap:2px;align-items:center;">일괄 <input id="cp-lv-num" type="number" value="${maxB||1}" min="1" max="${maxB||1}" style="width:32px">`
 + `<button id="cp-lv-batch" style="padding:0 4px;font-size:9px">실행</button>`
-+ `<button id="cp-lv-max" style="padding:0 4px;font-size:9px">전부</button></div></div>`;
++ `<button id="cp-lv-max" style="padding:0 4px;font-size:9px">전부</button></div>`
++ raritySkillHTML(u) + `</div>`;
 on("cp-lvup", "click", () => charLevelUp(id));
 const numEl = $("cp-lv-num");
 on("cp-lv-batch", "click", () => { const n = numEl ? (parseInt(numEl.value)||1) : 1; charLevelUp(id, n); });
