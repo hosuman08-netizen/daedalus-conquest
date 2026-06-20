@@ -7,6 +7,7 @@
 html, body {
   margin: 0; padding: 0; color: var(--text);
   background:
+    linear-gradient(180deg, rgba(245,196,81,0.018) 0%, rgba(168,85,247,0.012) 28%, transparent 55%),
     radial-gradient(120% 60% at 50% -8%, #2a1a4a 0%, rgba(42,26,74,0) 55%),
     radial-gradient(90% 50% at 100% 100%, #1c1136 0%, rgba(28,17,54,0) 60%),
     var(--bg);
@@ -71,6 +72,9 @@ h1::first-letter { color: var(--crimson); }
 .prof-meta { min-width: 0; }
 .prof-name { font-size: 15px; font-weight: 800; }
 .prof-name .prem { color: var(--gold); }
+.prof-title { font-size: 12.5px; font-weight: 800; color: #fbbf24; margin: 2px 0 1px; text-shadow: 0 0 6px rgba(251,191,36,.3); }
+.prof-vip { font-size: 10px; font-weight: 900; color: #fff; background: linear-gradient(135deg,#a855f7,#7c3aed); padding: 1px 7px; border-radius: 6px; vertical-align: middle; }
+.prof-vip.ultra { background: linear-gradient(135deg,#fbbf24,#f59e0b); color: #1a1330; }
 .prof-uid { font-size: 12px; color: var(--gold); }
 .prof-uid.ddim { color: var(--dim); }
 .prof-guest { font-size: 12px; color: var(--dim); padding: 4px 2px; }
@@ -131,11 +135,13 @@ h1::first-letter { color: var(--crimson); }
 /* 등급별 프리미엄 타일 */
 .cxc.rR, .gxc.rR   { background: linear-gradient(160deg, #16213e 0%, #16101f 100%); }
 .cxc.rSR, .gxc.rSR { background: linear-gradient(160deg, #2a1c44 0%, #16101f 100%); }
-.cxc.rSSR, .gxc.rSSR { background: linear-gradient(160deg, #3a2c12 0%, #1a1330 100%); box-shadow: inset 0 0 16px rgba(245,196,81,0.28), 0 0 8px rgba(245,196,81,0.18); }
+.cxc.rSSR, .gxc.rSSR { background: #05040c; } /* SSR 카드 타일: 검정 배경 */
 .cxc.rSSR:not(.lock) .cxgly, .cxc.rSR:not(.lock) .cxgly { filter: drop-shadow(0 0 6px currentColor); }
 /* Alex Rivera: Ultra clean modern codex (user exact: "빨간색 동그라미 지우고 글자 지워 없는게나아"). No red/fac circles, no .cxr/.cxn text/labels in grid. Pure high-end icon gallery (E7 clean + HSR icon pride). Subtle variety ONLY arch/fac tints/glows/rims. Owned SSR gold rim pop + lift. Tap scale dopamine. PNG/synth 간지 full. TG 5-col scannable premium. */
 .cxc .cxr, .gxc .gxr, .cxc .cxr, .cxc .cxn { display: none !important; }
 .cxc .cxg, .gxc .gxi { border: none !important; background: none; }
+.cxc.rSSR .cxg { background: #05040c; }
+.cxc.rSSR .cxim { background: transparent !important; } /* 누끼 맞춤: 그리드에서 캐릭 cutout이 타일 배경에 직접 붙도록 (detail과 일치) */
 /* 유닛 도감 시각 차별화 — subtle arch tints for "다 다르게" premium feel in 5-col grid (no text) */
 .cxc.arch-drone .cxg { background: linear-gradient(180deg, #1a2333 0%, transparent 70%); }
 .cxc.arch-marksman .cxg { background: linear-gradient(180deg, #2a2a1a 0%, transparent 70%); }
@@ -143,6 +149,21 @@ h1::first-letter { color: var(--crimson); }
 .cxc.arch-bruiser .cxg { background: linear-gradient(180deg, #2a1f1f 0%, transparent 70%); }
 .cxc.arch-commander .cxg { background: linear-gradient(180deg, #2a2233 0%, transparent 70%); }
 .cxc.arch-titan .cxg { background: linear-gradient(180deg, #3a2a12 0%, transparent 70%); box-shadow: inset 0 0 12px rgba(251,191,36,0.15); }
+/* SSR은 무조건 검정 배경 (arch 오버라이드 무시), 하지만 cxim은 투명으로 누끼 */
+.cxc.rSSR .cxg,
+.cxc.rSSR.arch-drone .cxg,
+.cxc.rSSR.arch-marksman .cxg,
+.cxc.rSSR.arch-guardian .cxg,
+.cxc.rSSR.arch-bruiser .cxg,
+.cxc.rSSR.arch-commander .cxg,
+.cxc.rSSR.arch-titan .cxg { background: #05040c !important; }
+.cxc.rSSR .cxim,
+.cxc.rSSR.arch-drone .cxim,
+.cxc.rSSR.arch-marksman .cxim,
+.cxc.rSSR.arch-guardian .cxim,
+.cxc.rSSR.arch-bruiser .cxim,
+.cxc.rSSR.arch-commander .cxim,
+.cxc.rSSR.arch-titan .cxim { background: transparent !important; } /* grid nukki clean */
 .cxc .cxgly .acc { vertical-align: super; }
 /* Premium gallery polish: owned SSR stronger inner gold rim + lift pop, subtle fac glow for scannability without clutter. */
 .cxc:not(.lock) { box-shadow: 0 0 0 1px rgba(255,255,255,0.04); }
@@ -221,10 +242,10 @@ h1::first-letter { color: var(--crimson); }
   box-shadow: 0 12px 40px rgba(0,0,0,0.8);
 } /* tighter padding, nukki art priority */
 /* NUKKI GOLD FRAME (tight fit): #unit-glyph yellow/gold border now hugs the illustration edge with zero gap. Container relative + absolute inset img (cover + tuned pos) ensures perfect alignment regardless of PNG intrinsic size/aspect. No padding inside border. Consistent bust crop for all nukki. */
-#unit-glyph { font-size: 11px; position: relative; width: 100%; max-width: 280px; aspect-ratio: 1 / 1.02; max-height: 36vh; margin: 0 auto 4px; display: block; overflow: hidden; background: #05040c; border-radius: 12px; }
-#unit-glyph img.ucim, #unit-glyph .ucim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; border-radius: 9px; display: block; border: none; box-shadow: none; background: #05040c; } /* nukki unit modal: contain + center, clean no extra white frame, outer card border + glow handles it */
-/* Premium SSR background for unit popup glyph (matching codex .cxc.rSSR) — fixes "ssr인데 배경도 없고" */
-#unit-card.rSSR #unit-glyph { background: linear-gradient(160deg, #3a2c12 0%, #1a1330 100%); box-shadow: inset 0 0 16px rgba(245,196,81,0.28), 0 0 8px rgba(245,196,81,0.18); }
+#unit-glyph { font-size: 11px; position: relative; width: 100%; max-width: 280px; aspect-ratio: 1 / 1.02; max-height: 36vh; margin: 0 auto 4px; display: block; overflow: hidden; background: transparent; border-radius: 12px; }
+#unit-glyph img.ucim, #unit-glyph .ucim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; border-radius: 9px; display: block; border: none; box-shadow: none; background: transparent; } /* 누끼 맞춤: 투명 배경으로 카드 배경과 자연스럽게 블렌드, 박스 제거 */
+/* Premium SSR background for unit popup glyph — 검정 배경 통일 */
+#unit-card.rSSR #unit-glyph { background: transparent; }
 #unit-card.rSSR #unit-glyph img.ucim, #unit-card.rSSR #unit-glyph .ucim { background: transparent; }
 #unit-glyph .ucgly { line-height: 1; }
 /* Elegant premium SSR gold rim — border now directly on frame for "must own" shine. */

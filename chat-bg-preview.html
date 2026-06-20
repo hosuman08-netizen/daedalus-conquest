@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>다이달로스 — 채팅 창 미리보기 (Decorated)</title>
+<style>
+  body { margin:0; padding:0; background:#111; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; }
+  .phone { width: 390px; height: 780px; background:#000; border-radius: 55px; box-shadow: 0 30px 80px rgba(0,0,0,.6), inset 0 0 0 12px #222; overflow:hidden; position:relative; border: 1px solid #222; }
+  .statusbar { height:44px; background:#000; color:#fff; font-size:13px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 6px; font-weight:600; letter-spacing:.5px; }
+  .tg-header { height:52px; background:rgba(30,30,34,.92); backdrop-filter:blur(20px); display:flex; align-items:center; padding:0 12px; color:#fff; font-size:16px; font-weight:600; border-bottom:1px solid rgba(255,255,255,.08); }
+  .tg-header .avatar { width:36px; height:36px; background:linear-gradient(135deg,#2a1a4a,#0b0714); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; margin-right:10px; border:1px solid #f5c45133; }
+  .tg-header .title { flex:1; }
+  .tg-header .title .name { font-size:15px; font-weight:700; }
+  .tg-header .title .sub { font-size:11px; color:#8a8a8f; font-weight:500; }
+  .chat { flex:1; position:relative; overflow-y:auto; padding:12px 12px 90px; background-size:cover; background-position:center; color:#fff; }
+  .msg { max-width:78%; padding:9px 14px; border-radius:18px; margin:6px 0; font-size:15px; line-height:1.35; box-shadow:0 1px 2px rgba(0,0,0,.2); }
+  .bot { background:#2c2c32; align-self:flex-start; border-bottom-left-radius:5px; }
+  .sys { background:#1f252f; color:#c9c9cf; font-size:13px; max-width:88%; align-self:center; text-align:center; padding:6px 16px; border-radius:20px; }
+  .time { font-size:10px; color:#8a8a8f; margin:2px 8px; }
+  .inputbar { position:absolute; bottom:0; left:0; right:0; height:58px; background:rgba(30,30,34,.96); backdrop-filter:blur(18px); display:flex; align-items:center; padding:0 14px; gap:8px; border-top:1px solid rgba(255,255,255,.06); }
+  .input { flex:1; background:#1c1c22; border-radius:20px; height:36px; padding:0 16px; color:#ddd; font-size:15px; display:flex; align-items:center; border:1px solid #36363d; }
+  .fake-btn { width:32px; height:32px; background:#2a2a30; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:17px; }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <!-- Status bar -->
+    <div class="statusbar">
+      <div>9:41</div>
+      <div style="display:flex;gap:4px;align-items:center;font-size:12px;">100% 🔋</div>
+    </div>
+
+    <!-- TG header -->
+    <div class="tg-header">
+      <div style="width:28px;text-align:center;font-size:22px;opacity:.9;">‹</div>
+      <div class="avatar">⚔️</div>
+      <div class="title">
+        <div class="name">다이달로스</div>
+        <div class="sub">@daedalus_conquest_bot · AI 군단</div>
+      </div>
+      <div style="font-size:22px;opacity:.7;">⋯</div>
+    </div>
+
+    <!-- Chat area with Daedalus bg (inline SVG for single-file preview) -->
+    <div class="chat" style="position:relative; background:#05040c;">
+      <!-- Embedded Daedalus pattern (exact same as art/daedalus-chat-bg.svg) -->
+      <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.92;" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="g" gradientTransform="rotate(165)" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#05040c"/><stop offset="35%" stop-color="#0a0814"/><stop offset="65%" stop-color="#0d1418"/><stop offset="100%" stop-color="#0b0714"/></linearGradient><linearGradient id="gw" gradientTransform="rotate(140)" x1="20%" y1="10%" x2="80%" y2="90%"><stop offset="0%" stop-color="#f5c451" stop-opacity=".035"/><stop offset="50%" stop-color="#f5c451" stop-opacity=".015"/><stop offset="100%" stop-color="#a855f7" stop-opacity=".025"/></linearGradient><pattern id="p" patternUnits="userSpaceOnUse" width="420" height="420"><rect x="20" y="20" width="380" height="380" fill="none" stroke="#f5c451" stroke-width="1.2" stroke-opacity=".07" rx="6"/><rect x="48" y="48" width="324" height="324" fill="none" stroke="#f5c451" stroke-width=".8" stroke-opacity=".05"/><g stroke="#f5c451" stroke-width="1.1" stroke-opacity=".085" fill="none" stroke-linecap="round"><path d="M70 70 h90"/><path d="M70 110 h55 v40 h70"/><path d="M180 70 v55 h60"/><path d="M280 95 h70"/><path d="M95 180 h140"/><path d="M95 230 v70 h85"/><path d="M260 200 h80 v55"/><path d="M120 310 h160"/></g><g fill="none" stroke="#f5c451" stroke-opacity=".09" stroke-width=".9"><path d="M145 165 q-28 -18 -12 -42 q22 -12 38 3 q12 14 4 31"/><path d="M150 172 q-20 -8 -6 -26"/><path d="M275 165 q28 -18 12 -42 q-22 -12 -38 3 q-12 14 -4 31"/><path d="M270 172 q20 -8 6 -26"/></g><g stroke="#c8b070" stroke-width=".7" stroke-opacity=".06" fill="none"><path d="M55 340 h18 v12 h-12 v-6"/><path d="M360 78 h-18 v-12 h12 v6"/></g><circle cx="105" cy="260" r="2.2" fill="#f5c451" fill-opacity=".07"/><circle cx="315" cy="285" r="1.8" fill="#a855f7" fill-opacity=".08"/><circle cx="220" cy="135" r="1.5" fill="#f5c451" fill-opacity=".06"/><circle cx="78" cy="145" r="1.6" fill="#c8b070" fill-opacity=".07"/><line x1="210" y1="55" x2="210" y2="365" stroke="#f5c451" stroke-width=".6" stroke-opacity=".035"/><line x1="130" y1="40" x2="130" y2="390" stroke="#a855f7" stroke-width=".5" stroke-opacity=".03"/></pattern></defs><rect width="1080" height="1920" fill="url(#g)"/><rect width="1080" height="1920" fill="url(#gw)"/><rect width="1080" height="1920" fill="url(#p)"/><g opacity=".045"><path d="M920 120 q60 -55 110 -25" fill="none" stroke="#f5c451" stroke-width="1.5"/><path d="M950 95 q35 -30 55 5" fill="none" stroke="#f5c451" stroke-width="1"/></g></svg>
+      <div class="sys">⚔️ 다이달로스에 오신 것을 환영합니다, 군주.</div>
+
+      <div class="msg bot" style="margin-top:14px;">
+        환영합니다, 우랙.<br>
+        지금 바로 군단을 소환하고 정복을 시작하세요.
+      </div>
+      <div class="time">오전 9:41</div>
+
+      <div class="msg bot" style="margin-top:10px;">
+        /start 로 게임을 시작하거나<br>
+        아래 버튼으로 바로 입장할 수 있습니다.
+      </div>
+
+      <div style="margin:18px 4px 6px; display:flex; gap:8px; flex-wrap:wrap;">
+        <div style="background:#f5c45122; color:#f5c451; border:1px solid #f5c45155; padding:8px 14px; border-radius:999px; font-size:13px; font-weight:600;">🎮 게임 시작</div>
+        <div style="background:#a855f722; color:#c084fc; border:1px solid #a855f755; padding:8px 14px; border-radius:999px; font-size:13px; font-weight:600;">🔮 환생 의식</div>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="inputbar">
+      <div class="input">메시지 입력...</div>
+      <div class="fake-btn">🎤</div>
+      <div class="fake-btn" style="font-size:19px;">➤</div>
+    </div>
+  </div>
+
+  <div style="position:fixed; bottom:18px; left:50%; transform:translateX(-50%); font-size:11px; color:#555; text-align:center; line-height:1.3;">
+    다이달로스 전용 채팅 배경 (SVG)<br>
+    Telegram 채팅 설정 → 배경 변경 → 이 파일 업로드 또는 스크린샷 사용
+  </div>
+</body>
+</html>

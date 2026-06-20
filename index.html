@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>다이달로스 — AI 군단 전쟁</title>
+  <title>Daedalus — AI Legion War</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
     // 🚪 웹(텔레그램 밖) → 게임 차단, 텔레그램 유입 게이트. ?web 로 우회(테스트용)
@@ -22,13 +22,13 @@
       } catch (e) {}
     })();
   </script>
-  <link rel="stylesheet" href="style.css?v=20260620i" />
+  <link rel="stylesheet" href="style.css?v=20260620j" />
   <!-- © Sovereign - Personal property. All cheats/hacks prohibited. Security active. -->
 </head>
 <body>
   <!-- 🚪 웹→텔레그램 유입 게이트 (텔레그램 밖에선 게임 차단 → 앱으로 유도) -->
   <div id="tg-gate" style="display:none;position:fixed;inset:0;z-index:9999;background:radial-gradient(circle at 50% 30%,#1a1430,#05040c);flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#e2e8f0;padding:24px;font-family:system-ui,-apple-system,sans-serif;">
-    <div style="font-size:38px;font-weight:900;letter-spacing:2px;color:#fbbf24;text-shadow:0 0 20px #fbbf2466;">⚔️ LEGION</div>
+    <div style="font-size:38px;font-weight:900;letter-spacing:2px;color:#fbbf24;text-shadow:0 0 20px #fbbf2466;">Daedalus</div>
     <div style="font-size:15px;color:#a3a3c2;margin:6px 0 28px;">Daedalus · AI 군단 전쟁</div>
     <div style="font-size:16px;line-height:1.7;margin-bottom:26px;">📱 이 게임은 <b style="color:#67e8f9;">텔레그램</b>에서 플레이합니다<br><span style="font-size:13px;color:#8b8ba7;">결제·세이브가 텔레그램 계정에 안전하게 연동돼요</span></div>
     <a href="https://t.me/daedalus_conquest_bot" style="display:inline-block;background:linear-gradient(135deg,#2aabee,#1a8cd8);color:#fff;font-weight:800;font-size:17px;padding:15px 36px;border-radius:14px;text-decoration:none;box-shadow:0 8px 24px rgba(42,171,238,.4);">🎮 텔레그램에서 열기</a>
@@ -36,7 +36,7 @@
   </div>
   <div id="app">
     <header>
-      <h1 data-i18n="title">⚔️ LEGION</h1>
+      <h1>Daedalus</h1>
       <button id="settings-corner">⚙️</button>
     </header>
 
@@ -271,16 +271,19 @@
       <div id="tg-profile"></div>
       <div class="set-sec">📊 <span data-i18n="statsTitle">내 군단 통계</span></div>
       <div id="game-stats"></div>
+      <button id="share-profile" class="gbig" style="margin-top:8px;background:linear-gradient(135deg,#2aabee,#1a8cd8);border-color:#2aabee;color:#fff;font-weight:800;">📤 내 군단 전과 자랑하기 <small style="opacity:.85">(친구에게 공유)</small></button>
       <div class="set-sec">🌐 <span data-i18n="setLang">언어</span></div>
       <div id="lang-list"></div>
       <div class="set-row"><span>🔊 <span data-i18n="setSound">사운드</span></span><button id="set-sound" class="toggle">ON</button></div>
       <div class="set-row"><span>📳 <span data-i18n="setHaptic">진동</span></span><button id="set-haptic" class="toggle">ON</button></div>
       <div class="set-row"><span>🎵 <span data-i18n="setMusic">배경음악</span></span><button id="set-music" class="toggle">ON</button></div>
+      <div class="set-sec">👥 <span data-i18n="social">소셜</span></div>
+      <div class="set-row"><span>👥 <span data-i18n="invite">친구 초대</span></span><button id="set-invite" style="font-size:11px;padding:3px 9px;border-radius:999px;background:#3b82f6;color:#fff;border:none;cursor:pointer;">링크 공유</button></div>
       <div class="set-sec">🎟️ <span data-i18n="setCode">이벤트 코드</span></div>
       <div class="coderow"><input id="code-input" placeholder="CODE" maxlength="20" autocapitalize="characters" autocomplete="off" /><button id="code-btn" data-i18n="confirm">확인</button></div>
       <div class="set-sec">🔄 <span data-i18n="prestigeTitle">환생</span></div>
       <div id="prestige-box"></div>
-      <div class="set-ver">v0.5 · LEGION · <span data-i18n="setComm">커뮤니티 채널 (준비중)</span></div>
+      <div class="set-ver">v0.5 · Daedalus · <span data-i18n="setComm">커뮤니티 채널 (준비중)</span></div>
     </div>
 
     <!-- 유닛 상세 -->
@@ -308,10 +311,10 @@
 
     <div id="toast"></div>
   </div>
-  <script src="i18n.js?v=20260620i"></script>
-  <script src="units.js?v=20260620i"></script>
-  <script src="gear.js?v=20260620i"></script>
-  <script src="lore.js?v=20260620i"></script>
-  <script src="game.js?v=20260620i"></script>
+  <script src="i18n.js?v=20260620j"></script>
+  <script src="units.js?v=20260620j"></script>
+  <script src="gear.js?v=20260620j"></script>
+  <script src="lore.js?v=20260620j"></script>
+  <script src="game.js?v=20260620j"></script>
 </body>
 </html>
