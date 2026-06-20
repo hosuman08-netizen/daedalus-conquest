@@ -1,4 +1,12 @@
 {
+  "name": "daedalus-conquest",
+  "private": true,
+  "scripts": {
+    "minify": "node minify.js",
+    "minify:sh": "bash minify.sh",
+    "verify": "bash verify.sh",
+    "prepare-deploy": "bash minify.sh && bash verify.sh"
+  },
   "dependencies": {
     "playwright": "^1.61.0"
   }

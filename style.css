@@ -1030,6 +1030,7 @@ img, .cxim, .ucim, .cpim, .sqim, .him { opacity: 0.98; } /* subtle base for load
 #char-panel-card .cp-ti { font-size: 11px !important; line-height: 1.3 !important; margin-top: 2px !important; }
 #char-panel-card .cp-st { font-size: 11px !important; line-height: 1.3 !important; margin-top: 2px !important; }
 #char-panel-card #cp-lvup { font-size: 12px !important; padding: 5px 9px !important; border-radius: 6px !important; }
+.cp-skill { font-size: 10.5px; line-height: 1.45; color: #cbd5e1; margin-top: 6px; padding: 6px 8px; background: rgba(251,191,36,.07); border: 1px solid rgba(251,191,36,.22); border-radius: 7px; }
 /* 성장(강화) 줄 */
 #char-panel-card #cp-grow { gap: 5px !important; margin-bottom: 8px !important; }
 #char-panel-card #cp-grow button { font-size: 13px !important; padding: 6px 11px !important; border-radius: 6px !important; }

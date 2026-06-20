@@ -64,7 +64,16 @@ const T = `(function(){
   chk('charEnhance 골드소비', 'META.gold', ()=>charEnhance(uid));
   chk('fuseChar 중복소비', 'META.dupes['+uid+']', ()=>fuseChar(uid));
   chk('goldGacha 일일뽑기', 'META.dailyPulls', ()=>goldGacha());
-  chk('gacha 천장', 'META.pity', ()=>gacha());
+  // gacha pity: N 강제 (랜덤 SR+ 리셋 플레이크 방지, deep-audit와 일관)
+  try{
+    var bp = (META.pity||0);
+    var oR = Math.random; Math.random = ()=>0.01;
+    gacha();
+    Math.random = oR;
+    var ap = (META.pity||0);
+    var chg = (bp !== ap);
+    R.push( (chg?'✅':'🔴') + ' gacha 천장 : META.pity ' + bp + '→' + ap + (chg?'':'  [안변함!]') );
+  }catch(e){ R.push('❌ gacha 천장 — '+e.message); }
   chk('gacha10 젬소비', 'META.gems', ()=>gacha10());
   chk('gearGacha(1) 장비수', 'META.gear.length', ()=>gearGacha(1));
   chk('claimCq(3) 골드', 'META.gold', ()=>{ if(typeof claimCq==='function'){ META.cqClaimed=[]; META.chapter=50; claimCq(3); } });

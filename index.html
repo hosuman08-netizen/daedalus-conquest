@@ -22,7 +22,7 @@
       } catch (e) {}
     })();
   </script>
-  <link rel="stylesheet" href="style.css?v=20260620q" />
+  <link rel="stylesheet" href="style.css?v=20260620r" />
   <!-- © Sovereign - Personal property. All cheats/hacks prohibited. Security active. -->
 </head>
 <body>
@@ -116,6 +116,21 @@
       <button id="start" data-i18n="start">▶ 전투 시작</button>
       <button id="auto" data-i18n="auto">⚔️ 자동사냥</button>
       <button id="speed">속도 1x</button>
+    </div>
+    <!-- 🧠 턴제 모드 전용 UI (auto와 구분: 수동 턴 + 우선순위로 스킬 순서 제어) -->
+    <div id="tb-controls" style="display:none; margin: 6px 0; padding:6px; border:1px solid #475569; border-radius:8px; background:#0f172a;">
+      <div style="font-size:12px; margin-bottom:4px; color:#94a3b8;">🧠 턴제 · 스킬 순서 우선 (수동 선택)</div>
+      <select id="tb-pri" style="font-size:13px; padding:2px 6px; margin-right:6px;">
+        <option value="balanced">균형 (기본)</option>
+        <option value="skill">스킬 집중 (스킬 우선)</option>
+        <option value="atk">공격 집중 (ATK 높은 순)</option>
+        <option value="conserve">보존 (이번 낮음 → 다음 모멘텀 ↑)</option>
+        <option value="aggressive">공격적 (높은 변동성 · 큰 보상/리스크)</option>
+      </select>
+      <div style="font-size:10px;color:#64748b;margin-top:2px;">선택 효과 100% 공개 · 결과 변동 (도파민) · 아침 고로 보너스 적용</div>
+      <button id="tb-next" style="padding:4px 10px;">다음 턴 ▶</button>
+      <button id="tb-resolve" style="padding:4px 8px; margin-left:4px;">전체 해결</button>
+      <div id="tb-log" style="margin-top:4px; font-size:11px; max-height:52px; overflow:auto; color:#64748b; line-height:1.3;"></div>
     </div>
     <div id="reset-controls" style="margin-top:6px">
       <button id="reset" data-i18n="reset">↻ 다시</button>
@@ -327,10 +342,10 @@
 
     <div id="toast"></div>
   </div>
-  <script src="i18n.js?v=20260620q"></script>
-  <script src="units.js?v=20260620q"></script>
-  <script src="gear.js?v=20260620q"></script>
-  <script src="lore.js?v=20260620q"></script>
-  <script src="game.js?v=20260620q"></script>
+  <script src="i18n.js?v=20260620r"></script>
+  <script src="units.js?v=20260620r"></script>
+  <script src="gear.js?v=20260620r"></script>
+  <script src="lore.js?v=20260620r"></script>
+  <script src="game.js?v=20260620r"></script>
 </body>
 </html>

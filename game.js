@@ -356,6 +356,7 @@ function getLiveHeroPassive(hk) {
 
 let cv, ctx, W, H, units, fx, running, gameOver, lastT, speed = 1, raf = 0, auto = false, ultT = 0;
 let curLevel = 1, bossFight = false;                 // 모드별 적 레벨/보스전 플래그
+let tbActive = false, tbTurn = 0, tbPriority = "balanced", tbLog = []; // 턴제 전용: 별도 로직 (auto와 완전 분리)
 
 // High-tier battle portraits (preload the pretty arts so they appear "저대로" in canvas fight)
 // SSR + UR/EX (u1~ + u201/u202). 고퀄 PNG로 보물 느낌 극대화. Non high stay synthetic.
@@ -910,6 +911,25 @@ function squadSynergy() {                               // 진영/아키타입 �
   const archs = new Set(sq.map((u) => u.arch)).size;
   if (archs >= 5) { atk += 0.12; hp += 0.12; bonuses.push("🔀 다양성 ×" + archs + " 전군+12%"); }
   else if (archs >= 3) { atk += 0.08; hp += 0.08; bonuses.push("🔀 다양성 ×" + archs + " 전군+8%"); }
+
+  // 🌟 레어도 스킬 시스템 (보수적 밸런스) — SR=정밀(패시브), SSR=지휘(패시브)+개전 일격(액티브)
+  const srCount = sq.filter((u) => u.rarity === "SR").length;
+  const ssrCount = sq.filter((u) => ["SSR", "UR", "EX"].includes(u.rarity)).length;
+  if (srCount > 0) {                                   // ✦ SR 패시브 「정밀」: 치명 +1.5%/체, 최대 +9%
+    const c = Math.min(9, srCount * 1.5);
+    crit += c;
+    bonuses.push("✦ SR 정밀 ×" + srCount + " 치명+" + c.toFixed(0) + "%");
+  }
+  let openShield = 0, openBuffMul = 0, openBuffT = 0;  // 🌟 SSR 액티브 「개전 일격」 (1회성, 전투 시작)
+  if (ssrCount > 0) {                                  // 🌟 SSR 패시브 「지휘」: 공·체 +2%/체, 최대 +10%
+    const m = Math.min(0.10, ssrCount * 0.02);
+    atk += m; hp += m;
+    bonuses.push("🌟 SSR 지휘 ×" + ssrCount + " 공·체+" + Math.round(m * 100) + "%");
+    openShield = 2 + Math.min(2, (ssrCount - 1) * 0.5);          // 개전 실드 2~4초(피해 절반)
+    openBuffMul = 0.20 + Math.min(0.15, (ssrCount - 1) * 0.04);  // 개전 공격 버스트 +20~35%
+    openBuffT = 3;
+    bonuses.push("⚡ SSR 개전 일격 — 시작 " + openBuffT + "초 공격+" + Math.round(openBuffMul * 100) + "%·실드");
+  }
   // §21 Human Core: Effervescent Host Weave (Durkheim group effervescence + fusion surge in 3+ Founding or 4+ faction; secular sacred "we" heat from real proxy signals)
   const founders = sq.filter(u => ["SSR","UR","EX"].includes(u.rarity)).length;
   const highFac = Object.values(fac).some(v => v >= 4);
@@ -931,7 +951,7 @@ function squadSynergy() {                               // 진영/아키타입 �
       bonuses.push("🪖 Militia Surge (proxy weave +" + Math.round(surge*100) + "%) — invested regulars anchored");
     }
   }
-  return { atk, hp, crit, spd, shieldAdd, critDmgMul, bonuses, archs, count: sq.length, founders };
+  return { atk, hp, crit, spd, shieldAdd, critDmgMul, bonuses, archs, count: sq.length, founders, openShield, openBuffMul, openBuffT };
 }
 
 // 군주 20260616 + Grok P1: 캐릭터 조합 시너지 표 — 달성=골드글로우, 미달=실루엣+"N명 더". 도파민+수집욕.
@@ -1138,6 +1158,15 @@ function spawnArmy(side) {
         window._aetherBreathActive = true;
         window._aetherReviveUsed = false;
       }
+      // 🌟 SSR 액티브 「개전 일격」 — 편성에 SSR+ 있으면 전군 1회 개전 버스트(실드+공격)
+      if (syn.openBuffT > 0) {
+        units.filter(ut => ut.side === 'p').forEach(ut => {
+          ut.shield = Math.max(ut.shield || 0, syn.openShield);
+          ut.buff = Math.round(ut.atk * syn.openBuffMul);
+          ut.buffT = syn.openBuffT;
+        });
+        window._ssrOpeningActive = true;
+      }
       return;   // 편성이 부대 — 제네릭 스폰 생략
     }
   }
@@ -1301,6 +1330,10 @@ function applyMode() {
     counts.e = { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 };
     counts.e[bossT] = 1;
     $status.textContent = t("sBoss");
+  } else if (m === "turnbased") {                   // 🧠 턴제: 캠페인 적 사용 + 별도 턴 로직
+    curLevel = META.chapter;
+    counts.e = enemyForChapter(META.chapter);
+    $status.textContent = "🧠 턴제 전술 — 배치 후 시작 → 다음 턴으로 수동 진행 (자동과 완전 분리)";
   } else {                                            // campaign
     curLevel = META.chapter;
     counts.e = enemyForChapter(META.chapter);
@@ -1318,6 +1351,7 @@ function reset() {
   counts.p = META.army;                              // 내 군대 = 영구 보유
   applyMode();                                       // 모드에 맞게 적군 구성
   units = []; fx = []; running = false; gameOver = false; lastT = 0; ultT = 0;
+  tbActive = false; tbTurn = 0; tbLog = []; tbPriority = "balanced";
   delete window._ultBurst; // ULT vfx 잔여 클리어
   spawnArmy("p"); spawnArmy("e");
   preloadSSRPortraits(); // ensure god arts ready for battle
@@ -1336,6 +1370,8 @@ function reset() {
   }
   // perf: hide synergy table (prep tool) during battle to reduce layout/paint on mobile canvas-heavy view
   const synEl = $("synergy-table"); if (synEl) synEl.style.display = running ? 'none' : '';
+  showTbControls(false);
+  const lEl = $("tb-log"); if (lEl) lEl.innerHTML = "";
   // 2026-06-16 업데이트: 모든 모드 탭 표시 (캠페인 + 무한탑 + 보스 + 턴제 + 아레나).
   // 이전 MVP 때는 turn/arena/boss를 hard hide 했으나, 이제 roadmap 전체 보이게 해서 progression 느낌 주고 "왜 이거만 있어?" 질문 해결.
   // 잠긴 모드는 updateModeTabs + .locked 스타일로 처리 (🔒 + 클릭 시 coming soon).
@@ -1435,7 +1471,7 @@ function renderMsHint() {
 function updateModeTabs() {
   document.querySelectorAll(".modetab").forEach((b) => {
     b.classList.toggle("sel", b.dataset.m === META.mode);
-    const locked = !modeUnlocked(b.dataset.m) || b.dataset.m === "turnbased" || b.dataset.m === "arena" || b.dataset.m === "mystery";
+    const locked = !modeUnlocked(b.dataset.m) || b.dataset.m === "arena" || b.dataset.m === "mystery";
     b.classList.toggle("locked", locked);
   });
   // Sovereign: 캠페인 탭에 현재 챕터 번호 동적 표시 — "2챕터가 안넘어가" 혼란 방지. 유저가 "이 버튼이 챕터 진행용"임을 즉시 인지.
@@ -1448,9 +1484,11 @@ function updateModeTabs() {
 function setMode(m) {
   if (running) { toast(t("tNoSwitch"), "#ef4444"); return; }
   if (m === "turnbased") { 
-    // 최소 스텁: 배치 후 결과 (수동 배치 느낌 주기 위해 별도 라벨)
-    META.mode = m; 
-    $("status").textContent = "턴제: 배치 완료 후 '시작' - 전략적 자동 결과 (Phase1 stub)";
+    // 이제 playable: 별도 턴 로직 (배치 + 수동 턴 + 결과)
+    META.mode = m; saveMeta(); reset();
+    tbActive = true; tbTurn = 0; tbPriority = "balanced";
+    $("status").textContent = "🧠 턴제: 배치 후 ▶ 시작 → '다음 턴' 클릭으로 진행. 우선순위 선택으로 스킬/공격 순서 수동 제어";
+    showTbControls(true);
     updateModeTabs();
     return;
   }
@@ -1827,6 +1865,11 @@ function draw() {
   if (window._bgCache) ctx.drawImage(window._bgCache, 0, 0);   // perf: 캐시된 배경+그리드 1회 합성
   else { ctx.fillStyle = "#0f121a"; ctx.fillRect(0, 0, W, H); ctx.strokeStyle = "#1b2030"; ctx.lineWidth = 1; for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); } for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); } }
   drawHpGauge();   // 양팀 HP 게이지 (전투 중)
+  if (tbActive) { // 캔버스에 턴 표시 (UI와 함께)
+    ctx.fillStyle = "#a5b4fc"; ctx.font = "11px sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(`🧠 TURN ${tbTurn} · ${tbPriority.toUpperCase()}`, W/2, 22);
+    ctx.textAlign = "left";
+  }
 
   for (const f of fx) {
     const k = f.t / f.life;
@@ -2149,6 +2192,7 @@ function rRect(x, y, w, h, r) {   // 둥근 사각형 path (HP바·UI)
 
 function loop(ts) {
   if (!running) return;
+  if (tbActive) return; // 턴제는 executeTbTurn 수동 호출 전용 (auto 실시간과 분리)
   if (!lastT) lastT = ts;
   let dt = Math.min(0.05, (ts - lastT) / 1000) * speed;
   lastT = ts;
@@ -2180,6 +2224,7 @@ function finish(p, e) {
   running = false; gameOver = true;
   const win = p && !e, dr = !p && !e;
   if (win) { META.dailyBattles = (META.dailyBattles || 0) + 1; META.totalWins = (META.totalWins || 0) + 1; }   // ⚠️ TDZ 버그픽스: win 선언 뒤로 이동 (전엔 선언 전 참조→매 전투종료 ReferenceError로 finish() 전체 붕괴)
+  if (tbActive) { tbActive = false; showTbControls(false); $("start").textContent = t("start"); }
   const m = META.mode;
   let extra = "", title = win ? t("rWin") : dr ? t("rDraw") : t("rLose");
   let bonus = (x) => Math.floor(x * (META.vip ? 1.5 : META.starter ? 1.2 : 1));   // VIP +50% / 스타터 +20% 골드
@@ -2317,6 +2362,107 @@ function finish(p, e) {
   // 6hr daily loop + bazaar pulse (speculative dopamine, no balance break)
   if (win && Math.random()<0.25) { setTimeout(()=>toast("🔥 군단 사기 충천! 다음 챕터로 진격하세요","#a3e635"), 800); }
   updateMeta(); draw();
+}
+
+// ── 🧠 턴제 모드 전용 로직 (auto 실시간 loop와 완전 분리, 배치+수동 턴+결과) ──
+function showTbControls(show) {
+  const el = $("tb-controls");
+  if (el) el.style.display = show ? "block" : "none";
+  const autoBtn = $("auto");
+  if (autoBtn) autoBtn.style.opacity = (tbActive || META.mode === "turnbased") ? "0.4" : "1";
+  const startBtn = $("start");
+  if (startBtn && tbActive) startBtn.textContent = "다음 턴 ▶";
+}
+function executeTbTurn() {
+  if (!tbActive || !running) return;
+  tbTurn++;
+  const beforeP = units.filter(u => u.side === "p").reduce((s,u)=>s + Math.max(0,u.hp), 0);
+  const beforeE = units.filter(u => u.side === "e").reduce((s,u)=>s + Math.max(0,u.hp), 0);
+  _aliveP = units.filter((u) => u.side === "p" && u.hp > 0);
+  _aliveE = units.filter((u) => u.side === "e" && u.hp > 0);
+  if (!_aliveP.length || !_aliveE.length) { finish(_aliveP.length > 0, _aliveE.length > 0); tbActive = false; showTbControls(false); return; }
+
+  // 미꾸라지 + 도파민: 모든 선택 효과 투명 공개 (변동성 높음으로 중독 루프)
+  // 아침고로: 아침/저녁 첫 세션 고변동 + 보너스 (도파민 최대)
+  // 다른 게임 모방: Slay the Spire (선택 리스크/리워드), gacha near-miss, AFK streak, variable ratio
+
+  let orderedP = _aliveP.slice();
+  let dmgMul = 1.0;
+  let riskBackfire = 0;
+  let buildNext = 0;
+
+  if (tbPriority === "skill") {
+    orderedP.sort((a,b) => ((b.skill && b.skT<=0 ? 10 : 0) + b.ai) - ((a.skill && a.skT<=0 ? 10 : 0) + a.ai));
+    dmgMul = 1.1;
+  } else if (tbPriority === "atk") {
+    orderedP.sort((a,b) => b.atk - a.atk);
+    dmgMul = 1.15;
+  } else if (tbPriority === "conserve") {
+    dmgMul = 0.65; // 이번 턴 낮춤
+    buildNext = 1.25; // 다음 턴 모멘텀
+    tbMomentum = (tbMomentum || 0) + 18;
+  } else if (tbPriority === "aggressive") {
+    dmgMul = 1.35 + (Math.random() * 0.8 - 0.4); // 높은 변동성 (VR 스케줄)
+    if (Math.random() < 0.22) riskBackfire = 0.8; // 미꾸라지: 리스크 있지만 투명
+    tbStreak = 0; // 리스크
+  }
+
+  // 아침고로 도파민 중독: 아침 고변동 + 보상 (다른 게임 morning login hook 모방)
+  const hour = new Date().getHours();
+  const isMorningHigh = (hour < 10 || (hour > 19 && hour < 23));
+  if (isMorningHigh && tbTurn === 1) {
+    dmgMul *= 1.28;
+    tbMomentum = (tbMomentum || 0) + 25;
+    if (Math.random() < 0.4) tbLog.push("🌅 아침 고로! 첫 턴 대박 변동성");
+  }
+
+  // 타이머 리셋 (턴당 1회 행동 보장)
+  orderedP.forEach(u => { u.atkT = 0; u.skT = 0; u.bossSkillT = 0; });
+  _aliveE.forEach(u => { u.atkT = 0; u.skT = 0; u.bossSkillT = 0; });
+
+  // 플레이어 페이즈 (수동 우선순위 + 도파민 변동 적용)
+  orderedP.forEach(u => {
+    if (u.hp > 0) {
+      const oldDmg = u.dmgOut || 0;
+      step(u, 0.6);
+      // aggressive/near-miss tease
+      if (dmgMul > 1.2 && Math.random() < 0.35) {
+        tbLog.push(`⚡ ${u.name} 거의 완벽! (근접 미스 도파민)`);
+      }
+    }
+  });
+
+  // 적 페이즈 (자동)
+  _aliveE = units.filter((u) => u.side === "e" && u.hp > 0);
+  _aliveE.forEach(u => { if (u.hp > 0) step(u, 0.6); });
+
+  // 정리
+  units = units.filter((u) => u.hp > 0);
+  const afterP = units.filter(u => u.side === "p").reduce((s,u)=>s + Math.max(0,u.hp), 0);
+  const afterE = units.filter(u => u.side === "e").reduce((s,u)=>s + Math.max(0,u.hp), 0);
+  const pD = Math.max(0, Math.round(beforeP - afterP));
+  const eD = Math.max(0, Math.round(beforeE - afterE));
+  tbLog.push(`턴${tbTurn}: 아군-${pD} 적군-${eD}`);
+  $("status").textContent = `🧠 턴 ${tbTurn} · 우선:${tbPriority} · 아군 피해 ${pD} / 적 ${eD}`;
+  const logEl = $("tb-log");
+  if (logEl) { logEl.innerHTML = tbLog.slice(-5).join("<br>"); logEl.scrollTop = logEl.scrollHeight; }
+
+  if (!window._lastDraw || Date.now() - window._lastDraw >= 10) { draw(); updateScore(); window._lastDraw = Date.now(); }
+
+  const pA = units.some((u) => u.side === "p"), eA = units.some((u) => u.side === "e");
+  if (!pA || !eA) {
+    finish(pA, eA);
+    tbActive = false;
+    showTbControls(false);
+    $("start").textContent = t("start");
+  } else {
+    showTbControls(true);
+  }
+}
+function setTbPriority(pri) {
+  tbPriority = pri || "balanced";
+  const s = $("status");
+  if (s && tbActive) s.textContent = `🧠 턴제 (우선:${tbPriority}) · 다음 턴 클릭`;
 }
 
 // 6hr patch: squad carried visual feedback (Legion immersion) — now EVERY deployed specific (SSR or regular SR/R) shows named carry %
@@ -2646,6 +2792,19 @@ function checkDaily() {
 
 function start() {
   if (gameOver) reset();
+  // 🧠 턴제: 완전 별도 로직 (실시간 loop 사용 안 함, 배치+수동 턴)
+  if (META.mode === "turnbased" || tbActive) {
+    if (!tbActive) {
+      tbActive = true; tbTurn = 0; tbLog = []; tbPriority = "balanced";
+      running = true; gameOver = false;
+      $("start").textContent = "다음 턴 ▶";
+      $status.textContent = "🧠 턴제 전투 시작 — '다음 턴'으로 수동 진행 (우선순위로 스킬 순서 제어)";
+      showTbControls(true);
+      draw();
+    }
+    executeTbTurn();
+    return;
+  }
   if (running) { running = false; $("start").textContent = t("resume"); cancelAnimationFrame(raf); return; }
   preloadSSRPortraits(); // 강제 로드 (GitHub Pages 타이밍 대응)
   running = true; lastT = 0; $("start").textContent = t("pause");
@@ -2691,6 +2850,20 @@ $("speed").addEventListener("click", () => {
   speed = tiers[(i + 1) % tiers.length];
   $("speed").textContent = t("speed", { n: speed });
 });
+
+// 🧠 턴제 UI 바인딩 (모드 전환 시에도 동작)
+setTimeout(() => {
+  const pri = $("tb-pri");
+  if (pri) pri.addEventListener("change", () => setTbPriority(pri.value));
+  const nxt = $("tb-next");
+  if (nxt) nxt.addEventListener("click", () => { if (tbActive) executeTbTurn(); });
+  const res = $("tb-resolve");
+  if (res) res.addEventListener("click", () => {
+    if (!tbActive) return;
+    let safety=0;
+    while (tbActive && safety++ < 50) executeTbTurn(); // 빠른 전체 해결
+  });
+}, 120);
 
 // ── 스타터팩 (⭐50 첫 결제 상품) ─────────────────────────────────────────────
 function showStarter() {
@@ -2874,6 +3047,7 @@ function updateAutoBtn() {
   b.classList.toggle("on", auto);
 }
 function toggleAuto() {
+  if (tbActive || META.mode === "turnbased") { toast("🧠 턴제 모드에서는 자동 불가 — 수동 턴으로 진행", "#f59e0b"); return; }
   auto = !auto;
   updateAutoBtn();
   if (auto) { toast(t("tAutoStart"), "#a3e635"); if (!running) { if (gameOver) reset(); start(); } }
@@ -3921,6 +4095,19 @@ function charEquip(id, gearId) {
   saveMeta(); SFX.equip && SFX.equip(); haptic("light");
   openCharPanel(id); renderSquad(); if (!running) reset();
 }
+// 🌟 레어도 스킬 안내(상세창) — 편성 시 발동하는 팀 스킬을 유저에게 명시
+function raritySkillHTML(rarity) {
+  if (["SSR", "UR", "EX"].includes(rarity)) {
+    return '<div class="cp-skill"><b style="color:#fbbf24">🌟 SSR 스킬</b><br>'
+      + '🛡️ <b>지휘</b>(패시브): 편성한 SSR+ 1체당 전군 공격·체력 +2% (최대 +10%)<br>'
+      + '⚡ <b>개전 일격</b>(액티브): 전투 시작 시 전군에 실드 + 공격 버스트(+20~35%, 3초)</div>';
+  }
+  if (rarity === "SR") {
+    return '<div class="cp-skill"><b style="color:#c084fc">✦ SR 스킬</b><br>'
+      + '🎯 <b>정밀</b>(패시브): 편성한 SR 1체당 전군 치명타 +1.5% (최대 +9%)</div>';
+  }
+  return "";
+}
 function openCharPanel(id) {
   const u = ROSTER.find((x) => x.id === id); if (!u) return;
   if (cpCharId !== id) cpSlotFilter = null;   // 새 캐릭터면 슬롯필터 초기화 (깔끔 시작)
@@ -3935,7 +4122,8 @@ function openCharPanel(id) {
     + `<button id="cp-lvup">⬆️ 레벨업 Lv${lv + 1} · 💰${charLvCost(id)}</button>`
     + `<div style="margin-top:3px;font-size:10px;display:flex;gap:2px;align-items:center;">일괄 <input id="cp-lv-num" type="number" value="${maxB||1}" min="1" max="${maxB||1}" style="width:32px">`
     + `<button id="cp-lv-batch" style="padding:0 4px;font-size:9px">실행</button>`
-    + `<button id="cp-lv-max" style="padding:0 4px;font-size:9px">전부</button></div></div>`;
+    + `<button id="cp-lv-max" style="padding:0 4px;font-size:9px">전부</button></div>`
+    + raritySkillHTML(u.rarity) + `</div>`;
   on("cp-lvup", "click", () => charLevelUp(id));
   const numEl = $("cp-lv-num");
   on("cp-lv-batch", "click", () => { const n = numEl ? (parseInt(numEl.value)||1) : 1; charLevelUp(id, n); });
