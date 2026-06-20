@@ -1109,8 +1109,7 @@ function updateMeta() {
   if (ts) ts.style.display = META.titanOwned ? "" : "none";
   // starter-btn removed (integrated to shop)
   const sp = $("speed"); if (sp && !running) {
-    const eff = speed * (META.starter ? 2 : 1);
-    sp.textContent = t("speed", { n: eff });
+    sp.textContent = t("speed", { n: speed });
   }
   updateModeTabs(); // 챕터 변경(환생·승리 등) 시 '캠페인 chX' 탭 라벨 즉시 갱신
 }
@@ -1712,8 +1711,12 @@ function draw() {
     const hasEnemyPortrait = u.side === "e" && u.portraitKey && u.portraitKey!=="drone" && u.portraitKey!=="marksman" && enemyPortraits[u.portraitKey] && enemyPortraits[u.portraitKey].complete && enemyPortraits[u.portraitKey].naturalWidth > 0;
     if (hasPlayerPortrait || hasEnemyPortrait) {
       const img = hasPlayerPortrait ? ssrPortraits[u.id] : enemyPortraits[u.portraitKey];
-      const clipR = hasPlayerPortrait ? u.r * 1.15 : Math.min(22, u.r + 4);
-      const sz = hasPlayerPortrait ? u.r * 2.6 : 48;
+      let clipR = hasPlayerPortrait ? u.r * 1.15 : Math.min(22, u.r + 4);
+      let sz = hasPlayerPortrait ? u.r * 2.6 : 48;
+      if (u.side === "e" && u.portraitKey && (u.portraitKey.includes("titan") || u.portraitKey.includes("boss"))) {
+        sz = u.r * 2.8;
+        clipR = u.r * 1.25;
+      }
       ctx.save();
       ctx.beginPath(); ctx.arc(u.x, u.y, clipR, 0, 7); ctx.clip();
       ctx.drawImage(img, u.x - sz / 2, u.y - sz * 0.42, sz, sz);
@@ -1855,8 +1858,7 @@ function rRect(x, y, w, h, r) {   // 둥근 사각형 path (HP바·UI)
 function loop(ts) {
   if (!running) return;
   if (!lastT) lastT = ts;
-  const starterMul = (META.starter ? 2 : 1);
-  let dt = Math.min(0.05, (ts - lastT) / 1000) * speed * starterMul;
+  let dt = Math.min(0.05, (ts - lastT) / 1000) * speed;
   lastT = ts;
   _aliveP = units.filter((u) => u.side === "p" && u.hp > 0);   // 프레임당 1회
   _aliveE = units.filter((u) => u.side === "e" && u.hp > 0);
@@ -2398,8 +2400,8 @@ $("reset").addEventListener("click", reset);
 // Reset feedback 강화 (user: "디자인 좀 바꿔" — clear premium danger + confirmation already + bak safe)
 const resetBtn = $("reset"); if (resetBtn) { resetBtn.style.border = "1px solid #f87171"; resetBtn.title = "진행 초기화 (백업 자동 생성, 복구 가능)"; }
 $("speed").addEventListener("click", () => {
-  // 무료 1x·2x / 스타터 4x / VIP 8x — 팝업 없이 순환
-  const tiers = META.ultra ? [1, 2, 4, 8] : META.vip ? [1, 2, 4] : [1, 2];   // VIP=4x · 울트라=8x
+  // 무료 1x·2x / VIP 4x / 울트라 8x — 팝업 없이 순환 (스타터는 속도 영향 없음)
+  const tiers = META.ultra ? [1, 2, 4, 8] : META.vip ? [1, 2, 4] : [1, 2];
   const i = tiers.indexOf(speed);
   speed = tiers[(i + 1) % tiers.length];
   $("speed").textContent = t("speed", { n: speed });
@@ -3249,9 +3251,9 @@ function renderShop() {
     const c = document.createElement("button"); c.className = "packcard" + (p.vip || p.ultra ? " vip" : "") + (p.k ? " grow" : "") + (active ? " active" : "") + (owned ? " owned" : "");
     const what = p.k ? t(p.k) : p.vip ? t("tVip") : p.ultra ? t("tUltra") : (p.gem ? "💎 " + p.gem : "💰 " + p.g);
     const sub = active ? '<div class="psub">✓ ~' + META.pass[p.id] + "</div>" : "";
-    const price = owned ? "✓ " + t("ownedShort") : p.price;  // 보유중이면 가격 대신 표시(사라지지 않게)
+    const price = owned ? "✓ " + t("ownedShort") : (STARS[p.id] ? "⭐ " + STARS[p.id].toLocaleString("en-US") : p.price);  // ⭐ Stars 표시(만국공통·실제청구액 일치). 보유중이면 ✓
     const isFB = !((META.firstBuy || {})[p.id]) && (p.gem || p.g) && !owned;  // 🎁 첫구매 2배 대상(젬·골드 팩, 미구매)
-    const tagHtml = isFB ? '<span class="ptag pdbl">🎁 첫구매 2배</span>' : (p.tag ? '<span class="ptag">' + p.tag + "</span>" : "");
+    const tagHtml = isFB ? '<span class="ptag pdbl">' + t("firstBuyDouble") + '</span>' : (p.tag ? '<span class="ptag">' + p.tag + "</span>" : "");
     c.innerHTML = tagHtml + '<div class="pwhat">' + what + "</div>" + sub + '<div class="pprice">' + price + "</div>";
     if (owned) c.disabled = true; else c.addEventListener("click", () => buyPack(p.id));
     box.appendChild(c);
@@ -3289,7 +3291,7 @@ function payWithStars(id, stars) {
 }
 function grantPack(id) {
   const p = SHOP.find((x) => x.id === id); if (!p) return;
-  if (p.starter) {                                     // 💎 초심자: 골드3000 + 10연 효과
+  if (p.starter) {                                     // 💎 초심자: 골드3000 + 유닛10 + 골드+20% (속도 혜택 제거)
     META.starter = true; META.gold += 3000;
     for (let i = 0; i < 10; i++) { const u = ORDER[(Math.random() * 5) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; }
     saveMeta(); updateMeta(); renderShop(); $("starter").classList.add("hidden");
@@ -3340,7 +3342,7 @@ function grantPack(id) {
   if (p.g) META.gold += (dbl ? p.g * 2 : p.g);
   if (dbl) META.firstBuy[id] = true;
   saveMeta(); updateMeta(); renderShop();
-  toast("🛒 " + (dbl ? "🎁 첫구매 2배! " : "") + (p.gem ? "💎+" + (dbl ? p.gem * 2 : p.gem) : "💰+" + (dbl ? p.g * 2 : p.g)), "#fbbf24"); haptic(dbl ? "heavy" : "medium");
+  toast("🛒 " + (dbl ? t("firstBuyDouble") + "! " : "") + (p.gem ? "💎+" + (dbl ? p.gem * 2 : p.gem) : "💰+" + (dbl ? p.g * 2 : p.g)), "#fbbf24"); haptic(dbl ? "heavy" : "medium");
 }
 on("gacha10-btn", "click", gacha10);
 // 장비 뽑기 + 상점 뽑기 버튼 + 시즌 이벤트
@@ -4071,8 +4073,17 @@ if (!META.dailyMissionsClaimed && ((META.dailyBattles||0) + (META.dailyPulls||0)
 }
 // 기본 FTUE (신규 첫 경험 유도 — 출시 임박 최소 가이드)
 if ((META.chapter || 1) <= 2 && ((META.pulls || 0) + (META.owned || []).length) < 5) {
+  // 스타터 3인 고정 지급 (SR 전략가 + R 사수 + R 수호자)
+  if (!META.starterUnitsGiven) {
+    META.army.marksman = (META.army.marksman || 0) + 1;
+    META.army.guardian = (META.army.guardian || 0) + 1;
+    META.army.commander = (META.army.commander || 0) + 1;
+    META.starterUnitsGiven = true;
+    saveMeta();
+    setTimeout(() => toast("🎁 스타터 3인 지급! (사수+수호자+지휘관) 시너지 확인!", "#a3e635"), 2000);
+  }
   setTimeout(() => {
-    toast("⚔️ 전투 시작 → 🎰 가챠로 유닛 모으기 → 🦸 영웅 골라 강화!", "#a3e635");
+    toast("⚔️ 전투 시작 → 🎰 가챠 → 🦸 강화! (시너지로 강해짐)", "#a3e635");
   }, 1400);
 }
 setTimeout(() => { try { maybeSortie(); } catch (e) {} }, 700);   // ⚔️ 일일 출정식 의례
