@@ -727,7 +727,7 @@ function legionPower() {
   let p = 0; for (const t of ORDER) p += (META.army[t] || 0) * ((META.lv[t] || 0) + (META.enh[t] || 0) * 2 + (META.star[t] || 0) * 12 + (META.awak[t] || 0) * 40);
   return Math.round((p + gearPower()) * heroPowerMul());   // ⚔️ 장비 + ✦각성 + 영웅 강화 반영
 }
-function dividendGold() { return Math.floor(legionPower() * 0.9); }   // 🔧 0.6→0.9 골드복리 후하게(군주) — 무과금 플라이휠 가속
+function dividendGold() { return Math.floor(legionPower() * 0.5); }   // 🔧 골드복리 0.9→0.5 인하(군주: 복지 과함) — 플라이휠 유지하되 폭주 억제
 
 // ── 장비 시스템 (gear.js의 5슬롯·120종 카탈로그 사용) ────────────────────────
 // SLOTS/SLOT_ICON/SLOT_MAIN/STAT_KEYS/GEAR_RARITY/makeGear/gearStat 는 gear.js에 정의됨
