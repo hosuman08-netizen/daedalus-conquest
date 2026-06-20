@@ -1231,7 +1231,6 @@ function updateMeta() {
   if ($("gold")) $("gold").textContent = META.gold;
   if ($("gems")) $("gems").textContent = META.gems || 0;
   if ($("soul")) $("soul").textContent = META.soul || 0;
-  if ($("soul-shop-have")) $("soul-shop-have").textContent = t("soulHave") + (META.soul || 0);
   if ($("chapter")) $("chapter").textContent = META.chapter;
   if ($("ether")) $("ether").textContent = META.ether || 0;
   // cohesion display removed (no #cohesion element; prestige surfaced via ether)
@@ -2390,15 +2389,7 @@ function dismantleDupes() {
   toast("🔮 +" + soul + " 소울! · " + count + "장 분해", "#c084fc");
   if (SFX && SFX.ssr) SFX.ssr(); haptic("medium");
 }
-function soulBuy(soulCost, give) {   // 🔮 소울 상점 교환
-  if ((META.soul || 0) < soulCost) { toast("🔮 소울 부족 (" + soulCost + " 필요)", "#ef4444"); return; }
-  META.soul -= soulCost;
-  if (give.gold) META.gold = (META.gold || 0) + give.gold;
-  if (give.gems) META.gems = (META.gems || 0) + give.gems;
-  saveMeta(); updateMeta();
-  toast((give.gold ? "💰 +" + give.gold.toLocaleString() : "💎 +" + give.gems) + " 획득", "#a3e635");
-  if (SFX && SFX.tap) SFX.tap(); haptic("light");
-}
+// 소울 상점 제거됨 (각성 전용으로 변경). 소울은 오직 각성에만 사용.
 function gacha() {
   if (running) return;
   recordManualPlay(); // for synergy
@@ -3337,33 +3328,27 @@ function grantAllGear(m) {
 }
 // 👑 마스터 코드는 sha256 해시로만 저장 — 평문이 game.js에 없어 파일 뜯어도 코드 못 알아냄
 const MASTER = {
-  "4d433f151656f88318e9f76de5238c747c3b9ab7d26e251931596a1bb2393297": (m) => {   // A — 끝판왕 전부
+  "4ee1e7b101b83a8c5b949685b254268a7c88a723bef214b2c4fb6edb1d118759": (m) => {   // A — 끝판왕 전부
     if (typeof ROSTER !== "undefined") m.owned = ROSTER.map((u) => u.id);
     grantAllGear(m);
     m.gold = 9999999; m.gems = 999999; m.soul = 999999; m.ether = 99999;
     m.starter = m.vip = m.ultra = true; m.chapter = Math.max(m.chapter || 1, 999);
     return "👑 마스터 풀세트 — 전 캐릭·장비·재화MAX·전패키지·챕터해금";
   },
-  "43e22de8e1144b2c701938820946b39ed212ca67c227fad57f10960bbc15ed5c": (m) => {   // B — 검토 풀해금
-    if (typeof ROSTER !== "undefined") m.owned = ROSTER.map((u) => u.id);
-    grantAllGear(m);
-    m.gold = Math.max(m.gold || 0, 9999999); m.gems = Math.max(m.gems || 0, 999999); m.chapter = Math.max(m.chapter || 1, 999);
-    return "🔓 전부 해금 — 캐릭·장비·챕터/재화 MAX";
-  },
-  "cd4f7e168c3c0b4b46d3d86a3881d4105ba9e82efa7189479a8860b0c36744ef": (m) => {   // C — 재화 폭탄
+  "62198b0ed479fe4fd2154c6acd21ba97374d689fb77e699b5805d7833f98cd21": (m) => {   // C — 재화 폭탄
     m.gold = (m.gold || 0) + 9999999; m.gems = (m.gems || 0) + 999999;
     m.soul = (m.soul || 0) + 999999; m.ether = (m.ether || 0) + 99999;
     return "💰9.9M 💎999K 🔮999K ⬡99K 폭탄";
   },
-  "e0462ad16f9e6b84603e24d537e3877ed2c8b71eee3f7e9ee4ea4c8e1b035ade": (m) => {   // D — 전 캐릭터
+  "71576a8f83ca6e41f4712bfad2b982525405a593c5553f2c8235ee49c78eab39": (m) => {   // D — 전 캐릭터
     if (typeof ROSTER !== "undefined") m.owned = ROSTER.map((u) => u.id);
     return "👥 전 캐릭터 " + (m.owned || []).length + "종 보유";
   },
-  "1a5f63ffaa4276a8d7f18ec2e817af163cdf0c21482826cf5450b1474fc30f23": (m) => {   // E — 전 장비
+  "115337675ecb1695b60a74c0b6305e681921a7e11eabd71026ef4eddefe05e20": (m) => {   // E — 전 장비
     grantAllGear(m);
     return "⚔️ 전 장비 " + (m.gear || []).length + "개 보유";
   },
-  "5a46ce990807d8425bb8921796395a2bc94422a30c5ae5df040c3f7e8a4ad66c": (m) => {   // F — 전 패키지+패스
+  "5f09fc169c3d29a44d200213c66e42fdf36e6476cbb9698671658d6778f6f3b7": (m) => {   // F — 전 패키지+패스
     m.starter = m.vip = m.ultra = true; m.gems = (m.gems || 0) + 5000;
     if (!m.pass) m.pass = {}; if (typeof dayPlus === "function") { m.pass.monthly = dayPlus(30); m.pass.weekly = dayPlus(7); }
     return "🐋 전 패키지 혜택 + 월·주간 패스";
@@ -3588,10 +3573,7 @@ if (oddsM) {
 // permanent direct onclick safety for close btn (robust, works even if addEvent timing odd)
 const ocb = $("odds-close");
 if (ocb) ocb.onclick = closeOdds;
-on("ss-gold5k", "click", () => soulBuy(20, { gold: 5000 }));     // 🔮 소울 상점
-on("ss-gold30k", "click", () => soulBuy(100, { gold: 30000 }));
-on("ss-gem50", "click", () => soulBuy(80, { gems: 50 }));
-on("ss-gem200", "click", () => soulBuy(250, { gems: 200 }));
+
 on("dismantle-dupes", "click", dismantleDupes); // 🔮 중복 전부 소울로
 
 // ── 대시보드: 도감 + 강화(실패확률·보호) + 승급(조합) ─────────────────────────

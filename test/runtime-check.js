@@ -45,8 +45,8 @@ const T = `(function(){
   tryFn('dismantleDupes', ()=>dismantleDupes());
   // fuseChar: 중복 세팅
   tryFn('fuseChar', ()=>{ META.dupes=META.dupes||{}; var sid=ROSTER.find(function(u){return u.rarity!=='SSR'}).id; META.owned=META.owned||[]; if(META.owned.indexOf(sid)<0)META.owned.push(sid); META.dupes[sid]=5; fuseChar(sid); });
-  // soulBuy
-  tryFn('soulBuy', ()=>soulBuy(20,{gold:5000}));
+  // 소울 제단 렌더 (구 soulBuy 리팩터됨)
+  tryFn('renderSoulAltar', ()=>{ if(typeof renderSoulAltar==='function') renderSoulAltar(); });
   // 영웅 강화
   tryFn('upgradeHero', ()=>{ META.gold=9999999; upgradeHero(); });
   // 부활/몽타주/연출 (cb 없이 안전호출)

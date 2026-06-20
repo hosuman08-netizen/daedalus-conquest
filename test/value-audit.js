@@ -67,7 +67,7 @@ const T = `(function(){
   chk('gacha 천장', 'META.pity', ()=>gacha());
   chk('gacha10 젬소비', 'META.gems', ()=>gacha10());
   chk('gearGacha(1) 장비수', 'META.gear.length', ()=>gearGacha(1));
-  chk('soulBuy 소울소비', 'META.soul', ()=>soulBuy(20,{gold:5000}));
+  chk('claimCq(3) 골드', 'META.gold', ()=>{ if(typeof claimCq==='function'){ META.cqClaimed=[]; META.chapter=50; claimCq(3); } });
   chk('claimAttend 골드', 'META.gold', ()=>{ META.attend={day:0,last:''}; claimAttend(); });
   chk('grantPack(starter) 골드', 'META.gold', ()=>{ META.starter=false; grantPack('starter'); });
   chk('buyAscNode 노드레벨', 'META.asc.might', ()=>buyAscNode('might'));
