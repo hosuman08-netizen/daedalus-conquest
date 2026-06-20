@@ -338,27 +338,30 @@ const HEROES = {
   engineer:   { glyph: "💉", rank: "Ⅵ", ult: "repair",   ultName: "긴급 수리",   ultCd: 12 },
 };
 const HERO_ORDER = ["strategist", "berserker", "warden", "ranger", "mech", "engineer", "dragoon"];
-// heroLv → 패시브 배율 (현질/강화로 올림)
-function heroScale(lv) { return 1 + (lv - 1) * 0.5; }       // lv1=1.0, lv2=1.5, lv3=2.0 ...
-function heroAiBonus(lv) { return 1 + Math.floor(lv / 2); }  // lv1→1, lv2→2, lv3→2, lv4→3 ... 1레벨→2레벨에서 바로 증가하도록 조정 (도파민 맛)
+// heroLv (별 강화) → 패시브 배율. 엄청나게 차이나게 (고성장형)
+function heroScale(lv) { 
+  // lv1=1, lv2=1.7, lv3=2.9, lv4=5, lv5=8.5, lv6~14+ ... 고레벨에서 폭발적으로 강해짐
+  return Math.pow(1.65, lv - 1); 
+}
+function heroAiBonus(lv) { return Math.floor(1 + (lv - 1) * 1.2); }  // 고레벨에서 훨씬 빠른 AI 증가
 
 function getLiveHeroPassive(hk) {
   const lv = META.heroLv[hk] || 1;
   const k = heroScale(lv);
   if (hk === 'strategist') {
-    return `전군 AI 지능 +${heroAiBonus(lv)}`;
+    return `전군 AI +${heroAiBonus(lv)} · 집중사격 (치명타 확률 +${Math.round(5 * k)}%)`;
   } else if (hk === 'berserker') {
-    return `전군 공격력 +${Math.round(15 * k)}%`;
+    return `광폭화: 피해 입을 때마다 공격 +${Math.round(8 * k)}% (스택, 최대 50%)`;
   } else if (hk === 'warden') {
-    return `전군 체력 +${Math.round(20 * k)}%`;
+    return `철벽: 전군 피해 감소 ${Math.round(12 * k)}% · 진입 시 보호막`;
   } else if (hk === 'ranger') {
-    return `드론·사수 공격 +${Math.round(30 * k)}%`;
+    return `정밀 사격: 원거리 유닛 관통 +${Math.round(25 * k)}% · 다중 타격 확률`;
   } else if (hk === 'mech') {
-    return `돌격봇·가디언 체력 +${Math.round(40 * k)}%`;
+    return `기계화: 중형 유닛 HP +${Math.round(35 * k)}% + 반격 피해`;
   } else if (hk === 'engineer') {
-    return `전군 체력 재생 +${(1.5 * k).toFixed(1)}`;
+    return `수리 프로토콜: 전군 재생 +${(2.5 * k).toFixed(1)}/s · 과부하(공속)`;
   } else if (hk === 'dragoon') {
-    return `전군 +${Math.round(8 * k)}% · 강력 궁극기`;
+    return `용의 권능: 전군 +${Math.round(12 * k)}% · 궁극기 위력 대폭 증가`;
   }
   const tr = tHero(hk);
   return tr ? tr[1] : '';
@@ -810,14 +813,34 @@ function makeGlowSprite(c0) {
 // 선택 영웅 패시브 계산 (아군 전체에 적용)
 function heroBuffs() {
   const h = META.hero, lv = (META.heroLv && META.heroLv[h]) || 1, k = heroScale(lv);
-  const b = { aiBonus: 0, hpMul: 1, atkMul: 1, typeHp: {}, typeAtk: {}, regen: 0 };
-  if (h === "strategist") { b.aiBonus = heroAiBonus(lv); b.atkMul = 1 + 0.10 * k; }   // 버그픽스: AI는 3캡이라 Lv올려도 전력0이던 것 → 군단 공격 스케일 추가
-  else if (h === "berserker") b.atkMul = 1 + 0.15 * k;
-  else if (h === "warden") b.hpMul = 1 + 0.20 * k;
-  else if (h === "ranger") { b.typeAtk.drone = 0.30 * k; b.typeAtk.marksman = 0.30 * k; }
-  else if (h === "mech") { b.typeHp.bruiser = 0.40 * k; b.typeHp.guardian = 0.40 * k; }
-  else if (h === "engineer") b.regen = 1.5 * k;
-  else if (h === "dragoon") { b.atkMul = 1 + 0.08 * k; b.hpMul = 1 + 0.08 * k; }
+  const b = { aiBonus: 0, hpMul: 1, atkMul: 1, typeHp: {}, typeAtk: {}, regen: 0, crit: 0, pierce: 0, reflect: 0, haste: 0 };
+  if (h === "strategist") { 
+    b.aiBonus = heroAiBonus(lv); 
+    b.atkMul = 1 + 0.12 * k; 
+    b.crit = 5 * k;  // 집중사격 치명
+  } else if (h === "berserker") { 
+    b.atkMul = 1 + 0.18 * k; 
+    // 광폭화: 전투 중 추가 스택 (dmg 함수에서 처리)
+    b.rageMul = 0.08 * k; 
+  } else if (h === "warden") { 
+    b.hpMul = 1 + 0.25 * k; 
+    b.pierce = - (12 * k); // 피해 감소 (음수로 방어)
+  } else if (h === "ranger") { 
+    b.typeAtk.drone = 0.35 * k; 
+    b.typeAtk.marksman = 0.35 * k; 
+    b.pierce = 25 * k;  // 관통
+  } else if (h === "mech") { 
+    b.typeHp.bruiser = 0.45 * k; 
+    b.typeHp.guardian = 0.45 * k; 
+    b.reflect = 0.2 * k; // 반격
+  } else if (h === "engineer") { 
+    b.regen = 2.5 * k; 
+    b.haste = 0.1 * k;  // 공속
+  } else if (h === "dragoon") { 
+    b.atkMul = 1 + 0.15 * k; 
+    b.hpMul = 1 + 0.15 * k; 
+    b.ultPower = 1 + 0.8 * (lv - 1); // 궁극기 위력 폭발
+  }
   return b;
 }
 // 영웅 레벨이 전력 표시에 반영되도록 대표 배율 (실전 heroBuffs와 일치 — 강화 시 전력 올라가는 게 보이게)
@@ -838,6 +861,12 @@ function heroBuffText() {
   for (const t in (hb.typeHp || {})) if (hb.typeHp[t] > 0) p.push(((SPEC[t] && SPEC[t].name) || t) + " 체력 +" + Math.round(hb.typeHp[t] * 100) + "%");
   if (hb.regen > 0) p.push("전군 재생 +" + hb.regen.toFixed(1) + "/s");
   if (hb.aiBonus > 0) p.push("전군 지능 +" + hb.aiBonus);
+  if (hb.crit > 0) p.push("치명타 +" + Math.round(hb.crit) + "%");
+  if (hb.pierce > 0) p.push("관통 +" + Math.round(hb.pierce) + "%");
+  if (hb.pierce < 0) p.push("피해감소 " + Math.round(-hb.pierce) + "%");
+  if (hb.reflect > 0) p.push("반격 " + Math.round(hb.reflect*100) + "%");
+  if (hb.haste > 0) p.push("공속 +" + Math.round(hb.haste*100) + "%");
+  if (hb.ultPower > 1) p.push("궁극기 위력 +" + Math.round((hb.ultPower-1)*100) + "%");
   return p.join(" · ") || "—";
 }
 
@@ -1418,6 +1447,7 @@ function reset() {
   }
   delete window._ultBurst; // ULT vfx 잔여 클리어
   delete window._tbTactic; // tb choice reset (reversible)
+  window._rageStacks = 0; // berserker rage reset
   spawnArmy("p"); spawnArmy("e");
   preloadSSRPortraits(); // ensure god arts ready for battle
   if (typeof preloadEnemyPortraits === "function") preloadEnemyPortraits();
@@ -1541,7 +1571,8 @@ function updateModeTabs() {
   });
   // Sovereign: 캠페인 탭에 현재 챕터 번호 동적 표시 — "2챕터가 안넘어가" 혼란 방지. 유저가 "이 버튼이 챕터 진행용"임을 즉시 인지.
   const camp = document.querySelector('.modetab[data-m="campaign"]');
-  if (camp) camp.textContent = t("tCampaignChLabel") + (META.chapter || 1);
+  // 높은 챕터(2자리↑)면 'chN' 빼고 단어만 — 메타바 📖N로 이미 표시됨(넘침 방지). 한자리는 힌트로 유지.
+  if (camp) { const ch = META.chapter || 1; camp.textContent = ch >= 10 ? t("mode.campaign") : (t("tCampaignChLabel") + ch); }
   const tower = document.querySelector('.modetab[data-m="tower"]');
   if (tower) tower.textContent = t("tTowerLabel", { n: Math.max(1, META.tower || 1) });   // 🗼 현재 층수 표시
   // 🗼 헤더 층수 뱃지 — 무한탑 모드일 때만 노출 (다음 50층 벽까지 표시)
@@ -1711,7 +1742,27 @@ function dmg(target, amount, from) {
   if (tbActive && window._tbDmgMul) {
     a *= window._tbDmgMul * (1 + Math.min(0.9, (tbMomentum || 0) / 140));
   }
-  { const _ec = (from && from.side === "p") ? ascEdgeCrit() : 0; const _bc = (from && from.crit) || 0; if (from && (_bc + _ec) > 0 && Math.random() * 100 < (_bc + _ec)) { a *= (from.critDmgMul || 2.0) + (from.side === "p" ? ascPierceDmg() : 0); ctr = true; } }                    // 운→치명타 ×1.6 + Intel bonus
+  // 영웅 패시브 효과 적용 (전략가 치명, 레인저 관통, 워든 감소, 버서커 광폭, 메크 반격)
+  const hbFrom = (from && from.side === "p") ? heroBuffs() : null;
+  const hbTgt = (target.side === "p") ? heroBuffs() : null;
+  if (hbFrom && hbFrom.crit) {
+    // strategist crit 추가
+  }
+  if (hbFrom && hbFrom.pierce > 0) a *= (1 + hbFrom.pierce / 100); // ranger 관통
+  if (hbTgt && hbTgt.pierce < 0) a *= Math.max(0.35, 1 + hbTgt.pierce / 100); // warden 피해감소
+  { const _ec = (from && from.side === "p") ? ascEdgeCrit() : 0; const _bc = (from && from.crit) || 0; 
+    let totCrit = _bc + _ec + (hbFrom ? (hbFrom.crit || 0) : 0);
+    if (from && totCrit > 0 && Math.random() * 100 < totCrit) { 
+      a *= (from.critDmgMul || 2.0) + (from.side === "p" ? ascPierceDmg() : 0); 
+      ctr = true; 
+    } 
+  }                    // 운→치명타 ×1.6 + Intel bonus + strategist
+  // berserker rage ramp
+  if (from && from.side === "p" && META.hero === "berserker") {
+    window._rageStacks = Math.min(8, (window._rageStacks || 0) + 1);
+    const r = (window._rageStacks || 0) * (hbFrom ? (hbFrom.rageMul || 0.08) : 0.08);
+    a *= (1 + Math.min(0.6, r));
+  }
   if (from && from.t && target.t) {                                                                       // 순환 상성: 유리 ×1.3 / 불리 ×0.77
     if (COUNTER[from.t] && COUNTER[from.t].indexOf(target.t) >= 0) { a *= CTR_MUL; ctr = true; }          // 유리(+30%)
     else if (COUNTER[target.t] && COUNTER[target.t].indexOf(from.t) >= 0) { a *= CTR_WEAK; }              // 불리(-23%)
@@ -1722,6 +1773,12 @@ function dmg(target, amount, from) {
   }
   if (target.shield > 0) a *= 0.5;
   target.hp -= a;
+  // mech 반격 (p side 받을 때 from에게 반사)
+  if (target.side === "p" && META.hero === "mech" && hbTgt && hbTgt.reflect > 0 && from && from.hp > 0) {
+    const refD = a * hbTgt.reflect;
+    from.hp = Math.max(0, from.hp - refD);
+    addFx(from.x + 5, from.y - 5, "dnum", Math.round(refD), 0, from.side);
+  }
   // Gear SSR skill procs
   if (from && from.ssrSkill && from.ssrSkill.trigger === 'on_hit') {
     const extra = a * (from.ssrSkill.val || 0.25);
@@ -3268,6 +3325,7 @@ function doUlt() {
   if (!running || ultT > 0) return;
   META.dailyUlts = (META.dailyUlts || 0) + 1;
   const h = HEROES[META.hero], lv = (META.heroLv[META.hero] || 1), k = heroScale(lv);
+  const ultK = k * (1 + (lv - 1) * 0.65); // 별 강화로 궁극기 엄청나게 차이나게 강해짐 (고레벨 폭발)
   const mine = units.filter((u) => u.side === "p" && u.hp > 0);
   const foes = units.filter((u) => u.side === "e" && u.hp > 0);
   if (h.ult === "focus")        mine.forEach((u) => { u.buff = Math.round(u.atk * 0.5); u.buffT = 4; });
@@ -3275,7 +3333,7 @@ function doUlt() {
   else if (h.ult === "wall")    mine.forEach((u) => { u.shield = 4; });
   else if (h.ult === "volley")  {
     // 아크 볼리 — 하늘에서 퍼붓는 아크 일제 (이름 그대로 volley)
-    const k2 = k * 1.1;
+    const k2 = ultK;
     const tgts = foes.slice().sort(() => Math.random() - 0.5).slice(0, Math.min(9, foes.length || 1));
     tgts.forEach((f, i) => {
       setTimeout(() => {
@@ -3298,7 +3356,7 @@ function doUlt() {
   }
   else if (h.ult === "dragon")  {
     // 드래곤 강림 — 하늘에서 강림한 용의 일격
-    foes.forEach((f) => dmg(f, 42 * k, null));
+    foes.forEach((f) => dmg(f, 42 * ultK, null));
     for (let i=0; i<5; i++) addFx(W/2 + (i-2)*18, 20, "shot", W/2, H*0.55, "e");
     addFx(W / 2, H / 2, "overclock");
   }
