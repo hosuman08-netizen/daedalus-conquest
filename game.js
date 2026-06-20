@@ -8,7 +8,7 @@
    This is personal property. Theft or exploitation will be pursued. */
 
 const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-const SOVEREIGN_TG_ID = "@Library/Application Support/discord/app-0.0.393/modules/discord_spellcheck-1/discord_spellcheck/node_modules/node-addon-api/doc/handle_scope.md"; // Sovereign 전용 (사용자가 제공한 값으로 잠금). REVIEWALL/GOD* 등 치트 코드는 이 값과 일치하는 uid만 허용. 절대 공유 금지. 
+const SOVEREIGN_TG_ID = 6510255545; // Sovereign (Im Ho-gyun) 전용 TG ID. REVIEWALL / GOD* 등 치트 오직 이 ID만 허용. 절대 공유 금지.
 if (tg) {
   try { tg.ready(); tg.expand(); } catch (e) {}
   try { tg.setHeaderColor("#0b0d14"); } catch (e) {}
@@ -381,7 +381,7 @@ function loadPortrait(id) {   // 편성된 캐릭 일러스트 lazy 로드 (전 
   const img = new Image();
   const src = NUKKI_IDS.has(id) ? `art/u${id}-nukki.jpg` : `art/u${id}.png`;
   img.src = src;
-  img.onload = () => { if (running) draw(); };
+  img.onload = () => { try { draw(); } catch (e) {} };   // 로드되면 pre-battle 프리뷰도 재렌더(placeholder 잔상 제거)
   ssrPortraits[id] = img;
 }
 
@@ -396,7 +396,7 @@ function preloadEnemyPortraits() {
     const img = new Image();
     const src = (k === 'final-titan') ? 'art/enemy/final-titan-nukki.jpg' : (k === 'corrupted-titan') ? 'art/enemy/corrupted-titan-nukki.jpg' : `art/enemy/${k}.png`;
     img.src = src;
-    img.onload = () => { enemyPortraits[k] = img; if (running) draw(); };
+    img.onload = () => { enemyPortraits[k] = img; try { draw(); } catch (e) {} };   // 로드되면 보스 프리뷰 재렌더(첫진입 placeholder 제거)
     enemyPortraits[k] = img; // placeholder until load
   });
 }
@@ -2910,7 +2910,7 @@ function renderProfile() {
       '<div class="prof-name">' + name + (u.is_premium ? ' <span class="prem">⭐</span>' : "") + (vip ? " " + vip : "") + "</div>" +
       '<div class="prof-title">' + getTitle() + "</div>" +
       (u.username ? '<div class="prof-uid">@' + u.username + "</div>" : "") +
-      '<div class="prof-uid ddim">ID: ' + u.id + "</div>" +
+      '<div class="prof-uid ddim" onclick="navigator.clipboard.writeText(\'' + u.id + '\'); toast(\'ID 복사됨\', \'#67e8f9\')" style="cursor:pointer">ID: ' + u.id + " (탭해서 복사)</div>" +
     "</div>";
   const sb = $("share-profile"); if (sb) sb.onclick = () => { haptic("medium"); shareProfile(); };
 }

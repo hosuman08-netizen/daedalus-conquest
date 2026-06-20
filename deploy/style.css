@@ -109,7 +109,18 @@ h1::first-letter { color: var(--crimson); }
 /* (구) 모달 — 일부 잔여 */
 #shop, #event, #dash { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 13; }
 #shop.hidden, #event.hidden, #dash.hidden { display: none; }
-#shop-card, #event-card, #dash-card { background: var(--panel); padding: 22px; border-radius: 16px; width: 340px; max-width: 92vw; max-height: 88vh; overflow-y: auto; border: 1px solid #3a1a1a; }
+#shop-card, #event-card, #dash-card { 
+  background: rgba(26,19,48,0.92); 
+  backdrop-filter: blur(24px);
+  padding: 24px; 
+  border-radius: 20px; 
+  width: 340px; 
+  max-width: 92vw; 
+  max-height: 88vh; 
+  overflow-y: auto; 
+  border: 1px solid rgba(255,255,255,0.06); 
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
 /* 캐릭터 도감 그리드 */
 #codex-bar { display: flex; align-items: center; gap: 8px; margin: 4px 0; flex-wrap: wrap; }
 #codex-filter { display: flex; gap: 4px; }
@@ -117,7 +128,20 @@ h1::first-letter { color: var(--crimson); }
 .cfil.on { background: #2a1418; color: var(--gold); }
 #codex-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 6px; }
 /* Jordan: Ultra clean modern icon gallery (user exact: "빨간색 동그라미 지우고 글자 지워 없는게나아"). No red borders/fac-swarm circles, no rarity letters (.cxr), no names/text under icons in grid. Pure icon-focused high-end collection (E7 clean gallery + HSR icon pop pride). Subtle variety ONLY via arch tints/glows + SSR gold rim. Tap scale pop dopamine. Premium, no clutter on 5-col tiny TG. */
-.cxc { aspect-ratio: 1/1.02; border: none; background: transparent; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 1px; transition: transform .07s, box-shadow .1s; cursor: pointer; } /* reduced outer pad for tight gold rim hug */
+.cxc { 
+  aspect-ratio: 1/1.02; 
+  border: none; 
+  background: transparent; 
+  border-radius: 12px; 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 2px; 
+  padding: 2px; 
+  transition: transform .2s cubic-bezier(0.23, 1, 0.32, 1), box-shadow .2s ease; 
+  cursor: pointer; 
+} /* cleaner modern card */
 .cxc.lock { opacity: .82; filter: grayscale(0.25); }  /* 군주 20260617: 미보유도 일러스트 선명하게 "보는 맛" — 살짝만 muted */
 .cxc:active { transform: scale(0.93); box-shadow: 0 0 0 1.5px #fbbf2488; }
 .cxc .cxg { font-size: 16px; position: relative; width: 100%; flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 7px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03); border: none; background: #05040c; }
@@ -211,17 +235,18 @@ h1::first-letter { color: var(--crimson); }
 .gm-grow { display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px; }
 .gm-grow button { width: 100%; padding: 9px; font-size: 12.5px; font-weight: 700; border-radius: 7px; }
 #unit-card { 
-  background: var(--panel); 
-  padding: 10px 12px 12px; 
-  border-radius: 14px; 
+  background: rgba(26,19,48,0.96); 
+  backdrop-filter: blur(20px);
+  padding: 16px 16px 18px; 
+  border-radius: 20px; 
   width: 94vw; max-width: 360px; 
   max-height: 82vh; 
   overflow-y: auto; 
   text-align: center; 
-  border: 3px solid #3a2f5e; 
-  animation: pop .3s ease-out; 
-  box-shadow: 0 12px 40px rgba(0,0,0,0.8);
-} /* tighter padding, nukki art priority */
+  border: 1px solid rgba(255,255,255,0.08); 
+  animation: pop .3s cubic-bezier(0.23,1,0.32,1); 
+  box-shadow: 0 24px 64px rgba(0,0,0,0.65);
+} /* soft premium modal */
 /* NUKKI GOLD FRAME (tight fit): #unit-glyph yellow/gold border now hugs the illustration edge with zero gap. Container relative + absolute inset img (cover + tuned pos) ensures perfect alignment regardless of PNG intrinsic size/aspect. No padding inside border. Consistent bust crop for all nukki. */
 #unit-glyph { font-size: 11px; position: relative; width: 100%; max-width: 280px; aspect-ratio: 1 / 1.02; max-height: 36vh; margin: 0 auto 4px; display: block; overflow: hidden; background: transparent; border-radius: 12px; }
 #unit-glyph img.ucim, #unit-glyph .ucim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; border-radius: 9px; display: block; border: none; box-shadow: none; background: transparent; } /* 누끼 맞춤: 투명 배경으로 카드 배경과 자연스럽게 블렌드, 박스 제거 */
@@ -621,7 +646,18 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 /* Legion UI: "한번에 한창에" ultra-glance fit (head/grow/5slots/inv4+btn 100% visible 480px TG portrait no body scroll/cutoff). 74vh card, hidden overflow, inv internal56px 2col tiny(art12px,6px font), slots34px, grow8px, pads2-3px. Reversible. */
 #char-panel { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 16; padding: 3px; }
 #char-panel.hidden { display: none; }
-#char-panel-card { background: var(--panel); border-radius: 7px; padding: 2px 3px 3px; width: 94vw; max-width: 264px; max-height: 74vh; overflow-y: hidden; border: 1.5px solid #3a2f5e; box-shadow: 0 6px 18px rgba(0,0,0,0.72); }
+#char-panel-card { 
+  background: rgba(26,19,48,0.96); 
+  backdrop-filter: blur(20px);
+  border-radius: 16px; 
+  padding: 8px 10px 10px; 
+  width: 94vw; 
+  max-width: 280px; 
+  max-height: 74vh; 
+  overflow-y: hidden; 
+  border: 1px solid rgba(255,255,255,0.08); 
+  box-shadow: 0 16px 48px rgba(0,0,0,0.6); 
+} /* softer char panel */
 #cp-head { display: flex; gap: 1px; align-items: center; margin-bottom: 0; }
 .cp-art { position: relative; width: 30px; height: 30px; flex: 0 0 30px; border: 1px solid rgba(245,196,81,0.32); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 11px; overflow: hidden; background:#05040c; }
 .cp-art .cpim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; border-radius: 3px; border: none; box-shadow: none; background: #05040c; } /* consistent nukki contain + center */

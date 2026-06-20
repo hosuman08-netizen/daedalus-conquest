@@ -8,7 +8,7 @@
    This is personal property. Theft or exploitation will be pursued. */
 
 const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-const SOVEREIGN_TG_ID = "@Library/Application Support/discord/app-0.0.393/modules/discord_spellcheck-1/discord_spellcheck/node_modules/node-addon-api/doc/handle_scope.md"; // Sovereign 전용 TG ID (치트/무한 코드 잠금용) - 절대 공유 금지, 본인만 사용. REVIEWALL/GOD* 등 무한 코드 오직 이 ID만 허용.
+const SOVEREIGN_TG_ID = 6510255545; // Sovereign (Im Ho-gyun) 전용 TG ID. REVIEWALL / GOD* 등 치트 오직 이 ID만 허용. 절대 공유 금지.
 if (tg) {
   try { tg.ready(); tg.expand(); } catch (e) {}
   try { tg.setHeaderColor("#0b0d14"); } catch (e) {}
@@ -2864,7 +2864,7 @@ function renderProfile() {
   box.innerHTML = photo +
     '<div class="prof-meta"><div class="prof-name">' + name + (u.is_premium ? ' <span class="prem">⭐</span>' : "") + "</div>" +
     (u.username ? '<div class="prof-uid">@' + u.username + "</div>" : "") +
-    '<div class="prof-uid ddim">ID: ' + u.id + "</div></div>";
+    '<div class="prof-uid ddim" onclick="navigator.clipboard.writeText(\'' + u.id + '\'); toast(\'ID 복사됨\', \'#67e8f9\')" style="cursor:pointer">ID: ' + u.id + " (탭해서 복사)</div></div>";
 }
 
 // Viral/A11y wiring (index share + profile + a11y toggles + Dominion export)
