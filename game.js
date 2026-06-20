@@ -4261,12 +4261,27 @@ function payWithStars(id, stars) {
     .then((d) => {
       if (!d || !d.link) throw new Error("no link");
       tg.openInvoice(d.link, (status) => {
-        if (status === "paid") { grantPack(id); toast(t("payOk"), "#a3e635"); haptic("heavy"); }
+        if (status === "paid") { verifyThenGrant(id, uid); }   // 🔒 서버 영수증 확인 후 지급
         else if (status === "failed") toast(t("payFail"), "#ef4444");
         else toast(t("payCancel"), "#8b93a7");   // cancelled/pending
       });
     })
     .catch(() => toast(t("payErr"), "#ef4444"));
+}
+// 🔒 결제 완료 → pay-worker /verify(서버 영수증) 확인 후 grant. 텔레그램→워커 직통 영수증이라 위조 불가.
+// webhook 도착 지연 대비 폴링(최대 8회/~12s). 영수증은 1회 소비(멱등=중복지급 차단).
+// 타임아웃 시: 결제자 보호 위해 지급하되 purchase_unverified 감사로그(webhook 실패 추적). 자가치트는 무해(자기 세이브).
+function verifyThenGrant(id, uid, tries) {
+  tries = tries || 0;
+  if (typeof PAY_BACKEND === "undefined" || !PAY_BACKEND) { grantPack(id); toast(t("payOk"), "#a3e635"); haptic("heavy"); return; }
+  fetch(PAY_BACKEND + "/verify?item=" + encodeURIComponent(id) + "&uid=" + encodeURIComponent(uid))
+    .then((r) => r.json())
+    .then((v) => {
+      if (v && v.ok) { grantPack(id); toast(t("payOk"), "#a3e635"); haptic("heavy"); }       // ✅ 서버 영수증 확인
+      else if (tries < 7) { if (tries === 0) toast(t("payVerifying"), "#fbbf24"); setTimeout(() => verifyThenGrant(id, uid, tries + 1), 1500); }
+      else { grantPack(id); logEvent("purchase_unverified", { item: id }); toast(t("payOk"), "#a3e635"); haptic("heavy"); }  // 타임아웃: 결제자 보호 지급 + 감사
+    })
+    .catch(() => { if (tries < 7) setTimeout(() => verifyThenGrant(id, uid, tries + 1), 1500); else { grantPack(id); logEvent("purchase_unverified", { item: id }); toast(t("payOk"), "#a3e635"); } });
 }
 function grantPack(id) {
   const p = SHOP.find((x) => x.id === id); if (!p) return;

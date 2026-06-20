@@ -337,12 +337,12 @@ for (const l in SHOP2_I18N) Object.assign(I18N[l], SHOP2_I18N[l]);
 
 // 💳 결제(Stars)
 const PAY_I18N = {
-  ko: { payDemo: "🧪 데모 지급 (결제 연동 전)", payOpening: "💳 결제창 여는 중…", payOk: "✅ 결제 완료 — 지급됨!", payFail: "❌ 결제 실패", payCancel: "결제 취소됨", payErr: "⚠️ 결제 서버 연결 실패", payDemoNote: "🧪 데모 모드 (실제 Telegram Stars 결제는 Worker 배포 후 연동)" },
-  en: { payDemo: "🧪 Demo grant (payment not wired)", payOpening: "💳 Opening checkout…", payOk: "✅ Paid — granted!", payFail: "❌ Payment failed", payCancel: "Payment cancelled", payErr: "⚠️ Payment server error", payDemoNote: "🧪 Demo mode (real Telegram Stars requires Worker deploy)" },
-  ja: { payDemo: "🧪 デモ付与(決済未連携)", payOpening: "💳 決済画面を開いています…", payOk: "✅ 決済完了 — 付与!", payFail: "❌ 決済失敗", payCancel: "決済キャンセル", payErr: "⚠️ 決済サーバー接続失敗" },
-  zh: { payDemo: "🧪 演示发放(未接入支付)", payOpening: "💳 正在打开支付…", payOk: "✅ 支付完成 — 已发放!", payFail: "❌ 支付失败", payCancel: "已取消支付", payErr: "⚠️ 支付服务器错误" },
-  hi: { payDemo: "🧪 डेमो (भुगतान बाकी)", payOpening: "💳 चेकआउट खुल रहा…", payOk: "✅ भुगतान हुआ — मिला!", payFail: "❌ भुगतान विफल", payCancel: "भुगतान रद्द", payErr: "⚠️ भुगतान सर्वर त्रुटि" },
-  ru: { payDemo: "🧪 Демо-выдача (оплата не подключена)", payOpening: "💳 Открываем оплату…", payOk: "✅ Оплачено — выдано!", payFail: "❌ Ошибка оплаты", payCancel: "Оплата отменена", payErr: "⚠️ Ошибка платёжного сервера" },
+  ko: { payDemo: "🧪 데모 지급 (결제 연동 전)", payOpening: "💳 결제창 여는 중…", payOk: "✅ 결제 완료 — 지급됨!", payFail: "❌ 결제 실패", payCancel: "결제 취소됨", payErr: "⚠️ 결제 서버 연결 실패", payVerifying: "🔒 결제 확인 중…", payDemoNote: "🧪 데모 모드 (실제 Telegram Stars 결제는 Worker 배포 후 연동)" },
+  en: { payDemo: "🧪 Demo grant (payment not wired)", payOpening: "💳 Opening checkout…", payOk: "✅ Paid — granted!", payFail: "❌ Payment failed", payCancel: "Payment cancelled", payErr: "⚠️ Payment server error", payVerifying: "🔒 Verifying payment…", payDemoNote: "🧪 Demo mode (real Telegram Stars requires Worker deploy)" },
+  ja: { payDemo: "🧪 デモ付与(決済未連携)", payOpening: "💳 決済画面を開いています…", payOk: "✅ 決済完了 — 付与!", payFail: "❌ 決済失敗", payCancel: "決済キャンセル", payErr: "⚠️ 決済サーバー接続失敗", payVerifying: "🔒 決済確認中…" },
+  zh: { payDemo: "🧪 演示发放(未接入支付)", payOpening: "💳 正在打开支付…", payOk: "✅ 支付完成 — 已发放!", payFail: "❌ 支付失败", payCancel: "已取消支付", payErr: "⚠️ 支付服务器错误", payVerifying: "🔒 验证支付中…" },
+  hi: { payDemo: "🧪 डेमो (भुगतान बाकी)", payOpening: "💳 चेकआउट खुल रहा…", payOk: "✅ भुगतान हुआ — मिला!", payFail: "❌ भुगतान विफल", payCancel: "भुगतान रद्द", payErr: "⚠️ भुगतान सर्वर त्रुटि", payVerifying: "🔒 भुगतान सत्यापन…" },
+  ru: { payDemo: "🧪 Демо-выдача (оплата не подключена)", payOpening: "💳 Открываем оплату…", payOk: "✅ Оплачено — выдано!", payFail: "❌ Ошибка оплаты", payCancel: "Оплата отменена", payErr: "⚠️ Ошибка платёжного сервера", payVerifying: "🔒 Проверка оплаты…" },
 };
 for (const l in PAY_I18N) Object.assign(I18N[l], PAY_I18N[l]);
 // 텔레그램 밖 결제 차단 안내 (웹 무료지급 방지)
