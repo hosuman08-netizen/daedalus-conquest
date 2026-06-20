@@ -7,7 +7,7 @@
 > 모방 OK, 카피 NO. 모든 이름은 units.js의 procedural "Faction noun-XXX" 그대로.
 
 ## 공통 접미 (모든 프롬프트 뒤)
-`anime gacha R splash art, original sci-fi mecha Legion character, rare quality, blue accents, solid craft, detailed metallic textures, energy glows, dramatic rim lighting, vertical composition for UI, high detail, original design, no real brands or logos`
+`anime gacha R splash art, original sci-fi mecha Legion character, rare quality, blue accents, solid craft, detailed metallic textures, energy glows, dramatic rim lighting, vertical composition for UI, high detail, original design, no real brands or logos, **no text, no numbers, no letters, no UI elements, no HUD, no labels, no names, clean illustration only, no writing anywhere**`
 
 ## 사용법
 - image_gen 또는 네 툴에 "prompt + 공통" 붙여넣기.

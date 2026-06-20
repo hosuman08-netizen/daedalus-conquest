@@ -234,9 +234,11 @@ let curLevel = 1, bossFight = false;                 // 모드별 적 레벨/보
 let ssrPortraits = {};
 function preloadSSRPortraits() {
   if (typeof ROSTER === "undefined") return;
+  const NUKKI_IDS = new Set([1,2,3,4,5,6,7,8,9]); // 누끼 작업 대상 SSR
   ROSTER.filter(u => ["SSR","UR","EX"].includes(u.rarity) && !ssrPortraits[u.id]).forEach(u => {
     const img = new Image();
-    img.src = `art/u${u.id}.png`;
+    const src = NUKKI_IDS.has(u.id) ? `art/u${u.id}-nukki.jpg` : `art/u${u.id}.png`;
+    img.src = src;
     img.onload = () => {
       ssrPortraits[u.id] = img;
       if (running) draw(); // re-draw battle as soon as god art loads
@@ -247,8 +249,10 @@ function preloadSSRPortraits() {
 preloadSSRPortraits(); // safe early call (ROSTER from units.js)
 function loadPortrait(id) {   // 편성된 캐릭 일러스트 lazy 로드 (전 등급 — art/u<id>.png)
   if (!id || ssrPortraits[id]) return;
+  const NUKKI_IDS = new Set([1,2,3,4,5,6,7,8,9]);
   const img = new Image();
-  img.src = `art/u${id}.png`;
+  const src = NUKKI_IDS.has(id) ? `art/u${id}-nukki.jpg` : `art/u${id}.png`;
+  img.src = src;
   img.onload = () => { if (running) draw(); };
   ssrPortraits[id] = img;
 }
@@ -262,7 +266,8 @@ function preloadEnemyPortraits() {
   keys.forEach(k => {
     if (enemyPortraits[k]) return;
     const img = new Image();
-    img.src = `art/enemy/${k}.png`;
+    const src = (k === 'final-titan') ? 'art/enemy/final-titan-nukki.jpg' : (k === 'corrupted-titan') ? 'art/enemy/corrupted-titan-nukki.jpg' : `art/enemy/${k}.png`;
+    img.src = src;
     img.onload = () => { enemyPortraits[k] = img; if (running) draw(); };
     enemyPortraits[k] = img; // placeholder until load
   });
@@ -559,8 +564,9 @@ function gearArt(g) {
   if (!g) return gearSynthHTML(null);
   const slot = g.slot || 'weapon';
   const rar = (g.rarity || 'N').toLowerCase();
-  // NEW: slot-rarity 20 PNG 우선 (art/gear/weapon-ssr.png 등, 5x4 간소화). onerror: synth fallback (veins/shards/volumetric badass)
-  return `<img class="g-art" src="art/gear/${slot}-${rar}.png" alt="" loading="lazy" onerror="this.outerHTML=gearSynthHTML(${JSON.stringify(g).replace(/"/g,'&quot;')});">`;
+  // 아트 폴백 체인: ①per-item art/gear/i{id}.png(120종 개별) → ②슬롯-등급 공유 → ③synth.
+  const tid = g.tplId || g.id || 0;
+  return `<img class="g-art" src="art/gear/i${tid}.png" alt="" loading="lazy" data-s="0" onerror="var s=(+this.dataset.s||0)+1;this.dataset.s=s;if(s===1){this.src='art/gear/${slot}-${rar}.png'}else{this.outerHTML=gearSynthHTML(${JSON.stringify(g).replace(/"/g,'&quot;')})}">`;
 }
 function gearSynthHTML(g) {
   if (!g) return `<div class="gear-synth empty" style="opacity:.55">⚙️</div>`; // no broken "?", premium icon even for empty/fallback
@@ -891,7 +897,10 @@ function spawnArmy(side) {
         eName = curLevel < 15 ? "약화 보스" : (curLevel < 40 ? "강화 보스" : "최종 보스");
         eName = "보스 " + (SPEC[t]?.name || t) + (curLevel > 40 ? " (전설)" : "");
       } else if (t === "titan") {
-        portraitKey = "titan"; 
+        // 무한탑 등 고층에서도 고급 아트 사용 (final-titan nukki로 눈/중간 요소 깨끗)
+        if (curLevel >= 50) portraitKey = "final-titan";
+        else if (curLevel >= 25) portraitKey = "corrupted-titan";
+        else portraitKey = "titan";
         eName = curLevel < 15 ? "타락 거신" : (curLevel < 40 ? "타락 심연" : "종말의 심판자"); 
       }
       else if (curLevel >= 40) { portraitKey = "corrupted-titan"; eName = "타락 " + (SPEC[t].name || t); }
@@ -1237,7 +1246,7 @@ function step(u, dt) {
       u.bossSkillT = 6;
     }
     // 고챕터 보스 phase: 하수인 소환 (다른 게임 레이드처럼, 깨기 어렵게)
-    if ((curLevel > 30 || variant === 'final') && u.hp < u.maxHp * 0.55 && !u.minionsSpawned) {
+    if ((curLevel > 30 || v === 'final') && u.hp < u.maxHp * 0.55 && !u.minionsSpawned) {
       u.minionsSpawned = true;
       for (let k = 0; k < (curLevel > 45 ? 3 : 2); k++) {
         const addT = ["drone", "marksman"][k % 2];
@@ -1429,15 +1438,15 @@ function drawBoss(u) {
     // 실제 PNG 이미지로 보스 본체 (챕터별 다양성 + 간지)
     const img = enemyPortraits[pk];
     let sz = R * 2.8;
-    if (v === 'final' || curLevel > 35) sz *= 1.15; // high ch bigger more epic
-    ctx.shadowColor = glow; ctx.shadowBlur = (v==='final' ? 45 : 30);
+    if (variant === 'final' || curLevel > 35) sz *= 1.15; // high ch bigger more epic
+    ctx.shadowColor = glow; ctx.shadowBlur = (variant==='final' ? 45 : 30);
     ctx.save();
-    ctx.beginPath(); ctx.arc(cx, cy, R * (v==='final' ? 1.4 : 1.25), 0, 7); ctx.clip();
-    ctx.drawImage(img, cx - sz/2, cy - sz * 0.55, sz, sz);
+    ctx.beginPath(); ctx.arc(cx, cy, R * (variant==='final' ? 1.4 : 1.25), 0, 7); ctx.clip();
+    ctx.drawImage(img, cx - sz/2, cy - sz * 0.38, sz, sz); // UX fix: center the main body/gun in the circular preview, eyes off dead center
     ctx.restore();
     ctx.shadowBlur = 0;
     // high tier extra aura
-    if (v === 'final' || curLevel > 40) {
+    if (variant === 'final' || curLevel > 40) {
       ctx.strokeStyle = `rgba(251,191,36,${0.3 + Math.sin(t/200)*0.2})`;
       ctx.lineWidth = 4;
       ctx.beginPath(); ctx.arc(cx, cy, R * 1.55, 0, 7); ctx.stroke();
@@ -1481,16 +1490,8 @@ function drawBoss(u) {
     }
   }
 
-  // 코어 + 눈 (항상 위에, variant 색상)
-  const cr = R * 0.5;
-  const core = ctx.createRadialGradient(cx, cy, 1, cx, cy, cr * (1 + Math.sin(t / 250) * 0.12));
-  core.addColorStop(0, core1); core.addColorStop(0.4, core2); core.addColorStop(1, "rgba(120,10,10,0)");
-  ctx.fillStyle = core; ctx.beginPath(); ctx.arc(cx, cy, cr, 0, 7); ctx.fill();
-
-  for (const dx of [-0.22, 0.22]) {
-    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(cx + dx * R, cy - R * 0.05, R * 0.075, 0, 7); ctx.fill();
-    ctx.fillStyle = eyeColor; ctx.beginPath(); ctx.arc(cx + dx * R, cy - R * 0.05, R * 0.038, 0, 7); ctx.fill();
-  }
+  // 코어 + 눈 removed (이미지 아트 자체에 포함되도록. 중앙에 이상한 발광 점/이모지처럼 보이는 UI 문제 해결)
+  // 사용자 피드백: 중간 눈이 이상함, 전부 없애서 깔끔하게
   ctx.restore();
 
   // HP 바 + 이름 (변형에 따라 아이콘/이름)
@@ -3633,8 +3634,10 @@ function artHTML(u, glyphCls, imgCls, noGlyph) {
   const slug = unitSlug(u);
   const col = (u.color || '#60a5fa').replace(/"/g, '');
   const b64 = (base + (u.accent || '')).replace(/"/g, '&quot;');
-  // 3단 + synth: art/u{id} (R 76-90+ cool PNG) → ssr/slug → slug → colored synth fallback (no remove, grid always fills "간지" visual)
-  const img = `<img class="${imgCls}" src="art/u${u.id}.png" alt="" loading="lazy" data-c="${col}" data-b="${b64}" data-slug="${slug}">`;
+  // 누끼 우선 (SSR 1-9): u{id}-nukki.jpg → u{id}.png → slug → synth
+  const NUKKI_IDS = new Set([1,2,3,4,5,6,7,8,9]);
+  const imgSrc = NUKKI_IDS.has(u.id) ? `art/u${u.id}-nukki.jpg` : `art/u${u.id}.png`;
+  const img = `<img class="${imgCls}" src="${imgSrc}" alt="" loading="lazy" data-c="${col}" data-b="${b64}" data-slug="${slug}">`;
   // safe nukki fallback
   setTimeout(() => {
     const imgs = document.querySelectorAll(`.${imgCls}[data-slug="${slug}"]`);
@@ -3643,8 +3646,14 @@ function artHTML(u, glyphCls, imgCls, noGlyph) {
         im._errBound = true;
         im.addEventListener('error', function onerr() {
           const s = (+this.dataset.s || 0) + 1; this.dataset.s = s;
-          if (s === 1) this.src = `art/ssr/${slug}.png`;
-          else if (s === 2) this.src = `art/${slug}.png`;
+          if (s === 1) {
+            // nukki 실패 → 일반 png 폴백
+            let next = this.src;
+            if (next.includes('-nukki')) next = next.replace('-nukki.jpg', '.png').replace('-nukki.PNG', '.png');
+            else next = `art/ssr/${slug}.png`;
+            this.src = next;
+          } else if (s === 2) this.src = `art/ssr/${slug}.png`;
+          else if (s === 3) this.src = `art/${slug}.png`;
           else {
             const c = this.dataset.c || '#60a5fa'; const bb = this.dataset.b || '●';
             const span = document.createElement('span');

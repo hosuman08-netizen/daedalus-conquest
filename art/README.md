@@ -19,7 +19,7 @@ Later: drip new SSR releases 시 신규 art 추가 (u10+ 또는 ssr/ slug).
 | **Enemy** | art/enemy/*.png (소수) + rich canvas synthetic | 6 arches + boss variants | 적 시각화 (ENEMY-ART-PROMPTS.md). 보스/엘리트 PNG 우선. 나머지 aggressive procedural (spikes, red corruption, level scale)로 "할말 나는" 위협감. TG perf 유지. |
 
 ## 권장 (gear 포함)
-- 정사각형 **512×512+**, 중앙, 투명/단색 배경, dramatic rim + volumetric god-ray (업그레이드 common suffix 적용).
+- 정사각형 **512×512+**, 중앙, 투명/단색 배경, dramatic rim + volumetric god-ray. **중요: no text, no numbers, no letters, no UI/HUD/labels/names anywhere** (UI에서 별도 표시). Gear처럼 철저히 clean.
 - gear: art/gear/<slot>-<rarity>.png (e.g. weapon-ssr.png). 5×4=20 files cover all via slot+rarity (GEAR-ART-PROMPTS simplified). gearArt() auto prefer; synth (cooler veins/shards/rim) for missing N/R. PNG drop 즉시 codex/slots/inv proper images (no ?).
 - 2026-06-16 polish: all 20 re-gen no-text pure per refined (N functional vol, SR/SSR premium filigree no overlap).
 - heroicons (command bar hbtn): art/heroicon-<key>.png (7: strategist/berserker/warden/ranger/mech/engineer/dragoon). 128px square, god-pose close-bust, per-hero rim (purple-blue/crimson/cyan-steel/lime-green/slate-silver/magenta-rose/gold-dragon fire) + volumetric god-ray + host-weave + etched filigree, no text, original. Lazy .him in updateHeroUI.

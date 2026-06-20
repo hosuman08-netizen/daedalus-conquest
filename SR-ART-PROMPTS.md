@@ -6,7 +6,7 @@
 > **별(star) 절대 금지**: 이미지에 ★ 배지나 별 그래픽 넣지 말 것. (같은 이유로 들쭉날쭉 방지. UI에서 별도 처리)
 
 ## 공통 접미 (모든 SR 프롬프트 뒤)
-`anime gacha SR splash art, original sci-fi mecha unit, purple/violet SR frame energy, dramatic rim lighting, vertical portrait, high detail, original design, no real brands, NO stars or star rating at bottom`
+`anime gacha SR splash art, original sci-fi mecha unit, purple/violet SR frame energy, dramatic rim lighting, vertical portrait, high detail, original design, no real brands, NO stars or star rating at bottom, **no text, no numbers, no letters, no UI elements, no HUD, no labels, no names, clean illustration only, no writing anywhere**`
 
 ## 아키타입별 프롬프트 베이스 (이름·진영색만 바꿔 적용)
 - **drone(정찰/비행)**: `agile recon drone-knight unit, sleek slim frame, hovering nano-wings, scout visor`

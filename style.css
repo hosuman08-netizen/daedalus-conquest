@@ -223,6 +223,9 @@ h1::first-letter { color: var(--crimson); }
 /* NUKKI GOLD FRAME (tight fit): #unit-glyph yellow/gold border now hugs the illustration edge with zero gap. Container relative + absolute inset img (cover + tuned pos) ensures perfect alignment regardless of PNG intrinsic size/aspect. No padding inside border. Consistent bust crop for all nukki. */
 #unit-glyph { font-size: 11px; position: relative; width: 100%; max-width: 280px; aspect-ratio: 1 / 1.02; max-height: 36vh; margin: 0 auto 4px; display: block; overflow: hidden; background: #05040c; border-radius: 12px; }
 #unit-glyph img.ucim, #unit-glyph .ucim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; border-radius: 9px; display: block; border: none; box-shadow: none; background: #05040c; } /* nukki unit modal: contain + center, clean no extra white frame, outer card border + glow handles it */
+/* Premium SSR background for unit popup glyph (matching codex .cxc.rSSR) — fixes "ssr인데 배경도 없고" */
+#unit-card.rSSR #unit-glyph { background: linear-gradient(160deg, #3a2c12 0%, #1a1330 100%); box-shadow: inset 0 0 16px rgba(245,196,81,0.28), 0 0 8px rgba(245,196,81,0.18); }
+#unit-card.rSSR #unit-glyph img.ucim, #unit-card.rSSR #unit-glyph .ucim { background: transparent; }
 #unit-glyph .ucgly { line-height: 1; }
 /* Elegant premium SSR gold rim — border now directly on frame for "must own" shine. */
 #unit-card.rSSR #unit-glyph img.ucim, #unit-card.rSSR #unit-glyph .ucim, #char-panel-card.rSSR #unit-glyph img, #char-panel-card.rSSR #unit-glyph .ucim { border-color: #fbbf24; box-shadow: inset 0 0 22px rgba(0,0,0,0.92), 0 0 0 1px rgba(0,0,0,0.6), 0 0 0 2px rgba(251,191,36,0.55); } 
@@ -605,7 +608,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .sq-slot { position: relative; aspect-ratio: 1/1.18; background: #16101f; border: 1.5px solid #2c2142; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; overflow: hidden; padding: 1px; }
 .sq-slot.filled { background: #1d1535; }
 .sq-slot .sq-art { position: relative; width: 100%; aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; font-size: 24px; overflow: hidden; border-radius: 7px; }
-.sq-slot .sqim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 17%; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 0 0 1px rgba(0,0,0,0.5); } /* nukki squad: tight full fill, border+shadow on img for hug, comfortable frame */
+.sq-slot .sqim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; border-radius: 6px; border: none; box-shadow: none; background: #05040c; } /* nukki squad: contain + center clean dark */
 .sq-nm { font-size: 9.5px; font-weight: 800; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 2px; }
 .sq-lv { font-size: 8px; color: var(--dim); }
 .sq-x { position: absolute; top: 2px; right: 4px; font-size: 11px; color: #f87171; }
@@ -615,7 +618,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .sq-pool-item { position: relative; aspect-ratio: 1/1.18; background: #16101f; border: 1.5px solid; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; overflow: hidden; padding: 1px; }
 .sq-pool-item.on { background: #241a3a; box-shadow: inset 0 0 0 1px var(--gold); }
 .sq-pool-item .sq-art { position: relative; width: 100%; aspect-ratio: 1/1; background: #0c0813; display: flex; align-items: center; justify-content: center; font-size: 22px; overflow: hidden; border-radius: 7px; }
-.sq-pool-item .sqim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 17%; border-radius: 6px; border: 2px solid rgba(255,255,255,0.12); box-shadow: 0 0 0 1px rgba(0,0,0,0.6); } /* nukki pool: full tight hug with stronger border+shadow on art for premium comfortable view */
+.sq-pool-item .sqim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; border-radius: 6px; border: none; box-shadow: none; background: #05040c; } /* nukki pool: contain + center clean dark */
 .sq-pnm { font-size: 9px; font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sq-prr { font-size: 8.5px; font-weight: 900; }
 .sq-pool-item.rSSR { box-shadow: inset 0 0 12px rgba(245,196,81,0.22); }

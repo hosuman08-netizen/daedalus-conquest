@@ -234,9 +234,10 @@ let curLevel = 1, bossFight = false;                 // 모드별 적 레벨/보
 let ssrPortraits = {};
 function preloadSSRPortraits() {
   if (typeof ROSTER === "undefined") return;
+  const NUKKI_IDS = new Set([1,2,3,4,5,6,7,8,9]); // 누끼 작업 대상 SSR
   ROSTER.filter(u => ["SSR","UR","EX"].includes(u.rarity) && !ssrPortraits[u.id]).forEach(u => {
     const img = new Image();
-    const src = (u.id === 8) ? 'art/u8-nukki.jpg' : `art/u${u.id}.png`;
+    const src = NUKKI_IDS.has(u.id) ? `art/u${u.id}-nukki.jpg` : `art/u${u.id}.png`;
     img.src = src;
     img.onload = () => {
       ssrPortraits[u.id] = img;
@@ -248,8 +249,9 @@ function preloadSSRPortraits() {
 preloadSSRPortraits(); // safe early call (ROSTER from units.js)
 function loadPortrait(id) {   // 편성된 캐릭 일러스트 lazy 로드 (전 등급 — art/u<id>.png)
   if (!id || ssrPortraits[id]) return;
+  const NUKKI_IDS = new Set([1,2,3,4,5,6,7,8,9]);
   const img = new Image();
-  const src = (id === 8) ? 'art/u8-nukki.jpg' : `art/u${id}.png`;
+  const src = NUKKI_IDS.has(id) ? `art/u${id}-nukki.jpg` : `art/u${id}.png`;
   img.src = src;
   img.onload = () => { if (running) draw(); };
   ssrPortraits[id] = img;
@@ -264,7 +266,8 @@ function preloadEnemyPortraits() {
   keys.forEach(k => {
     if (enemyPortraits[k]) return;
     const img = new Image();
-    img.src = `art/enemy/${k}.png`;
+    const src = (k === 'final-titan') ? 'art/enemy/final-titan-nukki.jpg' : (k === 'corrupted-titan') ? 'art/enemy/corrupted-titan-nukki.jpg' : `art/enemy/${k}.png`;
+    img.src = src;
     img.onload = () => { enemyPortraits[k] = img; if (running) draw(); };
     enemyPortraits[k] = img; // placeholder until load
   });
@@ -903,7 +906,10 @@ function spawnArmy(side) {
         eName = curLevel < 15 ? "약화 보스" : (curLevel < 40 ? "강화 보스" : "최종 보스");
         eName = "보스 " + (SPEC[t]?.name || t) + (curLevel > 40 ? " (전설)" : "");
       } else if (t === "titan") {
-        portraitKey = "titan"; 
+        // 무한탑 등 고층에서도 고급 아트 사용 (final-titan nukki로 눈/중간 요소 깨끗)
+        if (curLevel >= 50) portraitKey = "final-titan";
+        else if (curLevel >= 25) portraitKey = "corrupted-titan";
+        else portraitKey = "titan";
         eName = curLevel < 15 ? "타락 거신" : (curLevel < 40 ? "타락 심연" : "종말의 심판자"); 
       }
       else if (curLevel >= 40) { portraitKey = "corrupted-titan"; eName = "타락 " + (SPEC[t].name || t); }
@@ -1444,7 +1450,7 @@ function drawBoss(u) {
     ctx.shadowColor = glow; ctx.shadowBlur = (variant==='final' ? 45 : 30);
     ctx.save();
     ctx.beginPath(); ctx.arc(cx, cy, R * (variant==='final' ? 1.4 : 1.25), 0, 7); ctx.clip();
-    ctx.drawImage(img, cx - sz/2, cy - sz * 0.55, sz, sz);
+    ctx.drawImage(img, cx - sz/2, cy - sz * 0.38, sz, sz); // UX fix: center the main body/gun in the circular preview, eyes off dead center, clean composition from user POV
     ctx.restore();
     ctx.shadowBlur = 0;
     // high tier extra aura
@@ -1492,16 +1498,8 @@ function drawBoss(u) {
     }
   }
 
-  // 코어 + 눈 (항상 위에, variant 색상)
-  const cr = R * 0.5;
-  const core = ctx.createRadialGradient(cx, cy, 1, cx, cy, cr * (1 + Math.sin(t / 250) * 0.12));
-  core.addColorStop(0, core1); core.addColorStop(0.4, core2); core.addColorStop(1, "rgba(120,10,10,0)");
-  ctx.fillStyle = core; ctx.beginPath(); ctx.arc(cx, cy, cr, 0, 7); ctx.fill();
-
-  for (const dx of [-0.22, 0.22]) {
-    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(cx + dx * R, cy - R * 0.05, R * 0.075, 0, 7); ctx.fill();
-    ctx.fillStyle = eyeColor; ctx.beginPath(); ctx.arc(cx + dx * R, cy - R * 0.05, R * 0.038, 0, 7); ctx.fill();
-  }
+  // 코어 + 눈 removed (이미지 아트 자체에 포함되도록. 중앙에 이상한 발광 점/이모지처럼 보이는 UI 문제 해결)
+  // 사용자 피드백: 중간 눈이 이상함, 전부 없애서 깔끔하게
   ctx.restore();
 
   // HP 바 + 이름 (변형에 따라 아이콘/이름)
@@ -3262,7 +3260,7 @@ function renderShop() {
 }
 // ── 💳 결제 (Telegram Stars) ─────────────────────────────────────────────────
 // PAY_BACKEND 비어있으면 데모 즉시지급. 채우면 봇 서버가 인보이스 발급 → tg.openInvoice → 결제확인 후 지급.
-const PAY_BACKEND = "";   // 배포 완료 후 실제 "https://legion-pay.xxxx.workers.dev" 로 교체. 지금은 데모.
+const PAY_BACKEND = "https://legion-pay.hoyashi95.workers.dev";   // ✅ 실결제 ON (Cloudflare Worker + Telegram Stars). 텔레그램 밖에선 자동 데모.
 const STARS = { starter: 50, weekly: 250, monthly: 750, vip: 1500, ultra: 5000, growth1: 500, growth2: 2500,
                 gem1: 55, gem2: 280, gem3: 1000, gem4: 2500, gold1: 55, gold2: 280, gold3: 1000 };
 function buyPack(id) {
@@ -3704,8 +3702,9 @@ function artHTML(u, glyphCls, imgCls, noGlyph) {
   const slug = unitSlug(u);
   const col = (u.color || '#60a5fa').replace(/"/g, '');
   const b64 = (base + (u.accent || '')).replace(/"/g, '&quot;');
-  // 3단 + synth: art/u{id} (R 76-90+ cool PNG) → ssr/slug → slug → colored synth fallback (no remove, grid always fills "간지" visual)
-  const imgSrc = (u.id === 8) ? 'art/u8-nukki.jpg' : `art/u${u.id}.png`;
+  // 누끼 우선 (SSR 1-9): u{id}-nukki.jpg → u{id}.png → slug → synth
+  const NUKKI_IDS = new Set([1,2,3,4,5,6,7,8,9]);
+  const imgSrc = NUKKI_IDS.has(u.id) ? `art/u${u.id}-nukki.jpg` : `art/u${u.id}.png`;
   const img = `<img class="${imgCls}" src="${imgSrc}" alt="" loading="lazy" data-c="${col}" data-b="${b64}" data-slug="${slug}">`;
   // safe nukki fallback
   setTimeout(() => {
@@ -3715,8 +3714,17 @@ function artHTML(u, glyphCls, imgCls, noGlyph) {
         im._errBound = true;
         im.addEventListener('error', function onerr() {
           const s = (+this.dataset.s || 0) + 1; this.dataset.s = s;
-          if (s === 1) this.src = `art/ssr/${slug}.png`;
-          else if (s === 2) this.src = `art/${slug}.png`;
+          if (s === 1) {
+            // nukki 실패 → 일반 png로 폴백 (src에서 -nukki 제거)
+            let next = this.src;
+            if (next.includes('-nukki')) {
+              next = next.replace('-nukki.jpg', '.png').replace('-nukki.PNG', '.png');
+            } else {
+              next = `art/ssr/${slug}.png`;
+            }
+            this.src = next;
+          } else if (s === 2) this.src = `art/ssr/${slug}.png`;
+          else if (s === 3) this.src = `art/${slug}.png`;
           else {
             const c = this.dataset.c || '#60a5fa'; const bb = this.dataset.b || '●';
             const span = document.createElement('span');
