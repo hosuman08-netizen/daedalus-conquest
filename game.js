@@ -731,6 +731,17 @@ function newGear(forceRar) { const g = makeGear(forceRar); g.id = ++META.gearSeq
 function heroGearStats() {
   const tot = { str: 0, int: 0, agi: 0, luk: 0 }, eq = META.equip[META.hero] || {};
   for (const slot of SLOTS) { const id = eq[slot]; if (!id) continue; const g = META.gear.find((x) => x.id === id); if (!g) continue; for (const k of STAT_KEYS) tot[k] += gearStat(g, k); }
+  // P2: gear sets (Trinity in gear.js, CEO kickoff)
+  if (typeof getGearSetBonusesForEquip === "function") {
+    const sb = getGearSetBonusesForEquip(eq, META.gear || []);
+    window._lastSetBonuses = sb.bonuses;
+    const m = (sb.bonuses.atkMul || 1) * (sb.bonuses.hpMul || 1);
+    for (const k of STAT_KEYS) tot[k] = Math.round(tot[k] * m);
+    // Oracle set_activated (once-ish)
+    if (sb && Object.keys(sb.counts || {}).length >= 1) {
+      try { if (typeof emitEvent === "function") emitEvent("set_activated", { sets: sb.counts }); } catch(_) {}
+    }
+  }
   return tot;
 }
 
@@ -877,6 +888,12 @@ function charLv(id) { return (META.charLv && META.charLv[id]) || 0; }
 function charGearStats(id) {                            // 캐릭별 장착 장비 합산
   const tot = { str: 0, int: 0, agi: 0, luk: 0 }, eq = (META.charGear && META.charGear[id]) || {};
   for (const slot of SLOTS) { const gid = eq[slot]; if (!gid) continue; const g = META.gear.find((x) => x.id === gid); if (!g) continue; for (const k of STAT_KEYS) tot[k] += gearStat(g, k); }
+  // P2 sets
+  if (typeof getGearSetBonusesForEquip === "function") {
+    const sb = getGearSetBonusesForEquip(eq, META.gear || []);
+    const m = (sb.bonuses.atkMul || 1) * (sb.bonuses.hpMul || 1);
+    for (const k of STAT_KEYS) tot[k] = Math.round(tot[k] * m);
+  }
   return tot;
 }
 
@@ -2053,6 +2070,25 @@ function drawBoss(u) {
     spikeCount = 7; plateSides = 5; eyeColor = "#fde047"; crackAlpha = Math.max(0.2, 0.3 - hpr * 0.3);
   }
 
+  // 👑 보스 위엄(majesty) — 발밑 throne 광채 + 위압 오라 링 + 상승 잉걸불 (본체 밑 레이어, 경량·결정적)
+  const majK = variant === 'final' ? 1.4 : variant === 'corrupted' ? 1.18 : 1;
+  const gy = cy + R * 1.05;
+  const thr = ctx.createRadialGradient(cx, gy, 2, cx, gy, R * 1.7 * majK);
+  thr.addColorStop(0, "rgba(0,0,0,0.55)"); thr.addColorStop(0.5, "rgba(0,0,0,0.28)"); thr.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = thr; ctx.beginPath(); ctx.ellipse(cx, gy, R * 1.7 * majK, R * 0.5, 0, 0, 7); ctx.fill();
+  for (let i = 0, ringN = variant === 'final' ? 3 : variant === 'corrupted' ? 2 : 1; i < ringN; i++) {   // 위압 오라 링(펄스)
+    const ph = (t / 1400 + i / ringN) % 1;
+    ctx.globalAlpha = (1 - ph) * 0.42; ctx.strokeStyle = glow; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(cx, cy, R * (1.2 + ph * 0.9 * majK), 0, 7); ctx.stroke();
+  }
+  for (let i = 0, embN = variant === 'final' ? 7 : variant === 'corrupted' ? 5 : 4; i < embN; i++) {     // 상승 잉걸불
+    const sp = (t / 1100 + i * 0.37) % 1;
+    const ex = cx + Math.sin(i * 2.1 + t / 900) * R * 0.9, ey = cy + R * 0.9 - sp * R * 2.2;
+    ctx.globalAlpha = (1 - sp) * 0.7; ctx.fillStyle = i % 2 ? core1 : core2;
+    ctx.beginPath(); ctx.arc(ex, ey, 1.4 + (1 - sp) * 1.8, 0, 7); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
   if (hasBossImg) {
     // 실제 PNG 이미지로 보스 본체 (챕터별 다양성 + 간지)
     const img = enemyPortraits[pk];
@@ -2114,20 +2150,34 @@ function drawBoss(u) {
   ctx.restore();
 
   // HP 바 + 이름 (변형에 따라 아이콘/이름)
-  const w = R * 1.8, by = cy - R * 1.28;
-  ctx.fillStyle = "rgba(0,0,0,0.7)"; rRect(cx - w / 2 - 1, by - 1, w + 2, 7, 3); ctx.fill();
-  ctx.fillStyle = hpr > 0.4 ? "#ef4444" : "#fbbf24"; rRect(cx - w / 2, by, w * hpr, 5, 2.5); ctx.fill();
-  ctx.fillStyle = "#fbbf24"; ctx.font = "bold 11px sans-serif"; ctx.textAlign = "center";
+  const w = R * 1.9;
+  // 상단 보스(화면 위로 네임플레이트 잘림)면 본체 아래로 플립 — 왕관·이름 항상 보이게(위엄)
+  const flip = (cy - R * 1.34) < 16;
+  const by = flip ? Math.min(H - 14, cy + R * 1.05) : cy - R * 1.34;
+  // 👑 위엄 왕관 — 고티어 보스 머리 위 (변형별 색·개수)
+  const crown = variant === 'final' ? "👑" : variant === 'corrupted' ? "♛" : (curLevel >= 25 ? "♛" : "");
+  if (crown) {
+    ctx.font = (variant === 'final' ? "bold 18px" : "15px") + " sans-serif"; ctx.textAlign = "center";
+    ctx.save(); ctx.shadowColor = stroke; ctx.shadowBlur = 12; ctx.fillStyle = core1;
+    ctx.fillText(crown, cx, by - 18); ctx.restore();
+  }
+  // HP 바 (테두리 + 글로우)
+  ctx.fillStyle = "rgba(0,0,0,0.72)"; rRect(cx - w / 2 - 1, by - 1, w + 2, 8, 3); ctx.fill();
+  ctx.save(); ctx.shadowColor = hpr > 0.4 ? "#ef4444" : "#fbbf24"; ctx.shadowBlur = 8;
+  ctx.fillStyle = hpr > 0.4 ? "#ef4444" : "#fbbf24"; rRect(cx - w / 2, by, w * hpr, 6, 3); ctx.fill(); ctx.restore();
+  // 위엄 네임 (글로우 + 칭호)
   let bName = "타락 거신";
   if (curLevel >= 50) bName = "종말의 심판자";
   else if (variant === 'final' || curLevel >= 40) bName = "최종형 거신";
   else if (variant === 'corrupted' || curLevel >= 25) bName = "타락 심연";
   else if (curLevel >= 15) bName = "강화 거신";
-  ctx.fillText("🐲 " + (u.eName || u.name || bName), cx, by - 5);
-  // 고챕터 간지 추가 텍스트
-  if (curLevel > 30) {
-    ctx.font = "9px sans-serif"; ctx.fillStyle = "rgba(251,191,36,0.8)";
-    ctx.fillText("CH." + curLevel + (variant==='final' ? " FINAL" : ""), cx, by - 15);
+  ctx.save(); ctx.shadowColor = stroke; ctx.shadowBlur = 10;
+  ctx.fillStyle = core1; ctx.font = "bold 12px sans-serif"; ctx.textAlign = "center";
+  ctx.fillText("🐲 " + (u.eName || u.name || bName), cx, by - 6); ctx.restore();
+  // 고챕터 간지 칭호
+  if (curLevel > 20) {
+    ctx.font = "bold 9px sans-serif"; ctx.fillStyle = "rgba(251,191,36,0.85)"; ctx.textAlign = "center";
+    ctx.fillText("⚔ CH." + curLevel + (variant === 'final' ? " · FINAL FORM" : variant === 'corrupted' ? " · CORRUPTED" : ""), cx, by - 19 - (crown ? 14 : 0));
   }
 }
 
@@ -2324,6 +2374,16 @@ function draw() {
       for (let i = -2; i <= 2; i++) { const ax = W / 2 + i * 28; ctx.beginPath(); ctx.moveTo(ax, 10); ctx.lineTo(ax, H * 0.55); ctx.stroke(); }
     }
     ctx.globalAlpha = 1;
+  }
+
+  // 🐲 보스 등장 시 화면 위압감 — 가장자리 핏빛 펄스(보스전 분위기, 경량)
+  const _boss = units.find((u) => u.boss && u.hp > 0);
+  if (_boss) {
+    const pulse = 0.13 + Math.sin(Date.now() / 700) * 0.05;
+    const col = _boss.bossVariant === 'final' ? '251,191,36' : _boss.bossVariant === 'corrupted' ? '168,85,247' : '255,42,42';
+    const vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.32, W / 2, H / 2, H * 0.98);
+    vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, `rgba(${col},${pulse})`);
+    ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
   }
 
   for (const u of units) {
@@ -2647,6 +2707,13 @@ function finish(p, e) {
       reward = bonus(50 + META.chapter * 22 + Math.min(80, (META.streak - 1) * 10));  // early boost for ch18 reach (치명적 P0)
       reward = Math.round(reward * ascGoldMul() * ascPlunderMul());        // 🔄 환생 「쇄도」 골드획득 가속
       if (META.chapter < 999) META.chapter += 1; if (META.chapter > (META.maxChapter || 0)) META.maxChapter = META.chapter;
+      // ARG-like fictional origin lore drop (deceptive "found signal" hype, reversible flag)
+      if (ENABLE_DECEPTIVE_ORIGIN && META.chapter % 3 === 0) {
+        setTimeout(() => {
+          const sample = (typeof ROSTER !== "undefined") ? ROSTER.find(x => x.rarity === "SSR") : null;
+          if (sample) triggerOriginDrop(sample);
+        }, 1400);
+      }
       // 🗺️ 10단계 돌파 → 새 전장(바이옴) 진입 연출
       const nb = chapterBiome(META.chapter);
       if (META._biomeId !== nb.id) { META._biomeId = nb.id; setTimeout(() => toast("⚔️ 새 전장 진입: " + nb.name, nb.accent), 900); if (typeof buildBgCache === "function") buildBgCache(); }
@@ -3026,6 +3093,11 @@ const RARITY = [
   { key: "UR",  p: 0, color: "#e879f9", lvls: 6 }, // 출시 후 활성(유닛 채운 뒤). 시스템 보존, 확률 0
   { key: "EX",  p: 0, color: "#f472b6", lvls: 7 }, // 출시 후 활성. 확률 0이라 grantUnit 폴백·연출 미발화
 ]; // Sovereign 지정: N55 R30 SR12 SSR3 (표시=코드 100% 일치). UR/EX 출시 후 활성.
+
+// DECEPTIVE_ORIGIN_TACTICS (safe fictional hype) — ARG-like lore drops + origin reveals for FOMO/variable feel.
+// Feel "deceptive" (secret found, classified) but 100% fictional framing + ALWAYS real rates shown.
+// Reversible: set false to strip all. No minors targeting. Code disclosures intact. Per Sovereign + JP/KR/US self-reg.
+const ENABLE_DECEPTIVE_ORIGIN = true; // git-revert / flag flip safe. Deploy default ON for test.
 function rollRarity() {
   let p = (META.pity || 0);
   if (p >= 12) {
@@ -3041,11 +3113,38 @@ function rollRarity() {
   return RARITY[0];
 }
 // 📊 전체 확률 공개 — RARITY 배열에서 직접 생성하므로 코드값과 영원히 일치(법적 안전)
+function getRatesText() {
+  return RARITY.filter(x => x.p > 0).map(x => { const pct = Math.round(x.p * 1000) / 10; return `${x.key}${Number.isInteger(pct)?pct:pct.toFixed(1)}%`; }).join(" ");
+}
+function getOriginReveal(u) {
+  if (!ENABLE_DECEPTIVE_ORIGIN || !u) return "";
+  const flavors = ["다이달로스 코어 아카이브 단편", "기밀 판단 로그 복구", "침묵 시대 전송 신호", "분류 해제: Founding 프로토콜", "폐허 잔해 신호 포착", "의식 파편 해독 완료"];
+  const f = flavors[(u.id || 0) % flavors.length];
+  return `🔓 ${f} — ${u.name} 기원 확인됨. (Legion Chronicles 내 fictional)`;
+}
+function triggerOriginDrop(u) {
+  if (!ENABLE_DECEPTIVE_ORIGIN || !u) return;
+  // ARG-like "secret intercept" feel — hype without mechanic lie. Always rates accessible.
+  const flavor = getOriginReveal(u);
+  const txt = `${flavor} 📡 다음 한정 기회 놓치면 영구 공백 위험. `;
+  setTimeout(() => {
+    toast(txt + "📊 Rates 확인", "#a3e635");
+    // Optional: auto hint rates if openable
+    try { if (typeof showOdds === 'function') {} } catch(e){}
+  }, 900);
+}
 function showOdds() {
   const rows = RARITY.filter(x => x.p > 0).map(x => { const pct = Math.round(x.p * 1000) / 10; const txt = Number.isInteger(pct) ? pct : pct.toFixed(1); return `<div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2638;padding:3px 0;"><span style="color:${x.color};font-weight:600;">${x.key}</span><span>${txt}%</span></div>`; }).join("");
+  // 💰 골드 가챠 확률 공개 (rollGoldRarity와 일치: N70 R25 SR5, SSR 미등장) — 법적 정확공개
+  const GOLD_ODDS = [ { key: "N", p: 0.70, color: "#9ca3af" }, { key: "R", p: 0.25, color: "#60a5fa" }, { key: "SR", p: 0.05, color: "#c084fc" } ];
+  const goldRows = GOLD_ODDS.map(x => `<div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2638;padding:3px 0;"><span style="color:${x.color};font-weight:600;">${x.key}</span><span>${Math.round(x.p * 100)}%</span></div>`).join("");
   const body = $("odds-body");
   if (body) body.innerHTML =
+    `<div style="font-weight:600;margin-bottom:4px;">💎 ${t("oddsGemTitle") || "젬 가챠"}</div>` +
     rows +
+    `<div style="font-weight:600;margin:12px 0 4px;">💰 ${t("oddsGoldTitle") || "골드 가챠"}</div>` +
+    goldRows +
+    `<div style="margin-top:4px;font-size:11px;opacity:.6;">${t("oddsGoldNote") || "※ 골드 가챠는 SSR 미등장 (SSR은 젬 가챠 전용)"}</div>` +
     `<div style="margin-top:10px;font-size:11.5px;opacity:.85;line-height:1.6;">` +
     `<div>${t("oddsPity")}</div>` +
     `<div style="margin-top:6px;opacity:.6;">${t("oddsFict")}</div>` +
@@ -3223,7 +3322,8 @@ function showGacha(rar, msg, results) {
   $("gacha-card").style.boxShadow = `0 0 40px ${rar.color}, inset 0 0 0 2px ${rar.color}`;
   if (["SSR","UR","EX"].includes(rar.key)) $("gacha-rank").classList.add('ssr-tease'); else $("gacha-rank").classList.remove('ssr-tease');
   const pity = (META.pity||0); const pct = ["SSR","UR","EX"].includes(rar.key) ? "고등급!" : "visible";
-  $("gacha-msg").innerHTML = msg + `<br><small style="opacity:.7">🎯 천장 ${pity}/12 · N55% R30% SR12% SSR3% | hard12=SSR 보장</small>`;
+  const dynRates = ENABLE_DECEPTIVE_ORIGIN ? getRatesText() : "N55% R30% SR12% SSR3%";
+  $("gacha-msg").innerHTML = msg + `<br><small style="opacity:.7">🎯 천장 ${pity}/12 · ${dynRates} | hard12=SSR 보장</small>`;
   const listEl = $("gacha-list");   // 🎰 뽑힌 목록 (10연 = 10개 다, 단차 = 신규/중복)
   if (listEl) listEl.innerHTML = (results && results.length)
     ? results.map((r) => `<div class="gres r${r.rarity}" style="border-color:${rarColor(r.rarity)}"><b style="color:${rarColor(r.rarity)}">${r.rarity}</b><span class="gres-nm">${r.name}</span>${r.dupe ? '<span class="gres-dup">중복</span>' : (r.isNew ? '<span class="gres-new">NEW</span>' : '')}</div>`).join("")
@@ -3237,6 +3337,14 @@ function showGacha(rar, msg, results) {
   } else {
     SFX.gacha();
     haptic("light");
+  }
+  // Fictional deceptive origin reveal (hype only, real % intact)
+  if (ENABLE_DECEPTIVE_ORIGIN && results && results.length) {
+    const newHigh = results.find(r => r.isNew && ["SR","SSR","UR","EX"].includes(r.rarity));
+    if (newHigh) {
+      const u = (typeof ROSTER !== "undefined") && ROSTER.find(x => x.name === newHigh.name);
+      if (u) setTimeout(() => triggerOriginDrop(u), 1100);
+    }
   }
 }
 
@@ -4376,7 +4484,7 @@ on("sg-gear1", "click", () => gearGacha(1));
 on("sg-gear10", "click", () => gearGacha(10));
 on("sg-gold1", "click", goldGacha);            // 🪙 골드 뽑기 (소울루프)
 on("sg-gold10", "click", goldGacha10);         // 🪙 골드 10연
-on("odds-view", "click", showOdds);            // 📊 전체 확률 공개 (법적 disclosure)
+on("odds-view", "click", showOdds);            // 📊 전체 확률 공개 (법적 disclosure) — origin drops에도 항상 노출 필수 (미꾸라지)
 on("odds-close", "click", closeOdds);
 // also close on background for the odds disclosure modal (robust UX)
 const oddsM = $("odds-modal");
@@ -4933,7 +5041,8 @@ function showUnit(id) {
   $("unit-glyph").innerHTML = artHTML(u, "ucgly", "ucim", true);   // 깨끗한 누끼 일러스트 (옆 이모티콘 제거) — Anvil 등 SSR 포트레이트에 맞춤
   $("unit-name").innerHTML = `<b style="color:${u.color}">[${u.rarity}]</b> ${has ? u.name : "???"}`;
   $("unit-title").textContent = has ? (u.title || u.arch) : t("locked");
-  const lore = (typeof LORE !== "undefined" && LORE[id]) ? `<div class="unit-lore">📖 ${LORE[id]}</div>` : "";   // 군주 20260617: 캐릭터 서사(도파민) — 항상 노출(흥미 유발)
+  const baseLore = (typeof LORE !== "undefined" && LORE[id]) ? LORE[id] : "";
+  const lore = baseLore ? `<div class="unit-lore">📖 ${ENABLE_DECEPTIVE_ORIGIN ? getOriginReveal(u) + "<br>" : ""}${baseLore}</div>` : "";   // 군주 20260617: 캐릭터 서사(도파민) — 항상 노출 + fictional origin hype (deceptive feel via "기밀 해독")
   $("unit-detail").innerHTML = (has
     ? `${u.faction ? "🏷️ " + u.faction + " · " : ""}${u.glyph} ${u.arch} ×${u.mul}<br>${u.persona ? "💬 " + u.persona + "<br>" : ""}${u.trait ? "✦ " + u.trait : ""}`
     : t("lockedHint")) + lore;
