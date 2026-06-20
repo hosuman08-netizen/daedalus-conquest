@@ -2407,7 +2407,7 @@ $("speed").addEventListener("click", () => {
   $("speed").textContent = t("speed", { n: speed });
 });
 
-// ── 스타터팩 (₩990 첫 결제 상품) ─────────────────────────────────────────────
+// ── 스타터팩 (⭐50 첫 결제 상품) ─────────────────────────────────────────────
 function showStarter() {
   if (META.starter) { toast(t("tOwned"), "#a3e635"); return; }
   $("starter").classList.remove("hidden");
@@ -3211,20 +3211,20 @@ $("code-btn").addEventListener("click", redeemCode);
 
 // ── 캐시 상점 (별도, Stars 결제 자리 — 지금은 데모 지급) ─────────────────────
 const SHOP = [
-  { id: "starter", starter: true, price: "₩990", tag: "BEST", k: "pkStarter" },
-  { id: "monthly", k: "pkMonthly", price: "₩14,900", tag: "30일·💎" },
-  { id: "weekly", k: "pkWeekly", price: "₩4,900", tag: "7일·💎" },
-  { id: "vip", vip: true, price: "₩29,900", tag: "VIP·4x·💎600" },
-  { id: "ultra", ultra: true, price: "₩99,900", tag: "MAX·8x·SSR" },
-  { id: "growth1", k: "pkGrow1", price: "₩9,900", tag: "성장" },
-  { id: "growth2", k: "pkGrow2", price: "₩49,900", tag: "성장·SSR" },
-  { id: "gem1", gem: 60, price: "₩1,100" },
-  { id: "gem2", gem: 330, price: "₩5,500", tag: "+10%" },
-  { id: "gem3", gem: 1280, price: "₩19,900", tag: "+18%" },   // 1180→1280: 태그 +18% 실제와 일치(표시광고법) + 단가 단조
-  { id: "gem4", gem: 3400, price: "₩49,900", tag: "+25%" },   // 3200→3400: 태그 +25% 실제와 일치. 단가 18.3→16.7→15.5→14.7 완벽 단조
-  { id: "gold1", g: 6000, price: "₩1,100" },
-  { id: "gold2", g: 35000, price: "₩5,500", tag: "+17%" },    // 태그 정직화(실제 +17%, 수량유지=유저이득)
-  { id: "gold3", g: 140000, price: "₩19,900", tag: "+29%" },  // 태그 정직화(실제 +29%)
+  { id: "starter", starter: true, tag: "BEST", k: "pkStarter" },
+  { id: "monthly", k: "pkMonthly", tag: "30일·💎" },
+  { id: "weekly", k: "pkWeekly", tag: "7일·💎" },
+  { id: "vip", vip: true, tag: "VIP·4x·💎600" },
+  { id: "ultra", ultra: true, tag: "MAX·8x·SSR" },
+  { id: "growth1", k: "pkGrow1", tag: "성장" },
+  { id: "growth2", k: "pkGrow2", tag: "성장·SSR" },
+  { id: "gem1", gem: 60 },
+  { id: "gem2", gem: 330, tag: "+10%" },
+  { id: "gem3", gem: 1280, tag: "+18%" },   // 1180→1280: 태그 +18% 실제와 일치(표시광고법) + 단가 단조
+  { id: "gem4", gem: 3400, tag: "+25%" },   // 3200→3400: 태그 +25% 실제와 일치. 단가 18.3→16.7→15.5→14.7 완벽 단조
+  { id: "gold1", g: 6000 },
+  { id: "gold2", g: 35000, tag: "+17%" },    // 태그 정직화(실제 +17%, 수량유지=유저이득)
+  { id: "gold3", g: 140000, tag: "+29%" },  // 태그 정직화(실제 +29%)
 ];
 function dayPlus(n) { try { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); } catch (e) { return ""; } }
 function passActive(kind) { return META.pass[kind] && today() <= META.pass[kind]; }
@@ -3251,7 +3251,7 @@ function renderShop() {
     const c = document.createElement("button"); c.className = "packcard" + (p.vip || p.ultra ? " vip" : "") + (p.k ? " grow" : "") + (active ? " active" : "") + (owned ? " owned" : "");
     const what = p.k ? t(p.k) : p.vip ? t("tVip") : p.ultra ? t("tUltra") : (p.gem ? "💎 " + p.gem : "💰 " + p.g);
     const sub = active ? '<div class="psub">✓ ~' + META.pass[p.id] + "</div>" : "";
-    const price = owned ? "✓ " + t("ownedShort") : (STARS[p.id] ? "⭐ " + STARS[p.id].toLocaleString("en-US") : p.price);  // ⭐ Stars 표시(만국공통·실제청구액 일치). 보유중이면 ✓
+    const price = owned ? "✓ " + t("ownedShort") : "⭐ " + (STARS[p.id] || 0).toLocaleString("en-US");  // ⭐ Stars 단일소스(STARS=표시=청구, 오차0). 보유중이면 ✓
     const isFB = !((META.firstBuy || {})[p.id]) && (p.gem || p.g) && !owned;  // 🎁 첫구매 2배 대상(젬·골드 팩, 미구매)
     const tagHtml = isFB ? '<span class="ptag pdbl">' + t("firstBuyDouble") + '</span>' : (p.tag ? '<span class="ptag">' + p.tag + "</span>" : "");
     c.innerHTML = tagHtml + '<div class="pwhat">' + what + "</div>" + sub + '<div class="pprice">' + price + "</div>";
