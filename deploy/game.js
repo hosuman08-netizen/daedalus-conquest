@@ -1196,6 +1196,7 @@ function spawnArmy(side) {
           regen: hb.regen, atkT: Math.random() * 0.3, skT: s.skillCd * 0.4, shield: 0, buff: 0, buffT: 0, spd: 0, spdT: 0,
           id: u.id, name: u.name, vis: u.vis, color: u.color, isSpecific: true, rarity: u.rarity, dmgOut: 0,
           r: specR, // larger visual for selected characters to appear properly on field
+          star: star || 0
         });
         // 고등급은 더 크게 (보물 시각 강조)
         const lastU = units[units.length-1];
@@ -1214,8 +1215,10 @@ function spawnArmy(side) {
           lu.star = star || 0;
           lu.ssrScale = Math.pow(1.35, star || 0); // 별 레벨에 따라 액티브/패시브 엄청 강해지게 (star5 ~ 4.5x+)
         }
-        // SSR 패시브 트레이트도 별 레벨 스케일 적용 (기계적 효과)
         const lu2 = units[units.length - 1];
+        const unitStar = lu2.star || star || 0;
+        const srScale = Math.pow(1.3, unitStar); // SR도 별 레벨에 따라 패시브 강해지게 (더 부드럽지만 여전히 차이 큼)
+        // SSR 패시브 트레이트도 별 레벨 스케일 적용 (기계적 효과)
         if (u.rarity === "SSR") {
           const pscale = lu2.ssrScale || 1;
           // trait 기반 간단 패시브 (star에 따라 강해짐)
@@ -1228,6 +1231,22 @@ function spawnArmy(side) {
           else if (u.name === "Aegis") lu2.shield = (lu2.shield||0) + 5 * pscale;
           else if (u.name === "Anvil") lu2.regen = (lu2.regen||0) + 2 * pscale;
           else if (u.name === "Dominus") { lu2.atk = (lu2.atk||10) * (1 + 0.1 * pscale); lu2.hp = (lu2.hp||100) * (1 + 0.1 * pscale); }
+        }
+        // SR 패시브도 별 레벨에 따라 강해지게 + 아키타입별 차별화 (다 다르게)
+        if (["SR", "SSR"].includes(u.rarity)) {
+          if (u.arch === "drone") {
+            lu2.shield = (lu2.shield || 0) + 2 * srScale; // evade-like bonus
+          } else if (u.arch === "marksman") {
+            lu2.crit = (lu2.crit || 0) + 8 * srScale;
+          } else if (u.arch === "guardian") {
+            lu2.shield = (lu2.shield || 0) + 4 * srScale;
+          } else if (u.arch === "bruiser") {
+            lu2.reflect = (lu2.reflect || 0) + 0.1 * srScale;
+          } else if (u.arch === "commander") {
+            lu2.ai = Math.min(3, (lu2.ai || 1) + 0.8 * srScale);
+          } else if (u.arch === "titan") {
+            lu2.atk = (lu2.atk || 10) * (1 + 0.08 * srScale);
+          }
         }
         // SSR on_start skills (e.g. Iron Wall shield)
         const uGearEffects = gearEffects;
@@ -1684,11 +1703,15 @@ function step(u, dt) {
 
   // ── 스킬 자동 발동 ──
   if (u.skT <= 0) {
-    if (u.skill === "evade" && u.hp < u.maxHp * 0.5) { u.shield = 1.6; u.spd = 1.8; u.spdT = 1.6; u.skT = u.skillCd; addFx(u.x, u.y, "evade"); }
-    else if (u.skill === "snipe") { const best = chooseTarget(u, foes); if (best && dist(u, best) < u.sight) { dmg(best, 32, u); u.skT = u.skillCd; addFx(u.x, u.y, "snipe", best.x, best.y, u.side); } }
-    else if (u.skill === "barrier") { u.shield = 3; const m = alliesOf(u).filter((a) => dist(u, a) < 60).sort((a, b) => a.hp - b.hp)[0]; if (m) m.shield = 3; u.skT = u.skillCd; addFx(u.x, u.y, "barrier"); }
-    else if (u.skill === "charge" && d > u.range + 6 && d < 120) { const k = Math.min(1, (d - u.range) / d); u.x += (tgt.x - u.x) * k; u.y += (tgt.y - u.y) * k; foes.filter((f) => dist(u, f) < 36).forEach((f) => dmg(f, 16, u)); u.skT = u.skillCd; addFx(u.x, u.y, "charge"); }
-    else if (u.skill === "overclock") { const m = alliesOf(u).filter((a) => dist(u, a) < 85); if (m.length) { m.forEach((a) => { a.hp = Math.min(a.maxHp, a.hp + 22); a.buff = 5; a.buffT = 5; }); u.hp = Math.min(u.maxHp, u.hp + 12); u.skT = u.skillCd; addFx(u.x, u.y, "overclock"); } }
+    let skillScale = 1;
+    if (u.star && ["SR","SSR","UR","EX"].includes(u.rarity)) {
+      skillScale = Math.pow(1.25, u.star); // SR 패시브(스킬)도 별 레벨에 따라 강해지게
+    }
+    if (u.skill === "evade" && u.hp < u.maxHp * 0.5) { u.shield = 1.6 * skillScale; u.spd = 1.8; u.spdT = 1.6; u.skT = u.skillCd; addFx(u.x, u.y, "evade"); }
+    else if (u.skill === "snipe") { const best = chooseTarget(u, foes); if (best && dist(u, best) < u.sight) { dmg(best, 32 * skillScale, u); u.skT = u.skillCd; addFx(u.x, u.y, "snipe", best.x, best.y, u.side); } }
+    else if (u.skill === "barrier") { u.shield = 3 * skillScale; const m = alliesOf(u).filter((a) => dist(u, a) < 60).sort((a, b) => a.hp - b.hp)[0]; if (m) m.shield = 3 * skillScale; u.skT = u.skillCd; addFx(u.x, u.y, "barrier"); }
+    else if (u.skill === "charge" && d > u.range + 6 && d < 120) { const k = Math.min(1, (d - u.range) / d); u.x += (tgt.x - u.x) * k; u.y += (tgt.y - u.y) * k; foes.filter((f) => dist(u, f) < 36).forEach((f) => dmg(f, 16 * skillScale, u)); u.skT = u.skillCd; addFx(u.x, u.y, "charge"); }
+    else if (u.skill === "overclock") { const m = alliesOf(u).filter((a) => dist(u, a) < 85); if (m.length) { m.forEach((a) => { a.hp = Math.min(a.maxHp, a.hp + 22 * skillScale); a.buff = 5 * skillScale; a.buffT = 5; }); u.hp = Math.min(u.maxHp, u.hp + 12 * skillScale); u.skT = u.skillCd; addFx(u.x, u.y, "overclock"); } }
   }
 
   // ★ 보스 전용 고유 스킬 (챕터/변형별로 다르게, 깨기 어렵고 간지나게 - 다른 게임 레이드 보스 스타일 모방, 원본 아님)
@@ -3019,7 +3042,7 @@ function rollRarity() {
 }
 // 📊 전체 확률 공개 — RARITY 배열에서 직접 생성하므로 코드값과 영원히 일치(법적 안전)
 function showOdds() {
-  const rows = RARITY.filter(x => x.p > 0).map(x => `<div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2638;padding:3px 0;"><span style="color:${x.color};font-weight:600;">${x.key}</span><span>${(x.p * 100).toFixed(x.p * 100 % 1 ? 1 : 0)}%</span></div>`).join("");
+  const rows = RARITY.filter(x => x.p > 0).map(x => { const pct = Math.round(x.p * 1000) / 10; const txt = Number.isInteger(pct) ? pct : pct.toFixed(1); return `<div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2638;padding:3px 0;"><span style="color:${x.color};font-weight:600;">${x.key}</span><span>${txt}%</span></div>`; }).join("");
   const body = $("odds-body");
   if (body) body.innerHTML =
     rows +

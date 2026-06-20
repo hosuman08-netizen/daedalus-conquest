@@ -1703,11 +1703,15 @@ function step(u, dt) {
 
   // ── 스킬 자동 발동 ──
   if (u.skT <= 0) {
-    if (u.skill === "evade" && u.hp < u.maxHp * 0.5) { u.shield = 1.6; u.spd = 1.8; u.spdT = 1.6; u.skT = u.skillCd; addFx(u.x, u.y, "evade"); }
-    else if (u.skill === "snipe") { const best = chooseTarget(u, foes); if (best && dist(u, best) < u.sight) { dmg(best, 32, u); u.skT = u.skillCd; addFx(u.x, u.y, "snipe", best.x, best.y, u.side); } }
-    else if (u.skill === "barrier") { u.shield = 3; const m = alliesOf(u).filter((a) => dist(u, a) < 60).sort((a, b) => a.hp - b.hp)[0]; if (m) m.shield = 3; u.skT = u.skillCd; addFx(u.x, u.y, "barrier"); }
-    else if (u.skill === "charge" && d > u.range + 6 && d < 120) { const k = Math.min(1, (d - u.range) / d); u.x += (tgt.x - u.x) * k; u.y += (tgt.y - u.y) * k; foes.filter((f) => dist(u, f) < 36).forEach((f) => dmg(f, 16, u)); u.skT = u.skillCd; addFx(u.x, u.y, "charge"); }
-    else if (u.skill === "overclock") { const m = alliesOf(u).filter((a) => dist(u, a) < 85); if (m.length) { m.forEach((a) => { a.hp = Math.min(a.maxHp, a.hp + 22); a.buff = 5; a.buffT = 5; }); u.hp = Math.min(u.maxHp, u.hp + 12); u.skT = u.skillCd; addFx(u.x, u.y, "overclock"); } }
+    let skillScale = 1;
+    if (u.star && ["SR","SSR","UR","EX"].includes(u.rarity)) {
+      skillScale = Math.pow(1.25, u.star); // SR 패시브(스킬)도 별 레벨에 따라 강해지게
+    }
+    if (u.skill === "evade" && u.hp < u.maxHp * 0.5) { u.shield = 1.6 * skillScale; u.spd = 1.8; u.spdT = 1.6; u.skT = u.skillCd; addFx(u.x, u.y, "evade"); }
+    else if (u.skill === "snipe") { const best = chooseTarget(u, foes); if (best && dist(u, best) < u.sight) { dmg(best, 32 * skillScale, u); u.skT = u.skillCd; addFx(u.x, u.y, "snipe", best.x, best.y, u.side); } }
+    else if (u.skill === "barrier") { u.shield = 3 * skillScale; const m = alliesOf(u).filter((a) => dist(u, a) < 60).sort((a, b) => a.hp - b.hp)[0]; if (m) m.shield = 3 * skillScale; u.skT = u.skillCd; addFx(u.x, u.y, "barrier"); }
+    else if (u.skill === "charge" && d > u.range + 6 && d < 120) { const k = Math.min(1, (d - u.range) / d); u.x += (tgt.x - u.x) * k; u.y += (tgt.y - u.y) * k; foes.filter((f) => dist(u, f) < 36).forEach((f) => dmg(f, 16 * skillScale, u)); u.skT = u.skillCd; addFx(u.x, u.y, "charge"); }
+    else if (u.skill === "overclock") { const m = alliesOf(u).filter((a) => dist(u, a) < 85); if (m.length) { m.forEach((a) => { a.hp = Math.min(a.maxHp, a.hp + 22 * skillScale); a.buff = 5 * skillScale; a.buffT = 5; }); u.hp = Math.min(u.maxHp, u.hp + 12 * skillScale); u.skT = u.skillCd; addFx(u.x, u.y, "overclock"); } }
   }
 
   // ★ 보스 전용 고유 스킬 (챕터/변형별로 다르게, 깨기 어렵고 간지나게 - 다른 게임 레이드 보스 스타일 모방, 원본 아님)
@@ -4236,7 +4240,7 @@ function renderShop() {
 // ── 💳 결제 (Telegram Stars) ─────────────────────────────────────────────────
 // PAY_BACKEND 비어있으면 데모 즉시지급. 채우면 봇 서버가 인보이스 발급 → tg.openInvoice → 결제확인 후 지급.
 const PAY_BACKEND = "https://legion-pay.hoyashi95.workers.dev";   // ✅ 실결제 ON (Cloudflare Worker + Telegram Stars). 텔레그램 밖에선 자동 데모.
-const ANALYTICS_BACKEND = "";   // 📊 Oracle analytics-worker (출시 측정). 배포 후 "https://legion-analytics.<계정>.workers.dev" 로 교체. PAY와 독립.
+const ANALYTICS_BACKEND = "https://legion-analytics.hoyashi95.workers.dev";   // 📊 Oracle analytics-worker (출시 측정) — 배포 완료(Trinity). PAY와 독립.
 const STARS = { starter: 50, weekly: 250, monthly: 750, vip: 1500, ultra: 5000, growth1: 500, growth2: 2500,
                 gem1: 55, gem2: 280, gem3: 1000, gem4: 2500, gold1: 55, gold2: 280, gold3: 1000 };
 function buyPack(id) {

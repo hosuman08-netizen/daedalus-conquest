@@ -1,0 +1,7 @@
+name = "legion-analytics"
+main = "analytics-worker.js"
+compatibility_date = "2025-01-01"
+
+[[kv_namespaces]]
+binding = "EVENTS"
+id = "354260419e2a46c595f8765debdc100f"

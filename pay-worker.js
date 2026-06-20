@@ -72,7 +72,19 @@ export default {
       return json({ count: cnt });
     }
 
-    // ② 봇 웹훅 — pre_checkout 승인(필수) + 결제완료 로그
+    // ①-c 결제 영수증 검증 — game.js가 grant 직전 호출. 진짜 결제(successful_payment)만 KV에 기록 → 콜백위조 차단.
+    if (req.method === "GET" && url.pathname === "/verify") {
+      const item = url.searchParams.get("item");
+      const uid = url.searchParams.get("uid") || "0";
+      if (!env.RECEIPTS) return json({ ok: false, reason: "kv-not-set" });  // KV 미설정 시 graceful
+      const key = "rcpt:" + uid + ":" + item;
+      const rec = await env.RECEIPTS.get(key);
+      if (!rec) return json({ ok: false });          // 영수증 없음 = 결제 안 함 → grant 거부
+      await env.RECEIPTS.delete(key);                // 멱등 1회용 소비
+      return json({ ok: true, charge: rec });
+    }
+
+    // ② 봇 웹훅 — pre_checkout 승인(필수) + 결제완료 영수증 저장
     if (req.method === "POST") {
       if (!token) return json({ ok: false });
       let u = {}; try { u = await req.json(); } catch (e) {}
@@ -105,7 +117,13 @@ export default {
           reply_markup: { inline_keyboard: [[{ text: "🎮 플레이 시작", web_app: { url: GAME + "/" } }]] },
         });
       }
-      // u.message?.successful_payment 여기서 서버지급/영수증저장 가능(현재는 클라지급이라 생략)
+      // ✅ 결제 완료 → 영수증 KV 저장 (서버 진실원천, 텔레그램→워커 직통이라 위조불가). game.js가 /verify로 확인 후 grant.
+      if (u.message && u.message.successful_payment) {
+        const sp = u.message.successful_payment;
+        const item = (sp.invoice_payload || "").split(":")[0];
+        const uid = (sp.invoice_payload || "").split(":")[1] || "0";
+        if (env.RECEIPTS && item) await env.RECEIPTS.put("rcpt:" + uid + ":" + item, sp.telegram_payment_charge_id || "1", { expirationTtl: 86400 });
+      }
       return json({ ok: true });
     }
 
