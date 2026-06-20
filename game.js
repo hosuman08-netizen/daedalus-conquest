@@ -1574,7 +1574,7 @@ function updateModeTabs() {
   // 높은 챕터(2자리↑)면 'chN' 빼고 단어만 — 메타바 📖N로 이미 표시됨(넘침 방지). 한자리는 힌트로 유지.
   if (camp) { const ch = META.chapter || 1; camp.textContent = ch >= 10 ? t("mode.campaign") : (t("tCampaignChLabel") + ch); }
   const tower = document.querySelector('.modetab[data-m="tower"]');
-  if (tower) tower.textContent = t("tTowerLabel", { n: Math.max(1, META.tower || 1) });   // 🗼 현재 층수 표시
+  if (tower) tower.textContent = t("mode.tower");   // 🗼 무한탑만 — 층수는 헤더 뱃지(🗼N층)에 표시(넘침 방지)
   // 🗼 헤더 층수 뱃지 — 무한탑 모드일 때만 노출 (다음 50층 벽까지 표시)
   const tf = $("tower-floor");
   if (tf) {
