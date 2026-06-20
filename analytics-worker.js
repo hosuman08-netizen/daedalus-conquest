@@ -62,6 +62,49 @@ export default {
       return json({ ok: true, day, counts: out });
     }
 
+    // ③ 코호트 리텐션 — 오라클(CDO). GET /cohort
+    //    u:anon {first,last} 기반 rolling retention(설치코호트별 Dn까지 잔존).
+    //    정직: first/last만 있어 "정확히 N일째 활동"이 아닌 "N일 이상 잔존(rolling)" 근사.
+    if (req.method === "GET" && url.pathname === "/cohort") {
+      if (!env.EVENTS) return json({ ok: false, reason: "kv-not-set" });
+      const users = await listUsers(env);              // [{first,last}]
+      const coh = {};                                  // first일 -> {n, d1, d7, d30}
+      const dnum = (d) => Date.parse(d + "T00:00:00Z") / 86400000;
+      for (const u of users) {
+        if (!u.first) continue;
+        const c = coh[u.first] || (coh[u.first] = { n: 0, d1: 0, d7: 0, d30: 0 });
+        c.n++;
+        const span = (dnum(u.last || u.first) - dnum(u.first));   // 잔존 일수
+        if (span >= 1) c.d1++; if (span >= 7) c.d7++; if (span >= 30) c.d30++;
+      }
+      // 전체 합산(성숙 보정은 Oracle 도구에서; 여기선 raw 코호트 제공)
+      const rate = (a, b) => (b ? +(a / b).toFixed(4) : 0);
+      let N = 0, R1 = 0, R7 = 0, R30 = 0;
+      for (const k in coh) { N += coh[k].n; R1 += coh[k].d1; R7 += coh[k].d7; R30 += coh[k].d30; }
+      return json({ ok: true, totalUsers: N, rolling: { d1: rate(R1, N), d7: rate(R7, N), d30: rate(R30, N) }, cohorts: coh, note: "rolling retention(span>=N). 성숙도 보정은 Oracle 도구에서." });
+    }
+
+    // ④ raw export — 오라클 오프라인 분석용. GET /export (u: 요약 레코드, 익명)
+    if (req.method === "GET" && url.pathname === "/export") {
+      if (!env.EVENTS) return json({ ok: false, reason: "kv-not-set" });
+      const users = await listUsers(env);
+      return json({ ok: true, count: users.length, users });
+    }
+
     return json({ ok: true, service: "legion-analytics" });
   },
 };
+
+// KV.list 페이지네이션으로 u: 유저 요약 전부 수집(상한 안전망)
+async function listUsers(env) {
+  const out = []; let cursor; let pages = 0;
+  do {
+    const r = await env.EVENTS.list({ prefix: "u:", cursor, limit: 1000 });
+    for (const k of r.keys) {
+      try { const u = JSON.parse((await env.EVENTS.get(k.name)) || "{}"); if (u.first) out.push({ first: u.first, last: u.last || u.first }); } catch (e) {}
+    }
+    cursor = r.cursor; pages++;
+    if (r.list_complete) break;
+  } while (cursor && pages < 50);   // 최대 5만 유저까지(MVP 충분)
+  return out;
+}
