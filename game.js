@@ -1371,7 +1371,13 @@ function updateModeTabs() {
 }
 function setMode(m) {
   if (running) { toast(t("tNoSwitch"), "#ef4444"); return; }
-  if (m === "turnbased") { toast(t("tComingTb"), "#a855f7"); return; }
+  if (m === "turnbased") { 
+    // 최소 스텁: 배치 후 결과 (수동 배치 느낌 주기 위해 별도 라벨)
+    META.mode = m; 
+    $("status").textContent = "턴제: 배치 완료 후 '시작' - 전략적 자동 결과 (Phase1 stub)";
+    updateModeTabs();
+    return;
+  }
   if (m === "arena") {
     // MVP final plan: arena daily 5회 제한만, 자동매칭 placeholder (Phase2 full)
     // 2026-06-16 Morpheus: decided HIDE (lean MVP, 4-action dopamine focus, reversible no-broken). Stubs remain for future.
@@ -3667,7 +3673,25 @@ function renderDash() {
   // 🔄 전력 표시엔 환생 복리배율 반영(도파민 "눈에 보이게 세짐"). 배당골드(dividendGold)는 raw 유지 — 패시브 인플레 방지.
   if ($("dash-power")) $("dash-power").textContent = fmtNum((sq.length ? squadPower() : legionPower()) * ascPowerMul());   // K/M 단위
   if ($("dash-div")) $("dash-div").textContent = dividendGold();
+  renderCharProgress();
   renderSquad();
+}
+// 📊 수집·전과 진행 띠 (빈 공간 채움 + 수집욕·가챠 동기)
+function renderCharProgress() {
+  const el = $("char-progress"); if (!el) return;
+  const total = (typeof ROSTER !== "undefined") ? ROSTER.length : 200;
+  const owned = (META.owned || []).length;
+  const pct = total ? Math.round(owned / total * 100) : 0;
+  const ssr = (typeof ROSTER !== "undefined" ? ROSTER : []).filter((u) => (META.owned || []).includes(u.id) && ["SSR", "UR", "EX"].includes(u.rarity)).length;
+  const maxCh = Math.max(META.maxChapter || 0, META.chapter || 1);
+  el.innerHTML =
+    '<div class="cprog-bar"><div class="cprog-fill" style="width:' + pct + '%"></div></div>' +
+    '<div class="cprog-row">' +
+      '<span>📋 도감 <b>' + owned + '/' + total + '</b> <i>' + pct + '%</i></span>' +
+      '<span>⭐ SSR <b>' + ssr + '</b></span>' +
+      '<span>🏆 ch <b>' + maxCh + '</b></span>' +
+      '<span>🔄 환생 <b>' + (META.ascCount || 0) + '</b></span>' +
+    '</div>';
 }
 
 // ── 편성 UI (출전 슬롯 + 보유 풀 + 시너지) ─────────────────────────────────────

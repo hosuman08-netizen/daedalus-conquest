@@ -13,8 +13,9 @@ html, body {
     var(--bg);
   background-attachment: fixed;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", sans-serif;
+  -webkit-font-smoothing: antialiased;
   user-select: none; overscroll-behavior: none;
-  overflow-x: hidden;   /* 가로 오버플로우 클립 — metabar/상점 등 우측 잘림·가로스크롤 방지 */
+  overflow-x: hidden;
 }
 #app { max-width: 480px; margin: 0 auto; padding: 8px 9px 70px; position: relative; }
 
@@ -30,13 +31,14 @@ html, body {
 #page-char { padding-top: 4px; }
 /* 하단 네비 */
 #bnav { position: fixed; left: 0; right: 0; bottom: 0; max-width: 480px; margin: 0 auto; display: flex;
-  background: #0f0a18; border-top: 1px solid #2c2142; z-index: 9; }
+  background: rgba(15,10,24,0.92); backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(44,33,66,0.6); z-index: 9; }
 .navtab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 5px 0 calc(5px + env(safe-area-inset-bottom));
   background: transparent; color: var(--dim); border: none; font-size: 16px; }
 .navtab span { font-size: 9px; white-space: nowrap; }
 .navtab.sel { color: var(--gold); } /* compact for 6 tabs on phone */
-header { display: flex; align-items: center; justify-content: space-between; }
-h1 { font-size: 16px; margin: 2px 0; letter-spacing: .5px; }
+header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 4px; }
+h1 { font-size: 17px; font-weight: 800; margin: 2px 0; letter-spacing: .8px; }
 h1::first-letter { color: var(--crimson); }
 .meta.gem i { color: #67e8f9; }
 #event-btn, #shop-btn { flex: none; padding: 8px 10px; font-size: 14px; background: #241539; color: var(--text); border: none; border-radius: 9px; }
@@ -50,7 +52,7 @@ h1::first-letter { color: var(--crimson); }
 /* hero bar premium sel per subagent: scale + gold rim + pulse for "MY POWER" identity */
 .hcode { color: var(--crimson); font-weight: 900; font-size: 12px; padding: 1px 5px; border: 1px solid #7f1d1d; border-radius: 5px; }
 /* 2026-06-16 Morpheus UI polish (heroicon bar critical): .him for god-pose icons (64-128 fit), premium sel scale/glow + per tint bleed. Clean one-view micro: tighter hero row, ult prominent. Reversible. */
-.hbtn .him { width: 22px; height: 22px; object-fit: cover; border-radius: 3px; vertical-align: middle; margin-right: 1px; border: 1px solid rgba(255,255,255,0.2); }
+.hbtn .him { width: 22px; height: 22px; object-fit: contain; border-radius: 3px; vertical-align: middle; margin-right: 1px; border: 1px solid rgba(255,255,255,0.2); background: #05040c; } /* consistent nukki */
 .hbtn.sel .him { box-shadow: 0 0 8px currentColor; }
 #heroes { margin: 4px 0; }
 #ult { font-size:12px; padding:6px 10px; } /* cleaned flat, no effects */
@@ -72,6 +74,9 @@ h1::first-letter { color: var(--crimson); }
 .prof-meta { min-width: 0; }
 .prof-name { font-size: 15px; font-weight: 800; }
 .prof-name .prem { color: var(--gold); }
+.prof-title { font-size: 12.5px; font-weight: 800; color: #fbbf24; margin: 2px 0 1px; text-shadow: 0 0 6px rgba(251,191,36,.3); }
+.prof-vip { font-size: 10px; font-weight: 900; color: #fff; background: linear-gradient(135deg,#a855f7,#7c3aed); padding: 1px 7px; border-radius: 6px; vertical-align: middle; }
+.prof-vip.ultra { background: linear-gradient(135deg,#fbbf24,#f59e0b); color: #1a1330; }
 .prof-uid { font-size: 12px; color: var(--gold); }
 .prof-uid.ddim { color: var(--dim); }
 .prof-guest { font-size: 12px; color: var(--dim); padding: 4px 2px; }
@@ -132,21 +137,35 @@ h1::first-letter { color: var(--crimson); }
   aspect-ratio: 1/1.02; 
   border: none; 
   background: transparent; 
-  border-radius: 12px; 
+  border-radius: 14px; 
   display: flex; 
   flex-direction: column; 
   align-items: center; 
   justify-content: center; 
   gap: 2px; 
-  padding: 2px; 
+  padding: 3px; 
   transition: transform .2s cubic-bezier(0.23, 1, 0.32, 1), box-shadow .2s ease; 
   cursor: pointer; 
-} /* cleaner modern card */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+} /* cleaner modern card with soft shadow */
 .cxc.lock { opacity: .82; filter: grayscale(0.25); }  /* 군주 20260617: 미보유도 일러스트 선명하게 "보는 맛" — 살짝만 muted */
 .cxc:active { transform: scale(0.93); box-shadow: 0 0 0 1.5px #fbbf2488; }
-.cxc .cxg { font-size: 16px; position: relative; width: 100%; flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 7px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03); border: none; background: #05040c; }
+.cxc .cxg { 
+  font-size: 16px; 
+  position: relative; 
+  width: 100%; 
+  flex: 1; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  overflow: hidden; 
+  border-radius: 10px; 
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04); 
+  border: none; 
+  background: #05040c; 
+}
 .cxc .cxgly { line-height: 1; }
-.cxc .cxim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; border-radius: 6px; border: none; box-shadow: none; background: #05040c; } /* nukki codex: contain + center (no white square), clean fill */
+.cxc .cxim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; border-radius: 6px; border: none; box-shadow: none; background: #05040c; } /* nukki codex: contain + center, clean fill, no extra inner border/white frame, outer glow from .cxc.rSSR handles premium */
 .cxc.rSSR:not(.lock) { box-shadow: 0 0 0 1.5px rgba(251,191,36,0.38); }
 .cxc:not(.lock):hover { transform: scale(1.015); }
 .cxc:not(.lock):active { transform: scale(0.94); box-shadow: 0 0 0 2px #fbbf24cc; }
@@ -156,7 +175,7 @@ h1::first-letter { color: var(--crimson); }
 /* 등급별 프리미엄 타일 */
 .cxc.rR, .gxc.rR   { background: linear-gradient(160deg, #16213e 0%, #16101f 100%); }
 .cxc.rSR, .gxc.rSR { background: linear-gradient(160deg, #2a1c44 0%, #16101f 100%); }
-.cxc.rSSR, .gxc.rSSR { background: #05040c; } /* SSR 카드: 전부 검정 배경 (사용자 요청) */
+.cxc.rSSR, .gxc.rSSR { background: #05040c; } /* SSR 카드 타일: 검정 배경 */
 .cxc.rSSR:not(.lock) .cxgly, .cxc.rSR:not(.lock) .cxgly { filter: drop-shadow(0 0 6px currentColor); }
 /* Alex Rivera: Ultra clean modern codex (user exact: "빨간색 동그라미 지우고 글자 지워 없는게나아"). No red/fac circles, no .cxr/.cxn text/labels in grid. Pure high-end icon gallery (E7 clean + HSR icon pride). Subtle variety ONLY arch/fac tints/glows/rims. Owned SSR gold rim pop + lift. Tap scale dopamine. PNG/synth 간지 full. TG 5-col scannable premium. */
 .cxc .cxr, .gxc .gxr, .cxc .cxr, .cxc .cxn { display: none !important; }
@@ -188,7 +207,9 @@ h1::first-letter { color: var(--crimson); }
 .cxc .cxgly .acc { vertical-align: super; }
 /* Premium gallery polish: owned SSR stronger inner gold rim + lift pop, subtle fac glow for scannability without clutter. */
 .cxc:not(.lock) { box-shadow: 0 0 0 1px rgba(255,255,255,0.04); }
-.cxc.rSSR:not(.lock) { box-shadow: 0 0 0 1.5px rgba(251,191,36,0.48), inset 0 0 0 1px rgba(251,191,36,0.22); }
+.cxc.rSSR:not(.lock) { 
+  box-shadow: 0 0 0 1px rgba(251,191,36,0.5), 0 4px 16px rgba(0,0,0,0.25); 
+} /* softer elegant SSR rim - 부드럽게 */
 .cxc:not(.lock):hover { transform: scale(1.02); box-shadow: 0 0 0 1.5px #fbbf2488; }
 .cxc.rSSR:not(.lock):hover { box-shadow: 0 0 0 2px #fbbf24, 0 0 12px #fbbf2466; }
 #gdex-filter { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; }
@@ -203,9 +224,13 @@ h1::first-letter { color: var(--crimson); }
 .gxc .gxi.gear-codex-art { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
 .gxc .gxi.gear-codex-art .gear-synth,
 .gxc .gxi.gear-codex-art .g-art,
-.gxc .gxi.gear-codex-art img { width: 52px; height: 52px; font-size: 20px; filter: contrast(1.18) saturate(1.28) brightness(1.06); box-shadow: 0 2px 8px rgba(0,0,0,0.6), 0 0 6px rgba(251,191,36,0.12); } /* bit larger for tap */
-.gxc .gxi.gear-codex-art .gear-synth .gear-r { font-size: 8px; } /* readable rarity */
-#unit-pop { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 18; padding: 6px; }
+.gxc .gxi.gear-codex-art img { width: 92%; height: 92%; max-width: 52px; max-height: 52px; font-size: 20px; object-fit: contain; filter: contrast(1.18) saturate(1.28) brightness(1.06); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 2px 8px rgba(0,0,0,0.6), 0 0 6px rgba(251,191,36,0.12); } /* fill container + border for tight comfortable gear icon nukki */
+.gxc .gxi.gear-codex-art .gear-synth .gear-r { font-size: 8px; }
+/* Rarity visual escalation in codex (고급일수록 강하게) */
+.gxc .gxi.gear-codex-art .gear-synth.rSSR { filter: contrast(1.3) saturate(1.5) brightness(1.15) drop-shadow(0 0 8px #fbbf24); }
+.gxc .gxi.gear-codex-art .gear-synth.rSR { filter: contrast(1.25) saturate(1.4) brightness(1.1) drop-shadow(0 0 5px #c084fc); }
+.gxc .gxi.gear-codex-art .gear-synth.rR { filter: contrast(1.2) saturate(1.2) brightness(1.05); }
+#unit-pop { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 18; padding: 6px; }
 #unit-pop.hidden { display: none; } /* final perfect centered modal, no bottom stuck */
 /* 장비 관리 팝업 — 캐릭터창(#char-panel) 시각 언어 차용 (군주 20260616 "장비 눌렀을때 캐릭터 창 처럼"). 가독성 우선: 캐릭창보다 살짝 큼. */
 #unit-card.gear-manage { text-align: left; max-width: 320px; padding: 12px 13px 13px; }
@@ -214,20 +239,32 @@ h1::first-letter { color: var(--crimson); }
 #unit-card.gear-manage #unit-title { display: none; }   /* 헤더(gm-head)로 대체 */
 .gm-head { display: flex; gap: 10px; align-items: center; margin-bottom: 11px; }
 .gm-art { position: relative; width: 56px; height: 56px; flex: 0 0 56px; border: 2px solid; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #05040c; box-shadow: inset 0 0 14px rgba(0,0,0,0.9), 0 0 0 1px rgba(0,0,0,0.5); }
-.gm-art .gear-synth, .gm-art .g-art, .gm-art img { width: 48px; height: 48px; object-fit: contain; border-radius: 5px; filter: contrast(1.15) saturate(1.2); } /* gear icon: contain keeps full visible inside gold border */
+.gm-art .gear-synth, .gm-art .g-art, .gm-art img { width: 48px; height: 48px; object-fit: contain; border-radius: 5px; filter: contrast(1.15) saturate(1.2); }
+.gm-art .gear-synth.rSSR { filter: contrast(1.3) saturate(1.5) brightness(1.15) drop-shadow(0 0 6px #fbbf24); }
+.gm-art .gear-synth.rSR { filter: contrast(1.25) saturate(1.4) brightness(1.1) drop-shadow(0 0 4px #c084fc); }
 .gm-art .gear-synth .gear-r { font-size: 8px; }
 /* Gear codex detail preview (unit-glyph 재활용 시 큰 일러스트) */
 #unit-glyph .gdex-gear-preview {
-  box-shadow: inset 0 0 12px rgba(0,0,0,0.7);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #05040c;
+  border-radius: 8px;
+  overflow: hidden;
 }
 #unit-glyph .gdex-gear-preview img,
 #unit-glyph .gdex-gear-preview .g-art,
 #unit-glyph .gdex-gear-preview .gear-synth {
-  width: 120px;
-  height: 120px;
+  width: 92%;
+  height: 92%;
+  max-width: 140px;
+  max-height: 140px;
   object-fit: contain;
-  filter: contrast(1.15) saturate(1.25);
-}
+  filter: contrast(1.18) saturate(1.28) brightness(1.08);
+  border: 1px solid rgba(255,255,255,0.1);
+} /* gear codex preview: generous fill, tight inner border for comfortable hug in modal */
 .gm-meta { min-width: 0; flex: 1; }
 .gm-nm { font-size: 14px; font-weight: 800; line-height: 1.25; }
 .gm-ti { font-size: 10px; color: var(--dim); margin: 3px 0; line-height: 1.2; }
@@ -250,10 +287,10 @@ h1::first-letter { color: var(--crimson); }
 /* NUKKI GOLD FRAME (tight fit): #unit-glyph yellow/gold border now hugs the illustration edge with zero gap. Container relative + absolute inset img (cover + tuned pos) ensures perfect alignment regardless of PNG intrinsic size/aspect. No padding inside border. Consistent bust crop for all nukki. */
 #unit-glyph { font-size: 11px; position: relative; width: 100%; max-width: 280px; aspect-ratio: 1 / 1.02; max-height: 36vh; margin: 0 auto 4px; display: block; overflow: hidden; background: transparent; border-radius: 12px; }
 #unit-glyph img.ucim, #unit-glyph .ucim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; border-radius: 9px; display: block; border: none; box-shadow: none; background: transparent; } /* 누끼 맞춤: 투명 배경으로 카드 배경과 자연스럽게 블렌드, 박스 제거 */
-#unit-glyph .ucgly { line-height: 1; }
-/* Premium SSR background for unit popup glyph (matching codex) — fixes "ssr인데 배경도 없고" */
+/* Premium SSR background for unit popup glyph — 검정 배경 통일 */
 #unit-card.rSSR #unit-glyph { background: transparent; }
 #unit-card.rSSR #unit-glyph img.ucim, #unit-card.rSSR #unit-glyph .ucim { background: transparent; }
+#unit-glyph .ucgly { line-height: 1; }
 /* Elegant premium SSR gold rim — border now directly on frame for "must own" shine. */
 #unit-card.rSSR #unit-glyph img.ucim, #unit-card.rSSR #unit-glyph .ucim, #char-panel-card.rSSR #unit-glyph img, #char-panel-card.rSSR #unit-glyph .ucim { border-color: #fbbf24; box-shadow: inset 0 0 22px rgba(0,0,0,0.92), 0 0 0 1px rgba(0,0,0,0.6), 0 0 0 2px rgba(251,191,36,0.55); } 
 #unit-card img,
@@ -265,11 +302,11 @@ h1::first-letter { color: var(--crimson); }
 #unit-card .cpim,
 #char-panel-card img,
 #char-panel-card .cpim {
-  max-height: none; /* rely on parent frame for tight nukki fit */
+  max-height: none;
   width: 100%; max-width: 100%; height: auto;
   display: block;
   filter: contrast(1.18) saturate(1.26) brightness(1.05);
-} /* nukki fill: contain + center for full arts, parent glyph/card frame controls. */
+} /* nukki: rely on the contain/center rules in .cxim/.ucim/.cpim */
 #unit-card .gear-synth {
   max-width: 52px;
   max-height: 52px;
@@ -285,13 +322,8 @@ h1::first-letter { color: var(--crimson); }
 #dash-list { display: flex; flex-direction: column; gap: 6px; }
 .dcard { display: flex; align-items: center; gap: 8px; background: #1d1535; border-radius: 10px; padding: 8px 10px; }
 
-/* Formation / Deploy UI - 유저가 보기 쉽게 (scannable, larger targets, clear state) */
-/* MVP: larger touch for +/- buttons */
-#deploy .step button { min-width:48px; min-height:48px; font-size:22px; }
-/* MVP: larger touch targets for +/- */
-#deploy .step button { min-width:48px; min-height:48px; font-size:22px; }
-/* MVP larger touch for +/- buttons */
-#deploy .step button { min-width:48px; min-height:48px; font-size:22px; padding:0 4px; }
+/* Formation / Deploy UI — 탭하기 좋되 뚱뚱하지 않게 (중복 3룰 정리, 48→40px) */
+#deploy .step button { min-width:40px; min-height:40px; font-size:20px; padding:0 4px; }
 .deploy-preview {
   display: flex;
   flex-wrap: wrap;
@@ -401,8 +433,25 @@ h1::first-letter { color: var(--crimson); }
 #score { font-size: 15px; font-weight: 700; }
 #score .b { color: var(--blue); } #score .r { color: var(--red); }
 
-#metabar { display: flex; align-items: center; gap: 3px; margin: 8px 0 4px; flex-wrap: wrap; }
-.meta { background: var(--panel); border-radius: 8px; padding: 5px 6px; font-size: 11.5px; font-weight: 700; flex: 1 1 auto; text-align: center; white-space: nowrap; }
+#metabar { 
+  display: flex; 
+  align-items: center; 
+  gap: 6px; 
+  margin: 8px 0 8px; 
+  flex-wrap: wrap; 
+}
+.meta { 
+  background: rgba(26,19,48,0.85); 
+  backdrop-filter: blur(10px);
+  border-radius: 999px; 
+  padding: 5px 8px; 
+  font-size: 11px; 
+  font-weight: 700; 
+  flex: 1 1 auto; 
+  text-align: center; 
+  white-space: nowrap; 
+  border: 1px solid rgba(255,255,255,0.06);
+}
 .meta.gold i { color: var(--gold); } .meta.ch i { color: #93c5fd; }
 #gacha-btn { flex: none; padding: 8px 12px; font-size: 13px; font-weight: 800;
   background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #2a1a00; border: none; border-radius: 9px; }
@@ -444,6 +493,8 @@ h1::first-letter { color: var(--crimson); }
 /* 스타터팩 모달 */
 #starter { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 12; }
 #starter.hidden { display: none; }
+/* 📊 확률 공개 모달: 인라인 display:flex 때문에 !important 필요 (안 닫히던 버그 수정) */
+#odds-modal.hidden { display: none !important; }
 #starter-card { background: linear-gradient(160deg, #2a1f3a, #161a26); padding: 24px 26px; border-radius: 18px;
   text-align: center; max-width: 320px; border: 1.5px solid #a855f7; animation: pop .3s ease-out; }
 .sp-badge { font-size: 21px; font-weight: 900; color: #f0abfc; margin-bottom: 14px; }
@@ -459,10 +510,10 @@ h1::first-letter { color: var(--crimson); }
 #field { display: block; width: 100%; border-radius: 12px; background: #0f121a; border: 1px solid #241b3a; touch-action: manipulation; }
 
 /* 모드 사이클 탭 */
-#modes { display: flex; gap: 5px; overflow-x: auto; padding: 2px 0 4px; -webkit-overflow-scrolling: touch; }
+#modes { display: flex; gap: 4px; padding: 2px 0 4px; }  /* 가로스크롤 제거 — 6탭 한 줄에 맞춤 */
 #modes::-webkit-scrollbar { display: none; }
-.modetab { flex: 0 0 auto; padding: 7px 11px; font-size: 12.5px; font-weight: 700; border-radius: 8px;
-  background: #1c1730; color: var(--dim); border: 1.5px solid transparent; }
+.modetab { flex: 1 1 0; min-width: 0; padding: 6px 3px; font-size: 11px; font-weight: 700; border-radius: 8px; white-space: nowrap; overflow: hidden; justify-content: center;
+  background: #1c1730; color: var(--dim); border: 1.5px solid transparent; display: inline-flex; align-items: center; gap: 2px; }
 .modetab.sel { color: #fff; background: linear-gradient(135deg, #3a1d5e, #2a1840); border-color: var(--purple); }
 .modetab.locked { opacity: .5; position: relative; }
 .modetab.locked::after { content: "🔒"; font-size: 9px; margin-left: 3px; }
@@ -470,6 +521,16 @@ h1::first-letter { color: var(--crimson); }
   border-color: #fbbf24;
   animation: teaser-pulse 2s infinite ease-in-out;
   opacity: 0.85;
+}
+/* 간지 아이콘 스타일 — 고급스러운 glow, 크기 */
+.modetab .mode-icon {
+  font-size: 14px;
+  line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.6));
+}
+.modetab.sel .mode-icon {
+  filter: drop-shadow(0 0 4px currentColor) drop-shadow(0 1px 2px rgba(0,0,0,0.6));
+  transform: scale(1.05);
 }
 @keyframes teaser-pulse {
   0%,100% { box-shadow: 0 0 0 0 #fbbf2466; }
@@ -492,7 +553,7 @@ h1::first-letter { color: var(--crimson); }
   display: flex; align-items: center; justify-content: center;
 }
 .hbtn .hgly { display:none; } /* 20260616 Sovereign: hero bar pure PNG — 겹치는 이모지 완전 제거 (fallback 시에만 사용) */
-.hbtn .him { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center top; z-index:1; opacity:.82; }
+.hbtn .him { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; object-position:center center; z-index:1; opacity:.82; background: #05040c; } /* consistent nukki */
 .hbtn:active { transform: scale(0.88); }
 .hbtn.sel {
   border-color: #fbbf24; transform: scale(1.1); z-index:8;  /* 2026-06-16 Sovereign 복구: 과한 82px 형광 후광 제거 → 은은하고 보기 쉬운 선택 강조 */
@@ -625,10 +686,10 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 /* ⚔️ 편성(스쿼드) 시스템 */
 .syn-chip { display: inline-block; font-size: 10.5px; font-weight: 700; color: #a3e635; background: #1c2a14; border: 1px solid #3a5a1e; border-radius: 6px; padding: 2px 7px; margin: 0 4px 4px 0; }
 #squad-slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
-.sq-slot { position: relative; aspect-ratio: 1/1.25; background: #16101f; border: 1.5px solid #2c2142; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer; overflow: hidden; }
+.sq-slot { position: relative; aspect-ratio: 1/1.18; background: #16101f; border: 1.5px solid #2c2142; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; overflow: hidden; padding: 1px; }
 .sq-slot.filled { background: #1d1535; }
-.sq-slot .sq-art { position: relative; width: 82%; aspect-ratio: 1/1; max-width: 62px; display: flex; align-items: center; justify-content: center; font-size: 24px; overflow: hidden; border-radius: 7px; }
-.sq-slot .sqim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; border-radius: 6px; border: none; box-shadow: none; background: #05040c; } /* nukki squad: contain center clean */
+.sq-slot .sq-art { position: relative; width: 100%; aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; font-size: 24px; overflow: hidden; border-radius: 7px; }
+.sq-slot .sqim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; border-radius: 6px; border: none; box-shadow: none; background: #05040c; } /* nukki squad: contain + center clean dark */
 .sq-nm { font-size: 9.5px; font-weight: 800; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 2px; }
 .sq-lv { font-size: 8px; color: var(--dim); }
 .sq-x { position: absolute; top: 2px; right: 4px; font-size: 11px; color: #f87171; }
@@ -638,7 +699,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .sq-pool-item { position: relative; aspect-ratio: 1/1.18; background: #16101f; border: 1.5px solid; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; overflow: hidden; padding: 1px; }
 .sq-pool-item.on { background: #241a3a; box-shadow: inset 0 0 0 1px var(--gold); }
 .sq-pool-item .sq-art { position: relative; width: 100%; aspect-ratio: 1/1; background: #0c0813; display: flex; align-items: center; justify-content: center; font-size: 22px; overflow: hidden; border-radius: 7px; }
-.sq-pool-item .sqim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; border-radius: 6px; border: none; box-shadow: none; background: #05040c; } /* nukki pool: contain center clean */
+.sq-pool-item .sqim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; border-radius: 6px; border: none; box-shadow: none; background: #05040c; } /* nukki pool: contain + center clean dark */
 .sq-pnm { font-size: 9px; font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sq-prr { font-size: 8.5px; font-weight: 900; }
 .sq-pool-item.rSSR { box-shadow: inset 0 0 12px rgba(245,196,81,0.22); }
@@ -660,7 +721,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 } /* softer char panel */
 #cp-head { display: flex; gap: 1px; align-items: center; margin-bottom: 0; }
 .cp-art { position: relative; width: 30px; height: 30px; flex: 0 0 30px; border: 1px solid rgba(245,196,81,0.32); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 11px; overflow: hidden; background:#05040c; }
-.cp-art .cpim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; border-radius: 3px; border: none; box-shadow: none; background: #05040c; } /* consistent nukki contain + center */
+.cp-art .cpim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; border-radius: 3px; border: none; box-shadow: none; background: #05040c; } /* consistent nukki */
 .cp-meta { min-width: 0; flex: 1; }
 .cp-nm { font-size: 10px; font-weight: 800; line-height: 1.0; }
 .cp-ti { font-size: 6.5px; color: var(--dim); margin: 0; line-height: 1.0; }
@@ -802,7 +863,7 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .gear-synth .gear-shard2 { top:61%; left:20%; animation-delay:1.05s; }
 @keyframes gearShardFloat { 0%{transform:translateY(0) scale(1);} 100%{transform:translateY(-3.5px) scale(.68);} }
 
-/* Synth UPGRADE: deeper N shadows/rim/veins, SR extra energy shards, SSR gold filigree rim (etched premium "멋져" not toy) */
+/* Synth UPGRADE: 고급일수록 극적으로 간지 차이. SSR은 압도적 프리미엄, SR은 확실한 업그레이드. */
 .gear-synth.rN { background: linear-gradient(145deg, #252a38 0%, #151a24 100%); border-color: #7a818f; box-shadow: 0 3px 10px rgba(0,0,0,0.88), inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -4px 7px rgba(0,0,0,0.75); }
 .gear-synth .gear-shard3 { position:absolute; width:3.2px; height:3.2px; background:rgba(255,255,255,.8); border-radius:50%; box-shadow:0 0 3px #fff; pointer-events:none; top:42%; left:52%; animation:gearShardFloat 1.9s ease-in-out infinite alternate 0.6s; }
 .gear-synth .gear-filigree, .gear-synth .gear-filigree2 { position:absolute; pointer-events:none; }
@@ -811,7 +872,8 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .gear-synth.rR .gear-vein, .gear-synth.rR .gear-vein2 { color:#60a5fa; opacity:.48; }
 /* Exact CSS polish: larger .gxc slots (scannable premium), .g-art contrast + aura (Jordan visual consistency, MY power pop) */
 .gxc { aspect-ratio: 1/1; padding: 5px; }
-.gxc .gxi.gear-codex-art .gear-synth, .gxc .gxi.gear-codex-art .g-art, .gxc .gxi.gear-codex-art img { width: 92%; height: 92%; max-width: 42px; max-height: 42px; font-size: 17px; object-fit: contain; filter: contrast(1.32) saturate(1.38) brightness(1.1); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 3px 11px rgba(0,0,0,0.68), 0 0 10px rgba(251,191,36,0.22); } /* fill + border for tight hug */
+.gxc .gxi.gear-codex-art .gear-synth, .gxc .gxi.gear-codex-art .g-art, .gxc .gxi.gear-codex-art img { width: 92%; height: 92%; max-width: 42px; max-height: 42px; font-size: 17px; object-fit: contain; filter: contrast(1.32) saturate(1.38) brightness(1.1); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 3px 11px rgba(0,0,0,0.68), 0 0 10px rgba(251,191,36,0.22); }
+.gxc .gxi.gear-codex-art .g-art, .gxc .gxi.gear-codex-art img { box-shadow: 0 3px 12px rgba(0,0,0,0.72), 0 0 14px rgba(245,196,81,0.25); } /* fill + border for tight hug */
 .gear-art, .slot-art { filter: contrast(1.28) saturate(1.35) brightness(1.08); box-shadow: inset 0 0 18px rgba(0,0,0,0.82), 0 5px 12px rgba(0,0,0,0.7), 0 0 9px rgba(255,255,255,0.18); border-color:#4a5065; }
 
 .legend-toggle { display:block; margin: 10px auto 0; padding: 4px 12px; font-size: 11px; color: var(--dim); background: transparent; border: 1px solid #2c2142; border-radius: 8px; }
@@ -848,8 +910,8 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 #gear-inv { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 10px; }
 .ginv-tile { position: relative; aspect-ratio: 1/1.05; background: #16101f; border: 1.5px solid; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer; overflow: hidden; transition: transform .06s, box-shadow .1s; }
 .ginv-tile:active { transform: scale(.92); box-shadow: 0 0 0 2px #fbbf24; }
-.ginv-tile .gt-art { width: 82%; aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; font-size: 22px; } /* generous fill for comfortable viewing */
-.ginv-tile .gt-art .g-art { width: 100%; height: 100%; object-fit: contain; filter: contrast(1.18) saturate(1.28) brightness(1.08); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 0 8px rgba(251,191,36,0.18); } /* premium + border for tight hug */
+.ginv-tile .gt-art { width: 82%; aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; font-size: 22px; } /* generous fill for comfortable viewing, art prominent in tile */
+.ginv-tile .gt-art .g-art { width: 100%; height: 100%; object-fit: contain; filter: contrast(1.18) saturate(1.28) brightness(1.08); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 0 8px rgba(251,191,36,0.18); } /* premium aura + thin border on art for tight frame hug */
 .ginv-tile .gt-rr { font-size: 8px; font-weight: 900; }
 .ginv-tile .gt-eq { position: absolute; top: 1px; right: 2px; font-size: 9px; }
 .ginv-tile.rSSR { box-shadow: inset 0 0 12px rgba(245,196,81,0.22); }
@@ -1014,7 +1076,8 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 /* 🗺️ 세계 정복 지도 (정복지가 내 색으로 물든다) */
 #conquest-map { margin: 4px 0 8px; }
 .cq-title { font-size: 12px; font-weight: 800; color: #fbbf24; letter-spacing: .5px; margin-bottom: 5px; }
-.cq-strip { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 4px; }
+.cq-strip { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; padding-bottom: 4px; }  /* 보상 10개 줄바꿈 — 가로스크롤 제거 */
+.cq-next { font-size: 10px; font-weight: 700; color: #67e8f9; margin-left: 4px; }
 .cq-node { flex: 0 0 auto; width: 38px; height: 44px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-size: 9px; border: 1px solid #2a2536; background: #14121c; transition: all .2s; }
 .cq-node .cq-ic { font-size: 15px; line-height: 1; }
 .cq-node .cq-n { color: #9ca3af; font-weight: 700; }
@@ -1024,6 +1087,15 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 .cq-node.here .cq-n { color: #67e8f9; }
 .cq-node.lock { opacity: .4; }
 @keyframes cqPulse { 0%,100% { box-shadow: 0 0 6px -2px #67e8f966; } 50% { box-shadow: 0 0 12px -1px #67e8f9bb; } }
+/* 🎁 정복 보상 상자 노드 */
+.cq-node.rwd .cq-ic { font-size: 17px; }
+.cq-node.rwd.ready { border-color: #fbbf24; background: linear-gradient(160deg, #4a3410, #2a1d08); cursor: pointer; animation: cqChest .9s infinite ease-in-out; }
+.cq-node.rwd.ready .cq-n { color: #fde047; }
+.cq-node.rwd.done { border-color: #3f6212; background: linear-gradient(160deg, #1a240f, #11160a); opacity: .8; }
+.cq-node.rwd.done .cq-n { color: #84cc16; }
+.cq-node.rwd.lock { border-color: #3a3550; opacity: .55; }
+@keyframes cqChest { 0%,100% { box-shadow: 0 0 8px -2px #fbbf2488; transform: translateY(0); } 50% { box-shadow: 0 0 16px 0 #fbbf24cc; transform: translateY(-2px); } }
+.cq-badge { font-size: 10px; font-weight: 800; color: #fde047; background: #4a3410; border: 1px solid #fbbf24; border-radius: 6px; padding: 1px 6px; margin-left: 4px; animation: cqChest .9s infinite ease-in-out; }
 
 /* 🎰 가챠 결과 목록 (10연 10개 다 + 단차 신규/중복) */
 #gacha-list { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin: 10px 0 4px; max-height: 40vh; overflow-y: auto; }

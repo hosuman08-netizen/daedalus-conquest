@@ -60,6 +60,8 @@
 ## 다음 한 걸음
 콘텐츠 모드(캠페인/무한탑/일일던전) **모드 허브**부터. 엔진 재활용이라 싸게 "사이클" 완성.
 
+**배포 전 필수 (Sovereign)**: obfuscate/minify (game.js, index, style) + deploy/ rebuild + verify.sh 통과 + TG 테스트.
+
 ## v2 기획안 패치 백로그 (lean scope)
 Phase 1 현실 추가: 가챠 %/pity 상시표시 + 일일미션 UI/보상 + 1-2 이벤트 (featured FOMO scarcity) + 9SSR god-tier 시각 강화.
 lean 79 (9/20/50) 엄수 — 9SSR god "멋지게" must-collect + 70 fodder (archetype pool for hybrid/synergy volume). 

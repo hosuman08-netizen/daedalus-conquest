@@ -137,16 +137,17 @@ h1::first-letter { color: var(--crimson); }
   aspect-ratio: 1/1.02; 
   border: none; 
   background: transparent; 
-  border-radius: 12px; 
+  border-radius: 14px; 
   display: flex; 
   flex-direction: column; 
   align-items: center; 
   justify-content: center; 
   gap: 2px; 
-  padding: 2px; 
+  padding: 3px; 
   transition: transform .2s cubic-bezier(0.23, 1, 0.32, 1), box-shadow .2s ease; 
   cursor: pointer; 
-} /* cleaner modern card */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+} /* cleaner modern card with soft shadow */
 .cxc.lock { opacity: .82; filter: grayscale(0.25); }  /* 군주 20260617: 미보유도 일러스트 선명하게 "보는 맛" — 살짝만 muted */
 .cxc:active { transform: scale(0.93); box-shadow: 0 0 0 1.5px #fbbf2488; }
 .cxc .cxg { 
@@ -207,8 +208,8 @@ h1::first-letter { color: var(--crimson); }
 /* Premium gallery polish: owned SSR stronger inner gold rim + lift pop, subtle fac glow for scannability without clutter. */
 .cxc:not(.lock) { box-shadow: 0 0 0 1px rgba(255,255,255,0.04); }
 .cxc.rSSR:not(.lock) { 
-  box-shadow: 0 0 0 1px rgba(251,191,36,0.6), 0 8px 24px rgba(0,0,0,0.3); 
-} /* softer elegant SSR rim */
+  box-shadow: 0 0 0 1px rgba(251,191,36,0.5), 0 4px 16px rgba(0,0,0,0.25); 
+} /* softer elegant SSR rim - 부드럽게 */
 .cxc:not(.lock):hover { transform: scale(1.02); box-shadow: 0 0 0 1.5px #fbbf2488; }
 .cxc.rSSR:not(.lock):hover { box-shadow: 0 0 0 2px #fbbf24, 0 0 12px #fbbf2466; }
 #gdex-filter { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; }
@@ -229,7 +230,7 @@ h1::first-letter { color: var(--crimson); }
 .gxc .gxi.gear-codex-art .gear-synth.rSSR { filter: contrast(1.3) saturate(1.5) brightness(1.15) drop-shadow(0 0 8px #fbbf24); }
 .gxc .gxi.gear-codex-art .gear-synth.rSR { filter: contrast(1.25) saturate(1.4) brightness(1.1) drop-shadow(0 0 5px #c084fc); }
 .gxc .gxi.gear-codex-art .gear-synth.rR { filter: contrast(1.2) saturate(1.2) brightness(1.05); }
-#unit-pop { position: fixed; inset: 0; background: #000c; display: flex; align-items: center; justify-content: center; z-index: 18; padding: 6px; }
+#unit-pop { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 18; padding: 6px; }
 #unit-pop.hidden { display: none; } /* final perfect centered modal, no bottom stuck */
 /* 장비 관리 팝업 — 캐릭터창(#char-panel) 시각 언어 차용 (군주 20260616 "장비 눌렀을때 캐릭터 창 처럼"). 가독성 우선: 캐릭창보다 살짝 큼. */
 #unit-card.gear-manage { text-align: left; max-width: 320px; padding: 12px 13px 13px; }
@@ -315,6 +316,13 @@ h1::first-letter { color: var(--crimson); }
 #unit-title { font-size: 11px; color: var(--dim); margin-bottom: 6px; }
 #unit-detail { font-size: 12.5px; color: var(--text); line-height: 1.45; text-align: left; margin-bottom: 8px; max-height: 32vh; overflow-y: auto; padding: 0 4px; } /* compact + readable */
 .dpower { font-size: 13px; color: var(--dim); margin: 4px 0 8px; }
+/* 📊 캐릭터 수집·전과 진행 띠 (빈 공간 채움) */
+#char-progress { margin: 0 0 10px; }
+.cprog-bar { height: 6px; border-radius: 4px; background: #1c1730; overflow: hidden; margin-bottom: 6px; }
+.cprog-fill { height: 100%; background: linear-gradient(90deg, #c084fc, #fbbf24); border-radius: 4px; transition: width .4s ease; box-shadow: 0 0 8px rgba(251,191,36,.4); }
+.cprog-row { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 11.5px; color: var(--dim); }
+.cprog-row b { color: #e2e8f0; font-weight: 800; }
+.cprog-row i { color: #fbbf24; font-style: normal; font-weight: 700; }
 .dpower b { color: var(--gold); }
 .protectbtn { width: auto; padding: 6px 12px; font-size: 12px; background: #1d1535; color: var(--dim); border: 1px solid #2c2442; border-radius: 8px; margin-bottom: 8px; }
 .protectbtn.on { color: #67e8f9; border-color: #67e8f9; }

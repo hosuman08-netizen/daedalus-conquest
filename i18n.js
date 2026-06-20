@@ -21,7 +21,7 @@ const I18N = {
     legend2: "🤖 돌격봇 근접·돌진 · 🧠 지휘관 최고지능·전군강화 · 🐉 타이탄 전설",
     legend3: "티어 높을수록 AI가 똑똑해 몰살. 뽑기로 강화·전설🐉 해금.",
     spTitle: "💎 초심자 패키지", sp1: "💰 골드 3,000 즉시 지급", sp2: "📈 골드 획득 영구 +20%", sp3: "🎰 유닛 10개 즉시 + 영구 혜택", spPrice: "단 한 번 · ⭐50",
-    tComingTb: "⚔️ 턴제 전술 — 곧 출시!", tComingAr: "🏟️ PvP 아레나 — 곧 출시!", tNoSwitch: "전투 중엔 모드 변경 불가",
+    tComingTb: "⚔️ 턴제 - 스텁 (배치 후 자동 결과)", tComingAr: "🏟️ PvP 아레나 — 곧 출시!", tNoSwitch: "전투 중엔 모드 변경 불가",
     tGoldShort: "골드 부족! {n}g 필요", tBought: "🛒 구매 −{n}g", tSold: "💸 판매 +{n}g", tMaxUnit: "이 유닛 최대치(12)",
     tAutoStart: "⚔️ 자동사냥 시작 — 알아서 싸웁니다", tAutoStop: "자동사냥 중지", tAutoRun: "⚔️ 자동사냥 진행…",
     tGachaUp: "유닛 +{n}강화", tTitan: "🐉 전설 타이탄 해금!!", tDaily: "🎁 일일 보상 +150 골드!", tIdle: "🌙 방치 보상 ({t}) +{n} 골드!", tRitual: "🌀 ritual +{n} (Legion var)", tForecast: "Legion Forecast: +var cohesion",

@@ -1360,7 +1360,13 @@ function updateModeTabs() {
 }
 function setMode(m) {
   if (running) { toast(t("tNoSwitch"), "#ef4444"); return; }
-  if (m === "turnbased") { toast(t("tComingTb"), "#a855f7"); return; }
+  if (m === "turnbased") { 
+    // 최소 스텁: 배치 후 결과 (수동 배치 느낌 주기 위해 별도 라벨)
+    META.mode = m; 
+    $("status").textContent = "턴제: 배치 완료 후 '시작' - 전략적 자동 결과 (Phase1 stub)";
+    updateModeTabs();
+    return;
+  }
   if (m === "arena") {
     // MVP final plan: arena daily 5회 제한만, 자동매칭 placeholder (Phase2 full)
     // 2026-06-16 Morpheus: decided HIDE (lean MVP, 4-action dopamine focus, reversible no-broken). Stubs remain for future.
