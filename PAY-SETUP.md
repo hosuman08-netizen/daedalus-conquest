@@ -18,6 +18,13 @@
    - 이름 `BOT_TOKEN`, 값 = 1단계 봇 토큰 → Save & Deploy
 5. Worker URL 복사 (예: `https://legion-pay.<계정>.workers.dev`)
 
+## 2.5단계 — KV 바인딩 (영수증검증 = 결제 부정 차단) 🔒
+`/verify` 영수증검증을 켜려면 KV가 필요(없으면 graceful — 기존 흐름 유지, 게임 안 깨짐).
+1. Cloudflare → **Workers & Pages** → **KV** → **Create a namespace** (이름 `receipts`)
+2. `legion-pay` Worker → **Settings → Bindings → Add → KV Namespace**
+3. **Variable name = `RECEIPTS`** (대문자 정확히), Namespace = 위 `receipts` → **Save and Deploy**
+- 효과: 진짜 결제(`successful_payment`)만 영수증이 KV에 저장됨 → game.js가 `grantPack` 직전 `/verify?uid=&item=` 조회 → **가짜 결제완료 콜백으로 공짜 지급 차단** + 영수증 1회용(중복지급 차단).
+
 ## 3단계 — 연결
 1. **봇 웹훅 설정** (pre_checkout 승인용 — 안 하면 결제 실패):
    브라우저에 한 줄 입력(토큰·URL 본인 것으로):
@@ -47,8 +54,8 @@
 
 > ⭐ 1 Star ≈ 약 $0.013~0.02 (텔레그램 환율). 위 값은 ₩기준 대략치 — 운영하며 조정.
 
-## ⚠️ 보안 한계 (정직)
-게임 상태가 브라우저 localStorage(서버 계정 없음)라, **최종 지급은 클라이언트가** 한다.
-즉 마음먹으면 결제 없이도 로컬 재화 조작이 가능(원래부터 그런 구조).
-**실매출 규모가 커지면** 서버 계정 도입 → `successful_payment` 웹훅에서 **서버가 지급**하도록 승급 필요.
-그 전까진 "결제는 정상 작동하되 부정도 가능" 수준으로 이해하고 운영.
+## ⚠️ 보안 한계 (정직 — 단계별 방어)
+- ✅ **금액 위조 차단**: 인보이스가 서버 고정가(`STARS`) 사용 → 1⭐로 비싼 팩 결제 불가.
+- ✅ **콜백 위조 차단**(KV 바인딩 시): 진짜 결제 영수증만 KV에 존재 → `/verify` 통과해야 grant. 가짜 결제완료 콜백으론 지급 안 됨.
+- ⚠️ **남은 한계**: 게임 상태가 localStorage라 **콘솔로 `grantPack` 직접 호출**은 못 막음(클라 신뢰 구조). 자기 세이브 치트라 — 서버·랭킹 없는 현재는 매출 영향 제한적.
+- **실매출 커지면**: 서버 계정 도입 → `successful_payment`에서 **서버가 직접 지급**(클라 grant 폐지)로 승급.

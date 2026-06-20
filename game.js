@@ -2919,6 +2919,7 @@ function renderProfile() {
       '<div class="prof-uid ddim" onclick="navigator.clipboard.writeText(\'' + u.id + '\'); toast(\'ID 복사됨\', \'#67e8f9\')" style="cursor:pointer">ID: ' + u.id + " (탭해서 복사)</div>" +
     "</div>";
   const sb = $("share-profile"); if (sb) sb.onclick = () => { haptic("medium"); shareProfile(); };
+  const ib = $("invite-friend"); if (ib) ib.onclick = () => { haptic("medium"); if (typeof inviteFriend === "function") inviteFriend(); };
 }
 
 // Viral/A11y wiring (index share + profile + a11y toggles + Dominion export)
