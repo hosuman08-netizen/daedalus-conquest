@@ -91,15 +91,17 @@ export default {
       if (u.pre_checkout_query) {
         await tg(token, "answerPreCheckoutQuery", { pre_checkout_query_id: u.pre_checkout_query.id, ok: true });
       }
-      // /start → 환영 배너 + 플레이 버튼 (봇 첫 화면) + 레퍼럴 기록
+      // /start → 환영 배너 + 플레이 버튼 (봇 첫 화면) + 레퍼럴 기록 + 언어 자동분기
       if (u.message && typeof u.message.text === "string" && u.message.text.indexOf("/start") === 0) {
-        // 레퍼럴: /start refNNN → 초대자 카운트 +1 (신규 TG ID당 1회만 = 조작방지)
+        const newId = String((u.message.from && u.message.from.id) || "");
+        const payload = (u.message.text.split(" ")[1] || "");
+        let inviter = "";
+        // 레퍼럴: /start ref<id> → 초대자 카운트 +1 (신규 TG ID당 1회 = 조작방지)
         try {
-          const payload = (u.message.text.split(" ")[1] || "");
-          const newId = String(u.message.from && u.message.from.id || "");
           if (env.REFERRALS && payload.indexOf("ref") === 0 && newId) {
-            const inviter = payload.slice(3);
-            if (inviter && inviter !== newId) {
+            const inv = payload.slice(3);
+            if (inv && /^\d+$/.test(inv) && inv !== newId) {
+              inviter = inv;
               const seen = await env.REFERRALS.get("u:" + newId);
               if (!seen) {
                 await env.REFERRALS.put("u:" + newId, inviter);
@@ -109,12 +111,18 @@ export default {
             }
           }
         } catch (e) {}
+        // 🌐 언어 자동분기: ko → 한국어 / 그외 → 영어(글로벌 첫인상)
+        const ko = (((u.message.from && u.message.from.language_code) || "").indexOf("ko") === 0);
+        const caption = ko
+          ? "⚔️ <b>Daedalus Conquest</b> — AI 군단 전쟁\n\n🤖 200+ AI 영웅을 모아 키우고\n🐉 거대 보스를 격파하며\n🏆 끝없이 정복하라.\n\n👇 지금 군단을 일으켜라:"
+          : "⚔️ <b>Daedalus Conquest</b> — AI Legion War\n\n🤖 Collect & raise 200+ AI heroes\n🐉 Raid colossal bosses · 🏆 Conquer endless chapters\n🔄 Idle — your legion grows even while you're away.\n\n👇 Rise your legion now:";
+        const btn = ko ? "🎮 플레이 시작" : "🎮 Play Now";
         await tg(token, "sendPhoto", {
           chat_id: u.message.chat.id,
           photo: GAME + "/art/marketing-arclight-banner.jpg",
-          caption: "⚔️ <b>Daedalus Conquest</b> — AI 군단 전쟁\n\n🤖 200+ AI 영웅을 모아 키우고\n🐉 거대 보스를 격파하며\n🏆 끝없이 정복하라.\n\n👇 지금 군단을 일으켜라:",
+          caption: caption,
           parse_mode: "HTML",
-          reply_markup: { inline_keyboard: [[{ text: "🎮 플레이 시작", web_app: { url: GAME + "/" } }]] },
+          reply_markup: { inline_keyboard: [[{ text: btn, web_app: { url: GAME + "/" + (inviter ? "?ref=" + inviter : "") } }]] },   // 🔗 레퍼럴 ?ref= 동봉(즉시보너스)
         });
       }
       // ✅ 결제 완료 → 영수증 KV 저장 (서버 진실원천, 텔레그램→워커 직통이라 위조불가). game.js가 /verify로 확인 후 grant.

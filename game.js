@@ -430,10 +430,14 @@ function processReferralBonus() {
   try {
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) sp = tg.initDataUnsafe.start_param;
   } catch (e) {}
-  if (!sp || typeof sp !== "string") return;
-  const m = /^ref(\d{4,})$/.exec(sp); // TG user id typically long enough
-  if (!m) return;
-  const refId = m[1];
+  // 🔗 폴백: 워커 /start 버튼이 동봉한 URL ?ref=<id> (?start= 경로는 mini app start_param을 안 채워서 보완)
+  let refUrl = "";
+  try { refUrl = new URLSearchParams(location.search).get("ref") || ""; } catch (e) {}
+  let refId = "";
+  const m = /^ref(\d{4,})$/.exec(sp || "");   // start_param 형식: ref<id>
+  if (m) refId = m[1];
+  else if (/^\d{4,}$/.test(refUrl)) refId = refUrl;   // URL 형식: ?ref=<id>
+  if (!refId) return;
   const myId = String(getTGUserId());
   if (refId === myId) return; // self
   // Reward ONLY on direct join via invite link (no button-click fake)
