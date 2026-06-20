@@ -311,9 +311,19 @@ const SPEC = {
 };
 const ORDER = ["drone", "marksman", "guardian", "bruiser", "commander", "titan"];
 const COL = { p: "#3b82f6", e: "#ef4444" };
-// 상성 (가위바위보): 공격자 → 강한 표적 (+30% 데미지). 군집>원거리>근접>군집
-const COUNTER = { drone: ["marksman"], marksman: ["guardian", "bruiser"], guardian: ["drone"], bruiser: ["drone"] };
-const CTR_MUL = 1.5;
+// 상성 (순환 가위바위보, balance-sim 검증): 각 아키타입이 정확히 2승2패 → 무상성/쓰레기 제거.
+// 링 순서(각자 다음 2체에 유리): drone→marksman→guardian→bruiser→commander→titan→drone
+// titan도 약점(bruiser·commander에 짐), drone도 강점(marksman·guardian 이김) — 사다리 메타 붕괴 해소.
+const COUNTER = {
+  drone:     ["marksman", "guardian"],
+  marksman:  ["guardian", "bruiser"],
+  guardian:  ["bruiser", "commander"],
+  bruiser:   ["commander", "titan"],
+  commander: ["titan", "drone"],
+  titan:     ["drone", "marksman"],
+};
+const CTR_MUL = 1.3;       // 유리 상성 데미지 ×1.3 (불리는 ×0.77 — dmg에서 적용)
+const CTR_WEAK = 0.77;     // 불리 상성 데미지 ×0.77
 
 // ── 영웅 7종 (군단 사령관) ────────────────────────────────────────────────────
 // passive = 전군 패시브 / ult = 궁극기(플레이어 직접 발동). heroLv가 패시브 강화(현질 자리).
@@ -1461,11 +1471,11 @@ function updateMeta() {
   const pityEl = $("pity-left");
   if (pityEl) {
     const p = (META.pity || 0);
-    const remain = Math.max(0, 10 - p); // align with current hard ceiling ~10-12
+    const remain = Math.max(0, 12 - p);
     pityEl.textContent = remain;
-    // 가챠 천장 진행바(상점) — 코드값과 100% 일치 (n/10)
-    const pf = $("pity-fill"); if (pf) pf.style.width = Math.min(100, (p / 10) * 100) + "%";
-    const pbl = $("pity-bar-label"); if (pbl) pbl.textContent = Math.min(p, 10) + "/10";
+    // 가챠 천장 진행바(상점) — 코드값과 100% 일치 (n/12)
+    const pf = $("pity-fill"); if (pf) pf.style.width = Math.min(100, (p / 12) * 100) + "%";
+    const pbl = $("pity-bar-label"); if (pbl) pbl.textContent = Math.min(p, 12) + "/12";
   }
   // sacred-host: 유저가 바로 이해할 수 있게 한국어로만. 미스터리 영어 금지.
   const sh = $("sacred-host"); if (sh) {
@@ -1702,7 +1712,10 @@ function dmg(target, amount, from) {
     a *= window._tbDmgMul * (1 + Math.min(0.9, (tbMomentum || 0) / 140));
   }
   { const _ec = (from && from.side === "p") ? ascEdgeCrit() : 0; const _bc = (from && from.crit) || 0; if (from && (_bc + _ec) > 0 && Math.random() * 100 < (_bc + _ec)) { a *= (from.critDmgMul || 2.0) + (from.side === "p" ? ascPierceDmg() : 0); ctr = true; } }                    // 운→치명타 ×1.6 + Intel bonus
-  if (from && COUNTER[from.t] && COUNTER[from.t].indexOf(target.t) >= 0) { a *= CTR_MUL; ctr = true; }   // 상성 +30%
+  if (from && from.t && target.t) {                                                                       // 순환 상성: 유리 ×1.3 / 불리 ×0.77
+    if (COUNTER[from.t] && COUNTER[from.t].indexOf(target.t) >= 0) { a *= CTR_MUL; ctr = true; }          // 유리(+30%)
+    else if (COUNTER[target.t] && COUNTER[target.t].indexOf(from.t) >= 0) { a *= CTR_WEAK; }              // 불리(-23%)
+  }
   // Gear unique: type slayer
   if (from && from.typeSlayer && from.typeSlayer.target === target.t) {
     a *= (1 + (from.typeSlayer.val || 0.15));
@@ -2893,21 +2906,21 @@ function getDominionCardText() {
 // ── 가챠 (뽑기) — 등급·천장·전설해금 ─────────────────────────────────────────
 const GACHA_COST = 8;   // 캐릭 단차: 💰골드100 → 💎젬8 (10연 💎80과 화폐 통일·비교가능. 1젬≈100골드라 골드단차=사실상 무한공짜였음. 트리니티 옵션A)
 const RARITY = [
-  { key: "N",   p: 0.60, color: "#9ca3af", lvls: 1 },
-  { key: "R",   p: 0.25,  color: "#60a5fa", lvls: 2 },
-  { key: "SR",  p: 0.13,  color: "#c084fc", lvls: 3 },
-  { key: "SSR", p: 0.02,  color: "#fbbf24", lvls: 5 },
+  { key: "N",   p: 0.55, color: "#9ca3af", lvls: 1 },
+  { key: "R",   p: 0.30,  color: "#60a5fa", lvls: 2 },
+  { key: "SR",  p: 0.12,  color: "#c084fc", lvls: 3 },
+  { key: "SSR", p: 0.03,  color: "#fbbf24", lvls: 5 },
   { key: "UR",  p: 0, color: "#e879f9", lvls: 6 }, // 출시 후 활성(유닛 채운 뒤). 시스템 보존, 확률 0
   { key: "EX",  p: 0, color: "#f472b6", lvls: 7 }, // 출시 후 활성. 확률 0이라 grantUnit 폴백·연출 미발화
-]; // 활성 4등급 합 = 1.000 정확 (N60 R25 SR13 SSR2). 표시=코드 100% · UR/EX는 출시예정
+]; // Sovereign 지정: N55 R30 SR12 SSR3 (표시=코드 100% 일치). UR/EX 출시 후 활성.
 function rollRarity() {
   let p = (META.pity || 0);
-  if (p >= 10) {
-    // hard pity 10 → SSR 보장
+  if (p >= 12) {
+    // hard pity 12 → SSR 보장 (Sovereign 지정)
     const ssr = RARITY.find(x => x.key === "SSR");
     return ssr || RARITY[3];
   }
-  let ssrP = 0.02 + (p > 6 ? (p - 6) * 0.06 : 0);  // SSR soft ramp (base = SSR 표시값 0.02)
+  let ssrP = 0.03 + (p > 7 ? (p - 7) * 0.04 : 0);  // soft 7+ +4%/pull (base 3%)
   let r = Math.random(), a = 0;
   const adj = RARITY.map(x => x.key==="SSR" ? {...x, p: Math.min(ssrP, 0.15)} : x);
   const sum = adj.reduce((s,x)=>s+x.p,0) || 1;
@@ -3026,10 +3039,10 @@ function gacha() {
   if ((META.gems || 0) < GACHA_COST) { toast(t("tGemShort", { n: GACHA_COST }), "#ef4444"); return; }
   META.gems -= GACHA_COST; META.pulls = (META.pulls || 0) + 1; META.pity = (META.pity || 0) + 1;
   let rar = rollRarity();
-  if (META.pity >= 10) {
+  if (META.pity >= 12) {
     const ssr = RARITY.find(x => x.key === "SSR") || RARITY[3];
     rar = ssr;
-  }                 // hard pity 10 SSR (UR/EX는 별도 운)
+  }                 // hard pity 12 SSR (Sovereign 지정)
   if (["SSR","UR","EX","SR"].includes(rar.key)) META.pity = 0;
   let msg;
   if (rar.key === "SSR" && !META.titanOwned) { META.titanOwned = true; counts.p.titan = 1; msg = t("tTitan"); }
@@ -3071,11 +3084,11 @@ function gacha10() {
   for (let i = 0; i < 10; i++) {
     META.pity = (META.pity || 0) + 1;
     let rar = rollRarity();
-    if (META.pity >= 10) {
+    if (META.pity >= 12) {
       const ssr = RARITY.find(x => x.key === "SSR") || RARITY[3];
       rar = ssr;
     }
-    if (i === 9 && best < 2 && (META.pity || 0) < 10) rar = RARITY[2];          // 10연 SR↑ 보장 (단 천장 SSR은 보존)
+    if (i === 9 && best < 2 && (META.pity || 0) < 12) rar = RARITY[2];          // 12연 SR↑ 보장 (단 천장 SSR은 보존)
     if (["SSR","UR","EX","SR"].includes(rar.key)) META.pity = 0;
     best = Math.max(best, RANK[rar.key] || 0);
     const gu = grantUnit(rar.key);
@@ -3097,7 +3110,7 @@ function showGacha(rar, msg, results) {
   $("gacha-card").style.boxShadow = `0 0 40px ${rar.color}, inset 0 0 0 2px ${rar.color}`;
   if (["SSR","UR","EX"].includes(rar.key)) $("gacha-rank").classList.add('ssr-tease'); else $("gacha-rank").classList.remove('ssr-tease');
   const pity = (META.pity||0); const pct = ["SSR","UR","EX"].includes(rar.key) ? "고등급!" : "visible";
-  $("gacha-msg").innerHTML = msg + `<br><small style="opacity:.7">🎯 천장 ${pity}/10 · N60% R25% SR13% SSR2% | hard10=SSR 보장</small>`;
+  $("gacha-msg").innerHTML = msg + `<br><small style="opacity:.7">🎯 천장 ${pity}/12 · N55% R30% SR12% SSR3% | hard12=SSR 보장</small>`;
   const listEl = $("gacha-list");   // 🎰 뽑힌 목록 (10연 = 10개 다, 단차 = 신규/중복)
   if (listEl) listEl.innerHTML = (results && results.length)
     ? results.map((r) => `<div class="gres r${r.rarity}" style="border-color:${rarColor(r.rarity)}"><b style="color:${rarColor(r.rarity)}">${r.rarity}</b><span class="gres-nm">${r.name}</span>${r.dupe ? '<span class="gres-dup">중복</span>' : (r.isNew ? '<span class="gres-new">NEW</span>' : '')}</div>`).join("")
@@ -3580,25 +3593,8 @@ function ascVanguardCh() { return Math.min(5, ascLv("vanguard")); }
 function ascProsperGem() { return ascLv("prosper") * 3; }
 function ascInsightDisc(){ return Math.min(0.40, ascLv("insight") * 0.04); }
 function ascNodeStat(key, lv) {
-  // Use English for now when LANG is en; full i18n can expand later
-  const isEn = (typeof LANG !== 'undefined' && LANG === 'en');
   const pct = Math.round((Math.pow(1.08, lv) - 1) * 100);
-  if (isEn) {
-    switch (key) {
-      case "might":    return "+" + pct + "% ATK";
-      case "bulwark":  return "+" + pct + "% HP";
-      case "momentum": return "+" + (lv * 18) + "% gold · start +" + (lv * 300) + "g";
-      case "soulnode": return "+" + (lv * 25) + "% soul";
-      case "plunder":  return "+" + (lv * 12) + "% battle gold";
-      case "edge":     return "+" + (lv * 2) + "% crit rate";
-      case "pierce":   return "+" + (lv * 8) + "% crit dmg";
-      case "vanguard": return "+" + Math.min(5, lv) + " start chapter";
-      case "prosper":  return "+" + (lv * 3) + " gems on rebirth";
-      case "insight":  return "-" + Math.round(Math.min(0.40, lv * 0.04) * 100) + "% awaken cost";
-      default: return "";
-    }
-  }
-  // Korean fallback
+  // 한국어 전용 (P0-6). en 브랜치 제거로 영어 노출 방지.
   switch (key) {
     case "might":    return "+" + pct + "% 공격";
     case "bulwark":  return "+" + pct + "% 체력";
@@ -3901,7 +3897,10 @@ function claimPlay(i) {
   let mult = 1 + Math.min(0.5, (META.loginStreak || 0) / 7 * 0.1);
   if (!didAction && i > 1) { mult = 0.5; toast("액션(전투/뽑기) 1번 이상 해야 풀 보상!", "#f87171"); } // half for long ones if no action
   META.play.claimed.push(i);
-  META.gold += Math.floor(r.gold * mult);
+  // 💰 플레이 골드도 전력비례 하한(SPEC): max(절대값, 전력×playMul). playMul 3m 0.05→60m 0.5.
+  const playMul = Math.max(0.05, Math.min(0.5, 0.05 + (r.min - 3) * (0.45 / 57)));
+  const lpPlay = (typeof legionPower === "function" ? legionPower() : 0);
+  META.gold += Math.max(Math.floor(r.gold * mult), Math.floor(lpPlay * playMul * mult));
   if (r.gem) META.gems = (META.gems || 0) + Math.floor(r.gem * mult);
   let boxRes = null;
   if (r.box) boxRes = openBox(r.box);
@@ -3964,7 +3963,8 @@ function renderAttend() {
 function claimAttend() {
   if (META.attend.last === today()) { toast(t("evDone"), "#8b93a7"); return; }
   const idx = (META.attend.day || 0) % 30, r = ATTEND[idx];
-  if (r.g) META.gold += r.g;
+  // 💰 골드 전력비례 하한 하이브리드(SPEC): max(절대값, 전력×dayMul). 초반=절대값 보존, 후반=유효.
+  if (r.g) { const day = idx + 1, lp = (typeof legionPower === "function" ? legionPower() : 0); META.gold += Math.max(r.g, Math.floor(lp * (0.03 + day * 0.009))); }
   if (r.gem) META.gems = (META.gems || 0) + r.gem;
   let boxRes = null;
   if (r.box) boxRes = openBox(r.box);
@@ -4222,12 +4222,12 @@ function gearGacha(count) {
   for (let i = 0; i < count; i++) {
     META.pity = (META.pity || 0) + 1;
     let rar = rollRarity();
-    if (META.pity >= 10) {
+    if (META.pity >= 12) {
       const ssr = RARITY.find(x => x.key === "SSR") || RARITY[3];
       rar = ssr;
     }
     if (["UR","EX"].includes(rar.key)) rar = RARITY.find(x => x.key === "SSR") || rar;  // 장비는 고등급 미지원 → SSR 폴백
-    if (count === 10 && i === 9 && (!best || RK[best.rarity] < 2)) rar = RARITY[2];   // 🔨 장비 10연 SR↑ 1보장
+    if (count === 10 && i === 9 && (!best || RK[best.rarity] < 2)) rar = RARITY[2];   // 🔨 장비 10연 SR↑ 1보장 (pity 12는 별도)
     if (["SSR","UR","EX","SR"].includes(rar.key)) META.pity = 0;
     const g = newGear(rar.key); META.gear.push(g);
     results.push({ name: (SLOT_ICON[g.slot] || "🔨") + " " + (g.name || g.slot), rarity: g.rarity });
@@ -4973,7 +4973,7 @@ document.querySelectorAll(".hbtn").forEach((b) => b.addEventListener("click", ()
     soul: "🔮 소울 — 중복 캐릭 분해로 획득. 소울 상점·각성에 사용",
     ch: "📖 챕터 — 현재 진행 챕터. 클리어할수록 보상·전력↑",
     eth: "⬡ 에테르 — 환생으로 얻는 영구 화폐. 에테르 상점서 전군 영구 강화",
-    pity: "🎯 천장 — N회 뽑으면 SSR 확정. 10회 = 보장",
+    pity: "🎯 천장 — N회 뽑으면 SSR 확정. 12회 = 보장",
   };
   mb.addEventListener("click", (e) => {
     const item = e.target.closest(".meta"); if (!item) return;

@@ -50,8 +50,15 @@ export default {
       const day = url.searchParams.get("day") || dayKey(Date.parse(new Date().toISOString()));
       const out = {};
       for (const t of ALLOWED) out[t] = parseInt((await env.EVENTS.get("cnt:" + day + ":" + t)) || "0", 10);
-      // 전환율 근사(설치 대비 결제)
+      out.ch18_ascend = parseInt((await env.EVENTS.get("c18:" + day)) || "0", 10);
+      // 전환율 근사(설치 대비 결제 / 가챠)
       out.purchase_rate = out.install ? +(out.purchase / out.install).toFixed(4) : 0;
+      out.gacha_conv = out.install ? +(out.gacha_pull / out.install).toFixed(4) : 0;
+      // ch18 reach 근사 (ascend 중 ch18+ / install) — 일일 proxy, 전체 코호트는 /cohort 또는 multi-day 조회
+      out.ch18_reach_rate = out.install ? +(out.ch18_ascend / out.install).toFixed(4) : 0;
+      // D7 retention: u: 키 기반. 풀 스캔 비용/제한으로 proxy (dau + first/last). Oracle가 별도 집계 추천.
+      // TODO: KV.list({prefix:'u:'}) 로 cohort D7 계산 (작은 유저수 시 MVP OK)
+      out.d7_proxy = 0; // 상세는 Oracle side 또는 별도 엔드포인트
       return json({ ok: true, day, counts: out });
     }
 

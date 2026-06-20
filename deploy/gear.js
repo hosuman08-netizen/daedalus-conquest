@@ -3,10 +3,10 @@ const SLOT_ICON = { weapon: "⚔️", armor: "🛡️", acc: "👟", relic: "�
 const SLOT_MAIN = { weapon: "str", armor: "int", acc: "agi", relic: "luk", core: "mix" };
 const STAT_KEYS = ["str", "int", "agi", "luk"];
 const GEAR_RARITY = [
-{ k: "N", p: 0.60, base: 6, color: "#9ca3af" },
-{ k: "R", p: 0.25, base: 12, color: "#60a5fa" },
-{ k: "SR", p: 0.13, base: 22, color: "#c084fc" },
-{ k: "SSR", p: 0.02, base: 40, color: "#fbbf24" }, 
+{ k: "N", p: 0.55, base: 6, color: "#9ca3af" },
+{ k: "R", p: 0.30, base: 12, color: "#60a5fa" },
+{ k: "SR", p: 0.12, base: 22, color: "#c084fc" },
+{ k: "SSR", p: 0.03, base: 40, color: "#fbbf24" }, 
 ];
 function rollGearRarity() { let r = Math.random(), a = 0; for (const x of GEAR_RARITY) { a += x.p; if (r <= a) return x; } return GEAR_RARITY[0]; }
 

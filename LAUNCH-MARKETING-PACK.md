@@ -56,7 +56,7 @@
 
 ## 📊 가챠 확률 (미꾸라지 준수 — public copy용)
 N 60% | R 25% | SR 13% | SSR 2%  
-Soft: 7회부터 SSR↑ (max15%) | Hard: 10회 SSR 보장 | 10연 SR 1보장  
+Soft: 7회부터 +4%/pull | Hard: 12회 SSR 보장 | 10연 SR 1보장  
 ※ 코드 100% 일치 · fictional story 내 가상 요소. Rates 버튼 항상 노출.  
 (ARCLIGHT 한정 배너 72h FOMO + pity bar로 variable ratio + near-miss 강화)
 

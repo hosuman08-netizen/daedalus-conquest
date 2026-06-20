@@ -50,7 +50,7 @@ function gacha(M){ // 100g, 결과 적용
   if(M.gold<100) return null;
   M.gold-=100; M.pity++;
   let r=Math.random(),rar;
-  if(M.pity>=10){rar={k:"SSR",lvls:5};M.pity=0;}
+  if(M.pity>=12){rar={k:"SSR",lvls:5};M.pity=0;}
   else if(r<0.03){rar={k:"SSR",lvls:5};M.pity=0;}
   else if(r<0.13){rar={k:"SR",lvls:3};M.pity=0;}
   else if(r<0.42){rar={k:"R",lvls:2};}

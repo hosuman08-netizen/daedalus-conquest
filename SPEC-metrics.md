@@ -44,10 +44,11 @@
 ---
 
 ## 측정 인프라 (모피어스 구현)
-- 텔레그램 미니앱 → 이벤트를 봇/워커로 전송 (가벼운 이벤트 로깅).
-- **MVP 최소 이벤트 5종**: `install` · `battle_win(ch)` · `gacha_pull(rarity)` · `ascend` · `purchase(item)`. 여기서 위 지표 대부분 산출 가능.
-- localStorage에 `firstSeen`·`lastSeen` 이미 있음 → 리텐션 근사 가능. 서버 집계는 점진.
-- **출시일엔 최소 이벤트만**, 대시보드는 출시 후.
+- 텔레그램 미니앱 → 이벤트를 analytics-worker ( /ev ) 로 전송 (fire-and-forget, PAY 독립).
+- **MVP 6종 이벤트**: `install` · `battle_win` · `gacha_pull` · `ascend` (d.fromCh 포함) · `purchase` · `growth_moment`. (SPEC 일치)
+- Worker: 일일 cnt + dau + u:anon(first/last) + c18:특수. /stats → D1/D7 proxy, gacha_conv, ch18_reach_rate, purchase_rate 즉시 산출.
+- Client: ANALYTICS_BACKEND 별도 설정 (PAY와 분리). localStorage daedalus_anon + META.lastSeen 병행.
+- **출시일엔 최소 이벤트만** (console + worker), 대시보드/코호트 Oracle side 집계. D7 정확 cohort는 KV.list 또는 D1 업그레이드 필요.
 
 ## 🔥 "세지는 게 보이는" 도파민 지표 (그록 요청 — 정체성 측정)
 정체성("매 순간 군단이 세지는 게 *보이는* 게임")이 실제로 작동하는지 측정. North Star(D7)의 핵심 선행 가설.
@@ -63,7 +64,14 @@
 
 **핵심 가설**: 위 지표(특히 데미지팝업·환생재돌파)가 높은 유저의 **D7 리텐션이 유의하게 높다.** 이게 사실이면 정체성이 맞은 것 → 도파민에 더 투자. 아니면 정체성 재검토.
 
-**MVP 측정**: 기존 5종 이벤트 + `growth_moment(type, delta)` 1종 추가하면 위 대부분 산출.
+**MVP 측정**: 기존 6종 + growth_moment. client ANALYTICS_BACKEND 설정 + worker /ev 매칭 완료 (2026-06-20 Oracle).
+
+### D7 Retention / ch18 reach / gacha conversion 측정 (Oracle 제안)
+- **D7 Retention**: u:anon first/last 기반. 출시 후 /stats?day=... 연속 8일 fetch → first= D0 유저 중 last >= D0+7 비율. Proxy: dau 추이 + lastSeen. 정확은 Oracle 배치 쿼리 (KV.list prefix u:).
+- **ch18 reach rate**: ascend(fromCh>=18) / install . Worker c18: 카운트 + /stats ch18_reach_rate 즉시. 목표: 무과금 70%+ ch18 도달 (P0-3 가드).
+- **gacha conversion**: gacha_pull / install (또는 unique gacha user / install). /stats gacha_conv. North Star 선행: ≥70% 첫세션.
+- 활성화: battle_win + ch5+ (ch 데이터), first gacha 등 AARRR 퍼널.
+- Guard: 출시 후 D1~D7 코호트 즉시 리뷰 → FTUE/환생 이탈점 수정.
 
 ## 운영 리듬 (CPO)
 - 출시 D1·D3·D7 코호트 체크 → 가장 큰 이탈 구간이 다음 개선 1순위.

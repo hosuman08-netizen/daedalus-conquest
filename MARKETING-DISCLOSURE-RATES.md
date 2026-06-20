@@ -10,7 +10,7 @@
 
 **Pity System (항상 표시)**:
 - Soft pity: 7회부터 SSR 확률 +6%씩 증가 (최대 15%)
-- Hard pity: 10회 보장 SSR (UR/EX는 순수 운, 별도 천장 없음)
+- Hard pity: 12회 보장 SSR (UR/EX는 순수 운, 별도 천장 없음)
 - 10연차: SR 1개 이상 보장
 - Pity 리셋: SR/SSR/UR/EX 획득 시
 
