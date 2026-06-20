@@ -5320,6 +5320,19 @@ if ((META.chapter || 1) <= 2 && ((META.pulls || 0) + (META.owned || []).length) 
   }, 1400);
 }
 setTimeout(() => { try { maybeSortie(); } catch (e) {} }, 700);   // ⚔️ 일일 출정식 의례
+// 🔞 연령 확인 게이트 (확률형 아이템 미성년 보호 — 1회, META.ageOk 저장)
+(function () {
+  try {
+    if (META.ageOk) return;
+    const g = document.getElementById("age-gate"); if (!g) return;
+    g.style.display = "flex";
+    const yes = document.getElementById("age-yes"), no = document.getElementById("age-no");
+    if (yes) yes.onclick = function () { META.ageOk = true; try { saveMeta(); } catch (e) {} g.style.display = "none"; try { logEvent("age_confirmed", {}); } catch (e) {} };
+    if (no) no.onclick = function () {
+      g.innerHTML = '<div style="max-width:340px;text-align:center;color:#e2e8f0;font-family:system-ui,sans-serif;padding:24px;line-height:1.8;"><div style="font-size:34px;margin-bottom:10px;">🔞</div><div style="font-size:16px;font-weight:700;color:#fbbf24;margin-bottom:10px;">보호자 동의가 필요합니다</div><div style="font-size:13px;color:#a3a3c2;">미성년자는 법정 보호자의 동의 후 이용할 수 있습니다.<br>Minors require parental/guardian consent to continue.</div></div>';
+    };
+  } catch (e) {}
+})();
 // 📊 계측: 최초 설치(1회) + 세션 시작. fire-and-forget, 게임 영향 0.
 try {
   if (!META._installed) { META._installed = true; saveMeta(); logEvent("install", { ch: META.chapter || 1 }); }
