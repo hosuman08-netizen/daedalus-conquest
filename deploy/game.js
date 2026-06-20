@@ -282,6 +282,29 @@ const counts = {
 
 // ── 메타: 골드·레벨·전설해금 (localStorage 영구 저장) ─────────────────────────
 const META_KEY = "daedalus_meta_v1";
+function processReferralBonus() {
+  if (META && META.referredBy) return; // already granted via direct link
+  let sp = "";
+  try {
+    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) sp = tg.initDataUnsafe.start_param;
+  } catch (e) {}
+  if (!sp || typeof sp !== "string") return;
+  const m = /^ref(\d{4,})$/.exec(sp); // TG user id typically long enough
+  if (!m) return;
+  const refId = m[1];
+  const myId = String(getTGUserId());
+  if (refId === myId) return; // self
+  // Reward ONLY on direct join via invite link (no button-click fake)
+  META.referredBy = refId;
+  META.gold = (META.gold || 0) + 1000;
+  if (typeof META.soul === "number") META.soul = (META.soul || 0) + 10;
+  saveMeta();
+  logEvent('referral_bonus_granted', { ref: refId });
+  setTimeout(() => {
+    try { updateMeta && updateMeta(); } catch (e) {}
+    toast("🎉 초대 링크로 가입! 골드 +1000 소울 +10", "#a3e635");
+  }, 1400);
+}
 let META = loadMeta();
 // 유닛 구매 가격 (티어 = 가격. 타이탄은 가챠 전용 프리미엄)
 const PRICE = { drone: 35, marksman: 60, guardian: 75, bruiser: 70, commander: 110, titan: 700 };
@@ -3074,18 +3097,14 @@ function claimDailyMissions() {  // MVP daily cycle claim — forces 1 action lo
 }
 
 // Post-launch Viral (D+0 focus as per priority ②)
+// 초대 버튼: 링크 공유만. 실제 보상은 친구가 start=ref 링크로 직접 들어왔을 때만 (joiner)
 function inviteFriend() {
   const ref = getTGUserId();
+  const link = `https://t.me/yourbot?start=ref${ref}`;
   if (tg && tg.share) {
-    tg.share(`Join my Legion! https://t.me/yourbot?start=ref${ref}`);
-  }
-  if (!META.referredBy) {
-    META.referredBy = true;
-    META.gold = (META.gold || 0) + 1000;
-    if (META.soul !== undefined) META.soul += 10;
-    saveMeta(); updateMeta();
-    logEvent('invite_success', {ref});
-    toast("🎉 초대 보상: 골드 1000 + 소울 10 (친구 가입 시)", "#a3e635");
+    tg.share(link);
+  } else {
+    try { navigator.clipboard.writeText(link); toast("초대 링크 복사됨", "#67e8f9"); } catch(e){}
   }
 }
 
@@ -3395,7 +3414,7 @@ function renderSquad() {
     if (!inv) {
       inv = document.createElement('button');
       inv.className = 'invite-btn';
-      inv.innerHTML = '👥 초대';
+      inv.innerHTML = '👥 초대 링크';
       inv.style.cssText = 'font-size:10px;margin-left:8px;padding:2px 8px;border-radius:999px;background:#3b82f6;color:#fff;border:none;vertical-align:middle;cursor:pointer;';
       inv.onclick = (e) => { e.stopImmediatePropagation(); inviteFriend(); };
       squadInfo.appendChild(inv);
@@ -4001,6 +4020,8 @@ checkPasses();
 checkMilestones();   // 🏆 기존 진행분 백필(해금/보상 누락 방지)
 updateAutoBtn();
 updateMeta(); // ensure cohesion dash shows on load
+// Referral bonus ONLY when direct link join (start=ref). Button share gives nothing. (user: "초대를 직접 해야 보상")
+try { processReferralBonus(); } catch (e) {}
 // Daily 미션 힌트 (치명적 루프)
 if (!META.dailyMissionsClaimed && ((META.dailyBattles||0) + (META.dailyPulls||0)) < 2) {
   setTimeout(() => toast("📅 이벤트 → 일일 미션 확인! (전투/뽑 1회씩)", "#a3e635"), 2500);
