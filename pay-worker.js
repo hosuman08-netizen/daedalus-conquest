@@ -6,7 +6,7 @@
       실제 매출 보호가 중요해지면 서버 계정으로 승급(successful_payment에서 서버가 지급). */
 
 const ITEMS = {
-  starter:  { title: "초심자 패키지",   desc: "골드 3,000 + 유닛 10개 + 골드 획득 +20% 영구" },
+  starter:  { title: "초심자 패키지",   desc: "2x 속도 영구 + 골드3000 + 유닛10개" },
   weekly:   { title: "주간 패스",        desc: "즉시 💎150 + 7일 매일 💎100" },
   monthly:  { title: "월간 패스",        desc: "즉시 💎300 + 30일 매일 💎100" },
   vip:      { title: "VIP 패키지",       desc: "4x속도·골드+50%·💎600·SR유닛" },
@@ -24,6 +24,7 @@ const ITEMS = {
 
 // 🔒 서버 고정 가격(⭐ Stars) — game.js STARS와 일치. 클라가 보낸 stars 파라미터는 무시(금액 위조 차단: 1⭐로 비싼 팩 결제 방지).
 const STARS = { starter: 50, weekly: 250, monthly: 750, vip: 1500, ultra: 5000, growth1: 500, growth2: 2500, gem1: 55, gem2: 280, gem3: 1000, gem4: 2500, gold1: 55, gold2: 280, gold3: 1000 };
+const GAME = "https://hosuman08-netizen.github.io/daedalus-conquest";   // 게임 URL (배너·플레이 버튼)
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -70,6 +71,16 @@ export default {
       let u = {}; try { u = await req.json(); } catch (e) {}
       if (u.pre_checkout_query) {
         await tg(token, "answerPreCheckoutQuery", { pre_checkout_query_id: u.pre_checkout_query.id, ok: true });
+      }
+      // /start → 환영 배너 + 플레이 버튼 (봇 첫 화면)
+      if (u.message && typeof u.message.text === "string" && u.message.text.indexOf("/start") === 0) {
+        await tg(token, "sendPhoto", {
+          chat_id: u.message.chat.id,
+          photo: GAME + "/art/marketing-arclight-banner.jpg",
+          caption: "⚔️ <b>Daedalus Conquest</b> — AI 군단 전쟁\n\n🤖 200+ AI 영웅을 모아 키우고\n🐉 거대 보스를 격파하며\n🏆 끝없이 정복하라.\n\n👇 지금 군단을 일으켜라:",
+          parse_mode: "HTML",
+          reply_markup: { inline_keyboard: [[{ text: "🎮 플레이 시작", web_app: { url: GAME + "/" } }]] },
+        });
       }
       // u.message?.successful_payment 여기서 서버지급/영수증저장 가능(현재는 클라지급이라 생략)
       return json({ ok: true });
