@@ -344,6 +344,9 @@ const PAY_I18N = {
   ru: { payDemo: "🧪 Демо-выдача (оплата не подключена)", payOpening: "💳 Открываем оплату…", payOk: "✅ Оплачено — выдано!", payFail: "❌ Ошибка оплаты", payCancel: "Оплата отменена", payErr: "⚠️ Ошибка платёжного сервера" },
 };
 for (const l in PAY_I18N) Object.assign(I18N[l], PAY_I18N[l]);
+// 텔레그램 밖 결제 차단 안내 (웹 무료지급 방지)
+const TGONLY_I18N = { ko: "💳 텔레그램 미니앱에서 구매 가능해요", en: "💳 Purchase available in the Telegram mini app", ja: "💳 Telegramミニアプリで購入できます", zh: "💳 请在 Telegram 小程序内购买", hi: "💳 Telegram मिनी ऐप में खरीदें", ru: "💳 Покупка доступна в мини-приложении Telegram" };
+for (const l in TGONLY_I18N) I18N[l].payTgOnly = TGONLY_I18N[l];
 
 // 📊 전체 확률 공개 (법적 disclosure — 코드값과 100% 일치)
 const ODDS_I18N = {

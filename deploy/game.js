@@ -52,7 +52,12 @@ function combatPop() {                                  // 발사음 스로틀(�
   _popAt = n; SFX.shot();
 }
 
-// ── 🎵 BGM (합성 루프, 에셋 없음) — A단조 4코드 아르페지오 + 베이스 ───────────────
+// ── 🎵 BGM (Aether-Maestro — Legion Music Sovereign)
+// Melodic Techno "Aria × Paradise" oceanic ethereal vibe
+// Deep rolling sub, hypnotic choir-like vocal motif, sweeping atmospheric pads, wave motion swells
+// Dark blue cinematic, mystical + powerful. Perfect for daedalus-conquest legion conquest feel.
+// Vibes only from Argy&Omnya - Aria (ethereal vocal, hypnotic, uplifting ominous) + Tony Dark Eyes - Paradise (dramatic waves, driving emotional)
+// + the linked mix. No direct copy. Pure original synth. Dynamic sections for tension/release.
 function ensureAudio() { try { if (!_actx) _actx = new (window.AudioContext || window.webkitAudioContext)(); if (_actx.state === "suspended") _actx.resume(); } catch (e) {} }
 function bgmTone(freq, dur, type, vol) {
   if (!_actx || (typeof META !== "undefined" && META && META.music === false)) return;
@@ -66,22 +71,40 @@ function bgmTone(freq, dur, type, vol) {
 }
 // 딥하우스 무드 코드 진행 (Am F G Em — 따뜻하고 그루비)
 const BGM_CHORDS = [[130.81, 155.56, 196.00], [103.83, 130.81, 155.56], [116.54, 146.83, 174.61], [98.00, 116.54, 146.83]]; // 🩸 어두운 단조 (phonk) — Cm/Ab/Bb/Gm 저음
-function bgmKick(vol) {   // 킥 — 폰 스피커에서도 들리게 미드 클릭 + 바디
+function bgmKick(vol) {   // 킥 — 클릭 + 바디 (더 펀치감, chip 감소)
   if (!_actx || (typeof META !== "undefined" && META && META.music === false)) return;
   try {
     const o = _actx.createOscillator(), g = _actx.createGain();
-    o.type = "triangle"; o.frequency.setValueAtTime(220, _actx.currentTime); o.frequency.exponentialRampToValueAtTime(55, _actx.currentTime + 0.1);
+    o.type = "triangle"; o.frequency.setValueAtTime(220, _actx.currentTime); o.frequency.exponentialRampToValueAtTime(52, _actx.currentTime + 0.1);
     g.gain.value = vol; g.gain.exponentialRampToValueAtTime(0.0001, _actx.currentTime + 0.2);
     o.connect(g); g.connect(_actx.destination); o.start(); o.stop(_actx.currentTime + 0.21);
+    // noise attack layer
+    const bl = Math.floor(_actx.sampleRate * 0.025);
+    const nb = _actx.createBuffer(1, bl, _actx.sampleRate);
+    const nd = nb.getChannelData(0); for (let i=0;i<bl;i++) nd[i] = Math.random()*2-1;
+    const ns = _actx.createBufferSource(); ns.buffer=nb;
+    const ng = _actx.createGain(); ng.gain.value = vol*0.9;
+    ns.connect(ng); ng.connect(_actx.destination); ns.start();
+    ng.gain.exponentialRampToValueAtTime(0.0001, _actx.currentTime + 0.018);
   } catch (e) {}
 }
-function bgmHat(vol) {     // 하이햇 — 짧은 고음 틱
+function bgmHat(vol) {     // 하이햇 — 노이즈 기반 (칩튠 square 제거, 더 자연 + 덜 테트리스)
   if (!_actx || (typeof META !== "undefined" && META && META.music === false)) return;
   try {
-    const o = _actx.createOscillator(), g = _actx.createGain();
-    o.type = "square"; o.frequency.value = 8200; g.gain.value = vol;
-    g.gain.exponentialRampToValueAtTime(0.0001, _actx.currentTime + 0.03);
-    o.connect(g); g.connect(_actx.destination); o.start(); o.stop(_actx.currentTime + 0.035);
+    const len = Math.floor(_actx.sampleRate * 0.06);
+    const buf = _actx.createBuffer(1, len, _actx.sampleRate);
+    const dat = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) dat[i] = Math.random() * 2 - 1;
+    const src = _actx.createBufferSource();
+    src.buffer = buf;
+    const hp = _actx.createBiquadFilter();
+    hp.type = 'highpass'; hp.frequency.value = 5200;
+    const g = _actx.createGain();
+    g.gain.value = vol * 1.6;
+    src.connect(hp); hp.connect(g); g.connect(_actx.destination);
+    src.start();
+    g.gain.exponentialRampToValueAtTime(0.0005, _actx.currentTime + 0.05);
+    src.stop(_actx.currentTime + 0.07);
   } catch (e) {}
 }
 function bgmClap(vol) {    // 클랩/스네어 — 백비트 그루브 (다중 고음 버스트)
@@ -95,60 +118,176 @@ function bgmClap(vol) {    // 클랩/스네어 — 백비트 그루브 (다중 �
   } catch (e) {}
 }
 let bgmTimer = null, bgmStep = 0, bgmAudio = null;
-function bgm808(freq, dur, vol) {   // phonk 808 슬라이드 서브베이스
+function bgm808(freq, dur, vol) {   // phonk 808 — 슬라이드 + 저음 레이어 (더 무겁고 두꺼움, 테트리스 탈출)
   if (!_actx || (typeof META !== "undefined" && META && META.music === false)) return;
   try {
+    // main slide sine
     const o = _actx.createOscillator(), g = _actx.createGain();
     o.type = "sine"; o.frequency.setValueAtTime(freq * 1.45, _actx.currentTime); o.frequency.exponentialRampToValueAtTime(freq, _actx.currentTime + 0.09);
-    g.gain.value = vol; g.gain.exponentialRampToValueAtTime(0.0001, _actx.currentTime + dur);
-    o.connect(g); g.connect(_actx.destination); o.start(); o.stop(_actx.currentTime + dur + 0.02);
+    g.gain.value = vol;
+    // extra low body layer
+    const o2 = _actx.createOscillator(), g2 = _actx.createGain();
+    o2.type = "sine"; o2.frequency.value = freq * 0.5;
+    g2.gain.value = vol * 0.6;
+    const mg = _actx.createGain();
+    o.connect(g); g.connect(mg);
+    o2.connect(g2); g2.connect(mg);
+    mg.connect(_actx.destination);
+    mg.gain.value = 1;
+    o.start(); o2.start();
+    mg.gain.exponentialRampToValueAtTime(0.0001, _actx.currentTime + dur);
+    o.stop(_actx.currentTime + dur + 0.02);
+    o2.stop(_actx.currentTime + dur + 0.02);
   } catch (e) {}
 }
-function bgmCowbell(freq, vol) {   // phonk 멜로디 — 둥글게(triangle), 낮고 그루비 (칩튠/테트리스 느낌 제거)
+function bgmCowbell(freq, vol) {   // phonk 리드 — detune saw+triangle 레이어 (순수 triangle 제거, 더 두껍고 그루비, 테트리스 탈출)
   if (!_actx || (typeof META !== "undefined" && META && META.music === false)) return;
   try {
-    const o = _actx.createOscillator(), g = _actx.createGain();
-    o.type = "triangle"; o.frequency.value = freq;
-    g.gain.value = vol; g.gain.exponentialRampToValueAtTime(0.0001, _actx.currentTime + 0.24);
-    o.connect(g); g.connect(_actx.destination); o.start(); o.stop(_actx.currentTime + 0.26);
+    // main triangle
+    const o1 = _actx.createOscillator(), g1 = _actx.createGain();
+    o1.type = "triangle"; o1.frequency.value = freq;
+    g1.gain.value = vol;
+    // detuned saw for body (덜 칩)
+    const o2 = _actx.createOscillator(), g2 = _actx.createGain();
+    o2.type = "sawtooth"; o2.frequency.value = freq * 1.007;
+    g2.gain.value = vol * 0.55;
+    const g = _actx.createGain();
+    o1.connect(g1); g1.connect(g);
+    o2.connect(g2); g2.connect(g);
+    g.connect(_actx.destination);
+    g.gain.value = 1;
+    o1.start(); o2.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, _actx.currentTime + 0.22);
+    o1.stop(_actx.currentTime + 0.24);
+    o2.stop(_actx.currentTime + 0.24);
   } catch (e) {}
 }
-// 🩸 동적 phonk BGM (Grok 작곡 디렉션 SPEC-bgm-dynamic — 12마디 아크 Intro→Build→Drop→Break, 느렸다 빨라졌다). 악기함수 호출만.
-const DYN_CHORDS = [[130.81,155.56,196.00],[103.83,130.81,155.56],[116.54,146.83,174.61],[98.00,116.54,146.83]];
-const DROP_CHORDS = [[130.81,155.56,196.00],[174.61,207.65,261.63],[103.83,130.81,155.56],[116.54,146.83,174.61]];
-const BGM_SEC = ["intro","intro","build","build","build","build","drop","drop","drop","drop","break","break"];
-const BGM_MS = { intro:175, build:148, drop:118, break:138 };
-const MELODY = { intro:[1,0,0,0,0,0,0,0,0,0,1,0,0,0,3,0], build:[1,0,0,2,0,0,1,0,0,3,0,0,1,0,0,2], drop:[1,0,2,0,1,0,3,0,0,1,0,2,1,3,0,1], break:[1,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0] };
-const PAT = {
-  kick:{ intro:[1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0], build:[1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0], drop:[1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0], break:[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
-  clap:{ intro:[0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0], build:[0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0], drop:[0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0], break:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
-  hat:{ intro:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0], build:[0,0,1,0,1,0,0,1,0,0,1,0,1,0,0,1], drop:[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0], break:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
-  bass:{ intro:[1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0], build:[1,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0], drop:[1,0,0,1,0,0,1,0,1,0,1,0,0,1,0,0], break:[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] }
+// Aether-Maestro Melodic Techno BGM — "Aria × Paradise" oceanic ethereal vibe
+// Deep rolling sub, hypnotic choir-like vocal motif, sweeping atmospheric pads, wave motion swells
+// Dark blue cinematic, mystical + powerful. Perfect for daedalus-conquest legion conquest feel.
+// Vibes only from Argy&Omnya - Aria (ethereal vocal, hypnotic, uplifting ominous) + Tony Dark Eyes - Paradise (dramatic waves, driving emotional)
+// + the linked mix. No direct copy. Pure original synth. Dynamic sections for tension/release.
+const MT_CHORDS = [
+  [65.41, 82.41, 98.00],   // deep C2 minor root for sub weight
+  [77.78, 98.00, 116.54],  // Eb
+  [87.31, 110.00, 130.81], // F
+  [98.00, 123.47, 146.83]  // G
+];
+const MT_DROP_CHORDS = [
+  [65.41, 82.41, 98.00],
+  [73.42, 92.50, 110.00],  // more tension
+  [77.78, 98.00, 116.54],
+  [87.31, 110.00, 130.81]
+];
+const MT_SEC = ["intro","intro","build","build","build","build","drop","drop","drop","drop","break","break"];
+const MT_MS = { intro: 138, build: 128, drop: 115, break: 142 };  // ~130bpm core, faster drop for power
+const VOCAL_MOTIF = { 
+  intro: [1,0,0, 2,0,0, 1,0, 3,0,0,0], 
+  build: [1,0,2,0, 1,0,3,0, 1,2,0,1], 
+  drop:  [1,2,1,3, 1,0,2,1, 3,1,2,0],   // hypnotic repeating aria-like
+  break: [1,0,0,0, 2,0,0,0, 1,0,3,0] 
 };
-const DROP_ROLL = [2,6,10,14];
+const MT_PAT = {
+  kick: { intro:[1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0], build:[1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0], drop:[1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0], break:[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  clap: { intro:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], build:[0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0], drop:[0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0], break:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  hat:  { intro:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0], build:[0,0,1,0,1,0,0,1,0,0,1,0,1,0,0,1], drop:[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0], break:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  bass: { intro:[1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0], build:[1,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0], drop:[1,0,0,1,0,0,1,0,1,0,1,0,0,1,0,0], break:[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] }
+};
+const WAVE_ROLL = [3,7,11,15]; // wave swell moments
 let bgmGlobalStep = 0, bgmCurSec = "intro";
+
+// Enhanced instruments for melodic techno depth
+function bgmOceanPad(chord, dur, vol) {
+  // long atmospheric pads — sine + slight detune for shimmer (Aria ethereal)
+  chord.forEach((f, i) => {
+    const det = (i === 1) ? 1.006 : (i === 2 ? 0.994 : 1);
+    bgmTone(f * 0.5 * det, dur, 'sine', vol * (0.6 - i*0.1));
+  });
+}
+function bgmHypnoticVocal(base, vol, sec) {
+  // Aria-style choir/hypnotic refrain simulation (multiple close sines + slight movement)
+  const detunes = [1, 1.008, 0.993, 1.015];
+  detunes.forEach((d, i) => {
+    const v = vol * (0.35 - i * 0.05);
+    if (v > 0.05) bgmTone(base * d, (sec === 'break' ? 1.1 : 0.65), 'sine', v);
+  });
+}
+function bgmWave808(freq, dur, vol) {
+  // Deep rolling sub with wave motion (Paradise power + Aria undulation)
+  bgm808(freq, dur, vol);
+  // extra sub layer + slow swell
+  setTimeout(() => {
+    if (_actx) {
+      try {
+        const o = _actx.createOscillator(), g = _actx.createGain();
+        o.type = 'sine'; o.frequency.value = freq * 0.5;
+        g.gain.value = vol * 0.45;
+        o.connect(g); g.connect(_actx.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.0001, _actx.currentTime + dur * 1.3);
+        o.stop(_actx.currentTime + dur * 1.4);
+      } catch(e){}
+    }
+  }, 40);
+}
+
 function bgmTick() {
   if (typeof META !== "undefined" && META && META.music === false) return;
-  const step = bgmGlobalStep % 16, bar = (bgmGlobalStep / 16 | 0) % 12, sec = BGM_SEC[bar];
-  const ch = (sec === "drop" ? DROP_CHORDS : DYN_CHORDS)[bar % 4], root = ch[0];
-  const sw = (sec === "drop" || sec === "break") ? 22 : 48;
-  const D = (fn) => (step % 2 === 1 && sw) ? setTimeout(fn, sw) : fn();
-  if (PAT.kick[sec][step]) bgmKick(sec === "drop" ? 0.16 : 0.12);
-  if (PAT.clap[sec][step]) D(() => bgmClap(sec === "drop" ? 0.032 : 0.026));
-  if (sec === "drop" && (step === 4 || step === 12)) bgmClap(0.018);
-  if (PAT.hat[sec][step]) D(() => bgmHat(sec === "drop" ? 0.011 : 0.007));
-  if (sec === "drop" && DROP_ROLL.includes(step)) { for (let r = 0; r < 4; r++) setTimeout(() => bgmHat(0.013), r * 21); }
-  if (PAT.bass[sec][step]) bgm808(root, sec === "break" ? 0.72 : (sec === "drop" ? 0.48 : 0.55), sec === "drop" ? 0.22 : 0.17);
-  const mi = MELODY[sec][step];
-  if (mi) { let f = ch[mi - 1]; if (sec === "drop" && step % 2) f *= 1.018; D(() => bgmCowbell(f, sec === "drop" ? 0.028 : (sec === "break" ? 0.015 : 0.021))); }
-  if (step === 0) bgmTone(ch[1] * 0.5, sec === "break" ? 1.8 : 1.2, (sec === "build" || sec === "drop") ? "sawtooth" : "sine", sec === "drop" ? 0.015 : (sec === "break" ? 0.009 : 0.011));
+  const step = bgmGlobalStep % 16, bar = (bgmGlobalStep / 16 | 0) % 12, sec = MT_SEC[bar];
+  const ch = (sec === "drop" ? MT_DROP_CHORDS : MT_CHORDS)[bar % 4];
+  const root = ch[0];
+  const sw = (sec === "drop" || sec === "break") ? 18 : 42; // tighter for techno groove
+  const D = (fn) => {
+    if (step % 2 === 1 && sw) {
+      const jitter = (Math.random() - 0.5) * 7;
+      setTimeout(fn, sw + jitter);
+    } else fn();
+  };
+
+  // Deep kick (ocean floor)
+  if (MT_PAT.kick[sec][step]) bgmKick(sec === "drop" ? 0.18 : 0.13);
+
+  // Atmospheric claps / swells
+  if (MT_PAT.clap[sec][step]) D(() => bgmClap(sec === "drop" ? 0.028 : 0.018));
+  if (sec === "drop" && (step === 5 || step === 13)) bgmClap(0.014); // extra wave hits
+
+  // Rolling wave hats
+  if (MT_PAT.hat[sec][step]) D(() => bgmHat(sec === "drop" ? 0.009 : 0.005));
+  if (sec === "drop" && WAVE_ROLL.includes(step)) {
+    for (let r=0; r<3; r++) setTimeout(() => bgmHat(0.007), r * 28);
+  }
+
+  // Rolling deep bass (core of the vibe)
+  if (MT_PAT.bass[sec][step]) {
+    const dur = (sec === "break") ? 0.95 : (sec === "drop" ? 0.65 : 0.72);
+    bgmWave808(root, dur, sec === "drop" ? 0.26 : 0.18);
+  }
+
+  // Hypnotic Aria vocal motif (the heart)
+  const mi = VOCAL_MOTIF[sec][step];
+  if (mi) {
+    let f = ch[mi-1] * (sec === "drop" ? 2.02 : 1.01); // higher for vocal presence
+    if (sec === "drop" && step % 3 === 0) f *= 1.01;
+    bgmHypnoticVocal(f, sec === "drop" ? 0.032 : (sec === "break" ? 0.018 : 0.025), sec);
+  }
+
+  // Sweeping pads every bar start + build
+  if (step === 0 || (sec === "build" && step % 4 === 0)) {
+    const pVol = (sec === "drop" ? 0.018 : (sec === "break" ? 0.012 : 0.014));
+    bgmOceanPad(ch, (sec === "break" ? 2.4 : 1.6), pVol);
+  }
+
   bgmGlobalStep++;
-  if ((bgmGlobalStep % 16) === 0 && bgmTimer) {   // 섹션 경계서 템포 교체 → "느렸다 빨라졌다" 체감
-    const ns = BGM_SEC[(bgmGlobalStep / 16 | 0) % 12];
-    if (ns !== bgmCurSec) { bgmCurSec = ns; clearInterval(bgmTimer); bgmTimer = setInterval(bgmTick, BGM_MS[ns]); }
+  if ((bgmGlobalStep % 16) === 0 && bgmTimer) {
+    const ns = MT_SEC[(bgmGlobalStep / 16 | 0) % 12];
+    if (ns !== bgmCurSec) {
+      bgmCurSec = ns;
+      clearInterval(bgmTimer);
+      bgmTimer = setInterval(bgmTick, MT_MS[ns]);
+    }
   }
 }
-function startSynthBgm() { if (bgmTimer || (META && META.music === false)) return; ensureAudio(); bgmGlobalStep = 0; bgmCurSec = "intro"; bgmTimer = setInterval(bgmTick, BGM_MS.intro); }  // 동적 phonk 12마디 아크
+function startSynthBgm() { if (bgmTimer || (META && META.music === false)) return; ensureAudio(); bgmGlobalStep = 0; bgmCurSec = "intro"; bgmTimer = setInterval(bgmTick, MT_MS.intro); }
 function stopSynthBgm() { if (bgmTimer) { clearInterval(bgmTimer); bgmTimer = null; } }
 function bgmStart() {      // 실제 음원 audio/bgm.mp3 있으면 사용(로열티프리만!), 없으면 합성 딥하우스
   if (META && META.music === false) return;
@@ -585,11 +724,12 @@ function isBestForChar(g, charId) {
 
 function gearArt(g) {
   if (!g) return gearSynthHTML(null);
-  const slot = g.slot || 'weapon';
-  const rar = (g.rarity || 'N').toLowerCase();
-  // 아트 폴백 체인: ①per-item art/gear/i{id}.png(120종 개별) → ②슬롯-등급 공유 → ③synth.
+  const slot = (g.slot || 'weapon').toLowerCase();
+  const rar = (g.rarity || 'n').toLowerCase();
   const tid = g.tplId || g.id || 0;
-  return `<img class="g-art" src="art/gear/i${tid}.png" alt="" loading="lazy" data-s="0" onerror="var s=(+this.dataset.s||0)+1;this.dataset.s=s;if(s===1){this.src='art/gear/${slot}-${rar}.png'}else{this.outerHTML=gearSynthHTML(${JSON.stringify(g).replace(/"/g,'&quot;')})}">`;
+  // Path support: deploy bundle uses "gear/" (files in deploy/gear/), source dev uses "art/gear/".
+  // Try deploy first (common for screenshots/live), fallback to source path, then shared slot-rar, then synth.
+  return `<img class="g-art" src="gear/i${tid}.png" alt="" loading="lazy" data-s="0" data-slot="${slot}" data-rar="${rar}" onerror="var s=(+this.dataset.s||0)+1;this.dataset.s=s;if(s===1){this.src='gear/i${tid}.png'}else if(s===2){this.src='art/gear/i${tid}.png'}else if(s===3){this.src='gear/${slot}-${rar}.png'}else if(s===4){this.src='art/gear/${slot}-${rar}.png'}else{this.outerHTML=gearSynthHTML(${JSON.stringify(g).replace(/"/g,'&quot;')})}">`;
 }
 function gearSynthHTML(g) {
   if (!g) return `<div class="gear-synth empty" style="opacity:.55">⚙️</div>`; // no broken "?", premium icon even for empty/fallback
@@ -3344,6 +3484,7 @@ if (ocb) ocb.onclick = closeOdds;
 on("ss-gold5k", "click", () => soulBuy(20, { gold: 5000 }));     // 🔮 소울 상점
 on("ss-gold30k", "click", () => soulBuy(100, { gold: 30000 }));
 on("ss-gem50", "click", () => soulBuy(80, { gems: 50 }));
+on("ss-gem200", "click", () => soulBuy(250, { gems: 200 }));
 on("dismantle-dupes", "click", dismantleDupes); // 🔮 중복 전부 소울로
 
 // ── 대시보드: 도감 + 강화(실패확률·보호) + 승급(조합) ─────────────────────────

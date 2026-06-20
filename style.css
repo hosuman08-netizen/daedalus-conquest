@@ -101,6 +101,7 @@ h1::first-letter { color: var(--crimson); }
 #shop-gacha { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 6px; }
 .gbig { padding: 14px 8px; font-size: 13px; font-weight: 800; border-radius: 10px; background: linear-gradient(135deg, #2a2348, #171130); color: var(--text); border: 1px solid #473a63; }
 .gbig:active { transform: scale(.97); }
+#soul-shop { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
 #season-list { margin-bottom: 8px; }
 .seasoncard { background: #1d1535; border-radius: 10px; padding: 16px; text-align: center; border: 1px dashed #473a63; }
 .sc-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
