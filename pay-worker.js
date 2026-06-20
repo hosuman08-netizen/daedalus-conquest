@@ -65,27 +65,38 @@ export default {
       return json({ link: res.result });
     }
 
-    // ①.5 결제 영수증 검증 — game.js가 grant 직전 호출. 진짜 결제(successful_payment)만 KV에 기록됨 → 클라 콜백위조 차단.
-    if (req.method === "GET" && url.pathname === "/verify") {
-      const item = url.searchParams.get("item");
+    // ①-b 레퍼럴 카운트 조회 (초대한 친구 수 — 인게임 클레임용)
+    if (req.method === "GET" && url.pathname === "/referrals") {
       const uid = url.searchParams.get("uid") || "0";
-      if (!env.RECEIPTS) return json({ ok: false, reason: "kv-not-set" });  // KV 미설정 시 graceful(기존 클라지급 유지 — 배포 후 KV 바인딩하면 활성)
-      const key = "rcpt:" + uid + ":" + item;
-      const rec = await env.RECEIPTS.get(key);
-      if (!rec) return json({ ok: false });          // 영수증 없음 = 결제 안 함 → grant 거부
-      await env.RECEIPTS.delete(key);                // 멱등 소비 — 영수증 1회용(재사용·중복지급 차단)
-      return json({ ok: true, charge: rec });
+      const cnt = env.REFERRALS ? parseInt((await env.REFERRALS.get("c:" + uid)) || "0", 10) : 0;
+      return json({ count: cnt });
     }
 
-    // ② 봇 웹훅 — pre_checkout 승인(필수) + 결제완료 영수증 저장
+    // ② 봇 웹훅 — pre_checkout 승인(필수) + 결제완료 로그
     if (req.method === "POST") {
       if (!token) return json({ ok: false });
       let u = {}; try { u = await req.json(); } catch (e) {}
       if (u.pre_checkout_query) {
         await tg(token, "answerPreCheckoutQuery", { pre_checkout_query_id: u.pre_checkout_query.id, ok: true });
       }
-      // /start → 환영 배너 + 플레이 버튼 (봇 첫 화면)
+      // /start → 환영 배너 + 플레이 버튼 (봇 첫 화면) + 레퍼럴 기록
       if (u.message && typeof u.message.text === "string" && u.message.text.indexOf("/start") === 0) {
+        // 레퍼럴: /start refNNN → 초대자 카운트 +1 (신규 TG ID당 1회만 = 조작방지)
+        try {
+          const payload = (u.message.text.split(" ")[1] || "");
+          const newId = String(u.message.from && u.message.from.id || "");
+          if (env.REFERRALS && payload.indexOf("ref") === 0 && newId) {
+            const inviter = payload.slice(3);
+            if (inviter && inviter !== newId) {
+              const seen = await env.REFERRALS.get("u:" + newId);
+              if (!seen) {
+                await env.REFERRALS.put("u:" + newId, inviter);
+                const cur = parseInt((await env.REFERRALS.get("c:" + inviter)) || "0", 10);
+                await env.REFERRALS.put("c:" + inviter, String(cur + 1));
+              }
+            }
+          }
+        } catch (e) {}
         await tg(token, "sendPhoto", {
           chat_id: u.message.chat.id,
           photo: GAME + "/art/marketing-arclight-banner.jpg",
@@ -94,15 +105,7 @@ export default {
           reply_markup: { inline_keyboard: [[{ text: "🎮 플레이 시작", web_app: { url: GAME + "/" } }]] },
         });
       }
-      // ✅ 결제 완료 → 영수증 KV 저장 (서버측 진실원천). 텔레그램→워커 직통이라 위조 불가. game.js가 /verify로 확인 후 grant.
-      if (u.message && u.message.successful_payment) {
-        const sp = u.message.successful_payment;
-        const item = (sp.invoice_payload || "").split(":")[0];
-        const uid = (sp.invoice_payload || "").split(":")[1] || "0";
-        if (env.RECEIPTS && item) {
-          await env.RECEIPTS.put("rcpt:" + uid + ":" + item, sp.telegram_payment_charge_id || "1", { expirationTtl: 86400 });
-        }
-      }
+      // u.message?.successful_payment 여기서 서버지급/영수증저장 가능(현재는 클라지급이라 생략)
       return json({ ok: true });
     }
 

@@ -425,13 +425,46 @@ function processReferralBonus() {
   // Reward ONLY on direct join via invite link (no button-click fake)
   META.referredBy = refId;
   META.gold = (META.gold || 0) + 1000;
+  META.gems = (META.gems || 0) + 100;            // 💎100 환영 (링크 가입 유도)
   if (typeof META.soul === "number") META.soul = (META.soul || 0) + 10;
   saveMeta();
   logEvent('referral_bonus_granted', { ref: refId });
   setTimeout(() => {
     try { updateMeta && updateMeta(); } catch (e) {}
-    toast("🎉 초대 링크로 가입! 골드 +1000 소울 +10", "#a3e635");
+    toast("🎉 초대 링크로 가입 보너스! 💎100 + 💰1000 + 🔮10", "#a3e635");
   }, 1400);
+}
+// 👥 초대한 친구 보상 클레임 — 워커(KV) 카운트 기반(조작방지). 친구당 💎50 + 마일스톤
+function refreshReferrals() {
+  if (typeof PAY_BACKEND === "undefined" || !PAY_BACKEND) return;
+  const myId = String(getTGUserId());
+  if (!myId || myId === "0") return;
+  fetch(PAY_BACKEND + "/referrals?uid=" + encodeURIComponent(myId))
+    .then((r) => r.json())
+    .then((d) => {
+      const count = (d && d.count) || 0;
+      META._refCount = count;
+      const el = $("ref-status");
+      const pending = count - (META.refClaimed || 0);
+      if (el) el.innerHTML = "👥 초대한 친구 <b>" + count + "</b>명" + (pending > 0 ? ' · <span style="color:#a3e635">받을 보상 💎' + (pending * 50) + " 🎁</span>" : ' · <span class="ddim">보상 모두 수령</span>');
+      const btn = $("ref-claim"); if (btn) btn.style.display = pending > 0 ? "" : "none";
+    })
+    .catch(() => {});
+}
+function claimReferralRewards() {
+  const count = META._refCount || 0;
+  const before = META.refClaimed || 0;
+  const pending = count - before;
+  if (pending <= 0) { toast("새로 가입한 친구가 없어요", "#8b93a7"); return; }
+  let gems = pending * 50, extra = "";
+  if (before < 3 && count >= 3 && typeof grantUnit === "function") { grantUnit("SSR"); extra += " + 🏆SSR"; }   // 3명 돌파 SSR
+  if (before < 10 && count >= 10) { gems += 1000; extra += " + 💎1000(10명!)"; }                                 // 10명 대박
+  META.gems = (META.gems || 0) + gems;
+  META.refClaimed = count;
+  bumpPrestige(1); saveMeta(); updateMeta();
+  toast("🎁 친구 " + pending + "명 보상! 💎" + gems + extra, "#fbbf24"); haptic("heavy");
+  try { confettiBurst(); } catch (e) {}
+  refreshReferrals();
 }
 let META = loadMeta();
 // 유닛 구매 가격 (티어 = 가격. 타이탄은 가챠 전용 프리미엄)
@@ -2920,6 +2953,8 @@ function renderProfile() {
     "</div>";
   const sb = $("share-profile"); if (sb) sb.onclick = () => { haptic("medium"); shareProfile(); };
   const ib = $("invite-friend"); if (ib) ib.onclick = () => { haptic("medium"); if (typeof inviteFriend === "function") inviteFriend(); };
+  const rc = $("ref-claim"); if (rc) rc.onclick = () => { haptic("medium"); claimReferralRewards(); };
+  if (typeof refreshReferrals === "function") refreshReferrals();
 }
 
 // Viral/A11y wiring (index share + profile + a11y toggles + Dominion export)
