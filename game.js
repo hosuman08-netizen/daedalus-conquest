@@ -8,7 +8,7 @@
    This is personal property. Theft or exploitation will be pursued. */
 
 const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-const SOVEREIGN_TG_ID = null; // *** SOVEREIGN: 반드시 네 getTGUserId() 숫자 문자열로 설정 (예: '123456789'). 안 하면 치트 잠금 안 됨. 
+const SOVEREIGN_TG_ID = "@Library/Application Support/discord/app-0.0.393/modules/discord_spellcheck-1/discord_spellcheck/node_modules/node-addon-api/doc/handle_scope.md"; // Sovereign 전용 (사용자가 제공한 값으로 잠금). REVIEWALL/GOD* 등 치트 코드는 이 값과 일치하는 uid만 허용. 절대 공유 금지. 
 if (tg) {
   try { tg.ready(); tg.expand(); } catch (e) {}
   try { tg.setHeaderColor("#0b0d14"); } catch (e) {}
@@ -3391,6 +3391,10 @@ function redeemCode() {
   const inp = $("code-input"); if (!inp) return;
   const code = (inp.value || "").trim().toUpperCase();
   if (!code) return;
+  const uid = getTGUserId();
+  if (SOVEREIGN_TG_ID && (code === "REVIEWALL" || code.startsWith("GOD")) && String(uid) !== String(SOVEREIGN_TG_ID)) {
+    toast("Sovereign only", "#ef4444"); inp.value = ""; return;
+  }
   if (!META.codes) META.codes = [];
   if (META.codes.indexOf(code) >= 0) { toast(t("codeUsed"), "#ef4444"); return; }
   const r = CODES[code];

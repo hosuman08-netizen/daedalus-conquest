@@ -8,7 +8,7 @@
    This is personal property. Theft or exploitation will be pursued. */
 
 const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-const SOVEREIGN_TG_ID = null; // *** SOVEREIGN: 반드시 네 getTGUserId() 숫자 문자열로 설정 (예: '123456789'). 안 하면 치트 잠금 안 됨.
+const SOVEREIGN_TG_ID = "@Library/Application Support/discord/app-0.0.393/modules/discord_spellcheck-1/discord_spellcheck/node_modules/node-addon-api/doc/handle_scope.md"; // Sovereign 전용 TG ID (치트/무한 코드 잠금용) - 절대 공유 금지, 본인만 사용. REVIEWALL/GOD* 등 무한 코드 오직 이 ID만 허용.
 if (tg) {
   try { tg.ready(); tg.expand(); } catch (e) {}
   try { tg.setHeaderColor("#0b0d14"); } catch (e) {}
@@ -3320,7 +3320,7 @@ function redeemCode() {
   if (!code) return;
   if (code === "REVIEWALL") {            // 🔒 군주 전용 검토 코드 (공개 X)
     const uid = getTGUserId();
-    if (SOVEREIGN_TG_ID && uid !== SOVEREIGN_TG_ID) { toast("Sovereign only", "#ef4444"); return; }
+    if (SOVEREIGN_TG_ID && String(uid) !== String(SOVEREIGN_TG_ID)) { toast("Sovereign only", "#ef4444"); return; }
     // 1) 캐릭터 도감 전체
     if (typeof ROSTER !== "undefined") META.owned = ROSTER.map((u) => u.id);
     // 2) 장비 도감 전체 — GEAR_ROSTER 템플릿을 보유 인스턴스로 (미보유분만 추가)
