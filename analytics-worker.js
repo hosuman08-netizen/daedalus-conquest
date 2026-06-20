@@ -21,10 +21,10 @@ export default {
     const url = new URL(req.url);
 
     // ① 이벤트 수신 — game.js logEvent가 POST
-    if (req.method === "POST" && url.pathname === "/ev") {
+    if (req.method === "POST" && (url.pathname === "/ev" || url.pathname === "/event")) {
       if (!env.EVENTS) return json({ ok: false, reason: "kv-not-set" });   // graceful
       let b = {}; try { b = await req.json(); } catch (e) {}
-      const type = b.type, anon = (b.anonId || "anon").slice(0, 40), ts = b.ts || 0;
+      const type = b.type || b.n, anon = (b.anonId || b.a || "anon").slice(0, 40), ts = b.ts || 0;
       if (!ALLOWED.has(type) || !ts) return json({ ok: false, reason: "bad-event" });
       // 일별 카운트 집계 (KV는 단순 카운터 — D1로 승급 가능). 키: cnt:YYYY-MM-DD:type
       const day = dayKey(ts), ck = "cnt:" + day + ":" + type;
@@ -36,6 +36,11 @@ export default {
       const uk = "u:" + anon; let u = {}; try { u = JSON.parse((await env.EVENTS.get(uk)) || "{}"); } catch (e) {}
       if (!u.first) u.first = day; u.last = day;
       await env.EVENTS.put(uk, JSON.stringify(u), { expirationTtl: 30 * 86400 });
+      // ch18 reach 특수: ascend 시 fromCh>=18 데이터 반영 (d.fromCh)
+      if (type === "ascend" && b.d && (b.d.fromCh || 0) >= 18) {
+        const c18k = "c18:" + day; const ccur = parseInt((await env.EVENTS.get(c18k)) || "0", 10);
+        await env.EVENTS.put(c18k, String(ccur + 1), { expirationTtl: 60 * 86400 });
+      }
       return json({ ok: true });
     }
 

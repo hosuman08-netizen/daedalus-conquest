@@ -590,7 +590,7 @@ function loadMeta() {
           m = JSON.parse(parsed.d);
         } else {
           tampered = true;
-          console.warn('[SECURITY] META checksum failed — possible edit/hack. Resetting critical resources.');
+          console.warn('[SECURITY] META 체크섬 실패 — 편집/해킹 가능. 핵심 자원 초기화.');
         }
       } else {
         m = parsed; // legacy format
@@ -601,7 +601,7 @@ function loadMeta() {
       m = { gold: 550, gems: 50, soul: 0, chapter: 1 };
       // Wipe local to prevent persistent hack
       try { localStorage.removeItem(META_KEY); } catch(e){}
-      setTimeout(() => toast('⚠️ Security: data tampered. Resources reset. Contact Sovereign if this is error.', '#ef4444'), 1000);
+      setTimeout(() => toast('⚠️ 보안: 데이터 변조. 자원 초기화. 오류 시 Sovereign 연락.', '#ef4444'), 1000);
     }
     // Try CloudStorage for more secure per-user storage (harder to tamper)
     if (tg && tg.CloudStorage && tg.CloudStorage.getItem) {
@@ -613,7 +613,7 @@ function loadMeta() {
               const cloudM = JSON.parse(cloudParsed.d);
               // Prefer cloud if it has more progress (simple heuristic)
               if (cloudM && (cloudM.chapter > (m.chapter||0) || (cloudM.gold||0) > (m.gold||0))) {
-                console.log('[CLOUD] Loaded more recent secure META from CloudStorage');
+                console.log('[CLOUD] CloudStorage에서 최신 META 로드');
                 m = cloudM;
               }
             }
@@ -2403,6 +2403,7 @@ function finish(p, e) {
   running = false; gameOver = true;
   const win = p && !e, dr = !p && !e;
   if (win) { META.dailyBattles = (META.dailyBattles || 0) + 1; META.totalWins = (META.totalWins || 0) + 1; }   // ⚠️ TDZ 버그픽스: win 선언 뒤로 이동 (전엔 선언 전 참조→매 전투종료 ReferenceError로 finish() 전체 붕괴)
+  if (win) logEvent("battle_win", { mode: META.mode, ch: META.chapter, tower: META.tower, lvl: curLevel });   // 📊 계측
   if (tbActive) { tbActive = false; showTbControls(false); $("start").textContent = t("start"); delete window._tbTactic; }
   const m = META.mode;
   let extra = "", title = win ? t("rWin") : dr ? t("rDraw") : t("rLose");
@@ -3040,6 +3041,7 @@ function gacha() {
   const gu = grantUnit(rar.key);                        // 캐릭터 수집(도감)
   const isNew = window._lastGrantNew;
   if (gu) msg = isNew ? `🎉 【${gu.name}】 획득!` : `🔄 【${gu.name}】 중복 — 합성/분해 가능`;
+  logEvent("gacha_pull", { rarity: rar.key, kind: "single", isNew: !!isNew });   // 📊 계측
   bumpPrestige(0.5); saveMeta(); updateMeta(); reset();
   showGacha(rar, msg, gu ? [{ name: gu.name, rarity: rar.key, dupe: !isNew, isNew }] : []);
   // gacha pulse interlock from daily ritual
@@ -3078,6 +3080,7 @@ function gacha10() {
     best = Math.max(best, RANK[rar.key] || 0);
     const gu = grantUnit(rar.key);
     if (gu) results.push({ name: gu.name, rarity: rar.key, dupe: !window._lastGrantNew, isNew: window._lastGrantNew });
+    logEvent("gacha_pull", { rarity: rar.key, kind: "x10", isNew: !!window._lastGrantNew });   // 📊 계측
     if (rar.key === "SSR" && !META.titanOwned) { META.titanOwned = true; counts.p.titan = 1; }
     else { const pool = ORDER.filter((u) => u !== "titan" || META.titanOwned); for (let j = 0; j < rar.lvls; j++) { const u = pool[(Math.random() * pool.length) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; } }
   }
@@ -3766,6 +3769,7 @@ function doAscend() {
     if (btn) { btn.disabled = true; btn.textContent = "..."; }
     META.ether = (META.ether || 0) + gain; META.gems = (META.gems || 0) + ascProsperGem();
     META.ascCount = (META.ascCount || 0) + 1;
+    logEvent("ascend", { fromCh: ch, ether: gain, runs: META.ascCount });   // 📊 계측
     // 비파괴 리셋: 챕터·골드·연승만. 유닛·장비·가챠·캐릭·타워는 전부 유지.
     META.chapter = 1 + ascVanguardCh(); META.streak = 0;
     META.gold = 550 + ascStartGold();
@@ -4006,16 +4010,36 @@ function claimDailyMissions() {  // MVP daily cycle claim — forces 1 action lo
 function inviteFriend() {
   const ref = getTGUserId();
   const link = `https://t.me/daedalus_conquest_bot?start=ref${ref}`;
-  if (tg && tg.share) {
-    tg.share(link);
+  const text = "⚔️ Daedalus Conquest — AI 군단 전쟁! 같이 정복하자. 가입하면 💎100+💰1000+🔮10 보너스:";
+  if (tg && tg.openTelegramLink) {
+    // 텔레그램 친구목록 공유 시트 (탭해서 친구에게 바로 전송)
+    tg.openTelegramLink("https://t.me/share/url?url=" + encodeURIComponent(link) + "&text=" + encodeURIComponent(text));
   } else {
     try { navigator.clipboard.writeText(link); toast("초대 링크 복사됨", "#67e8f9"); } catch(e){}
   }
 }
 
-function logEvent(name, data) { // Metrics stub (post-launch)
-  console.log('[METRIC]', name, data || {});
-  // TODO: send to simple endpoint or tg
+// 📊 익명 분석 ID (TG id와 분리 — 프라이버시). localStorage 영속.
+function getAnonId() {
+  try {
+    let a = localStorage.getItem("daedalus_anon");
+    if (!a) { a = "a" + Math.random().toString(36).slice(2, 11) + Date.now().toString(36); localStorage.setItem("daedalus_anon", a); }
+    return a;
+  } catch (e) { return "a0"; }
+}
+// 📊 이벤트 계측 — 워커로 fire-and-forget 전송(실패해도 게임 영향 0). Oracle(CDO) 실측용.
+function logEvent(name, data) {
+  try {
+    if (typeof console !== "undefined") console.log("[METRIC]", name, data || {}); // debug metric (minify strips)
+    // Analytics 독립 (PAY와 분리 — metrics P1 필수). /ev + {type,anonId} 스키마 일치.
+    if (typeof ANALYTICS_BACKEND !== "undefined" && ANALYTICS_BACKEND) {
+      const body = JSON.stringify({ type: name, anonId: getAnonId(), ts: Date.now(), d: data || {} });
+      const url = ANALYTICS_BACKEND + "/ev";
+      if (typeof navigator !== "undefined" && navigator.sendBeacon) { navigator.sendBeacon(url, body); }
+      else if (typeof fetch !== "undefined") fetch(url, { method: "POST", body: body, keepalive: true, headers: { "Content-Type": "application/json" } }).catch(() => {});
+    }
+    // PAY /event 는 metrics 아님 (pay-worker 전용 경로 별도)
+  } catch (e) {}
 }
 on("om-ritual", "click", () => { bumpPrestige(1); checkDaily(); if (curPage!=="event") openEvent(); toast("🔮 의식 완료 — 가챠가 준비됐어요!", "#a3e635"); setTimeout(gacha, 700); });
 
@@ -4034,7 +4058,7 @@ function redeemCode() {
   if (!code) return;
   const uid = getTGUserId();
   if (SOVEREIGN_TG_ID && (code === "REVIEWALL" || code.startsWith("GOD")) && String(uid) !== String(SOVEREIGN_TG_ID)) {
-    toast("Sovereign only", "#ef4444"); inp.value = ""; return;
+    toast("Sovereign 전용", "#ef4444"); inp.value = ""; return;
   }
   if (!META.codes) META.codes = [];
   if (META.codes.indexOf(code) >= 0) { toast(t("codeUsed"), "#ef4444"); return; }
@@ -4097,11 +4121,12 @@ function renderShop() {
     if (owned) c.disabled = true; else c.addEventListener("click", () => buyPack(p.id));
     box.appendChild(c);
   });
-  } catch(e) { console.warn('shop render err', e); }
+  } catch(e) { console.warn('상점 렌더 오류', e); }
 }
 // ── 💳 결제 (Telegram Stars) ─────────────────────────────────────────────────
 // PAY_BACKEND 비어있으면 데모 즉시지급. 채우면 봇 서버가 인보이스 발급 → tg.openInvoice → 결제확인 후 지급.
 const PAY_BACKEND = "https://legion-pay.hoyashi95.workers.dev";   // ✅ 실결제 ON (Cloudflare Worker + Telegram Stars). 텔레그램 밖에선 자동 데모.
+const ANALYTICS_BACKEND = "";   // 📊 Oracle analytics-worker (출시 측정). 배포 후 "https://legion-analytics.<계정>.workers.dev" 로 교체. PAY와 독립.
 const STARS = { starter: 50, weekly: 250, monthly: 750, vip: 1500, ultra: 5000, growth1: 500, growth2: 2500,
                 gem1: 55, gem2: 280, gem3: 1000, gem4: 2500, gold1: 55, gold2: 280, gold3: 1000 };
 function buyPack(id) {
@@ -4131,6 +4156,7 @@ function payWithStars(id, stars) {
 }
 function grantPack(id) {
   const p = SHOP.find((x) => x.id === id); if (!p) return;
+  logEvent("purchase", { item: id, stars: (typeof STARS !== "undefined" && STARS[id]) || 0 });   // 📊 계측 (지급=결제완료 시점)
   if (p.starter) {                                     // 💎 초심자: 골드3000 + 유닛10 + 골드+20% (속도 혜택 제거)
     META.starter = true; META.gold += 3000;
     for (let i = 0; i < 10; i++) { const u = ORDER[(Math.random() * 5) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; }
@@ -4389,6 +4415,7 @@ function charLevelUp(id, times = 1) {
   META.gold -= totalCost;
   if (!META.charLv) META.charLv = {};
   META.charLv[id] = charLv(id) + times;
+  logEvent("growth_moment", { type: "levelup", delta: times, id: id });   // 📊 계측
   saveMeta(); updateMeta(); SFX.claim(); haptic("medium");
   openCharPanel(id); renderSquad(); if (!running) reset();
 }
@@ -4404,7 +4431,7 @@ function charEnhance(id) {
   const e = cEnh(id), cost = cEnhCost(id);
   if (META.gold < cost) { toast(t("tGoldShort", { n: cost }), "#ef4444"); return; }
   META.gold -= cost; if (!META.charEnh) META.charEnh = {};
-  if (Math.random() * 100 < cEnhRate(id)) { META.charEnh[id] = e + 1; toast(t("dSuccess", { n: e + 1 }), "#a3e635"); SFX.claim(); haptic("medium"); }
+  if (Math.random() * 100 < cEnhRate(id)) { META.charEnh[id] = e + 1; logEvent("growth_moment", { type: "enhance", delta: 1, id: id }); toast(t("dSuccess", { n: e + 1 }), "#a3e635"); SFX.claim(); haptic("medium"); }
   else { if (e >= 5) { META.charEnh[id] = e - 1; toast(t("dFail") + " −1", "#ef4444"); } else toast(t("dFail"), "#ef4444"); SFX.lose(); haptic("heavy"); }
   saveMeta(); updateMeta(); openCharPanel(id); renderSquad(); if (!running) reset();
 }
@@ -4416,6 +4443,7 @@ function fuseChar(id) {   // ✨ 합성: 같은 캐릭 중복 N장 → ★승급
   META.dupes[id] -= need;
   if (!META.charStar) META.charStar = {};
   META.charStar[id] = st + 1;
+  logEvent("growth_moment", { type: "fuse", delta: 1, star: st + 1, id: id });   // 📊 계측
   saveMeta(); updateMeta(); openCharPanel(id); renderSquad(); if (typeof renderCodex === "function") renderCodex(); if (!running) reset();
   toast("✨ 합성! ★" + cStar(id) + " 승급 · 중복 " + need + "장 소모", "#fbbf24"); SFX.ssr(); haptic("heavy");
 }
@@ -4436,6 +4464,7 @@ function charAwaken(id) {
   const cost = cAwakCost(id);
   if ((META.soul || 0) < cost) { toast(t("awSoulShort", { n: cost }), "#ef4444"); return; }
   META.soul -= cost; if (!META.charAwak) META.charAwak = {}; META.charAwak[id] = cAwak(id) + 1;
+  logEvent("growth_moment", { type: "awaken", delta: 1, awak: cAwak(id), id: id });   // 📊 계측
   saveMeta(); updateMeta(); openCharPanel(id); renderSquad(); if (!running) reset();
   toast("✦ " + t("awDone", { n: cAwak(id) }), "#c084fc"); SFX.ssr(); haptic("heavy");
 }
@@ -4672,7 +4701,7 @@ function renderCodex() {
     setTimeout(() => { if (c) c.style.transform = ''; }, 90);
     showUnit(id);
   }));
-  } catch(e) { console.warn('codex render err', e); }
+  } catch(e) { console.warn('도감 렌더 오류', e); }
 }
 let gdexFilter = "ALL";
 function renderGearCodex() {
@@ -4780,7 +4809,7 @@ function showUnit(id) {
     ? `${u.faction ? "🏷️ " + u.faction + " · " : ""}${u.glyph} ${u.arch} ×${u.mul}<br>${u.persona ? "💬 " + u.persona + "<br>" : ""}${u.trait ? "✦ " + u.trait : ""}`
     : t("lockedHint")) + lore;
   $("unit-pop").classList.remove("hidden");
-  } catch(e) { console.warn('showUnit err', e); }
+  } catch(e) { console.warn('유닛표시 오류', e); }
 }
 // ── 장비: 제작 · 장착 · 강화 ──────────────────────────────────────────────────
 function craftGear(forceRar) {
@@ -5008,3 +5037,8 @@ if ((META.chapter || 1) <= 2 && ((META.pulls || 0) + (META.owned || []).length) 
   }, 1400);
 }
 setTimeout(() => { try { maybeSortie(); } catch (e) {} }, 700);   // ⚔️ 일일 출정식 의례
+// 📊 계측: 최초 설치(1회) + 세션 시작. fire-and-forget, 게임 영향 0.
+try {
+  if (!META._installed) { META._installed = true; saveMeta(); logEvent("install", { ch: META.chapter || 1 }); }
+  logEvent("session_start", { ch: META.chapter || 1, tower: META.tower || 1, pulls: META.pulls || 0 });
+} catch (e) {}

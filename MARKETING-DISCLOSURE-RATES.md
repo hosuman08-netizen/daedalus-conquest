@@ -1,25 +1,26 @@
 # 미꾸라지 Disclosure Pack — Arclight Limited Banner
 **Exact from code (game.js rollRarity + RARITY)**
 
-**Base Probabilities (항상 표시)**:
-- N: 57.5%
-- R: 24%
-- SR: 12%
-- SSR: 3% (soft ramp 시작)
-- UR: 1%
-- EX: 0.5%
+**Base Probabilities (항상 표시 — code exact 2026-06-20)**:
+- N: 60%
+- R: 25%
+- SR: 13%
+- SSR: 2% (soft ramp 시작)
+- UR/EX: 0% (출시 후 활성, 현재 잠김)
 
 **Pity System (항상 표시)**:
-- Soft pity: Pull 7부터 SSR 확률 +6%씩 증가 (최대 15%)
+- Soft pity: 7회부터 SSR 확률 +6%씩 증가 (최대 15%)
 - Hard pity: 10회 보장 SSR (UR/EX는 순수 운, 별도 천장 없음)
-- 10연차: SR 이상 보장 1회
+- 10연차: SR 1개 이상 보장
+- Pity 리셋: SR/SSR/UR/EX 획득 시
 
 **Prominent Disclosure Text (배너 오픈 즉시 또는 항상 visible)**:
 ```
 【ARCLIGHT 한정 배너 — 확률 공개】
-N 57.5% | R 24% | SR 12% | SSR 3% | UR 1% | EX 0.5%
+N 60% | R 25% | SR 13% | SSR 2%
 Soft Pity: 7회부터 SSR 확률 상승 (최대 15%)
 Hard Pity: 10회 보장 SSR
+10연: SR 1개 보장
 ※ 이 배너는 Legion Chronicles 내 fictional story입니다.
 ※ 정확한 확률은 코드와 100% 일치합니다.
 ※ 72시간 후 배너 종료 (다음 기회는 수주~수개월 후)

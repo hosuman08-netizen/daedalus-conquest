@@ -53,3 +53,18 @@
 ## 🖼️ 봇 첫 화면 (이미 셋업됨)
 - /start → 환영 배너 + "🎮 플레이 시작" 버튼 자동
 - 새 유저 첫인상 = 배너 + 게임 소개
+
+## 📊 가챠 확률 (미꾸라지 준수 — public copy용)
+N 60% | R 25% | SR 13% | SSR 2%  
+Soft: 7회부터 SSR↑ (max15%) | Hard: 10회 SSR 보장 | 10연 SR 1보장  
+※ 코드 100% 일치 · fictional story 내 가상 요소. Rates 버튼 항상 노출.  
+(ARCLIGHT 한정 배너 72h FOMO + pity bar로 variable ratio + near-miss 강화)
+
+## 🔥 Launch Polish Notes (Niobe audit 2026-06-20)
+- LAUNCH copy + FOMO ready. Viral share (dominion card) 구현됨.
+- Disclosure rates synced to code. art/marketing-rates-disclosure.jpg 활용.
+- FTUE: firstWin + gacha + streak + daily mode 있음. Dedicated stub (SPEC-FTUE-starter: starter3인 + 5min dopamine seq) 필요 — Trinity/Morpheus handoff 추천.
+- Dopamine/TB: win spectacle + SSR confetti + HP gauge 일부 OK. SPEC 🟠 (강화 롤업, prestige burst, damage pop) + daily missions list (3 tasks: 전투/뽑기/출석)로 loop 강화.
+- GO-NOGO P0-4 rates/UI label mismatch (code=10 hard, HTML pity=12 static). Sync 후 재verify.
+- D0: tApps/seed + founders 7일 부스트 (D0-KIT) + referral deep link handoff 필요.
+- Recommend: TG playtest ch18 + first session FTUE 흐름 확인 → Go.
