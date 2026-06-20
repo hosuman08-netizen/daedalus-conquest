@@ -1400,6 +1400,8 @@ function updateModeTabs() {
   // Sovereign: 캠페인 탭에 현재 챕터 번호 동적 표시 — "2챕터가 안넘어가" 혼란 방지. 유저가 "이 버튼이 챕터 진행용"임을 즉시 인지.
   const camp = document.querySelector('.modetab[data-m="campaign"]');
   if (camp) camp.textContent = t("tCampaignChLabel") + (META.chapter || 1);
+  const tower = document.querySelector('.modetab[data-m="tower"]');
+  if (tower) tower.textContent = t("tTowerLabel", { n: Math.max(1, META.tower || 1) });   // 🗼 현재 층수 표시
   renderMsHint();
 }
 function setMode(m) {
@@ -4330,6 +4332,23 @@ $("starter-close").addEventListener("click", () => $("starter").classList.add("h
 // starter-btn integrated to shop (removed)
 document.querySelectorAll(".modetab").forEach((b) => b.addEventListener("click", () => setMode(b.dataset.m)));
 document.querySelectorAll(".hbtn").forEach((b) => b.addEventListener("click", () => selectHero(b.dataset.h)));
+// 💡 메타바 아이콘 탭 → 재화 설명 토스트
+(function () {
+  const mb = document.getElementById("metabar"); if (!mb) return;
+  const INFO = {
+    gold: "💰 골드 — 전투·배당으로 얻는 기본 재화. 유닛/장비 강화에 사용",
+    gem: "💎 젬 — 프리미엄 재화. 영웅 가챠 소환에 사용 (상점 충전·이벤트)",
+    soul: "🔮 소울 — 중복 캐릭 분해로 획득. 소울 상점·각성에 사용",
+    ch: "📖 챕터 — 현재 진행 챕터. 클리어할수록 보상·전력↑",
+    eth: "⬡ 에테르 — 환생으로 얻는 영구 화폐. 에테르 상점서 전군 영구 강화",
+    pity: "🎯 천장 — N회 뽑으면 SSR 확정. 10회 = 보장",
+  };
+  mb.addEventListener("click", (e) => {
+    const item = e.target.closest(".meta"); if (!item) return;
+    if (item.id === "streak-meta") { toast("🔥 연속 출석 — 매일 클레임으로 유지. 7일+ AFK 보상↑", "#fbbf24"); return; }
+    for (const k in INFO) { if (item.classList.contains(k)) { toast(INFO[k], "#67e8f9"); return; } }
+  });
+})();
 window.addEventListener("resize", () => { if (!running) reset(); });
 // lastSeen 하트비트 (방치 보상 정확도) + 이탈 시 저장
 setInterval(() => { try { META.lastSeen = nowMs(); localStorage.setItem(META_KEY, JSON.stringify(META)); } catch (e) {} }, 15000);

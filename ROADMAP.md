@@ -60,7 +60,12 @@
 ## 다음 한 걸음
 콘텐츠 모드(캠페인/무한탑/일일던전) **모드 허브**부터. 엔진 재활용이라 싸게 "사이클" 완성.
 
-**배포 전 필수 (Sovereign)**: obfuscate/minify (game.js, index, style) + deploy/ rebuild + verify.sh 통과 + TG 테스트.
+**배포 전 필수 (Sovereign)**: 
+- obfuscate/minify (game.js, index, style, i18n) - terser 추천 또는 온라인 툴
+- deploy/ rebuild
+- verify.sh 통과
+- TG 테스트 (보안, nukki, BGM, UI, batch lvup)
+- 실제 봇 설정 (아바타 업로드, 설명, 명령어)
 
 ## v2 기획안 패치 백로그 (lean scope)
 Phase 1 현실 추가: 가챠 %/pity 상시표시 + 일일미션 UI/보상 + 1-2 이벤트 (featured FOMO scarcity) + 9SSR god-tier 시각 강화.

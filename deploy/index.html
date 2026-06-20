@@ -5,10 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Daedalus — AI Legion War</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="style.css?v=20260619c" />
+  <script>
+    // 🚪 웹(텔레그램 밖) → 게임 차단, 텔레그램 유입 게이트. ?web 로 우회(테스트용)
+    (function () {
+      try {
+        var tg = window.Telegram && window.Telegram.WebApp;
+        var inTG = !!(tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id);
+        var bypass = location.search.indexOf("web") >= 0;
+        if (!inTG && !bypass) {
+          window.__GATED = true;
+          document.addEventListener("DOMContentLoaded", function () {
+            var app = document.getElementById("app"); if (app) app.style.display = "none";
+            var g = document.getElementById("tg-gate"); if (g) g.style.display = "flex";
+          });
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="style.css?v=20260620o" />
   <!-- © Sovereign - Personal property. All cheats/hacks prohibited. Security active. -->
 </head>
 <body>
+  <!-- 🚪 웹→텔레그램 유입 게이트 (텔레그램 밖에선 게임 차단 → 앱으로 유도) -->
+  <div id="tg-gate" style="display:none;position:fixed;inset:0;z-index:9999;background:radial-gradient(circle at 50% 30%,#1a1430,#05040c);flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#e2e8f0;padding:24px;font-family:system-ui,-apple-system,sans-serif;">
+    <div style="font-size:38px;font-weight:900;letter-spacing:2px;color:#fbbf24;text-shadow:0 0 20px #fbbf2466;">Daedalus</div>
+    <div style="font-size:15px;color:#a3a3c2;margin:6px 0 28px;">Daedalus · AI 군단 전쟁</div>
+    <div style="font-size:16px;line-height:1.7;margin-bottom:26px;">📱 이 게임은 <b style="color:#67e8f9;">텔레그램</b>에서 플레이합니다<br><span style="font-size:13px;color:#8b8ba7;">결제·세이브가 텔레그램 계정에 안전하게 연동돼요</span></div>
+    <a href="https://t.me/daedalus_conquest_bot" style="display:inline-block;background:linear-gradient(135deg,#2aabee,#1a8cd8);color:#fff;font-weight:800;font-size:17px;padding:15px 36px;border-radius:14px;text-decoration:none;box-shadow:0 8px 24px rgba(42,171,238,.4);">🎮 텔레그램에서 열기</a>
+    <div style="font-size:11px;color:#5a5a72;margin-top:30px;">@daedalus_conquest_bot</div>
+  </div>
   <div id="app">
     <header>
       <h1>Daedalus</h1>
@@ -31,12 +56,12 @@
 
     <div id="page-battle" class="page">
     <div id="modes">
-      <button class="modetab" data-m="campaign" data-i18n="mode.campaign">📖 캠페인</button>
-      <button class="modetab" data-m="tower" data-i18n="mode.tower">🗼 무한탑</button>
-      <button class="modetab" data-m="boss" data-i18n="mode.boss">🐲 보스</button>
-      <button class="modetab" data-m="turnbased" data-i18n="mode.turnbased">⚔️ 턴제</button>
-      <button class="modetab" data-m="arena" data-i18n="mode.arena">🏟️ 아레나</button>
-      <button class="modetab teaser" data-m="mystery">❓ ???</button>
+      <button class="modetab" data-m="campaign" data-i18n="mode.campaign"><span class="mode-icon">🛡️</span> 캠페인</button>
+      <button class="modetab" data-m="tower" data-i18n="mode.tower"><span class="mode-icon">🚀</span> 무한탑</button>
+      <button class="modetab" data-m="boss" data-i18n="mode.boss"><span class="mode-icon">🐉</span> 보스</button>
+      <button class="modetab" data-m="turnbased" data-i18n="mode.turnbased"><span class="mode-icon">🧠</span> 턴제</button>
+      <button class="modetab" data-m="arena" data-i18n="mode.arena"><span class="mode-icon">🏟️</span> 아레나</button>
+      <button class="modetab teaser" data-m="mystery"><span class="mode-icon">🔮</span> ???</button>
     </div>
     <div id="ms-hint" class="ms-hint"></div>
     <!-- 🔄 환생 발견성: ch18+ 도달 시 노출 (PRD §6 "환생 가능 · 예상 에테르 N") -->
@@ -115,6 +140,7 @@
     <div id="page-char" class="page hidden">
       <div class="set-title">👥 <span data-i18n="navChar">캐릭터</span></div>
       <div class="dpower">⚡ <span data-i18n="dPower">군단 전력</span> <b id="dash-power">0</b> &nbsp;·&nbsp; 💰<b id="dash-div">0</b>/<span data-i18n="dPerBattle">전투</span></div>
+      <div id="char-progress"></div>
 
       <!-- ⚔️ 출전 편성 (수집 캐릭터가 곧 부대) -->
       <div class="set-sec">⚔️ <span data-i18n="sqTitle">출전 편성</span> <span id="squad-info" class="ddim"></span></div>
@@ -229,15 +255,14 @@
         <button class="gbig" id="sg-gear10">🔨 <span data-i18n="gTitle">장비</span> 10연 · 💎72</button>
       </div>
       <div id="gacha-rates" class="notranslate" translate="no">
-        <div class="gr-rates"><span class="gr-n">N 57.5%</span><span class="gr-r">R 24%</span><span class="gr-sr">SR 12%</span><span class="gr-ssr">SSR 3%</span><span class="gr-ssr">UR 1%</span><span class="gr-ssr">EX 0.5%</span></div>
+        <div class="gr-rates"><span class="gr-n">N 60%</span><span class="gr-r">R 25%</span><span class="gr-sr">SR 13%</span><span class="gr-ssr">SSR 2%</span></div>
         <div id="pity-bar"><div id="pity-fill"></div><span id="pity-bar-label">0/10</span></div>
-        <div class="gr-note" data-i18n="grNote">🎯 10회 천장 = SSR 확정 · 7회부터 SSR 확률 상승(최대 15%) · UR/EX는 별도 천장 없음 · 장비도 동일 확률</div>
+        <div class="gr-note" data-i18n="grNote">🎯 10회 천장 = SSR 확정 · 7회부터 SSR 확률 상승(최대 15%) · 장비도 동일 확률</div>
         <button id="odds-view" class="ghost" data-i18n="oddsBtn">📊 전체 확률 보기</button>
       </div>
 
       <div class="set-sec">💎 <span data-i18n="shopPack">패키지 · 재화</span></div>
       <div id="shop-list"></div>
-      <div class="set-ver" data-i18n="shopNote">실제 결제는 텔레그램 Stars 연동 예정</div>
     </div>
 
     <!-- 설정 페이지 -->
@@ -247,6 +272,13 @@
       <div id="tg-profile"></div>
       <div class="set-sec">📊 <span data-i18n="statsTitle">내 군단 통계</span></div>
       <div id="game-stats"></div>
+      <div style="display:flex;gap:6px;margin-top:8px;">
+        <button id="share-profile" class="gbig" style="flex:1;background:linear-gradient(135deg,#2aabee,#1a8cd8);border-color:#2aabee;color:#fff;font-weight:800;">📤 전과 자랑하기</button>
+        <button id="invite-friend" class="gbig" style="flex:1;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-color:#8b5cf6;color:#fff;font-weight:800;">👥 친구 초대</button>
+      </div>
+      <div id="ref-status" style="font-size:12px;color:var(--dim);margin-top:7px;text-align:center;"></div>
+      <button id="ref-claim" class="gbig" style="display:none;margin-top:6px;background:linear-gradient(135deg,#f5c451,#d97706);border-color:#f5c451;color:#1a1400;font-weight:800;">🎁 친구 초대 보상 받기</button>
+      <div style="font-size:10.5px;color:#5a5a72;margin-top:4px;text-align:center;">친구 1명 가입당 💎50 · 3명→🏆SSR · 10명→💎1000</div>
       <div class="set-sec">🌐 <span data-i18n="setLang">언어</span></div>
       <div id="lang-list"></div>
       <div class="set-row"><span>🔊 <span data-i18n="setSound">사운드</span></span><button id="set-sound" class="toggle">ON</button></div>
@@ -268,7 +300,7 @@
         <div id="unit-name"></div>
         <div id="unit-title"></div>
         <div id="unit-detail"></div>
-        <button id="unit-close" class="ghost" data-i18n="confirm">확인</button>
+        <button id="unit-close" class="ghost" data-i18n="confirm" onclick="document.getElementById('unit-pop').classList.add('hidden')">확인</button>
       </div>
     </div>
 
@@ -286,10 +318,10 @@
 
     <div id="toast"></div>
   </div>
-  <script src="i18n.js?v=20260619c"></script>
-  <script src="units.js?v=20260619c"></script>
-  <script src="gear.js?v=20260619c"></script>
-  <script src="lore.js?v=20260619c"></script>
-  <script src="game.js?v=20260619c"></script>
+  <script src="i18n.js?v=20260620o"></script>
+  <script src="units.js?v=20260620o"></script>
+  <script src="gear.js?v=20260620o"></script>
+  <script src="lore.js?v=20260620o"></script>
+  <script src="game.js?v=20260620o"></script>
 </body>
 </html>
