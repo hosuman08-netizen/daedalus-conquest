@@ -670,7 +670,7 @@ function loadMeta() {
       if (!Array.isArray(merged.milestones)) merged.milestones = [];
       if (!Array.isArray(merged.cqClaimed)) merged.cqClaimed = [];
       if (typeof merged.gems !== "number") merged.gems = 50;
-      if (!merged.mode || merged.mode === "daily") merged.mode = "campaign";
+      if (!merged.mode || merged.mode === "daily" || merged.mode === "turnbased") merged.mode = "campaign";   // 턴제 제거(군주: 재미없음) → 캠페인 폴백
       if (!merged.tower || merged.tower < 1) merged.tower = 1;
       if (!merged.hero || !HEROES[merged.hero]) merged.hero = "strategist";
       if (!merged.chapter || merged.chapter < 1) merged.chapter = 1;   // 안전장치
