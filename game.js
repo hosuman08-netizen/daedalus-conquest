@@ -1196,6 +1196,7 @@ function spawnArmy(side) {
           regen: hb.regen, atkT: Math.random() * 0.3, skT: s.skillCd * 0.4, shield: 0, buff: 0, buffT: 0, spd: 0, spdT: 0,
           id: u.id, name: u.name, vis: u.vis, color: u.color, isSpecific: true, rarity: u.rarity, dmgOut: 0,
           r: specR, // larger visual for selected characters to appear properly on field
+          star: star || 0
         });
         // 고등급은 더 크게 (보물 시각 강조)
         const lastU = units[units.length-1];
@@ -1206,7 +1207,47 @@ function spawnArmy(side) {
         loadPortrait(u.id);   // 편성 캐릭 일러스트 캔버스용 로드 (전 등급)
         // 🌟 9 SSR 고유 액티브 스킬 장착 (name 매핑)
         const sa = SSR_ACTIVE[u.name];
-        if (sa) { const lu = units[units.length - 1]; lu.ssrActive = sa.key; lu.ssrCd = sa.cd; lu.ssrT = sa.delay; }
+        if (sa) { 
+          const lu = units[units.length - 1]; 
+          lu.ssrActive = sa.key; 
+          lu.ssrCd = sa.cd; 
+          lu.ssrT = sa.delay; 
+          lu.star = star || 0;
+          lu.ssrScale = Math.pow(1.35, star || 0); // 별 레벨에 따라 액티브/패시브 엄청 강해지게 (star5 ~ 4.5x+)
+        }
+        const lu2 = units[units.length - 1];
+        const unitStar = lu2.star || star || 0;
+        const srScale = Math.pow(1.3, unitStar); // SR도 별 레벨에 따라 패시브 강해지게 (더 부드럽지만 여전히 차이 큼)
+        // SSR 패시브 트레이트도 별 레벨 스케일 적용 (기계적 효과)
+        if (u.rarity === "SSR") {
+          const pscale = lu2.ssrScale || 1;
+          // trait 기반 간단 패시브 (star에 따라 강해짐)
+          if (u.name === "Arclight") { lu2.ai = Math.min(3, (lu2.ai||1) + 1 * pscale); lu2.ssrPassive = "arclight"; }
+          else if (u.name === "Solace") lu2.regen = (lu2.regen||0) + 3 * pscale;
+          else if (u.name === "Cipher") lu2.crit = (lu2.crit||0) + 15 * pscale;
+          else if (u.name === "Ignis") { lu2.buff = Math.round((lu2.buff||0) + u.atk * 0.2 * pscale); lu2.buffT = 10; }
+          else if (u.name === "Vector") lu2.spd = (lu2.spd||1) + 0.3 * pscale;
+          else if (u.name === "Vespera") lu2.ai = Math.min(3, (lu2.ai||1) + 0.5 * pscale);
+          else if (u.name === "Aegis") lu2.shield = (lu2.shield||0) + 5 * pscale;
+          else if (u.name === "Anvil") lu2.regen = (lu2.regen||0) + 2 * pscale;
+          else if (u.name === "Dominus") { lu2.atk = (lu2.atk||10) * (1 + 0.1 * pscale); lu2.hp = (lu2.hp||100) * (1 + 0.1 * pscale); }
+        }
+        // SR 패시브도 별 레벨에 따라 강해지게 + 아키타입별 차별화 (다 다르게)
+        if (["SR", "SSR"].includes(u.rarity)) {
+          if (u.arch === "drone") {
+            lu2.shield = (lu2.shield || 0) + 2 * srScale; // evade-like bonus
+          } else if (u.arch === "marksman") {
+            lu2.crit = (lu2.crit || 0) + 8 * srScale;
+          } else if (u.arch === "guardian") {
+            lu2.shield = (lu2.shield || 0) + 4 * srScale;
+          } else if (u.arch === "bruiser") {
+            lu2.reflect = (lu2.reflect || 0) + 0.1 * srScale;
+          } else if (u.arch === "commander") {
+            lu2.ai = Math.min(3, (lu2.ai || 1) + 0.8 * srScale);
+          } else if (u.arch === "titan") {
+            lu2.atk = (lu2.atk || 10) * (1 + 0.08 * srScale);
+          }
+        }
         // SSR on_start skills (e.g. Iron Wall shield)
         const uGearEffects = gearEffects;
         uGearEffects.forEach(eff => {
@@ -1803,6 +1844,16 @@ function dmg(target, amount, from) {
         addFx(al.x, al.y - 5, "overclock");
       });
     }
+    // Arclight SSR passive on-kill (처치 시 전군 AI+치명, star scale)
+    if (from && from.ssrPassive === "arclight" && from.side === 'p' && target.side === 'e') {
+      const pscale = from.ssrScale || 1;
+      const allies = units.filter(u => u.side === 'p' && u.hp > 0);
+      allies.forEach(al => {
+        al.ai = Math.min(3, (al.ai || 0) + 1 * pscale);
+        al.crit = Math.min(90, (al.crit || 0) + 12 * pscale);
+        addFx(al.x, al.y - 8, "ctr");
+      });
+    }
     // ★ Aether EX 전용: 영원의 숨결 부활 (진짜 보물 각인 - 유저가 아끼게)
     if (target.hp <= 0 && target.side === 'p' && window._aetherBreathActive && !window._aetherReviveUsed) {
       const aetherAlive = units.find(ut => ut.side==='p' && (ut.name === 'Aether' || ut.id === 202) && ut.hp > 0);
@@ -1903,41 +1954,42 @@ const SSR_ACTIVE = {
 };
 function fireSSRActive(u, foes) {
   const allies = (u.hp > 0 ? [u] : []).concat(alliesOf(u));
+  const scale = u.ssrScale || 1;  // 별 레벨 스케일 (액티브 강력하게)
   let name = "", col = "#fbbf24";
   switch (u.ssrActive) {
     case "judgment": {   // ⚖️ Arclight
       name = "⚖️ 심판의 일제사"; col = "#bef575";
       foes.slice().sort((a, b) => b.hp - a.hp).slice(0, 3).forEach((f) => {
-        dmg(f, u.atk * 1.8, u); addFx(f.x, 4, "snipe", f.x, f.y, "p"); addFx(f.x, f.y, "die", 0, 0, "e");
+        dmg(f, u.atk * 1.8 * scale, u); addFx(f.x, 4, "snipe", f.x, f.y, "p"); addFx(f.x, f.y, "die", 0, 0, "e");
       });
-      allies.forEach((a) => { a.crit = Math.min(90, (a.crit || 0) + 15); });
+      allies.forEach((a) => { a.crit = Math.min(90, (a.crit || 0) + 15 * scale); });
       break;
     }
     case "renewal": {    // 🌊 Solace
       name = "🌊 재생의 물결"; col = "#4ade80";
       allies.slice().sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp).slice(0, 3)
-        .forEach((a) => { a.hp = Math.min(a.maxHp, a.hp + a.maxHp * 0.25); addFx(a.x, a.y, "overclock"); });
-      allies.forEach((a) => { a.hp = Math.min(a.maxHp, a.hp + a.maxHp * 0.08); });
+        .forEach((a) => { a.hp = Math.min(a.maxHp, a.hp + a.maxHp * 0.25 * scale); addFx(a.x, a.y, "overclock"); });
+      allies.forEach((a) => { a.hp = Math.min(a.maxHp, a.hp + a.maxHp * 0.08 * scale); });
       break;
     }
     case "decrypt": {    // 🔭 Cipher
       name = "🔭 정밀 해독"; col = "#67e8f9";
       const tgt = chooseTarget(u, foes);
-      if (tgt) { dmg(tgt, u.atk * 2.4, u); addFx(u.x, u.y, "snipe", tgt.x, tgt.y, "p"); tgt.spd = 0.4; tgt.spdT = 2.5; }
-      allies.slice(0, 4).forEach((a) => { a.crit = Math.min(90, (a.crit || 0) + 25); addFx(a.x, a.y - 10, "ctr"); });
+      if (tgt) { dmg(tgt, u.atk * 2.4 * scale, u); addFx(u.x, u.y, "snipe", tgt.x, tgt.y, "p"); tgt.spd = 0.4; tgt.spdT = 2.5; }
+      allies.slice(0, 4).forEach((a) => { a.crit = Math.min(90, (a.crit || 0) + 25 * scale); addFx(a.x, a.y - 10, "ctr"); });
       break;
     }
     case "frenzy": {     // 🔥 Ignis
       name = "🔥 광란의 폭주"; col = "#f97316";
-      foes.filter((f) => dist(u, f) < 90).forEach((f) => { dmg(f, u.atk * 1.3, u); addFx(f.x, f.y, "die", 0, 0, "e"); });
-      u.buff = Math.round(u.atk * 0.6); u.buffT = 4; u.spd = 1.4; u.spdT = 4;
+      foes.filter((f) => dist(u, f) < 90).forEach((f) => { dmg(f, u.atk * 1.3 * scale, u); addFx(f.x, f.y, "die", 0, 0, "e"); });
+      u.buff = Math.round(u.atk * 0.6 * scale); u.buffT = 4; u.spd = 1.4; u.spdT = 4;
       for (let i = 0; i < 6; i++) addFx(u.x + (Math.random() - 0.5) * 60, u.y + (Math.random() - 0.5) * 40, "charge");
       break;
     }
     case "rally": {      // ↯ Vector
       name = "↯ 동시 지휘"; col = "#e2e8f0";
       allies.slice(0, 3).forEach((a) => {
-        a.buff = Math.round(a.atk * 0.4); a.buffT = 4; a.spd = 1.5; a.spdT = 4;
+        a.buff = Math.round(a.atk * 0.4 * scale); a.buffT = 4; a.spd = 1.5; a.spdT = 4;
         addFx(a.x, a.y, "charge"); addFx(a.x + 12, a.y - 6, "shot", a.x + 40, a.y - 30, "p");
       });
       break;
@@ -1945,24 +1997,24 @@ function fireSSRActive(u, foes) {
     case "swarm": {      // 🐝 Vespera
       name = "🐝 군집 분열"; col = "#fde047";
       const tgt = chooseTarget(u, foes);
-      if (tgt) for (let i = 0; i < 5; i++) { dmg(tgt, u.atk * 0.5, u); addFx(u.x, u.y, "shot", tgt.x + (Math.random() - 0.5) * 22, tgt.y + (Math.random() - 0.5) * 22, "p"); }
+      if (tgt) for (let i = 0; i < 5; i++) { dmg(tgt, u.atk * 0.5 * scale, u); addFx(u.x, u.y, "shot", tgt.x + (Math.random() - 0.5) * 22, tgt.y + (Math.random() - 0.5) * 22, "p"); }
       break;
     }
     case "bulwark": {    // 🛡️ Aegis
       name = "🛡️ 수호의 방벽"; col = "#67e8f9";
-      allies.forEach((a) => { a.shield = Math.max(a.shield || 0, 4); addFx(a.x, a.y, "barrier"); });
+      allies.forEach((a) => { a.shield = Math.max(a.shield || 0, 4 * scale); addFx(a.x, a.y, "barrier"); });
       break;
     }
     case "forge": {      // 🔨 Anvil
       name = "🔨 건설 프로토콜"; col = "#fbbf24";
       const tgt = chooseTarget(u, foes);
-      if (tgt) { dmg(tgt, u.atk * 2.0, u); addFx(tgt.x, tgt.y, "charge"); foes.filter((f) => dist(tgt, f) < 42).forEach((f) => { f.spd = 0.3; f.spdT = 2; }); }
-      allies.forEach((a) => { a.hp = Math.min(a.maxHp, a.hp + a.maxHp * 0.1); });
+      if (tgt) { dmg(tgt, u.atk * 2.0 * scale, u); addFx(tgt.x, tgt.y, "charge"); foes.filter((f) => dist(tgt, f) < 42).forEach((f) => { f.spd = 0.3; f.spdT = 2; }); }
+      allies.forEach((a) => { a.hp = Math.min(a.maxHp, a.hp + a.maxHp * 0.1 * scale); });
       break;
     }
     case "command": {    // 👑 Dominus
       name = "👑 군단의 호령"; col = "#fbbf24";
-      allies.forEach((a) => { a.buff = Math.round(a.atk * 0.5); a.buffT = 5; a.spd = 1.4; a.spdT = 5; addFx(a.x, a.y, "evade"); addFx(a.x, a.y - 12, "ctr"); });
+      allies.forEach((a) => { a.buff = Math.round(a.atk * 0.5 * scale); a.buffT = 5; a.spd = 1.4; a.spdT = 5; addFx(a.x, a.y, "evade"); addFx(a.x, a.y - 12, "ctr"); });
       break;
     }
     default: return;
@@ -2986,7 +3038,7 @@ function rollRarity() {
 }
 // 📊 전체 확률 공개 — RARITY 배열에서 직접 생성하므로 코드값과 영원히 일치(법적 안전)
 function showOdds() {
-  const rows = RARITY.filter(x => x.p > 0).map(x => `<div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2638;padding:3px 0;"><span style="color:${x.color};font-weight:600;">${x.key}</span><span>${(x.p * 100).toFixed(x.p * 100 % 1 ? 1 : 0)}%</span></div>`).join("");
+  const rows = RARITY.filter(x => x.p > 0).map(x => { const pct = Math.round(x.p * 1000) / 10; const txt = Number.isInteger(pct) ? pct : pct.toFixed(1); return `<div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2638;padding:3px 0;"><span style="color:${x.color};font-weight:600;">${x.key}</span><span>${txt}%</span></div>`; }).join("");
   const body = $("odds-body");
   if (body) body.innerHTML =
     rows +
