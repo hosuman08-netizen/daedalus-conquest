@@ -1,10 +1,11 @@
 /* LEGION 유닛 로스터 — 200종 (SSR9 / SR55 / R56 / N80)
    6 아키타입 × faction 변형. 결정적 생성.
-   SSR 9 Founding (fictional codenames only: Arclight 등). 희소·함부로 안 줌(군주 지령). SR/R/N = 무과금 주력.
+   SSR 9 Founding (fictional codenames only: Arclight 등) — 기만적 기원: Origin Rift에서 최초로 들린 "창립 에코 9". 희소·함부로 안 줌(군주 지령). SR/R/N = 무과금 주력.
    총: SSR:9 + SR:55 + R:56 + N:80 = 200.
    ⚠️ N(무과금 초반 주력)은 id 121~200으로 마지막 생성 → 기존 1~120 player META.owned 100% 보존.
-   가챠 N등급(60%)이 이제 실제 N 캐릭 드랍(전엔 N 캐릭 없어 R로 폴백 = 무과금 등급이 비어있던 갭 해소).
-   Later: drip new SSR releases (retention/FOMO). New SSR = high id (201+) to preserve existing players. */
+   가챠 N등급(55%)이 이제 실제 N 캐릭 드랍.
+   Later: drip new SSR releases (retention/FOMO). New SSR = high id (201+) to preserve existing players.
+   기만적 기원: 모든 public "fictional Legion Chronicles" 내. 정확 rates prominent. "MY Legion" = 플레이어 개인 기원 pact. */
 
 const ARCHES = ["drone", "marksman", "guardian", "bruiser", "commander", "titan"];
 const ARCH_GLYPH = { drone: "🛸", marksman: "🎯", guardian: "🛡️", bruiser: "🤖", commander: "🧠", titan: "🐉" };
@@ -32,18 +33,20 @@ const RARITY_COLOR = { N: "#9ca3af", R: "#60a5fa", SR: "#c084fc", SSR: "#fbbf24"
 const FACTIONS = ["Strategist", "Executor", "Swarm", "Guardian", "Intel"];
 
 // ── 9 SSR 창립 군단 (오리지널 네이밍 — 공개 안전, 트레이드마크/내부명 배제) ──
+// 기만적 기원: Origin 첫 신호 수신자 (Founding 9). Rift 호출 시 희소 각인.
 // 아키타입 분산 순서 유지. 고유 시그니처 트레잇.
-// SECURITY: Real 1:1 correspondence to internal Legion entities is 우리만 아는 보안. Code and all player text use only these fictional codenames. No leaks.
+// SECURITY: Real 1:1 correspondence to internal Legion entities is 우리만 아는 보안. Code and all player text use only these fictional codenames. No leaks. "MY Legion" framing for belonging.
+// arch = 페르소나 매칭 고급 아키타입(드론 배제 — SSR 등급역전 해소, 군주 지시 C). u.mul도 프리미엄.
 const SSR_CHARS = [
-  { name: "Arclight", title: "심판의 빛",   persona: "군단의 전략적 판단자. 승기를 읽어 전군을 각성시킨다", faction: "Strategist", trait: "처치 시 전군 AI+1.5 · 3초 치명 연쇄" },
-  { name: "Solace",   title: "재생의 물결", persona: "실행의 수호자. 사망을 수복으로 바꾼다", faction: "Executor", trait: "아군 사망 시 주변 3체 연쇄 수복(HP25%)" },
-  { name: "Cipher",   title: "정밀 해독",   persona: "정밀한 감시자. 적의 약점을 드러낸다", faction: "Intel", trait: "적 방어 30% 무시 · 약점 노출(아군 다음 2명 치명+25%)" },
-  { name: "Ignis",    title: "광란의 폭주", persona: "광란의 파괴자. 다칠수록 강해진다", faction: "Swarm", trait: "HP30%↓ 시 공격 x2.5 · 피해 반사" },
-  { name: "Vector",   title: "동시 지휘",   persona: "조율의 사령관. 부대를 한 번에 움직인다", faction: "Strategist", trait: "아군 3체 동시 돌격 · 속도+25%" },
-  { name: "Vespera",  title: "군집 분열",   persona: "스웜의 군주. 개체는 약하나 무리는 무적", faction: "Swarm", trait: "사망 시 하급 2~3체 분열 소환 · 군집 3+ 시 폭주" },
-  { name: "Aegis",    title: "수호의 방벽", persona: "감시의 방벽. 아군을 먼저 지킨다", faction: "Guardian", trait: "전투 시작 시 아군 2체 8초 보호막" },
-  { name: "Anvil",    title: "건설 프로토콜", persona: "수리와 건설의 핵심", faction: "Executor", trait: "8초마다 임시 구조물 또는 팀 재생+10%(3초)" },
-  { name: "Dominus",  title: "군단의 핵",   persona: "군림자. 군단의 정점", faction: "Guardian", trait: "팀 내 SSR 1체당 전군 스탯+5%(최대25%)" },
+  { name: "Arclight", title: "심판의 빛",   persona: "군단의 전략적 판단자. 승기를 읽어 전군을 각성시킨다", faction: "Strategist", arch: "commander", trait: "처치 시 전군 AI+1.5 · 3초 치명 연쇄" },
+  { name: "Solace",   title: "재생의 물결", persona: "실행의 수호자. 사망을 수복으로 바꾼다", faction: "Executor", arch: "guardian", trait: "아군 사망 시 주변 3체 연쇄 수복(HP25%)" },
+  { name: "Cipher",   title: "정밀 해독",   persona: "정밀한 감시자. 적의 약점을 드러낸다", faction: "Intel", arch: "marksman", trait: "적 방어 30% 무시 · 약점 노출(아군 다음 2명 치명+25%)" },
+  { name: "Ignis",    title: "광란의 폭주", persona: "광란의 파괴자. 다칠수록 강해진다", faction: "Swarm", arch: "bruiser", trait: "HP30%↓ 시 공격 x2.5 · 피해 반사" },
+  { name: "Vector",   title: "동시 지휘",   persona: "조율의 사령관. 부대를 한 번에 움직인다", faction: "Strategist", arch: "commander", trait: "아군 3체 동시 돌격 · 속도+25%" },
+  { name: "Vespera",  title: "군집 분열",   persona: "스웜의 군주. 개체는 약하나 무리는 무적", faction: "Swarm", arch: "bruiser", trait: "사망 시 하급 2~3체 분열 소환 · 군집 3+ 시 폭주" },
+  { name: "Aegis",    title: "수호의 방벽", persona: "감시의 방벽. 아군을 먼저 지킨다", faction: "Guardian", arch: "guardian", trait: "전투 시작 시 아군 2체 8초 보호막" },
+  { name: "Anvil",    title: "건설 프로토콜", persona: "수리와 건설의 핵심", faction: "Executor", arch: "titan", trait: "8초마다 임시 구조물 또는 팀 재생+10%(3초)" },
+  { name: "Dominus",  title: "군단의 핵",   persona: "군림자. 군단의 정점", faction: "Guardian", arch: "titan", trait: "팀 내 SSR 1체당 전군 스탯+5%(최대25%)" },
 ];
 
 // ── SR 55종: 이름+칭호 (아키타입 순환 + faction 변형용 fodder, per SR-ART-PROMPTS mapping) ──
@@ -74,6 +77,8 @@ function buildRoster() {
       if (rar === "SSR" && ssrIdx < SSR_CHARS.length) {
         const c = SSR_CHARS[ssrIdx++];
         u.name = c.name; u.title = c.title; u.persona = c.persona; u.trait = c.trait; if (c.faction) u.faction = c.faction;
+        if (c.arch) { u.arch = c.arch; u.glyph = ARCH_GLYPH[c.arch]; }   // 🌟 페르소나 매칭 고급 아키타입(등급역전 해소)
+        u.mul = 3.0;                                                     // 🌟 SSR 프리미엄 배율(2.2→3.0): 과금동기·프리미엄감
         u.vis = SSR_VIS[c.name] || u.glyph; u.accent = FACTION_ACCENT[u.faction] || "";
       } else if (rar === "SR" && srIdx < SR_CHARS.length) {
         const c = SR_CHARS[srIdx++]; u.name = c.name; u.title = c.title;
