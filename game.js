@@ -2476,6 +2476,22 @@ function finish(p, e) {
       extra = `<div class="rwd">${t("rwBoss", { n: reward })} +💎${rGem} +🔮${rSoul}</div><div class="rwd2" style="color:${bx.color}">${BOX[tier].icon} ${bx.text}</div>`;
       extra += `<div class="rwd2">난이도×${diffMul.toFixed(2)} · 복리×${compMul.toFixed(2)} = 총 ${effMul.toFixed(2)}배</div>`;
       if (compMul > 1.01) extra += `<div class="rwd2">🔥 복리 +${Math.round((compMul-1)*100)}% (총 ${META.bossClears}회 보스 클리어)</div>`;
+      // 🎁 보스 5클리어마다 마일스톤 보상 (bossClears 단조증가 = 조작방지) · 25마다 대형
+      if (META.bossClears % 5 === 0) {
+        if (META.bossClears % 25 === 0) {                  // 🏆 25클리어 대형
+          const mg = 300 + META.bossClears * 8;
+          META.gems = (META.gems || 0) + mg;
+          if (typeof grantUnit === "function") grantUnit("SSR");
+          if (typeof newGear === "function") { if (!META.gear) META.gear = []; META.gear.push(newGear("SSR")); }
+          extra += `<div class="rwd2" style="color:#fbbf24;font-weight:800">🏆 보스 ${META.bossClears}회 돌파! 💎${mg.toLocaleString("en-US")} + 🌟SSR유닛 + ⚔️SSR장비</div>`;
+          try { confettiBurst(); } catch (e) {}
+        } else {                                            // 🎁 5클리어 기본 마일스톤
+          const mg = 60 + META.bossClears * 4;
+          const ms = 8 + Math.floor(META.bossClears / 5);
+          META.gems = (META.gems || 0) + mg; META.soul = (META.soul || 0) + ms;
+          extra += `<div class="rwd2" style="color:#a3e635">🎁 보스 ${META.bossClears}회 마일스톤 💎${mg} + 🔮${ms}</div>`;
+        }
+      }
     } else if (m === "turnbased") {
       // 🧠 턴제 전용 보상: 연속 성과 + 아침고로 + 모멘텀 (변동 보상)
       const hour = new Date().getHours();
