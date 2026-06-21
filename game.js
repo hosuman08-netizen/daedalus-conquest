@@ -3502,24 +3502,7 @@ $("speed").addEventListener("click", () => {
   $("speed").textContent = t("speed", { n: speed });
 });
 
-// 🧠 턴제 UI 바인딩 (모드 전환 시에도 동작)
-setTimeout(() => {
-  const pri = $("tb-pri");
-  if (pri) pri.addEventListener("change", () => setTbPriority(pri.value));
-  const nxt = $("tb-next");
-  if (nxt) nxt.addEventListener("click", () => { if (tbActive) executeTbTurn(); });
-  const res = $("tb-resolve");
-  if (res) res.addEventListener("click", () => {
-    if (!tbActive) return;
-    let safety=0;
-    while (tbActive && safety++ < 50) {
-      if (!window._tbTactic && tbTurn > 1 && (tbTurn % 3 === 0 || tbTurn % 4 === 1) && Math.random() < 0.55) {
-        window._tbTactic = ["flank","cycle","break"][Math.floor(Math.random()*3)]; // resolve 시 자동 선택 (빠른 진행)
-      }
-      executeTbTurn();
-    }
-  });
-}, 120);
+// (턴제 UI 바인딩 제거됨 — tb-controls DOM 삭제로 no-op이던 죽은 코드 정리)
 
 // ── 스타터팩 (⭐50 첫 결제 상품) ─────────────────────────────────────────────
 function showStarter() {
