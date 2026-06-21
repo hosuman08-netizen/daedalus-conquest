@@ -2655,7 +2655,7 @@ function finish(p, e) {
   if (tbActive) { tbActive = false; showTbControls(false); $("start").textContent = t("start"); delete window._tbTactic; }
   const m = META.mode;
   let extra = "", title = win ? t("rWin") : dr ? t("rDraw") : t("rLose");
-  let bonus = (x) => Math.floor(x * (META.vip ? 1.5 : META.starter ? 1.2 : 1));   // VIP +50% / 스타터 +20% 골드
+  let bonus = (x) => Math.floor(x * (META.vip ? 1.5 : META.starter ? 1.2 : 1) * (META.founder ? 1.25 : 1));   // VIP +50% / 스타터 +20% / 🏅창단 +25% 골드(영구)
 
   if (win) {
     let reward = 0;
@@ -4444,6 +4444,7 @@ $("code-btn").addEventListener("click", redeemCode);
 
 // ── 캐시 상점 (별도, Stars 결제 자리 — 지금은 데모 지급) ─────────────────────
 const SHOP = [
+  { id: "founder", founder: true, limited: true, tag: "🏅창단·7일한정", k: "pkFounder" },   // 🏅 창단멤버 한정팩(출시 7일)
   { id: "starter", starter: true, tag: "BEST", k: "pkStarter" },
   { id: "monthly", k: "pkMonthly", tag: "30일·💎" },
   { id: "weekly", k: "pkWeekly", tag: "7일·💎" },
@@ -4479,8 +4480,16 @@ function renderShop() {
     note.textContent = t("payDemoNote");
     box.appendChild(note);
   }
+  // 🎉 첫 결제 2배 배지 (미구매 시)
+  if (!META.firstPurchaseDone) {
+    const fp = document.createElement("div");
+    fp.style.cssText = "font-size:12px;font-weight:800;color:#1a1400;background:linear-gradient(135deg,#fde047,#f5c451);border-radius:9px;padding:7px 10px;margin-bottom:8px;text-align:center;box-shadow:0 0 14px rgba(253,224,71,.4);";
+    fp.textContent = "🎉 첫 결제 2배 보너스! (골드·젬 2배 지급)";
+    box.appendChild(fp);
+  }
   SHOP.forEach((p) => {
-    const owned = (p.starter && META.starter) || (p.vip && META.vip) || (p.ultra && META.ultra);
+    if (p.founder && (META.founder || !founderActive())) return;   // 🏅 창단팩: 이미 소유 or 7일 만료 시 숨김
+    const owned = (p.starter && META.starter) || (p.vip && META.vip) || (p.ultra && META.ultra) || (p.founder && META.founder);
     const active = p.id === "monthly" ? passActive("monthly") : p.id === "weekly" ? passActive("weekly") : false;
     const c = document.createElement("button"); c.className = "packcard" + (p.vip || p.ultra ? " vip" : "") + (p.k ? " grow" : "") + (active ? " active" : "") + (owned ? " owned" : "");
     const what = p.k ? t(p.k) : p.vip ? t("tVip") : p.ultra ? t("tUltra") : (p.gem ? "💎 " + p.gem : "💰 " + p.g);
@@ -4498,13 +4507,14 @@ function renderShop() {
 // PAY_BACKEND 비어있으면 데모 즉시지급. 채우면 봇 서버가 인보이스 발급 → tg.openInvoice → 결제확인 후 지급.
 const PAY_BACKEND = "https://legion-pay.hoyashi95.workers.dev";   // ✅ 실결제 ON (Cloudflare Worker + Telegram Stars). 텔레그램 밖에선 자동 데모.
 const ANALYTICS_BACKEND = "https://legion-analytics.hoyashi95.workers.dev";   // 📊 Oracle analytics-worker (출시 측정) — 배포 완료(Trinity). PAY와 독립.
-const STARS = { starter: 50, weekly: 250, monthly: 750, vip: 1500, ultra: 5000, growth1: 500, growth2: 2500,
+const STARS = { founder: 990, starter: 50, weekly: 250, monthly: 750, vip: 1500, ultra: 5000, growth1: 500, growth2: 2500,
                 gem1: 55, gem2: 280, gem3: 1000, gem4: 2500, gold1: 55, gold2: 280, gold3: 1000 };
+function founderActive() { return (typeof FEATURED_LAUNCH !== "undefined") ? (Date.now() - FEATURED_LAUNCH < 7 * 86400000) : true; }   // 출시 7일 한정창
 function buyPack(id) {
   const p = SHOP.find((x) => x.id === id); if (!p) return;
   const stars = STARS[id] || 0;
   if (!tg || !tg.openInvoice || !stars) {   // 텔레그램 밖 = 결제 불가 → 무료지급 차단(매출 보호). 데모는 PAY_BACKEND 미설정 시에만.
-    if (!PAY_BACKEND) { grantPack(id); toast(t("payDemo"), "#8b93a7"); }
+    if (!PAY_BACKEND) { grantPackWithBonus(id); toast(t("payDemo"), "#8b93a7"); }
     else toast(t("payTgOnly"), "#fbbf24");
     return;
   }
@@ -4530,19 +4540,40 @@ function payWithStars(id, stars) {
 // 타임아웃 시: 결제자 보호 위해 지급하되 purchase_unverified 감사로그(webhook 실패 추적). 자가치트는 무해(자기 세이브).
 function verifyThenGrant(id, uid, tries) {
   tries = tries || 0;
-  if (typeof PAY_BACKEND === "undefined" || !PAY_BACKEND) { grantPack(id); toast(t("payOk"), "#a3e635"); haptic("heavy"); return; }
+  if (typeof PAY_BACKEND === "undefined" || !PAY_BACKEND) { grantPackWithBonus(id); toast(t("payOk"), "#a3e635"); haptic("heavy"); return; }
   fetch(PAY_BACKEND + "/verify?item=" + encodeURIComponent(id) + "&uid=" + encodeURIComponent(uid))
     .then((r) => r.json())
     .then((v) => {
-      if (v && v.ok) { grantPack(id); toast(t("payOk"), "#a3e635"); haptic("heavy"); }       // ✅ 서버 영수증 확인
+      if (v && v.ok) { grantPackWithBonus(id); toast(t("payOk"), "#a3e635"); haptic("heavy"); }       // ✅ 서버 영수증 확인
       else if (tries < 7) { if (tries === 0) toast(t("payVerifying"), "#fbbf24"); setTimeout(() => verifyThenGrant(id, uid, tries + 1), 1500); }
-      else { grantPack(id); logEvent("purchase_unverified", { item: id }); toast(t("payOk"), "#a3e635"); haptic("heavy"); }  // 타임아웃: 결제자 보호 지급 + 감사
+      else { grantPackWithBonus(id); logEvent("purchase_unverified", { item: id }); toast(t("payOk"), "#a3e635"); haptic("heavy"); }  // 타임아웃: 결제자 보호 지급 + 감사
     })
-    .catch(() => { if (tries < 7) setTimeout(() => verifyThenGrant(id, uid, tries + 1), 1500); else { grantPack(id); logEvent("purchase_unverified", { item: id }); toast(t("payOk"), "#a3e635"); } });
+    .catch(() => { if (tries < 7) setTimeout(() => verifyThenGrant(id, uid, tries + 1), 1500); else { grantPackWithBonus(id); logEvent("purchase_unverified", { item: id }); toast(t("payOk"), "#a3e635"); } });
+}
+// 🎉 첫 결제 2배 — 결제 전환율 직타. 첫 구매 시 골드/젬 델타를 2배(1회성).
+function grantPackWithBonus(id) {
+  const firstBuy = !META.firstPurchaseDone;
+  const gems0 = META.gems || 0, gold0 = META.gold || 0;
+  grantPack(id);
+  if (firstBuy) {
+    const dg = Math.max(0, (META.gems || 0) - gems0), dgold = Math.max(0, (META.gold || 0) - gold0);
+    META.gems = (META.gems || 0) + dg; META.gold = (META.gold || 0) + dgold;
+    META.firstPurchaseDone = true;
+    saveMeta(); updateMeta(); if (typeof renderShop === "function") renderShop();
+    if (dg || dgold) setTimeout(() => { toast("🎉 첫 결제 2배 보너스! " + (dg ? "💎+" + dg + " " : "") + (dgold ? "💰+" + dgold.toLocaleString("en-US") : ""), "#fbbf24"); try { confettiBurst(); } catch (e) {} }, 650);
+    try { logEvent("first_purchase_2x", { item: id, gem: dg, gold: dgold }); } catch (e) {}
+  }
 }
 function grantPack(id) {
   const p = SHOP.find((x) => x.id === id); if (!p) return;
   logEvent("purchase", { item: id, stars: (typeof STARS !== "undefined" && STARS[id]) || 0 });   // 📊 계측 (지급=결제완료 시점)
+  if (p.founder) {                                     // 🏅 창단멤버 한정팩: 💎1500 + SSR유닛 + SSR장비 + 영구 창단뱃지 + 영구 골드+25%
+    META.founder = true; META.gems = (META.gems || 0) + 1500;
+    const u = grantUnit("SSR"); const g = newGear("SSR"); if (!META.gear) META.gear = []; META.gear.push(g);
+    saveMeta(); updateMeta(); renderShop();
+    if (u) setTimeout(() => showGacha({ key: "SSR", color: "#fbbf24" }, "🏅 창단멤버! " + u.name + " (SSR) + SSR장비 · 영구 골드+25%"), 300);
+    toast("🏅 창단멤버 등극! 영구 뱃지 + 골드+25%", "#fbbf24"); haptic("heavy"); return;
+  }
   if (p.starter) {                                     // 💎 초심자: 골드3000 + 유닛10 + 골드+20% (속도 혜택 제거)
     META.starter = true; META.gold += 3000;
     for (let i = 0; i < 10; i++) { const u = ORDER[(Math.random() * 5) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; }

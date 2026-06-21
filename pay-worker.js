@@ -6,6 +6,7 @@
       실제 매출 보호가 중요해지면 서버 계정으로 승급(successful_payment에서 서버가 지급). */
 
 const ITEMS = {
+  founder:  { title: "창단멤버 한정팩", desc: "💎1500 + SSR유닛 + SSR장비 + 영구 골드+25% + 창단 뱃지" },
   starter:  { title: "초심자 패키지",   desc: "2x 속도 영구 + 골드3000 + 유닛10개" },
   weekly:   { title: "주간 패스",        desc: "즉시 💎150 + 7일 매일 💎100" },
   monthly:  { title: "월간 패스",        desc: "즉시 💎300 + 30일 매일 💎100" },
@@ -23,7 +24,7 @@ const ITEMS = {
 };
 
 // 🔒 서버 고정 가격(⭐ Stars) — game.js STARS와 일치. 클라가 보낸 stars 파라미터는 무시(금액 위조 차단: 1⭐로 비싼 팩 결제 방지).
-const STARS = { starter: 50, weekly: 250, monthly: 750, vip: 1500, ultra: 5000, growth1: 500, growth2: 2500, gem1: 55, gem2: 280, gem3: 1000, gem4: 2500, gold1: 55, gold2: 280, gold3: 1000 };
+const STARS = { founder: 990, starter: 50, weekly: 250, monthly: 750, vip: 1500, ultra: 5000, growth1: 500, growth2: 2500, gem1: 55, gem2: 280, gem3: 1000, gem4: 2500, gold1: 55, gold2: 280, gold3: 1000 };
 const GAME = "https://hosuman08-netizen.github.io/daedalus-conquest";   // 게임 URL (배너·플레이 버튼)
 
 const CORS = {
@@ -92,7 +93,7 @@ export default {
         await tg(token, "answerPreCheckoutQuery", { pre_checkout_query_id: u.pre_checkout_query.id, ok: true });
       }
       // /start → 환영 배너 + 플레이 버튼 (봇 첫 화면) + 레퍼럴 기록 + 언어 자동분기
-      if (u.message && typeof u.message.text === "string" && (u.message.text.indexOf("/start") === 0 || u.message.text.indexOf("/play") === 0)) {
+      if (u.message && typeof u.message.text === "string" && u.message.text.indexOf("/start") === 0) {
         const newId = String((u.message.from && u.message.from.id) || "");
         const payload = (u.message.text.split(" ")[1] || "");
         let inviter = "";
@@ -112,28 +113,15 @@ export default {
           }
         } catch (e) {}
         // 🌐 영어 고정 (글로벌 첫인상 — 군주 지시)
-        const caption = "⚔️ <b>Welcome, Commander.</b> Your legion awaits...\n\n🤖 Collect & raise 200+ AI heroes\n🐉 Raid colossal bosses · 🏆 Conquer endless chapters\n🔄 Idle — your army grows even while you sleep.\n\n👇 Rise your legion now:";
+        const caption = "⚔️ <b>Daedalus Conquest</b> — AI Legion War\n\n🤖 Collect & raise 200+ AI heroes\n🐉 Raid colossal bosses · 🏆 Conquer endless chapters\n🔄 Idle — your legion grows even while you're away.\n\n👇 Rise your legion now:";
         const btn = "🎮 Play Now";
         await tg(token, "sendPhoto", {
           chat_id: u.message.chat.id,
           photo: GAME + "/art/marketing-arclight-banner.jpg",
           caption: caption,
           parse_mode: "HTML",
-          reply_markup: { inline_keyboard: [[{ text: btn, web_app: { url: GAME + "/" + (inviter ? "?ref=" + inviter : "") } }], [{ text: "📣 Join Channel", url: "https://t.me/daedalus_conquest" }]] },   // 🔗 레퍼럴 ?ref= + 📣 채널
+          reply_markup: { inline_keyboard: [[{ text: btn, web_app: { url: GAME + "/" + (inviter ? "?ref=" + inviter : "") } }]] },   // 🔗 레퍼럴 ?ref= 동봉(즉시보너스)
         });
-      }
-      // /invite → 친구 공유
-      else if (u.message && typeof u.message.text === "string" && u.message.text.indexOf("/invite") === 0) {
-        const link = "https://t.me/share/url?url=" + encodeURIComponent("https://t.me/daedalus_conquest_bot") + "&text=" + encodeURIComponent("⚔️ Join my legion in Daedalus Conquest — bonus 💎100+💰1000+🔮10:");
-        await tg(token, "sendMessage", { chat_id: u.message.chat.id, text: "👥 <b>Invite & Earn</b>\nShare your link — when friends join, you both win!\n💎100 + 💰1,000 + 🔮10 per friend.", parse_mode: "HTML", reply_markup: { inline_keyboard: [[{ text: "📤 Share Invite", url: link }]] } });
-      }
-      // /help → 도움말
-      else if (u.message && typeof u.message.text === "string" && u.message.text.indexOf("/help") === 0) {
-        await tg(token, "sendMessage", { chat_id: u.message.chat.id, text: "ℹ️ <b>Daedalus Conquest — How to Play</b>\n\n🎮 /play — Launch game\n🤖 Collect & raise 200+ AI heroes\n⚔️ Deploy legion · crush bosses · conquer chapters\n🔄 Idle progress (grows while away)\n💎 Gacha · 🛡️ Gear · 🌀 Ascension\n👥 /invite — Invite for rewards\n📣 Channel: t.me/daedalus_conquest", parse_mode: "HTML", reply_markup: { inline_keyboard: [[{ text: "🎮 Play Now", web_app: { url: GAME + "/" } }]] } });
-      }
-      // /community → 채널
-      else if (u.message && typeof u.message.text === "string" && u.message.text.indexOf("/community") === 0) {
-        await tg(token, "sendMessage", { chat_id: u.message.chat.id, text: "💬 <b>Join the Daedalus Conquest community!</b>\nNews, events, updates & fellow commanders.", parse_mode: "HTML", reply_markup: { inline_keyboard: [[{ text: "📣 Open Channel", url: "https://t.me/daedalus_conquest" }]] } });
       }
       // ✅ 결제 완료 → 영수증 KV 저장 (서버 진실원천, 텔레그램→워커 직통이라 위조불가). game.js가 /verify로 확인 후 grant.
       if (u.message && u.message.successful_payment) {
