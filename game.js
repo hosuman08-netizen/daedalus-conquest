@@ -2769,6 +2769,7 @@ function finish(p, e) {
       reward = bonus(50 + META.chapter * 22 + Math.min(80, (META.streak - 1) * 10));  // early boost for ch18 reach (치명적 P0)
       reward = Math.round(reward * ascGoldMul() * ascPlunderMul());        // 🔄 환생 「쇄도」 골드획득 가속
       if (META.chapter < 999) META.chapter += 1; if (META.chapter > (META.maxChapter || 0)) META.maxChapter = META.chapter;
+      META.chStuck = 0;   // 🧗 진행 성공 → 막힘 카운터 리셋
       // ARG-like fictional origin lore drop (deceptive "found signal" hype, reversible flag)
       if (ENABLE_DECEPTIVE_ORIGIN && META.chapter % 3 === 0) {
         setTimeout(() => {
@@ -2788,7 +2789,14 @@ function finish(p, e) {
     const div = dividendGold();                        // 복리 배당
     if (div > 0) { reward += div; extra += '<div class="rwd2">' + t("dDividend", { n: div }) + "</div>"; }
     META.gold += reward; bumpPrestige(2); saveMeta(); updateMeta();
-  } else { if (m === "campaign") META.streak = 0; saveMeta(); }
+  } else {
+    if (m === "campaign") {
+      META.streak = 0;
+      META.chStuck = (META.chStuck || 0) + 1;   // 🧗 막힘 감지 (같은 진행에서 연속 패배)
+      if (META.chStuck >= 3 && (META.chStuck - 3) % 2 === 0) setTimeout(() => { try { showStuckHelp(); } catch (e) {} }, 1600);   // 3패부터 격패 업셀(스팸 방지: 격번)
+    }
+    saveMeta();
+  }
 
   // manual play timestamp for synergy boost (MVP plan)
   META.lastManual = nowMs(); saveMeta();
@@ -3568,6 +3576,24 @@ $("speed").addEventListener("click", () => {
 
 // (턴제 UI 바인딩 제거됨 — tb-controls DOM 삭제로 no-op이던 죽은 코드 정리)
 
+// 🧗 막힘 돌파 업셀 — 연속 패배 감지 시 가속/성장팩 추천 (FOMO 모네타이즈, 하드월 아님)
+function showStuckHelp() {
+  const el = $("stuck-help"); if (!el) return;
+  const ch = META.chapter || 1, stuck = META.chStuck || 0;
+  const body = $("stuck-help-body");
+  if (body) body.innerHTML = '<div style="font-size:34px;margin-bottom:4px;">🧗</div>'
+    + '<div style="font-size:18px;font-weight:800;color:#fbbf24;margin-bottom:8px;">Ch.' + ch + ' 벽에 막히셨나요?</div>'
+    + '<div style="font-size:13px;color:#cbd5e1;line-height:1.6;margin-bottom:14px;">' + stuck + '연패 — 전력이 부족해요.<br><b style="color:#67e8f9;">⚡ 성장 패키지</b>로 골드·젬·장비를 한번에 받아 단숨에 돌파!</div>'
+    + '<button id="stuck-buy" class="gbig" style="width:100%;background:linear-gradient(135deg,#f5c451,#d97706);border-color:#f5c451;color:#1a1400;font-weight:800;margin-bottom:8px;">⚡ 성장 패키지 보러가기</button>'
+    + '<button id="stuck-free" class="ghost" style="width:100%;font-size:12px;">무료로 더 키울게요 (환생·강화·뽑기)</button>'
+    + '<div style="font-size:10px;color:#5a5a72;margin-top:10px;">💡 무과금도 환생·도감수집·일일보상으로 돌파 가능</div>';
+  el.style.display = "flex";
+  const buy = $("stuck-buy"); if (buy) buy.onclick = () => { el.style.display = "none"; showPage("shop"); try { renderShop(); } catch (e) {} haptic("medium"); };
+  const free = $("stuck-free"); if (free) free.onclick = () => { el.style.display = "none"; };
+  el.onclick = (e) => { if (e.target === el) el.style.display = "none"; };
+  try { logEvent("stuck_upsell", { ch: ch, losses: stuck }); } catch (e) {}
+  haptic("light");
+}
 // ── 스타터팩 (⭐50 첫 결제 상품) ─────────────────────────────────────────────
 function showStarter() {
   if (META.starter) { toast(t("tOwned"), "#a3e635"); return; }
