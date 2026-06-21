@@ -909,6 +909,8 @@ function getGearEffectsForChar(charId) {
     if (!gid) continue;
     const g = META.gear.find((x) => x.id === gid);
     if (g && g.effect) effects.push(g.effect);
+    // 🌟 SSR 장비 슬롯 패시브 (처형/불굴/쾌속/행운/각인 — gear.js getGearPassive)
+    if (g) { const psv = (typeof getGearPassive === "function") ? getGearPassive(g) : null; if (psv) effects.push({ type: "gear_passive", p: psv }); }
   }
   return effects;
 }
@@ -930,6 +932,16 @@ function applyGearEffectToUnit(unit, effect) {
   // SSR skills applied in dmg / on events
   if (effect.type === 'ssr_skill') {
     unit.ssrSkill = effect;  // store for triggers
+  }
+  // 🌟 SSR 장비 슬롯 패시브 발동 (각인/쾌속/행운=스폰 적용, 불굴/처형=dmg 훅)
+  if (effect.type === 'gear_passive' && effect.p) {
+    const p = effect.p;
+    if (p.allStat) { const m = 1 + p.allStat; unit.hp = Math.round(unit.hp * m); unit.maxHp = Math.round(unit.maxHp * m); unit.atk = Math.round(unit.atk * m); }  // 💠각인 전스탯+3%
+    if (p.spd) unit.atkCd = (unit.atkCd || 1) * (1 - p.spd);                          // 👟쾌속 공속+10%
+    if (p.evade) unit.gearEvade = (unit.gearEvade || 0) + p.evade;                    // 👟쾌속 회피5%
+    if (p.crit) unit.crit = (unit.crit || 0) + p.crit * 100;                          // 🍀행운 치명+8%
+    if (p.thresh) unit.endure = { thresh: p.thresh, reduce: p.reduce || 0.2 };        // 🛡️불굴
+    if (p.proc) unit.execute = { proc: p.proc, mult: p.mult || 0.5 };                 // ⚔️처형
   }
 }
 function gearPowerForChar(g) { return (g.str||0) + (g.int||0) + (g.agi||0) + (g.luk||0); }
@@ -1833,7 +1845,9 @@ function step(u, dt) {
 
 function dmg(target, amount, from) {
   if (target.hp <= 0) return;
+  if (target.gearEvade && Math.random() < target.gearEvade) { addFx(target.x, target.y, "evade"); return; }   // 👟쾌속 회피
   let a = amount, ctr = false;
+  if (from && from.execute && Math.random() < from.execute.proc) a *= (1 + from.execute.mult);                // ⚔️처형 추가타
   // 🧠 턴제 도파민: dmgMul + momentum 실제 적용 (우선순위 선택 효과 체감)
   if (tbActive && window._tbDmgMul) {
     a *= window._tbDmgMul * (1 + Math.min(0.9, (tbMomentum || 0) / 140));
@@ -1867,6 +1881,7 @@ function dmg(target, amount, from) {
   if (from && from.typeSlayer && from.typeSlayer.target === target.t) {
     a *= (1 + (from.typeSlayer.val || 0.15));
   }
+  if (target.endure && target.hp <= target.maxHp * target.endure.thresh) a *= (1 - target.endure.reduce);   // 🛡️불굴 저체력 피해감소
   if (target.shield > 0) a *= 0.5;
   target.hp -= a;
   // mech 반격 (p side 받을 때 from에게 반사)
@@ -5056,23 +5071,23 @@ function openGearItem(id) {
   // 성장 버튼 섹션 (캐릭터창 #cp-grow처럼)
   html += `<div class="gm-grow">`;
   html += `<button id="gpop-enh" class="gpop-enh">🔨 ${t("dEnhance")} +${e} · ${rate}% · 💰${enhC}</button>`;
-  if (e >= 10 && s < 5) {
-    const starC = 1000 * (s + 1);
-    html += `<button id="gpop-star" class="gpop-star">⭐ 별강화 ★${s}→★${s+1} · 💰${starC}</button>`;
+  if (e >= 10 && s < 30) {
+    const starC = Math.round(1000 * (s + 1) * Math.pow(1.3, s));
+    html += `<button id="gpop-star" class="gpop-star">⭐ 별강화 ★${s}→★${s+1} · 💰${starC.toLocaleString("en-US")}</button>`;
   }
   if (s >= 3 && a < 5) {
     const awkC = 50 * (a + 1);
     html += `<button id="gpop-awk" class="gpop-awk">✦ 각성 ✦${a}→✦${a+1} · 🔮${awkC}</button>`;
   }
   const dupG = (g.tplId != null) && META.gear.find((x) => x.id !== id && x.tplId === g.tplId && !gearOwnerName(x.id));   // 같은 장비(미장착) 합성용
-  if (dupG && s < 5) html += `<button id="gpop-fuse" class="gpop-star">✨ 합성 ★${s}→★${s + 1} (같은 장비 소모)</button>`;
+  if (dupG && s < 30) html += `<button id="gpop-fuse" class="gpop-star">✨ 합성 ★${s}→★${s + 1} (같은 장비 소모)</button>`;
   if (!gearOwnerName(id)) html += `<button id="gpop-scrap" class="gpop-enh" style="border-color:#fbbf24;background:linear-gradient(160deg,#3a2c1a,#1a1410)">🔨 분해 +${gearScrapGold(g)}골드</button>`;
   html += `</div>`;
   $("unit-detail").innerHTML = html;
   on("gpop-enh", "click", () => { enhanceGear(id); setTimeout(() => openGearItem(id), 50); });
-  if (e >= 10 && s < 5) on("gpop-star", "click", () => { gearStar(id); setTimeout(() => openGearItem(id), 50); });
+  if (e >= 10 && s < 30) on("gpop-star", "click", () => { gearStar(id); setTimeout(() => openGearItem(id), 50); });
   if (s >= 3 && a < 5) on("gpop-awk", "click", () => { gearAwaken(id); setTimeout(() => openGearItem(id), 50); });
-  if (dupG && s < 5) on("gpop-fuse", "click", () => { fuseGear(id); setTimeout(() => openGearItem(id), 50); });
+  if (dupG && s < 30) on("gpop-fuse", "click", () => { fuseGear(id); setTimeout(() => openGearItem(id), 50); });
   if (!gearOwnerName(id)) on("gpop-scrap", "click", () => dismantleGear(id));
   $("unit-pop").classList.remove("hidden");
 }
@@ -5134,7 +5149,7 @@ function enhanceGear(id) {
 function fuseGear(id) {   // ✨ 장비 합성: 같은 장비(같은 tplId·미장착) 소모 → 별강화 (강화10 우회)
   if (running) return;
   const g = META.gear.find((x) => x.id === id); if (!g) return;
-  if ((g.star || 0) >= 5) { toast("★ 최대", "#8b93a7"); return; }
+  if ((g.star || 0) >= 30) { toast("★ 최대 (30)", "#8b93a7"); return; }   // 🌟 30성 개편
   const dup = META.gear.find((x) => x.id !== id && x.tplId === g.tplId && !gearOwnerName(x.id));
   if (!dup) { toast("합성할 같은 장비(미장착)가 없어요", "#ef4444"); return; }
   META.gear = META.gear.filter((x) => x.id !== dup.id);
@@ -5147,8 +5162,8 @@ function gearStar(id) {
   const g = META.gear.find((x) => x.id === id); if (!g) return;
   if ((g.enh || 0) < 10) { toast("강화 10회 이상 필요", "#ef4444"); return; }
   const s = (g.star || 0);
-  if (s >= 5) { toast("★ 최대", "#8b93a7"); return; }
-  const cost = 1000 * (s + 1);
+  if (s >= 30) { toast("★ 최대 (30)", "#8b93a7"); return; }       // 🌟 30성 개편
+  const cost = Math.round(1000 * (s + 1) * Math.pow(1.3, s));      // 🌟 비용 1.3^s 지수(★30 누적 233M = 극악)
   if (META.gold < cost) { toast(t("tGoldShort", { n: cost }), "#ef4444"); return; }
   META.gold -= cost;
   g.star = s + 1;
