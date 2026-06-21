@@ -248,12 +248,12 @@ Object.assign(I18N.ko, { dPerBattle: "전투" }); Object.assign(I18N.en, { dPerB
 
 // 장비 (힘·지능·민첩·운)
 const GEAR_I18N = {
-  ko: { gTitle: "장비", gCraft: "제작", gEquip: "장착", gEmpty: "장비 없음 — 제작하세요", gFull: "보유 한도 도달 (총 500)", gGot: "🔨 장비 제작: {x}", st_str: "힘", st_int: "지능", st_agi: "민첩", st_luk: "운" },
-  en: { gTitle: "Gear", gCraft: "Craft", gEquip: "Equip", gEmpty: "No gear — craft some", gFull: "Inventory full (total 500)", gGot: "🔨 Crafted: {x}", st_str: "STR", st_int: "INT", st_agi: "AGI", st_luk: "LUK" },
-  ja: { gTitle: "装備", gCraft: "製作", gEquip: "装着", gEmpty: "装備なし — 製作を", gFull: "所持上限 (合計500)", gGot: "🔨 製作: {x}", st_str: "力", st_int: "知", st_agi: "敏", st_luk: "運" },
-  zh: { gTitle: "装备", gCraft: "制作", gEquip: "装备", gEmpty: "无装备 — 去制作", gFull: "持有上限 (总计500)", gGot: "🔨 制作: {x}", st_str: "力", st_int: "智", st_agi: "敏", st_luk: "运" },
-  hi: { gTitle: "गियर", gCraft: "बनाएं", gEquip: "पहनें", gEmpty: "कोई गियर नहीं", gFull: "धारण सीमा (कुल 500)", gGot: "🔨 बनाया: {x}", st_str: "STR", st_int: "INT", st_agi: "AGI", st_luk: "LUK" },
-  ru: { gTitle: "Снаряжение", gCraft: "Создать", gEquip: "Надеть", gEmpty: "Нет снаряжения", gFull: "Лимит (всего 500)", gGot: "🔨 Создано: {x}", st_str: "СИЛ", st_int: "ИНТ", st_agi: "ЛОВ", st_luk: "УДЧ" },
+  ko: { gTitle: "장비", gCraft: "제작", gEquip: "장착", gEmpty: "장비 없음 — 제작하세요", gFull: "보유 한도 도달 (총 500)", gGot: "🔨 장비 제작: {x}", st_str: "힘", st_int: "체력", st_agi: "민첩", st_luk: "운" },
+  en: { gTitle: "Gear", gCraft: "Craft", gEquip: "Equip", gEmpty: "No gear — craft some", gFull: "Inventory full (total 500)", gGot: "🔨 Crafted: {x}", st_str: "STR", st_int: "VIT", st_agi: "AGI", st_luk: "LUK" },
+  ja: { gTitle: "装備", gCraft: "製作", gEquip: "装着", gEmpty: "装備なし — 製作を", gFull: "所持上限 (合計500)", gGot: "🔨 製作: {x}", st_str: "力", st_int: "体", st_agi: "敏", st_luk: "運" },
+  zh: { gTitle: "装备", gCraft: "制作", gEquip: "装备", gEmpty: "无装备 — 去制作", gFull: "持有上限 (总计500)", gGot: "🔨 制作: {x}", st_str: "力", st_int: "体", st_agi: "敏", st_luk: "运" },
+  hi: { gTitle: "गियर", gCraft: "बनाएं", gEquip: "पहनें", gEmpty: "कोई गियर नहीं", gFull: "धारण सीमा (कुल 500)", gGot: "🔨 बनाया: {x}", st_str: "STR", st_int: "VIT", st_agi: "AGI", st_luk: "LUK" },
+  ru: { gTitle: "Снаряжение", gCraft: "Создать", gEquip: "Надеть", gEmpty: "Нет снаряжения", gFull: "Лимит (всего 500)", gGot: "🔨 Создано: {x}", st_str: "СИЛ", st_int: "ВЫН", st_agi: "ЛОВ", st_luk: "УДЧ" },
 };
 for (const l in GEAR_I18N) Object.assign(I18N[l], GEAR_I18N[l]);
 Object.assign(I18N.ko, { locked: "미보유", lockedHint: "뽑기로 획득하세요" }); Object.assign(I18N.en, { locked: "Locked", lockedHint: "Pull to unlock" }); Object.assign(I18N.ja, { locked: "未所持", lockedHint: "ガチャで入手" }); Object.assign(I18N.zh, { locked: "未拥有", lockedHint: "抽卡获得" }); Object.assign(I18N.hi, { locked: "लॉक", lockedHint: "गाचा से पाएं" }); Object.assign(I18N.ru, { locked: "Закрыто", lockedHint: "Откройте призывом" });
@@ -354,8 +354,8 @@ for (const l in TOWER_I18N) I18N[l].tTowerLabel = TOWER_I18N[l];
 
 // 📊 전체 확률 공개 (법적 disclosure — 코드값과 100% 일치)
 const ODDS_I18N = {
-  ko: { oddsBtn: "📊 전체 확률 보기", oddsTitle: "📊 뽑기 확률 전체 공개", oddsPity: "천장: 12회 뽑으면 SSR 확정 · 7회부터 SSR 확률 상승(+4%/pull). 표시 확률은 게임 코드와 100% 일치합니다.", oddsFict: "※ 이 가챠는 Legion Chronicles 내 가상의 연출이며, 모든 재화는 게임 내 전용입니다.", grNote: "🎯 12회 천장 = SSR 확정 · 7회부터 +4%/pull · 장비도 동일 확률" },
-  en: { oddsBtn: "📊 View full odds", oddsTitle: "📊 Full Pull Rate Disclosure", oddsPity: "Pity: a guaranteed SSR on the 12th pull · SSR rate rises from pull 7 (+4%/pull). Displayed rates match the game code 100%.", oddsFict: "※ This gacha is a fictional feature within Legion Chronicles; all currencies are in-game only.", grNote: "🎯 12-pull pity = guaranteed SSR · SSR rate rises from pull 7 (+4%/pull) · gear uses same rates" },
+  ko: { oddsBtn: "📊 전체 확률 보기", oddsTitle: "📊 뽑기 확률 전체 공개", oddsPity: "천장: 12회 뽑으면 SSR 확정 · 7회부터 SSR 확률 상승(+4%/pull). 표시 확률은 게임 코드와 100% 일치합니다.", oddsFict: "※ 이 가챠·기원 드롭은 Legion Chronicles 내 가상의 서사( fictional narrative )입니다. 모든 재화·이벤트는 게임 내 전용. 실제 확률은 항상 코드와 일치 공개.", grNote: "🎯 12회 천장 = SSR 확정 · 7회부터 +4%/pull · 장비도 동일 확률" },
+  en: { oddsBtn: "📊 View full odds", oddsTitle: "📊 Full Pull Rate Disclosure", oddsPity: "Pity: a guaranteed SSR on the 12th pull · SSR rate rises from pull 7 (+4%/pull). Displayed rates match the game code 100%.", oddsFict: "※ This gacha + origin drop is fictional narrative within Legion Chronicles. All currencies/events in-game only. Real rates always match code & publicly disclosed.", grNote: "🎯 12-pull pity = guaranteed SSR · SSR rate rises from pull 7 (+4%/pull) · gear uses same rates" },
   ja: { oddsBtn: "📊 全確率を見る", oddsTitle: "📊 ガチャ確率 完全公開", oddsPity: "天井: 10回でSSR確定 · 7回目からSSR確率上昇(最大15%)。表示確率はゲームコードと100%一致。", oddsFict: "※ このガチャはLegion Chronicles内の架空の演出で、全ての通貨はゲーム内専用です。", grNote: "🎯 10回天井=SSR確定 · 7回目からSSR確率上昇(最大15%) · 装備も同確率" },
   zh: { oddsBtn: "📊 查看全部概率", oddsTitle: "📊 抽卡概率完整公示", oddsPity: "保底: 第10抽必出SSR · 第7抽起SSR概率提升(最高15%)。显示概率与游戏代码100%一致。", oddsFict: "※ 本抽卡为Legion Chronicles内的虚构演出，所有货币仅限游戏内使用。", grNote: "🎯 10抽保底=必出SSR · 第7抽起SSR概率提升(最高15%) · 装备同概率" },
   hi: { oddsBtn: "📊 पूरी संभावना देखें", oddsTitle: "📊 पूर्ण दर प्रकटीकरण", oddsPity: "पिटी: 10वें पुल पर SSR पक्का · पुल 7 से SSR दर बढ़ती है (15% तक)। दिखाई गई दरें गेम कोड से 100% मेल खाती हैं।", oddsFict: "※ यह गाचा Legion Chronicles का काल्पनिक फीचर है; सभी मुद्राएँ केवल इन-गेम हैं।", grNote: "🎯 10-पुल पिटी = पक्का SSR · पुल 7 से SSR दर बढ़ती है (15% तक) · गियर समान दर" },

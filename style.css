@@ -527,6 +527,9 @@ h1::first-letter { color: var(--crimson); }
 
 /* Clean odds modal (moved from inline for no-clutter premium) */
 #odds-modal { position:fixed; inset:0; z-index:90; background:rgba(3,7,18,.88); display:flex; align-items:center; justify-content:center; padding:18px; }
+/* ✨ 모달 팝인 (프리미엄 — 1회 표시라 깜빡임 없음) */
+@keyframes modalPop { from { opacity: 0; transform: scale(.92) translateY(6px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+#odds-modal .odds-inner, #ref-modal .odds-inner, #starter-card, #gacha-card { animation: modalPop .24s cubic-bezier(.2,.85,.3,1.15); }
 #odds-modal .odds-inner { max-width:340px; width:100%; background:#0b111f; border:1px solid #2b3650; border-radius:12px; padding:16px 18px; color:#e2e8f0; font-size:13px; line-height:1.7; box-shadow: 0 12px 40px rgba(0,0,0,0.7); }
 #odds-modal .odds-title { font-weight:700; font-size:15px; margin-bottom:8px; }
 #odds-modal .odds-body { font-size:12.5px; }

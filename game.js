@@ -4799,7 +4799,7 @@ function openCharPanel(id) {
   if (head) head.innerHTML = `<div class="cp-art" style="border-color:${u.color}">${artHTML(u, "cpgly", "cpim", true)}</div>`
     + `<div class="cp-meta"><div class="cp-nm" style="color:${u.color}">${u.name}</div>`
     + `<div class="cp-ti">${u.title || u.arch} · ${u.rarity} · 🏷️${u.faction}</div>`
-    + `<div class="cp-st">⚔️ 전력 <b>${charEffPower(id)}</b> · Lv${lv}${cEnh(id) ? " +" + cEnh(id) : ""}${cStar(id) ? " ★" + cStar(id) : ""}${cAwak(id) ? " ✦" + cAwak(id) : ""} · 💪${gcs.str} 🧠${gcs.int} 👟${gcs.agi} 🍀${gcs.luk}</div>`
+    + `<div class="cp-st">⚔️ 전력 <b>${charEffPower(id)}</b> · Lv${lv}${cEnh(id) ? " +" + cEnh(id) : ""}${cStar(id) ? " ★" + cStar(id) : ""}${cAwak(id) ? " ✦" + cAwak(id) : ""} · 💪${gcs.str} ❤️${gcs.int} 👟${gcs.agi} 🍀${gcs.luk}</div>`
     + `<button id="cp-lvup">⬆️ 레벨업 Lv${lv + 1} · 💰${charLvCost(id)}</button>`
     + `<div style="margin-top:3px;font-size:10px;display:flex;gap:2px;align-items:center;">일괄 <input id="cp-lv-num" type="number" value="${maxB||1}" min="1" max="${maxB||1}" style="width:32px">`
     + `<button id="cp-lv-batch" style="padding:0 4px;font-size:9px">실행</button>`
