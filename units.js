@@ -11,6 +11,23 @@ const ARCHES = ["drone", "marksman", "guardian", "bruiser", "commander", "titan"
 const ARCH_GLYPH = { drone: "🛸", marksman: "🎯", guardian: "🛡️", bruiser: "🤖", commander: "🧠", titan: "🐉" };
 // 유닛 시각 차별화 (도감·캔버스·UI): archetype 공유 glyph만으로는 부족 → SSR 고유 + faction/accent procedural
 const SSR_VIS = { Arclight: "⚖️", Solace: "🌊", Cipher: "🔭", Ignis: "🔥", Vector: "↯", Vespera: "🐝", Aegis: "🛡️", Anvil: "🔨", Dominus: "👑" };
+
+// ── 🎯 Featured 한정 배너 (과금 동기 — 트리니티 SPEC-monetization-redesign) ──
+// 주간 featured SSR pickup(확률 up) + spark 천장 90뽑=featured 확정 + 7일 한정 FOMO.
+// game.js 가챠가 getFeaturedBanner(weekIdx) 참조. weekIdx = floor((now-LAUNCH)/7d). week0 = Arclight(첫 배너).
+const FEATURED_BANNERS = [
+  { id: "arclight", pickup: "Arclight", name: "심판의 서막", en: "Arc of Judgment",  durationDays: 7, sparkPity: 90, upRate: 0.015 },
+  { id: "dominus",  pickup: "Dominus",  name: "군림의 시간", en: "Reign Eternal",    durationDays: 7, sparkPity: 90, upRate: 0.015 },
+  { id: "ignis",    pickup: "Ignis",    name: "겁화의 강림", en: "Inferno Descent",  durationDays: 7, sparkPity: 90, upRate: 0.015 },
+  { id: "vector",   pickup: "Vector",   name: "전율의 가속", en: "Surge Protocol",   durationDays: 7, sparkPity: 90, upRate: 0.015 },
+  { id: "aegis",    pickup: "Aegis",    name: "불멸의 방벽", en: "Eternal Bastion",  durationDays: 7, sparkPity: 90, upRate: 0.015 },
+  { id: "cipher",   pickup: "Cipher",   name: "심연의 해독", en: "Cipher's Eye",     durationDays: 7, sparkPity: 90, upRate: 0.015 },
+  { id: "vespera",  pickup: "Vespera",  name: "여명의 군무", en: "Dawn Swarm",       durationDays: 7, sparkPity: 90, upRate: 0.015 },
+  { id: "solace",   pickup: "Solace",   name: "정적의 물결", en: "Tides of Solace",  durationDays: 7, sparkPity: 90, upRate: 0.015 },
+  { id: "anvil",    pickup: "Anvil",    name: "단조의 의지", en: "Anvil's Resolve",  durationDays: 7, sparkPity: 90, upRate: 0.015 },
+];
+function getFeaturedBanner(weekIdx) { const n = FEATURED_BANNERS.length; return FEATURED_BANNERS[(((weekIdx || 0) % n) + n) % n]; }
+if (typeof window !== "undefined") { window.FEATURED_BANNERS = FEATURED_BANNERS; window.getFeaturedBanner = getFeaturedBanner; }
 const FACTION_ACCENT = { Strategist: "🧠", Executor: "⚙️", Swarm: "🐜", Guardian: "🛡️", Intel: "👁️" };
 const ARCH_NOUN = {
   drone: ["정찰기", "벌떼", "비행체", "추적자", "날개", "탐사기"],

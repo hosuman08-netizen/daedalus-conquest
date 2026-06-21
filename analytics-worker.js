@@ -2,7 +2,9 @@
    역할: 미니앱 logEvent → POST /ev 수신 → KV 저장. 오라클(CDO)이 GET /stats로 집계 조회.
    설계: Trinity(CPO) · 계측 배선(game.js logEvent): Morpheus(COO) · 분석: Oracle(CDO)
    ⚠️ fire-and-forget — 실패해도 게임 영향 0. 익명 anonId(개인정보 X).
-   배포: KV namespace(EVENTS) 바인딩. BOT_TOKEN 불필요. */
+   배포: KV namespace(EVENTS) 바인딩. BOT_TOKEN 불필요.
+   Oracle(CDO) 확장: AARRR full + K virality proxy + ch5/share. 2026-06-20.
+   Project 2 (Phase 2: gear/items/prestige) 확장: Phase2 이벤트 + A/B + D7/conv/virality impact proxy. Oracle(CDO) 2026-06-20. */
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -12,7 +14,17 @@ const CORS = {
 const json = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { "Content-Type": "application/json", ...CORS } });
 
 // MVP 6종 이벤트 화이트리스트 (오라클 스키마와 일치)
-const ALLOWED = new Set(["install", "battle_win", "gacha_pull", "ascend", "purchase", "growth_moment"]);
+const ALLOWED = new Set([
+  "install", "battle_win", "gacha_pull", "ascend", "purchase", "growth_moment",
+  // Oracle expansion for AARRR + virality + activation (fire-and-forget, MVP)
+  "session_start", "app_open", "signup", "ch5_reached", "share_clicked",
+  "daily_return", "push_click", "invite_converted", "referral_bonus_granted",
+  // Project 2 (Phase 2 gear/items/prestige) + A/B support — Oracle(CDO)
+  "gear_obtained", "gear_equipped", "gear_enhanced", "set_activated",
+  "phase2_unlock", "prestige_trigger", "ab_test",
+  // age gate (미성년 보호 funnel — COPPA 증적) — Oracle(CDO)
+  "age_confirmed", "age_blocked"
+]);
 const dayKey = (ts) => new Date(ts).toISOString().slice(0, 10);   // YYYY-MM-DD (UTC 일관 — game.js와 동일)
 
 export default {
@@ -26,22 +38,39 @@ export default {
       let b = {}; try { b = await req.json(); } catch (e) {}
       const type = b.type || b.n, anon = (b.anonId || b.a || "anon").slice(0, 40), ts = b.ts || 0;
       if (!ALLOWED.has(type) || !ts) return json({ ok: false, reason: "bad-event" });
-      // 일별 카운트 집계 (KV는 단순 카운터 — D1로 승급 가능). 키: cnt:YYYY-MM-DD:type
-      const day = dayKey(ts), ck = "cnt:" + day + ":" + type;
-      const cur = parseInt((await env.EVENTS.get(ck)) || "0", 10);
-      await env.EVENTS.put(ck, String(cur + 1), { expirationTtl: 60 * 86400 });   // 60일 보존
-      // DAU 근사: 일별 유니크 anonId 마킹 (set 키). 키: dau:YYYY-MM-DD:anon
-      await env.EVENTS.put("dau:" + day + ":" + anon, "1", { expirationTtl: 14 * 86400 });
-      // 리텐션 근사: 유저별 첫/최근 활동일. 키: u:anon → {first,last}
-      const uk = "u:" + anon; let u = {}; try { u = JSON.parse((await env.EVENTS.get(uk)) || "{}"); } catch (e) {}
-      if (!u.first) u.first = day; u.last = day;
-      await env.EVENTS.put(uk, JSON.stringify(u), { expirationTtl: 30 * 86400 });
-      // ch18 reach 특수: ascend 시 fromCh>=18 데이터 반영 (d.fromCh)
-      if (type === "ascend" && b.d && (b.d.fromCh || 0) >= 18) {
-        const c18k = "c18:" + day; const ccur = parseInt((await env.EVENTS.get(c18k)) || "0", 10);
-        await env.EVENTS.put(c18k, String(ccur + 1), { expirationTtl: 60 * 86400 });
+      // ⚠️ fire-and-forget: KV 쓰기 실패해도 절대 500 금지(게임 영향0). 예외는 잡아 진단 노출.
+      try {
+        // 일별 카운트 집계 (KV는 단순 카운터 — D1로 승급 가능). 키: cnt:YYYY-MM-DD:type
+        const day = dayKey(ts), ck = "cnt:" + day + ":" + type;
+        const cur = parseInt((await env.EVENTS.get(ck)) || "0", 10);
+        await env.EVENTS.put(ck, String(cur + 1), { expirationTtl: 60 * 86400 });   // 60일 보존
+        // DAU 근사: 일별 유니크 anonId 마킹 (set 키). 키: dau:YYYY-MM-DD:anon
+        await env.EVENTS.put("dau:" + day + ":" + anon, "1", { expirationTtl: 14 * 86400 });
+        // 리텐션 근사: 유저별 첫/최근 활동일. 키: u:anon → {first,last}
+        const uk = "u:" + anon; let u = {}; try { u = JSON.parse((await env.EVENTS.get(uk)) || "{}"); } catch (e) {}
+        if (!u.first) u.first = day; u.last = day;
+        await env.EVENTS.put(uk, JSON.stringify(u), { expirationTtl: 30 * 86400 });
+        // ch18 reach 특수: ascend 시 fromCh>=18 데이터 반영 (d.fromCh)
+        if (type === "ascend" && b.d && (b.d.fromCh || 0) >= 18) {
+          const c18k = "c18:" + day; const ccur = parseInt((await env.EVENTS.get(c18k)) || "0", 10);
+          await env.EVENTS.put(c18k, String(ccur + 1), { expirationTtl: 60 * 86400 });
+        }
+        // Project 2: phase2_unlock / prestige special (ascend proxy + ether)
+        if (type === "phase2_unlock" || type === "prestige_trigger" || type === "ascend") {
+          const p2k = "p2:" + day; const pcur = parseInt((await env.EVENTS.get(p2k)) || "0", 10);
+          await env.EVENTS.put(p2k, String(pcur + 1), { expirationTtl: 60 * 86400 });
+        }
+        // A/B support: ab_test or variant in data (e.g. {ab:"fomo_gear", variant:"limited"})
+        const ab = b.ab || b.variant || (b.d && b.d.ab);
+        if (ab) {
+          const abk = "ab:" + day + ":" + String(ab).slice(0,30);
+          const abcur = parseInt((await env.EVENTS.get(abk)) || "0", 10);
+          await env.EVENTS.put(abk, String(abcur + 1), { expirationTtl: 60 * 86400 });
+        }
+        return json({ ok: true });
+      } catch (e) {
+        return json({ ok: false, reason: "write-fail", err: String(e && e.message || e).slice(0, 200) });
       }
-      return json({ ok: true });
     }
 
     // ② 집계 조회 — 오라클(CDO) 대시보드용. GET /stats?day=YYYY-MM-DD
@@ -56,9 +85,23 @@ export default {
       out.gacha_conv = out.install ? +(out.gacha_pull / out.install).toFixed(4) : 0;
       // ch18 reach 근사 (ascend 중 ch18+ / install) — 일일 proxy, 전체 코호트는 /cohort 또는 multi-day 조회
       out.ch18_reach_rate = out.install ? +(out.ch18_ascend / out.install).toFixed(4) : 0;
+      // Activation proxy (ch5 / install) — game emit ch5_reached 시 추적
+      out.ch5_rate = out.install ? +( (out.ch5_reached || 0) / out.install ).toFixed(4) : 0;
+      // Virality proxy (share rate)
+      out.share_rate = out.install ? +( (out.share_clicked || 0) / out.install ).toFixed(4) : 0;
+      // Project 2 (Phase2 gear/prestige/items) proxies — Oracle metrics for D7/conv/virality impact
+      out.p2_unlock = parseInt((await env.EVENTS.get("p2:" + day)) || "0", 10);
+      out.phase2_rate = out.install ? +(out.p2_unlock / out.install).toFixed(4) : 0;
+      out.gear_obtained = parseInt((await env.EVENTS.get("cnt:" + day + ":gear_obtained")) || "0", 10);
+      out.gear_equipped = parseInt((await env.EVENTS.get("cnt:" + day + ":gear_equipped")) || "0", 10);
+      out.gear_rate = out.install ? +(out.gear_obtained / out.install).toFixed(4) : 0;
+      out.set_activated = parseInt((await env.EVENTS.get("cnt:" + day + ":set_activated")) || "0", 10);
+      // A/B exposure proxy (ab_test events) — out.ab_test populated by ALLOWED loop
+      out.ab_exposure = parseInt((await env.EVENTS.get("cnt:" + day + ":ab_test")) || "0", 10);
       // D7 retention: u: 키 기반. 풀 스캔 비용/제한으로 proxy (dau + first/last). Oracle가 별도 집계 추천.
       // TODO: KV.list({prefix:'u:'}) 로 cohort D7 계산 (작은 유저수 시 MVP OK)
       out.d7_proxy = 0; // 상세는 Oracle side 또는 별도 엔드포인트
+      // Phase2 impact note: post-rollout use /cohort + p2 first-date filter for D7/conv/virality lift (hype vs sustain)
       return json({ ok: true, day, counts: out });
     }
 

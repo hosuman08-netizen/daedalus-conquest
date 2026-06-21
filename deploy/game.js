@@ -706,6 +706,16 @@ function newGear(forceRar) { const g = makeGear(forceRar); g.id = ++META.gearSeq
 function heroGearStats() {
 const tot = { str: 0, int: 0, agi: 0, luk: 0 }, eq = META.equip[META.hero] || {};
 for (const slot of SLOTS) { const id = eq[slot]; if (!id) continue; const g = META.gear.find((x) => x.id === id); if (!g) continue; for (const k of STAT_KEYS) tot[k] += gearStat(g, k); }
+// P2: gear sets (Trinity in gear.js, CEO kickoff)
+if (typeof getGearSetBonusesForEquip === "function") {
+  const sb = getGearSetBonusesForEquip(eq, META.gear || []);
+  window._lastSetBonuses = sb.bonuses;
+  const m = (sb.bonuses.atkMul || 1) * (sb.bonuses.hpMul || 1);
+  for (const k of STAT_KEYS) tot[k] = Math.round(tot[k] * m);
+  if (sb && Object.keys(sb.counts || {}).length >= 1) {
+    try { if (typeof emitEvent === "function") emitEvent("set_activated", { sets: sb.counts }); } catch(_) {}
+  }
+}
 return tot;
 }
 
@@ -849,6 +859,12 @@ function charLv(id) { return (META.charLv && META.charLv[id]) || 0; }
 function charGearStats(id) { 
 const tot = { str: 0, int: 0, agi: 0, luk: 0 }, eq = (META.charGear && META.charGear[id]) || {};
 for (const slot of SLOTS) { const gid = eq[slot]; if (!gid) continue; const g = META.gear.find((x) => x.id === gid); if (!g) continue; for (const k of STAT_KEYS) tot[k] += gearStat(g, k); }
+// P2 sets
+if (typeof getGearSetBonusesForEquip === "function") {
+  const sb = getGearSetBonusesForEquip(eq, META.gear || []);
+  const m = (sb.bonuses.atkMul || 1) * (sb.bonuses.hpMul || 1);
+  for (const k of STAT_KEYS) tot[k] = Math.round(tot[k] * m);
+}
 return tot;
 }
 
