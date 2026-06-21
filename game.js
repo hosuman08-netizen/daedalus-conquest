@@ -727,7 +727,7 @@ function legionPower() {
   let p = 0; for (const t of ORDER) p += (META.army[t] || 0) * ((META.lv[t] || 0) + (META.enh[t] || 0) * 2 + (META.star[t] || 0) * 12 + (META.awak[t] || 0) * 40);
   return Math.round((p + gearPower()) * heroPowerMul());   // ⚔️ 장비 + ✦각성 + 영웅 강화 반영
 }
-function dividendGold() { return Math.floor(legionPower() * 0.3); }   // 🔧 골드복리 0.9→0.5→0.3 인하(군주: 복지 과함) — 폭주 강하게 억제
+function dividendGold() { return Math.floor(legionPower() * 0.23); }   // 🔧 골드복리 0.9→0.5→0.3 인하(군주: 복지 과함) — 폭주 강하게 억제
 
 // ── 장비 시스템 (gear.js의 5슬롯·120종 카탈로그 사용) ────────────────────────
 // SLOTS/SLOT_ICON/SLOT_MAIN/STAT_KEYS/GEAR_RARITY/makeGear/gearStat 는 gear.js에 정의됨
@@ -3376,6 +3376,70 @@ function gacha10() {
   const showR = RARITY.find(r => r.key === bestKey) || RARITY[best] || RARITY[0];
   showGacha(showR, t("tGacha10", { x: bestKey }), results);
 }
+// ── 🎯 Featured 한정 배너 (주간 SSR pickup + spark 천장90 + 7일 countdown — 매출 핵심, Trinity SPEC) ──
+const FEATURED_LAUNCH = Date.UTC(2026, 5, 21);   // 2026-06-21 출시 = week0(Arclight)
+const FEATURED_COST = 80, FEATURED_SPARK = 90;
+function currentFeatured() {
+  if (typeof getFeaturedBanner !== "function") return null;
+  const wk = Math.max(0, Math.floor((Date.now() - FEATURED_LAUNCH) / 604800000));
+  return getFeaturedBanner(wk);
+}
+function featuredDaysLeft() {
+  const into = (((Date.now() - FEATURED_LAUNCH) % 604800000) + 604800000) % 604800000;
+  return Math.max(1, Math.ceil((604800000 - into) / 86400000));
+}
+function grantUnitByName(name) {   // 특정 SSR(픽업) 지급 — owned 로직은 grantUnit과 동일
+  if (typeof ROSTER === "undefined") return grantUnit("SSR");
+  const u = ROSTER.find((x) => x.name === name); if (!u) return grantUnit("SSR");
+  if (!META.owned) META.owned = [];
+  if (META.owned.indexOf(u.id) < 0) { META.owned.push(u.id); window._lastGrantNew = true; }
+  else { META.dupes = META.dupes || {}; META.dupes[u.id] = (META.dupes[u.id] || 0) + 1; window._lastGrantNew = false; }
+  return u;
+}
+function gachaFeatured() {
+  if (running) return;
+  const fb = currentFeatured(); if (!fb) { gacha10(); return; }
+  if ((META.gems || 0) < FEATURED_COST) { toast(t("tGemShort", { n: FEATURED_COST }), "#ef4444"); return; }
+  META.gems -= FEATURED_COST;
+  const RANK = { N: 0, R: 1, SR: 2, SSR: 3, UR: 4, EX: 5 };
+  let best = 0; const results = []; let gotPickup = false;
+  for (let i = 0; i < 10; i++) {
+    META.pity = (META.pity || 0) + 1;
+    META.spark = (META.spark || 0) + 1;
+    let rar = rollRarity();
+    if (META.pity >= 12) rar = RARITY.find((x) => x.key === "SSR") || RARITY[3];
+    if (i === 9 && best < 2 && (META.pity || 0) < 12) rar = RARITY[2];
+    if (["SSR", "UR", "EX", "SR"].includes(rar.key)) META.pity = 0;
+    const sparkHit = (META.spark || 0) >= FEATURED_SPARK;
+    let gu;
+    if (sparkHit || rar.key === "SSR") {
+      const pickPickup = sparkHit || Math.random() < 0.5;   // 픽업 확률 UP(rate-up 50%) + spark 90 강제확정
+      if (pickPickup) { rar = RARITY.find((x) => x.key === "SSR") || rar; gu = grantUnitByName(fb.pickup); gotPickup = true; META.spark = 0; }
+      else gu = grantUnit("SSR");
+    } else gu = grantUnit(rar.key);
+    best = Math.max(best, RANK[rar.key] || 0);
+    if (gu) results.push({ name: gu.name, rarity: rar.key, dupe: !window._lastGrantNew, isNew: window._lastGrantNew });
+    logEvent("gacha_pull", { rarity: rar.key, kind: "featured", isNew: !!window._lastGrantNew });
+    if (rar.key === "SSR" && !META.titanOwned) { META.titanOwned = true; counts.p.titan = 1; }
+    else { const pool = ORDER.filter((u) => u !== "titan" || META.titanOwned); for (let j = 0; j < rar.lvls; j++) { const u = pool[(Math.random() * pool.length) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; } }
+  }
+  saveMeta(); updateMeta(); reset(); renderFeaturedBanner();
+  const bestKey = Object.keys(RANK).find((k) => RANK[k] === best);
+  const showR = RARITY.find((r) => r.key === bestKey) || RARITY[best] || RARITY[0];
+  showGacha(showR, "🎯 " + (fb.name || "Featured") + (gotPickup ? " — ✨" + fb.pickup + " 획득!" : ""), results);
+}
+function renderFeaturedBanner() {
+  const el = $("featured-banner"); if (!el) return;
+  const fb = currentFeatured(); if (!fb) { el.innerHTML = ""; return; }
+  const d = featuredDaysLeft(), spark = (META.spark || 0);
+  el.innerHTML = '<div style="background:linear-gradient(135deg,#3a2c12,#1a1018);border:1.5px solid #fbbf24;border-radius:12px;padding:10px 12px;margin-bottom:8px;box-shadow:0 0 18px rgba(251,191,36,.25);">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-weight:800;color:#fde047;font-size:13px;">🎯 한정 배너 · ' + (fb.name || "") + '</span><span style="font-size:10px;color:#f97316;font-weight:700;">⏳ ' + d + '일 한정</span></div>'
+    + '<div style="font-size:11px;color:#e2e8f0;margin:3px 0 5px;">픽업 SSR <b style="color:#fbbf24;">' + (fb.pickup || "") + '</b> 확률 UP · 90뽑 천장 확정</div>'
+    + '<div style="font-size:10px;color:#a3a3c2;margin-bottom:6px;">✨ Spark ' + spark + '/' + FEATURED_SPARK + (spark >= FEATURED_SPARK ? ' — 다음 SSR ' + fb.pickup + ' 확정!' : '') + '</div>'
+    + '<button id="sg-featured" class="gbig" style="width:100%;background:linear-gradient(135deg,#f5c451,#d97706);border-color:#f5c451;color:#1a1400;font-weight:800;">🎯 한정 10연 · 💎' + FEATURED_COST + '</button>'
+    + '</div>';
+  const bn = $("sg-featured"); if (bn) bn.onclick = () => gachaFeatured();
+}
 function rarColor(k) { const r = RARITY.find((x) => x.key === k); return r ? r.color : "#9ca3af"; }
 function showGacha(rar, msg, results) {
   const g = $("gacha"); if (!g) return;
@@ -4380,6 +4444,7 @@ function checkPasses() {                                // 활성 패스 = 매�
 function openShop() { renderShop(); showPage("shop"); }
 function renderShop() {
   try {
+  if (typeof renderFeaturedBanner === "function") renderFeaturedBanner();   // 🎯 한정 배너
   const box = $("shop-list"); if (!box) return;
   box.innerHTML = "";
   if (!PAY_BACKEND) {
