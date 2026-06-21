@@ -4253,6 +4253,19 @@ function claimAttend() {
   let boxRes = null;
   if (r.box) boxRes = openBox(r.box);
   META.attend.day = (META.attend.day || 0) + 1; META.attend.last = today();
+  // 🏅 누적 출석 충성(loyalty) 마일스톤 — 장기 접속 대형보상 (attend.day = 누적 출석일, 매일+1이라 정확히 1회 도달)
+  const LOYALTY = [
+    { d: 7, gem: 50 }, { d: 30, gem: 200, unit: "SR" }, { d: 100, gem: 800, unit: "SSR" },
+    { d: 200, gem: 2000, gear: "SSR" }, { d: 365, gem: 5000, unit: "SSR", gear: "SSR" },
+  ];
+  const ms = LOYALTY.find((m) => m.d === META.attend.day);
+  if (ms) {
+    META.gems = (META.gems || 0) + ms.gem;
+    let extra = "💎" + ms.gem;
+    if (ms.unit && typeof grantUnit === "function") { grantUnit(ms.unit); extra += " + 🏆" + ms.unit; }
+    if (ms.gear && typeof newGear === "function") { if (!META.gear) META.gear = []; META.gear.push(newGear(ms.gear)); extra += " + ⚔️" + ms.gear + "장비"; }
+    setTimeout(() => { toast("🏅 누적 출석 " + ms.d + "일 충성 보상! " + extra, "#fbbf24"); try { confettiBurst(); } catch (e) {} }, 700);
+  }
   // daily streak +1 on claim (for cycle)
   META.loginStreak = (META.loginStreak || 0) + 1;
   bumpPrestige(1); saveMeta(); updateMeta(); renderAttend();
