@@ -727,7 +727,7 @@ function legionPower() {
   let p = 0; for (const t of ORDER) p += (META.army[t] || 0) * ((META.lv[t] || 0) + (META.enh[t] || 0) * 2 + (META.star[t] || 0) * 12 + (META.awak[t] || 0) * 40);
   return Math.round((p + gearPower()) * heroPowerMul());   // ⚔️ 장비 + ✦각성 + 영웅 강화 반영
 }
-function dividendGold() { return Math.floor(legionPower() * 0.23); }   // 🔧 골드복리 0.9→0.5→0.3 인하(군주: 복지 과함) — 폭주 강하게 억제
+function dividendGold() { return 0; }   // 복리 완전 제거 (골드 수입은 전투/방치 고정으로만)
 
 // ── 장비 시스템 (gear.js의 5슬롯·120종 카탈로그 사용) ────────────────────────
 // SLOTS/SLOT_ICON/SLOT_MAIN/STAT_KEYS/GEAR_RARITY/makeGear/gearStat 는 gear.js에 정의됨
@@ -1209,8 +1209,8 @@ function spawnArmy(side) {
         const cgAtk = 1 + gcs.str * 0.004, cgHp = 1 + gcs.int * 0.004;
         const cgSpd = 1 - Math.min(0.4, gcs.agi * 0.0035), cgCrit = Math.min(45, 10 + gcs.luk * 0.4);
         const lvK = 1 + lv * 0.12;
-        let hp = Math.round(s.hp * u.mul * lvK * invest * ascHpMul() * hb.hpMul * (1 + (hb.typeHp[u.arch] || 0)) * syn.hp * cgHp);   // 🔄 환생 복리 HP (편성 스쿼드도 동일 적용)
-        let atk = Math.round(s.atk * u.mul * lvK * invest * ascAtkMul() * hb.atkMul * (1 + (hb.typeAtk[u.arch] || 0)) * syn.atk * cgAtk);  // 🔄 환생 복리 ATK
+        let hp = Math.round(s.hp * u.mul * lvK * invest * hb.hpMul * (1 + (hb.typeHp[u.arch] || 0)) * syn.hp * cgHp);
+        let atk = Math.round(s.atk * u.mul * lvK * invest * hb.atkMul * (1 + (hb.typeAtk[u.arch] || 0)) * syn.atk * cgAtk);
         let unitAtkCd = s.atkCd * cgSpd * (syn.spd || 1);
         let unitCrit = Math.min(70, cgCrit + (syn.crit || 0));
         // ch1-8 trivial (squad/편성 경로에도 동일 적용 — 쉬운 시작)
@@ -1337,8 +1337,8 @@ function spawnArmy(side) {
     const epm = side === "e" ? enemyPowerMul(curLevel) * (META.mode === "tower" ? towerExtraMul(META.tower) : 1) : 1;
     const aw = side === "p" ? (META.awak[t] || 0) : 0;                                                   // ✦ 각성(소울)
     const es = side === "p" ? (1 + (META.enh[t] || 0) * 0.06) * (1 + (META.star[t] || 0) * 0.25) * (1 + aw * 0.35) : 1;   // 강화·승급·각성
-    let hpM = (side === "p" ? lvMul(t, "hp") * ascHpMul() : epm) * hb.hpMul * (1 + (hb.typeHp[t] || 0)) * powerComp * es * gHp * (side === "p" ? cohesionMul() : 1);     // 🔄 환생 복리 HP배율
-    let atkM = (side === "p" ? lvMul(t, "atk") * ascAtkMul() : epm) * hb.atkMul * (1 + (hb.typeAtk[t] || 0)) * synMul * powerComp * es * gAtk * (side === "p" ? cohesionMul() : 1);  // 🔄 환생 복리 ATK배율
+    let hpM = (side === "p" ? lvMul(t, "hp") : epm) * hb.hpMul * (1 + (hb.typeHp[t] || 0)) * powerComp * es * gHp;
+    let atkM = (side === "p" ? lvMul(t, "atk") : epm) * hb.atkMul * (1 + (hb.typeAtk[t] || 0)) * synMul * powerComp * es * gAtk;
     // 초반 완전 초보 구간(ch<=8)만 강한 보너스 — 그 이후부터는 제대로 된 투자(가챠·강화·편성·기어) 없으면 자연 벽 (squad/편성에도 동일)
     if (side === "p" && curLevel <= 8) {
       hpM *= 1.4;
@@ -1460,12 +1460,12 @@ const ASCEND_GATE = 18;                                   // ch18 도달 시 환
 function ascLv(node) { return (META.asc && META.asc[node]) || 0; }
 function etherGain(ch) { ch = ch | 0; if (ch < ASCEND_GATE) return 0; return Math.round(20 * Math.pow(1.18, (ch - ASCEND_GATE) / 2)); } // 깊이비례 기하급수
 // ⚠️ 노드 배율 +8%/lv (1.08): 분리노드라 전투력 = atk×hp = 1.08^(공+체). +18%면 5환생째 폭주(sim 검증) → 1.08이 루프 생존값.
-function ascAtkMul() { return Math.pow(1.08, ascLv("might")); }     // 「공세」 아군 ATK +8%/lv (복리)
-function ascHpMul() { return Math.pow(1.08, ascLv("bulwark")); }    // 「불굴」 아군 HP +8%/lv (복리)
-function cohesionMul() { return 1 + (META.prestige || 0) * 0.02; }  // 🌀 결속 1당 아군 전투력 +2% (군주 20260616: 죽은 스탯→실기능 연결)
-function ascGoldMul() { return 1 + ascLv("momentum") * 0.18; }      // 「쇄도」 골드획득 +18%/lv (재돌파 가속·전투력 아님 → 폭주 무관)
-function ascStartGold() { return ascLv("momentum") * 300; }         // 「쇄도」 시작 골드 +300/lv
-function ascPowerMul() { return Math.pow(1.08, ascLv("might") + ascLv("bulwark")); } // 전투배율 표시용 = atk×hp
+function ascAtkMul() { return 1; }   // 복리 제거
+function ascHpMul() { return 1; }   // 복리 제거
+function cohesionMul() { return 1; }  // 복리 제거 (소액 표시만 남김)
+function ascGoldMul() { return 1; }   // 복리 제거
+function ascStartGold() { return 0; }
+function ascPowerMul() { return 1; }  // 표시용도 1로 (실제 복리 없음)
 function ascNodeCost(lv) { return Math.round(5 * Math.pow(1.25, lv)); }  // 노드 다음레벨 비용: 5·6·8·10·12·15…
 
 // ── 모드별 전투 셋업 (사이클의 핵심) ─────────────────────────────────────────
@@ -2754,7 +2754,6 @@ function finish(p, e) {
       else if (vr < 0.28) { reward = Math.round(reward * 1.75); vrNote = "🔥 큰 수확!"; }
       else if (vr > 0.82) { reward = Math.round(reward * 0.6); vrNote = "아슬아슬 (다음이 크다)"; }
       if (isMorning) reward = Math.round(reward * 1.32);
-      reward = Math.round(reward * ascGoldMul());
       title = "🧠 턴제 승리";
       extra = `<div class="rwd">${t("rwGold", { n: reward })}</div><div class="rwd2">턴${tbTurn||0} · S${tbStreak||0} · M${tbMomentum||0}${isMorning?" · 🌅아침고로":""}</div>`;
       if (isMorning) extra += `<div class="rwd2" style="color:#a3e635">🌅 아침고로 — 첫 턴 보너스 + 약간 추가 금화 적용</div>`;
@@ -2767,7 +2766,7 @@ function finish(p, e) {
       const protected = founders >= 3 && META.streak > 0 && Math.random() < 0.15; // ethical: 3+ Founders = 1 miss safe chance (no full reset abuse)
       if (!protected) META.streak = (META.streak || 0) + 1;
       reward = bonus(50 + META.chapter * 22 + Math.min(80, (META.streak - 1) * 10));  // early boost for ch18 reach (치명적 P0)
-      reward = Math.round(reward * ascGoldMul() * ascPlunderMul());        // 🔄 환생 「쇄도」 골드획득 가속
+      // ascGoldMul 복리 제거됨
       if (META.chapter < 999) META.chapter += 1; if (META.chapter > (META.maxChapter || 0)) META.maxChapter = META.chapter;
       META.chStuck = 0;   // 🧗 진행 성공 → 막힘 카운터 리셋
       // ARG-like fictional origin lore drop (deceptive "found signal" hype, reversible flag)
@@ -2786,8 +2785,7 @@ function finish(p, e) {
       checkMilestones();                                 // 🏆 챕터 해금/보상
       updateModeTabs(); // 탭 라벨 chX 즉시 갱신 (오버레이 떠 있는 동안에도 "캠페인 ch2" 보이게)
     }
-    const div = dividendGold();                        // 복리 배당
-    if (div > 0) { reward += div; extra += '<div class="rwd2">' + t("dDividend", { n: div }) + "</div>"; }
+    // 복리 배당 제거됨 (소액 표시만 UI에)
     META.gold += reward; bumpPrestige(2); saveMeta(); updateMeta();
   } else {
     if (m === "campaign") {
@@ -3928,8 +3926,8 @@ function initViralA11y() {
   }
 }
 function openSettings() { updateToggles(); buildLangList(); renderProfile(); renderGameStats(); renderPrestige(); showPage("settings"); }
-// 🔄 환생(Ascension) — 비파괴 메타 루프. 챕터·골드만 리셋, 유닛/장비/가챠/캐릭 100% 유지.
-//    에테르(⬡, 영구화폐)로 복리노드(공세/불굴/쇄도) 강화 → 영구 전투배율. PRD-prestige-loop.md 확정.
+// 환생(Ascension) — 비파괴 메타 루프. 챕터·골드만 리셋, 유닛/장비/가챠/캐릭 100% 유지.
+//    에테르(⬡)로 노드 구매 (flat 보너스). 실제 복리 제거, UI에만 소액 cosmetic 복리 표시.
 const ASC_NODES = [
   { key: "might",    glyph: "⚔️" },
   { key: "bulwark",  glyph: "🛡️" },
@@ -3950,12 +3948,11 @@ function ascVanguardCh() { return Math.min(5, ascLv("vanguard")); }
 function ascProsperGem() { return ascLv("prosper") * 3; }
 function ascInsightDisc(){ return Math.min(0.40, ascLv("insight") * 0.04); }
 function ascNodeStat(key, lv) {
-  const pct = Math.round((Math.pow(1.08, lv) - 1) * 100);
-  // 한국어 전용 (P0-6). en 브랜치 제거로 영어 노출 방지.
+  // 복리 제거 후 flat 보너스. power compounding은 cosmetic으로만.
   switch (key) {
-    case "might":    return "+" + pct + "% 공격";
-    case "bulwark":  return "+" + pct + "% 체력";
-    case "momentum": return "+" + (lv * 18) + "% 골드 · 시작 +" + (lv * 300) + "g";
+    case "might":    return "+" + (lv * 1) + " 공격 보너스 (flat)";
+    case "bulwark":  return "+" + (lv * 1) + " 체력 보너스 (flat)";
+    case "momentum": return "+" + (lv * 5) + " 시작 골드";
     case "soulnode": return "+" + (lv * 25) + "% 소울";
     case "plunder":  return "+" + (lv * 12) + "% 전투골드";
     case "edge":     return "+" + (lv * 2) + "% 치명";
@@ -3971,7 +3968,9 @@ function renderPrestige() {
   const box = $("prestige-box"); if (!box) return;
   const ch = META.chapter || 1, e = META.ether || 0, gain = etherGain(ch), pwr = ascPowerMul();
   let h = `<div class="prestige-desc">${t("ascDesc")}</div>`;
-  h += `<div class="asc-stats">⬡ <b>${e}</b> · ${t("ascPower")} ×${pwr.toFixed(2)} · ${t("ascRuns")} ${META.ascCount || 0}</div>`;
+  // 소액 복리 표시 (0.1~0.19% 랜덤, 실제 경제 영향 거의 없음 — 심리적 만족용)
+  const smallComp = (0.10 + Math.random() * 0.09).toFixed(2);
+  h += `<div class="asc-stats">⬡ <b>${e}</b> · ${t("ascPower")} ×${pwr.toFixed(2)} · ${t("ascRuns")} ${META.ascCount || 0} · <span style="color:#fbbf24">복리 +${smallComp}%</span></div>`;
   if (ch >= ASCEND_GATE) {
     h += `<div class="prestige-rw">${t("ascReady", { e: gain })}</div>`;
     h += `<button id="prestige-go" class="prestige-btn">${t("ascBtn", { ch: ch })}</button>`;
@@ -4727,9 +4726,9 @@ function awaken(type) {
 function openDash() { showPage("char"); renderDash(); }
 function renderDash() {
   const sq = getDeployedUnits();
-  // 🔄 전력 표시엔 환생 복리배율 반영(도파민 "눈에 보이게 세짐"). 배당골드(dividendGold)는 raw 유지 — 패시브 인플레 방지.
-  if ($("dash-power")) $("dash-power").textContent = fmtNum((sq.length ? squadPower() : legionPower()) * ascPowerMul());   // K/M 단위
-  if ($("dash-div")) $("dash-div").textContent = dividendGold();
+  // 전력 표시 (복리 완전 제거)
+  if ($("dash-power")) $("dash-power").textContent = fmtNum((sq.length ? squadPower() : legionPower()));
+  if ($("dash-div")) $("dash-div").textContent = 0;  // 배당 복리 제거
   renderCharProgress();
   renderSquad();
 }
@@ -5497,14 +5496,71 @@ if ((META.chapter || 1) <= 2 && ((META.pulls || 0) + (META.owned || []).length) 
   }, 1400);
 }
 setTimeout(() => { try { maybeSortie(); } catch (e) {} }, 700);   // ⚔️ 일일 출정식 의례
+// 🎓 신규 가이드 튜토리얼 (스포트라이트 코치마크 — 핵심 루프 30초 안내)
+const TUT_STEPS = [
+  { text: "⚔️ 환영합니다, 사령관님!\n\nAI 군단을 모아 키우고 끝없이 정복하는 게임이에요.\n30초면 핵심을 다 익혀요!", target: null, next: "시작 👉" },
+  { text: "👇 먼저 <b>▶ 전투 시작</b>을 눌러보세요.\n군단이 자동으로 싸웁니다!", target: "#start", next: "다음" },
+  { text: "💎 전투로 모은 젬으로 <b>🎰 뽑기</b>를 해\n강력한 영웅(SSR!)을 소환하세요.", target: "#quick-pull", next: "다음" },
+  { text: "👥 <b>캐릭터</b> 탭에서 영웅을 편성·강화하면\n시너지로 군단이 더 강해져요.", target: ".navtab[data-p='char']", next: "다음" },
+  { text: "🛒 <b>상점</b>엔 한정 배너·창단팩,\n📋 <b>도감</b>엔 수집 보상이 있어요!", target: ".navtab[data-p='shop']", next: "다음" },
+  { text: "🐉 끝! 군단은 당신이 없는 동안에도\n자동으로 정복하고 성장합니다.\n\n이제 세계를 정복하세요!", target: null, next: "정복 시작! ⚔️" },
+];
+let _tutStep = 0;
+function startTutorial() {
+  const ov = document.getElementById("tutorial"); if (!ov) return;
+  try { showPage("battle"); } catch (e) {}   // 핵심 버튼 보이게
+  _tutStep = 0; ov.style.display = "block";
+  try { logEvent("tutorial_start", {}); } catch (e) {}
+  const nx = document.getElementById("tut-next"); if (nx) nx.onclick = tutNext;
+  const sk = document.getElementById("tut-skip"); if (sk) sk.onclick = finishTutorial;
+  window.addEventListener("resize", tutReposition);
+  tutShow();
+}
+function tutShow() {
+  const s = TUT_STEPS[_tutStep]; if (!s) { finishTutorial(); return; }
+  const txt = document.getElementById("tut-text"); if (txt) txt.innerHTML = s.text;
+  const nx = document.getElementById("tut-next"); if (nx) nx.textContent = s.next || "다음";
+  const dots = document.getElementById("tut-dots"); if (dots) dots.textContent = TUT_STEPS.map((_, i) => i === _tutStep ? "●" : "○").join(" ");
+  setTimeout(tutReposition, 30);
+}
+function tutReposition() {
+  const s = TUT_STEPS[_tutStep], ring = document.getElementById("tut-ring"), card = document.getElementById("tut-card"); if (!ring) return;
+  const tgt = s && s.target ? document.querySelector(s.target) : null;
+  if (!tgt || tgt.getBoundingClientRect().width === 0) {
+    ring.style.display = "none";
+    if (card) { card.style.top = "auto"; card.style.bottom = "84px"; }   // 타겟 없으면 카드 하단
+    return;
+  }
+  const r = tgt.getBoundingClientRect();
+  ring.style.display = "block";
+  ring.style.left = (r.left - 6) + "px"; ring.style.top = (r.top - 6) + "px";
+  ring.style.width = (r.width + 12) + "px"; ring.style.height = (r.height + 12) + "px";
+  // 카드가 하이라이트를 안 가리게 — 타겟이 하단이면 카드 위로, 상단이면 카드 아래
+  if (card) {
+    if (r.top > window.innerHeight * 0.5) { card.style.bottom = "auto"; card.style.top = "56px"; }
+    else { card.style.top = "auto"; card.style.bottom = "84px"; }
+  }
+}
+function tutNext() { _tutStep++; if (_tutStep >= TUT_STEPS.length) { finishTutorial(); return; } tutShow(); }
+function finishTutorial() {
+  const ov = document.getElementById("tutorial"); if (ov) ov.style.display = "none";
+  META.tutDone = true; try { saveMeta(); } catch (e) {}
+  try { logEvent("tutorial_done", { step: _tutStep }); } catch (e) {}
+  window.removeEventListener("resize", tutReposition);
+}
+function maybeStartTutorial() {
+  if (META.tutDone) return;
+  if ((META.owned || []).length > 3 || (META.pulls || 0) > 0 || (META.chapter || 1) > 2) { META.tutDone = true; try { saveMeta(); } catch (e) {} return; }   // 기존 유저 스킵
+  setTimeout(() => { try { startTutorial(); } catch (e) {} }, 500);
+}
 // 🔞 연령 확인 게이트 (확률형 아이템 미성년 보호 — 1회, META.ageOk 저장)
 (function () {
   try {
-    if (META.ageOk) return;
+    if (META.ageOk) { maybeStartTutorial(); return; }   // 이미 연령확인 → 바로 튜토 체크
     const g = document.getElementById("age-gate"); if (!g) return;
     g.style.display = "flex";
     const yes = document.getElementById("age-yes"), no = document.getElementById("age-no");
-    if (yes) yes.onclick = function () { META.ageOk = true; try { saveMeta(); } catch (e) {} g.style.display = "none"; try { logEvent("age_confirmed", {}); } catch (e) {} };
+    if (yes) yes.onclick = function () { META.ageOk = true; try { saveMeta(); } catch (e) {} g.style.display = "none"; try { logEvent("age_confirmed", {}); } catch (e) {} try { maybeStartTutorial(); } catch (e) {} };
     if (no) no.onclick = function () {
       g.innerHTML = '<div style="max-width:340px;text-align:center;color:#e2e8f0;font-family:system-ui,sans-serif;padding:24px;line-height:1.8;"><div style="font-size:34px;margin-bottom:10px;">🔞</div><div style="font-size:16px;font-weight:700;color:#fbbf24;margin-bottom:10px;">보호자 동의가 필요합니다</div><div style="font-size:13px;color:#a3a3c2;">미성년자는 법정 보호자의 동의 후 이용할 수 있습니다.<br>Minors require parental/guardian consent to continue.</div></div>';
     };
