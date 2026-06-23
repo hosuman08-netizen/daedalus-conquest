@@ -1,5 +1,5 @@
 /* i18n — 6개 언어 (ko/en/ja/zh/hi/ru). game.js보다 먼저 로드. */
-const LANGS = ["ko", "en", "ja", "zh", "hi", "ru"];
+const LANGS = ["en", "ko", "ja", "zh", "hi", "ru"];   // 🌐 en 먼저 (글로벌 첫인상 — 군주)
 const LANG_LABEL = { ko: "한국어", en: "English", ja: "日本語", zh: "中文", hi: "हिन्दी", ru: "Русский" };
 
 const I18N = {
@@ -356,10 +356,10 @@ for (const l in TOWER_I18N) I18N[l].tTowerLabel = TOWER_I18N[l];
 const ODDS_I18N = {
   ko: { oddsBtn: "📊 전체 확률 보기", oddsTitle: "📊 뽑기 확률 전체 공개", oddsPity: "천장: 12회 뽑으면 SSR 확정 · 7회부터 SSR 확률 상승(+4%/pull). 표시 확률은 게임 코드와 100% 일치합니다.", oddsFict: "※ 이 가챠·기원 드롭은 Legion Chronicles 내 가상의 서사( fictional narrative )입니다. 모든 재화·이벤트는 게임 내 전용. 실제 확률은 항상 코드와 일치 공개.", grNote: "🎯 12회 천장 = SSR 확정 · 7회부터 +4%/pull · 장비도 동일 확률" },
   en: { oddsBtn: "📊 View full odds", oddsTitle: "📊 Full Pull Rate Disclosure", oddsPity: "Pity: a guaranteed SSR on the 12th pull · SSR rate rises from pull 7 (+4%/pull). Displayed rates match the game code 100%.", oddsFict: "※ This gacha + origin drop is fictional narrative within Legion Chronicles. All currencies/events in-game only. Real rates always match code & publicly disclosed.", grNote: "🎯 12-pull pity = guaranteed SSR · SSR rate rises from pull 7 (+4%/pull) · gear uses same rates" },
-  ja: { oddsBtn: "📊 全確率を見る", oddsTitle: "📊 ガチャ確率 完全公開", oddsPity: "天井: 10回でSSR確定 · 7回目からSSR確率上昇(最大15%)。表示確率はゲームコードと100%一致。", oddsFict: "※ このガチャはLegion Chronicles内の架空の演出で、全ての通貨はゲーム内専用です。", grNote: "🎯 10回天井=SSR確定 · 7回目からSSR確率上昇(最大15%) · 装備も同確率" },
-  zh: { oddsBtn: "📊 查看全部概率", oddsTitle: "📊 抽卡概率完整公示", oddsPity: "保底: 第10抽必出SSR · 第7抽起SSR概率提升(最高15%)。显示概率与游戏代码100%一致。", oddsFict: "※ 本抽卡为Legion Chronicles内的虚构演出，所有货币仅限游戏内使用。", grNote: "🎯 10抽保底=必出SSR · 第7抽起SSR概率提升(最高15%) · 装备同概率" },
-  hi: { oddsBtn: "📊 पूरी संभावना देखें", oddsTitle: "📊 पूर्ण दर प्रकटीकरण", oddsPity: "पिटी: 10वें पुल पर SSR पक्का · पुल 7 से SSR दर बढ़ती है (15% तक)। दिखाई गई दरें गेम कोड से 100% मेल खाती हैं।", oddsFict: "※ यह गाचा Legion Chronicles का काल्पनिक फीचर है; सभी मुद्राएँ केवल इन-गेम हैं।", grNote: "🎯 10-पुल पिटी = पक्का SSR · पुल 7 से SSR दर बढ़ती है (15% तक) · गियर समान दर" },
-  ru: { oddsBtn: "📊 Все шансы", oddsTitle: "📊 Полное раскрытие шансов", oddsPity: "Гарант: SSR на 10-й крутке · шанс SSR растёт с 7-й крутки (до 15%). Показанные шансы на 100% совпадают с кодом игры.", oddsFict: "※ Эта гача — вымышленный элемент Legion Chronicles; вся валюта только внутриигровая.", grNote: "🎯 Гарант 10 круток = SSR · шанс SSR растёт с 7-й (до 15%) · снаряжение по тем же шансам" },
+  ja: { oddsBtn: "📊 全確率を見る", oddsTitle: "📊 ガチャ確率 完全公開", oddsPity: "天井: 12回でSSR確定 · 7回目からSSR確率上昇(+4%/pull)。表示確率はゲームコードと100%一致。", oddsFict: "※ このガチャはLegion Chronicles内の架空の演出で、全ての通貨はゲーム内専用です。", grNote: "🎯 12回天井=SSR確定 · 7回目から+4%/pull · 装備も同確率" },
+  zh: { oddsBtn: "📊 查看全部概率", oddsTitle: "📊 抽卡概率完整公示", oddsPity: "保底: 第12抽必出SSR · 第7抽起SSR概率提升(+4%/抽)。显示概率与游戏代码100%一致。", oddsFict: "※ 本抽卡为Legion Chronicles内的虚构演出，所有货币仅限游戏内使用。", grNote: "🎯 12抽保底=必出SSR · 第7抽起+4%/抽 · 装备同概率" },
+  hi: { oddsBtn: "📊 पूरी संभावना देखें", oddsTitle: "📊 पूर्ण दर प्रकटीकरण", oddsPity: "पिटी: 12वें पुल पर SSR पक्का · पुल 7 से SSR दर बढ़ती है (+4%/पुल)। दिखाई गई दरें गेम कोड से 100% मेल खाती हैं।", oddsFict: "※ यह गाचा Legion Chronicles का काल्पनिक फीचर है; सभी मुद्राएँ केवल इन-गेम हैं।", grNote: "🎯 12-पुल पिटी = पक्का SSR · पुल 7 से +4%/पुल · गियर समान दर" },
+  ru: { oddsBtn: "📊 Все шансы", oddsTitle: "📊 Полное раскрытие шансов", oddsPity: "Гарант: SSR на 12-й крутке · шанс SSR растёт с 7-й крутки (+4%/крутку). Показанные шансы на 100% совпадают с кодом игры.", oddsFict: "※ Эта гача — вымышленный элемент Legion Chronicles; вся валюта только внутриигровая.", grNote: "🎯 Гарант 12 круток = SSR · шанс SSR растёт с 7-й (+4%/крутку) · снаряжение по тем же шансам" },
 };
 for (const l in ODDS_I18N) Object.assign(I18N[l], ODDS_I18N[l]);
 
@@ -447,4 +447,4 @@ function t(key, p) {
 function tHero(h) { return (I18N[LANG].heroes[h] || I18N.en.heroes[h] || [h, ""]); }
 function tUlt(u) { return (I18N[LANG].ultName[u] || I18N.en.ultName[u] || u); }
 // 초기 언어 결정
-(function () { let saved = ""; try { saved = localStorage.getItem("daedalus_lang") || ""; } catch (e) {} LANG = (LANGS.indexOf(saved) >= 0 ? saved : detectLang()); })();
+(function () { let saved = ""; try { saved = localStorage.getItem("daedalus_lang") || ""; } catch (e) {} LANG = (LANGS.indexOf(saved) >= 0 ? saved : "en"); })();   // 🌐 저장값 없으면 기본 en (글로벌 첫인상·한국발 티 X — 군주). 유저는 설정에서 변경 가능.
