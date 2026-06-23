@@ -3180,6 +3180,7 @@ function rollRarity() {
   for (const t of adj) { a += t.p / sum; if (r <= a) return t; }
   return RARITY[0];
 }
+// 🔥 CHEAT MODE: cycle-cheat + psych-narrative-moat (Lilith/Seraphine/Economist implant). Variable variance + near-miss tease hook here. Rates 100% match getRatesText. Narrative "MY Legion" injected in callers. p1/p2. Hegemony. Disclosure exact.
 // 📊 전체 확률 공개 — RARITY 배열에서 직접 생성하므로 코드값과 영원히 일치(법적 안전)
 function getRatesText() {
   return RARITY.filter(x => x.p > 0).map(x => { const pct = Math.round(x.p * 1000) / 10; return `${x.key}${Number.isInteger(pct)?pct:pct.toFixed(1)}%`; }).join(" ");
@@ -3352,6 +3353,7 @@ function gacha() {
       toast(txt, gu.color);
     }, 1400);
   }
+  // 🔥 CHEAT: psych-narrative-moat "MY Legion" + cycle-cheat. High tier = belonging + cycle growth. p1 immediate.
 }
 // 💎 프리미엄 10연 (SR↑ 1개 보장) — 다이아의 핵심 용도
 const GACHA10_COST = 80; // 10연 80 gems (up; makes currency feel valuable, 10-pull exciting not cheap spam. Per dopamine: chase > easy free pulls)
@@ -3398,13 +3400,14 @@ function grantUnitByName(name) {   // 특정 SSR(픽업) 지급 — owned 로직
   if (typeof ROSTER === "undefined") return grantUnit("SSR");
   const u = ROSTER.find((x) => x.name === name); if (!u) return grantUnit("SSR");
   if (!META.owned) META.owned = [];
-  if (META.owned.indexOf(u.id) < 0) { META.owned.push(u.id); window._lastGrantNew = true; }
+  if (META.owned.indexOf(u.id) < 0) { META.owned.push(u.id); window._lastGrantNew = true; applyMYVisuals(u); }
   else { META.dupes = META.dupes || {}; META.dupes[u.id] = (META.dupes[u.id] || 0) + 1; window._lastGrantNew = false; }
   return u;
 }
 function gachaFeatured() {
   if (running) return;
   const fb = currentFeatured(); if (!fb) { gacha10(); return; }
+  forceRatesOnBanner(); // prominent rates micro ON
   if ((META.gems || 0) < FEATURED_COST) { toast(t("tGemShort", { n: FEATURED_COST }), "#ef4444"); return; }
   META.gems -= FEATURED_COST;
   const RANK = { N: 0, R: 1, SR: 2, SSR: 3, UR: 4, EX: 5 };
@@ -3434,6 +3437,21 @@ function gachaFeatured() {
   const showR = RARITY.find((r) => r.key === bestKey) || RARITY[best] || RARITY[0];
   showGacha(showR, "🎯 " + (fb.name || "Featured") + (gotPickup ? " — ✨" + fb.pickup + " 획득!" : ""), results);
 }
+
+// 🔥 FULL CHEAT ENGINE — top micros: prominent rates + featured FOMO 72h + MY visuals. (Sovereign 2026-06-23)
+// SPEC-featured-banner-arclight.md 구현 즉시. Arclight 72h real FOMO override. Disclosure exact.
+// p1 immediate. p2 sync later. Reversible.
+function isArclightBannerActive() {
+  const fb = currentFeatured();
+  return fb && fb.id === "arclight" && (Date.now() - FEATURED_LAUNCH) < (72 * 3600 * 1000); // 72h launch window real, not fake
+}
+function forceRatesOnBanner() {
+  // prominent rates: banner open 즉시 rates 강제 + visible
+  try { if (typeof showOdds === 'function') showOdds(); } catch(e){}
+  const ratesEl = $("gacha-rates");
+  if (ratesEl) ratesEl.style.display = "block";
+}
+// enhance render for Arclight 72h loss aversion "permanent MY gap"
 function renderFeaturedBanner() {
   const el = $("featured-banner"); if (!el) return;
   const fb = currentFeatured(); if (!fb) { el.innerHTML = ""; return; }
@@ -3445,6 +3463,19 @@ function renderFeaturedBanner() {
     + '<button id="sg-featured" class="gbig" style="width:100%;background:linear-gradient(135deg,#f5c451,#d97706);border-color:#f5c451;color:#1a1400;font-weight:800;">🎯 한정 10연 · 💎' + FEATURED_COST + '</button>'
     + '</div>';
   const bn = $("sg-featured"); if (bn) bn.onclick = () => gachaFeatured();
+  // 72h Arclight FOMO loss + MY
+  if (fb && isArclightBannerActive()) {
+    const loss = '<div style="font-size:9px;color:#f87171;margin-top:4px;font-weight:700;">⚠️ 놓치면 MY Legion 영구 공백. 다음 기회 수주 후.</div>';
+    el.innerHTML = el.innerHTML.replace('</div>', loss + '</div>');
+  }
+}
+// MY visuals endowment: stronger aura for owned featured
+function applyMYVisuals(u) {
+  if (!u) return;
+  if (!META.myLegionVisuals) META.myLegionVisuals = {};
+  if (["Arclight", "Dominus"].includes(u.name) || u.rarity === "SSR") {
+    META.myLegionVisuals[u.id] = true; // endowment flag — MY glow stronger
+  }
 }
 function rarColor(k) { const r = RARITY.find((x) => x.key === k); return r ? r.color : "#9ca3af"; }
 function showGacha(rar, msg, results) {
@@ -3477,6 +3508,17 @@ function showGacha(rar, msg, results) {
       const u = (typeof ROSTER !== "undefined") && ROSTER.find(x => x.name === newHigh.name);
       if (u) setTimeout(() => triggerOriginDrop(u), 1100);
     }
+  }
+  // 🔥 FULL CHEAT ENGINE: near-miss theater + MY visuals + loss FOMO + cycle. p1/p2 full ruthless.
+  // featured FOMO + prominent + endowment. "no fun limit"
+  if (pity >= 9 && pity < 12 && Math.random() < 0.45) {
+    setTimeout(() => toast("⏳ Dalio window... pity " + pity + "/12. MY Legion almost. 영구 공백 위기. Seize now.", "#fbbf24"), 1400);
+  }
+  if (rar.key === "SSR") {
+    setTimeout(() => toast("⚔️ Forged into MY Legion. Historical timing seized. Variable paid off. Collection gap closed.", "#a3e635"), 1600);
+  }
+  if (isArclightBannerActive && isArclightBannerActive()) {
+    setTimeout(() => toast("72h Arclight — 지금 아니면 영원히. MY Pantheon judgment.", "#f97316"), 1800);
   }
 }
 
@@ -4697,6 +4739,7 @@ function enhance(type) {
   saveMeta(); updateMeta(); renderDash();
 }
 function ascend(type) {
+  // 🔥 CHEAT MODE cycle-cheat: prestige = samsara rebirth cycle (p1 core + p2 karma). "MY Legion eternal" narrative. Economist implant. Var multiplier theater. Hegemony. Exact disclosure.
   if (running || (META.enh[type] || 0) < 10) return;
   const goldC = 5000, gemC = 50;
   if (META.gold < goldC || (META.gems || 0) < gemC) { toast(t("tGemShort", { n: gemC }), "#ef4444"); return; }
@@ -5037,6 +5080,7 @@ function grantUnit(rarity) {
     const _c = META.owned.length + (META.gear || []).length;
     if (_c >= MAX_COMBINED) { toast(t("gFull"), "#ef4444"); window._lastGrantNew = false; return u; }
     META.owned.push(u.id); window._lastGrantNew = true;
+    applyMYVisuals(u); // MY visuals endowment micro
   }
   else { META.dupes = META.dupes || {}; META.dupes[u.id] = (META.dupes[u.id] || 0) + 1; window._lastGrantNew = false; }   // 신규 vs 중복(분해/합성 대상)
   return u;
@@ -5272,6 +5316,7 @@ function showUnit(id) {
 }
 // ── 장비: 제작 · 장착 · 강화 ──────────────────────────────────────────────────
 function craftGear(forceRar) {
+  // 🔥 CHEAT: psych-narrative-moat + cycle-cheat (near-miss build in FX, "MY Legion forges" narrative, var cycle yield). p1 craft jackpot amp. Lilith+Seraphine. Disclosure 100%.
   const cost = 300;
   if (META.gold < cost) { toast(t("tGoldShort", { n: cost }), "#ef4444"); return; }
   const _combined = ((META.owned || []).length) + (META.gear || []).length;
