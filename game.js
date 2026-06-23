@@ -2464,6 +2464,13 @@ function draw() {
     const gr = u.r + 5;
     if (_gl) { ctx.drawImage(_gl, u.x - gr, u.y - gr, gr * 2, gr * 2); }
     else { const glow = ctx.createRadialGradient(u.x, u.y, 1, u.x, u.y, gr); glow.addColorStop(0, u.side === "p" ? "rgba(90,140,255,0.55)" : "rgba(255,95,95,0.55)"); glow.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(u.x, u.y, gr, 0, 7); ctx.fill(); }
+    // 🔥 MY Legion endowment glow — applyMYVisuals 표식 정예는 금빛 후광 강화(소유효과 실제 렌더)
+    if (u.side === "p" && META.myLegionVisuals && META.myLegionVisuals[u.id]) {
+      const mr = u.r + 9 + Math.sin(Date.now() / 300) * 1.5;
+      const mg = ctx.createRadialGradient(u.x, u.y, u.r, u.x, u.y, mr);
+      mg.addColorStop(0, "rgba(251,191,36,0)"); mg.addColorStop(0.65, "rgba(251,191,36,0.30)"); mg.addColorStop(1, "rgba(251,191,36,0)");
+      ctx.fillStyle = mg; ctx.beginPath(); ctx.arc(u.x, u.y, mr, 0, 7); ctx.fill();
+    }
     // 상태 링은 활성 시에만 (의미 있는 정보)
     if (u.boss)       { ctx.strokeStyle = "#fbbf24"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 5, 0, 7); ctx.stroke(); }
     if (u.shield > 0) { ctx.strokeStyle = "#67e8f9"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 4.5, 0, 7); ctx.stroke(); }
