@@ -81,7 +81,7 @@ const GEAR_PASSIVE = {
   weapon: { id: "execute", name: "처형", en: "Execute", icon: "⚔️", desc: "공격 시 5% 확률 추가타 (+50% 피해)",  proc: 0.05, mult: 0.5 },
   armor:  { id: "endure",  name: "불굴", en: "Endure",  icon: "🛡️", desc: "체력 ≤30% 시 받는 피해 -20%",         thresh: 0.30, reduce: 0.20 },
   acc:    { id: "haste",   name: "쾌속", en: "Haste",   icon: "👟", desc: "공격속도 +10% · 회피 5%",            spd: 0.10, evade: 0.05 },
-  relic:  { id: "fortune", name: "행운", en: "Fortune", icon: "🍀", desc: "치명확률 +8% · 골드보상 +5%",         crit: 0.08, goldBonus: 0.05 },
+  relic:  { id: "fortune", name: "행운", en: "Fortune", icon: "🍀", desc: "치명확률 +8%",                        crit: 0.08 },   // ⚠️ goldBonus 미발동(골드훅 없음)→표기 제거(정직·미꾸라지 disclosure). 발동 구현 시 desc+goldBonus 복원.
   core:   { id: "sigil",   name: "각인", en: "Sigil",   icon: "💠", desc: "전 스탯 +3%",                        allStat: 0.03 },
 };
 // SSR 장비 1개의 패시브 반환(없으면 null). 슬롯별 1종 고정 = 특성 일치.

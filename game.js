@@ -2147,8 +2147,8 @@ function drawBoss(u) {
     if (variant === 'final' || curLevel > 35) sz *= 1.15; // high ch bigger more epic
     ctx.shadowColor = glow; ctx.shadowBlur = (variant==='final' ? 45 : 30);
     ctx.save();
-    ctx.beginPath(); ctx.arc(cx, cy, R * (variant==='final' ? 1.4 : 1.25), 0, 7); ctx.clip();
-    ctx.drawImage(img, cx - sz/2, cy - sz * 0.38, sz, sz); // UX fix: center the main body/gun in the circular preview, eyes off dead center, clean composition from user POV
+    // 🐉 보스 위엄: 원형 크롭 제거 → 전신/상반신 그대로 표시 (머리·눈알만 보이던 "동그란 눈알" 문제 해결). nukki 아트면 배경 자연스럽게.
+    ctx.drawImage(img, cx - sz/2, cy - sz * 0.5, sz, sz);
     ctx.restore();
     ctx.shadowBlur = 0;
     // high tier extra aura
