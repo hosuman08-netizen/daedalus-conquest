@@ -490,6 +490,13 @@ function refreshReferrals() {
     })
     .catch(() => {});
 }
+// 🔔 활동 핑 — 세션마다 워커에 last 갱신(재참여 알림이 "비활성"을 정확히 판정). fire-and-forget.
+function pingActive() {
+  if (typeof PAY_BACKEND === "undefined" || !PAY_BACKEND) return;
+  const myId = String(getTGUserId());
+  if (!myId || myId === "0") return;
+  try { fetch(PAY_BACKEND + "/active?uid=" + encodeURIComponent(myId)).catch(() => {}); } catch (e) {}
+}
 function claimReferralRewards() {
   const count = META._refCount || 0;
   const friendPending = count - (META.refClaimed || 0);
@@ -5615,4 +5622,5 @@ function maybeStartTutorial() {
 try {
   if (!META._installed) { META._installed = true; saveMeta(); logEvent("install", { ch: META.chapter || 1 }); }
   logEvent("session_start", { ch: META.chapter || 1, tower: META.tower || 1, pulls: META.pulls || 0 });
+  pingActive();   // 🔔 재참여 알림용 활동 핑(비활성 판정 정확)
 } catch (e) {}
