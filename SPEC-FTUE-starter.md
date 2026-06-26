@@ -34,6 +34,7 @@
 
 ## 6. 🎯 FTUE 도파민 중독 시퀀스 (연구 기반 — 군주 명)
 **데이터**: 30초 잡기 · 2분 이탈=D1 10% vs 3분+ 머물면 **D1 40%** · 첫보상 60초. **도파민은 보상 *직전* anticipation에 분비** → 빌드업·near-miss가 보상보다 중요. 초반 최대보상 = 쾌락기억 = 중독.
+**North Star 보호 (D7 + first gacha)**: 첫 가챠 = "Origin 첫 신호 호출" (기만적 기원). belonging spike ("당신은 Founder") 즉시 주입. D7 = "7 Echo Attunement" 타이틀. 정확 rates prominent. Fictional framing만.
 
 ### 첫 5분 몰아치기 (도파민 5~6발)
 | 시각 | 모먼트 | 연출 |
@@ -41,9 +42,9 @@
 | **0:10** | 첫 액션 | 인트로 스킵, 바로 첫 전투(스타터 배치). 로딩·튜토 최소 |
 | **0:30** | 첫 승리 | 적 연쇄폭발 + confetti + "승리!" 큰팝 + 보상 롤업 |
 | **0:60** | 스타터 3인 지급 | **잭팟 연출**(빛·등급색) + 즉시 **시너지 발동 골드글로우** ("조합하니 강해진다") |
-| **~2:00** | 무료 가챠 1회 | **near-miss theater**(3단 빌드업→fake high→drop) = anticipation 정점 |
-| **~3:00** | 목표 심기 | **SSR 천장 바** "10뽑 남음" 노출 + 첫 환생 예고("ch18 영구강해짐") |
-| **~5:00** | 투자 시작 | 강화 1회(전력 즉시 롤업 체감) + **출석 스트릭 D0 시작**(내일 또) |
+| **~2:00** | 무료 가챠 1회 | **"Origin Rift 호출" near-miss theater**(3단 빌드업→fake high→drop + "신호 불안정" flavor) = anticipation 정점. "당신의 첫 에코". **prominent rates + "fictional" disclaimer 유지** |
+| **~3:00** | 목표 심기 | **SSR 천장 바** "10뽑 남음" 노출 + 첫 환생 예고("ch18 영구강해짐") + "Founder 공명 시작" |
+| **~5:00** | 투자 시작 | 강화 1회(전력 즉시 롤업 체감) + **출석 스트릭 D0 시작**(내일 또) + "MY Legion 기원 새김" |
 
 ### 🪝 Hook 루프 (습관화)
 `Trigger(출석·푸시) → Action(탭=전투) → Variable Reward(가챠 잭팟·near-miss) → Investment(강화·스타터 육성)` → 다음 Trigger 강화.

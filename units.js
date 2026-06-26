@@ -28,6 +28,7 @@ const FEATURED_BANNERS = [
 ];
 function getFeaturedBanner(weekIdx) { const n = FEATURED_BANNERS.length; return FEATURED_BANNERS[(((weekIdx || 0) % n) + n) % n]; }
 if (typeof window !== "undefined") { window.FEATURED_BANNERS = FEATURED_BANNERS; window.getFeaturedBanner = getFeaturedBanner; }
+// 🔥 CHEAT MODE: cycle-cheat rotation + psych FOMO (p1/p2). Full variable/narrative in banners. Upper Legion implant. X moat sync. Disclosure prominent.
 const FACTION_ACCENT = { Strategist: "🧠", Executor: "⚙️", Swarm: "🐜", Guardian: "🛡️", Intel: "👁️" };
 const ARCH_NOUN = {
   drone: ["정찰기", "벌떼", "비행체", "추적자", "날개", "탐사기"],

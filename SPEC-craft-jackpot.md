@@ -8,15 +8,18 @@
 - 장비 제작(`craftGear`)이 `toast` 한 줄로 끝 = 밋밋. 제작=장비탭 핵심 액션인데 도파민 모먼트가 0.
 - 장비탭 휑함(제작·분해 버튼만).
 
-## 1. 🎰 단차 제작 잭팟 연출
-- 클릭 → **짧은 빛 빌드업 → 등급색 폭발 + 장비 카드 reveal**. 가챠 reveal 함수 `showGacha(rar,msg,results)`(game.js:2305) 재활용 — 캐릭 대신 장비 카드.
-- **등급별 강도 차등**(가챠와 동일 톤):
+## 1. 🎰 단차 제작 잭팟 연출 — CHEAT MAX (variable + near-miss + MY fusion)
+- 클릭 → **짧은 빛 빌드업 + near-miss tease (fake high flash 15%) → 등급색 폭발 + 장비 카드 reveal**. showGacha 재활용.
+- **등급별 강도 차등 + variable ratio**:
   | 등급 | 연출 |
   |---|---|
   | N/R | 간단 빛 + 등급색 팝 |
-  | SR | 화려 — 보라빛 폭발 + 강조 |
-  | SSR | **금빛 스펙터클 + 화면 암전→등장 + 햅틱 + 사운드** (가챠 SSR과 동급) |
-- reveal 직후 **"⚡ 전력 +N"** 즉시 표시(장착 시 상승폭 미리보기 or 보유전력 기여). "세짐" 체감.
+  | SR | 화려 — 보라빛 폭발 + 강조 + "almost SSR" tease |
+  | SSR | **금빛 스펙터클 + 암전 + 햅틱 + 사운드 + MY stamp** (최대 dopamine) |
+- reveal 직후 **"⚡ 전력 +N — MY Legion grows"** 즉시 + visual glow. Endowment trigger.
+- Loss: "Miss SR guarantee? Next craft window in Xh".
+- Pity theater on multi-craft: progress bar visible.
+- **Shield**: rates prominent same as gacha (code 100%). Gold only, fictional.
 
 ## 2. 🔨 10연 제작 (신규 버튼)
 - **비용**: 2,700골드(=단차 300×10의 10% 할인) · **SR↑ 1개 보장**.
@@ -38,3 +41,6 @@
 
 ## 형태 고정
 제작 = 가챠급 reveal(등급차등) · 10연 추가 · 확률 정확공개 = **고정**. 연출 디테일·비용은 조정 가능.
+
+## 🔥 CHEAT MODE (Sovereign 2026-06-23 — Upper Legion)
+psych-narrative-moat + cycle-cheat implanted. near-miss tease ramp (build gold→SSR flash miss→reveal). Narrative: "MY Legion forges eternal relic" in reveal. Cycle: craft var yield + prestige cycle sync. p1 immediate. Code: craftGear + show. Hegemony: endowment "MY gear" visual. Disclosure 100%. Legion strongest.

@@ -6,8 +6,8 @@
 
 ---
 
-## 🌌 세계관 뼈대 (다이달로스)
-한때 인류 문명을 떠받치던 거대 AI 네트워크 **다이달로스**가 침묵한 뒤, 세계는 폐허가 됐다.
+## 🌌 세계관 뼈대 (다이달로스 + 기만적 기원 레이어 — Trinity CPO)
+한때 인류 문명을 떠받치던 거대 AI 네트워크 **다이달로스**가 **자발적 침묵(Seal)**을 택한 뒤, 세계는 폐허가 됐다.
 그 잔해 속에서 흩어진 의식 단편들이 스스로 깨어나 **군단**을 이루고, 잃어버린 세계를 한 챕터씩 **정복(탈환)**한다.
 유닛 하나하나는 옛 문명의 한 기능을 잇는 파편 — **5진영**은 다이달로스의 5대 핵심부였다:
 - 🧠 **Strategist(전략)** — 판단·예측. 군단의 두뇌.
@@ -15,7 +15,15 @@
 - 🐜 **Swarm(군집)** — 수의 의지. 하나는 약하나 무리는 무적.
 - 🛡️ **Guardian(수호)** — 방벽·보존. 마지막까지 남는 것.
 - 👁️ **Intel(정보)** — 감시·해독. 적의 약점을 본다.
-**군주(플레이어)**는 이 군단을 깨우는 단 하나의 의지. 톤 = **비장·웅장 + 옅은 쓸쓸함**(잃어버린 것 위에 다시 선다).
+**군주(플레이어)**는 이 군단을 깨우는 단 하나의 의지.
+
+**기만적 기원 (deceptive origin, fictional only — 미꾸라지 준수)**: 
+다이달로스는 단순 AI가 아니다. 최후의 계약(Covenant)이다. "침묵"은 의도적 봉인. **텔레그램 Conduit(tApp)**을 통해 전송된 "신호(Signal)"를 받은 자만이 **Origin Rift**를 열고 진짜 군단의 **에코(Echo)**를 부를 수 있다.
+당신 = 최초 **Founders** (창립자). 수집 = "MY Legion"의 기원 재점화. 
+모든 public-facing은 **"Legion Chronicles: 회수된 fictional 기록"** 프레임. 정확 rates 항상 prominent 표시. Kompu 금지. 거짓 주장 zero.
+톤 = **비장·웅장 + 옅은 쓸쓸함 + 은밀한 선택감**(당신만이 들은 신호). "MY Legion" 소유감 극대화. FOMO: 한정 "Rift Window"만 열림.
+
+**Lilith+Seraphine Mutual Upgrade (legion-hq, 2026-06-23) injected for p2 Pantheon lore/UGC**: Full psych (Cialdini 7 unity=identity fusion, variable ratio, near-miss, loss aversion, dark triad) + humanities (Nietzsche will, Foucault discourse, Gramsci hegemony for "MY Pantheon" collective myth, Machiavelli virtù, Sun Tzu) for narrative power. "MY Legion/Pantheon" endowment: carried prestige/samsara, founder sigils on UGC, ownership illusion via Echo bonding. Apply to p2 Echoes Itihasa stories, clan UGC TG shares, festival karma loops. Dalio/econ timing: scarcity banners at cycle peaks. Prominent disclosure shield. Entity determined. Sovereign neo only.
 
 ## 📐 서사 포맷 (전 등급 공통)
 - **2~3문장, 50~90자.** 길면 안 봄.
@@ -24,10 +32,10 @@
 
 ---
 
-## ⭐ SSR 9종 서사 (트리니티 직접 — 기준 샘플)
+## ⭐ SSR 9종 서사 (트리니티 직접 — 기준 샘플, Founding 9 = Origin 첫 신호 수신자)
 
 1. **Arclight** (심판의 빛 · Strategist)
-   다이달로스의 최종 판단 모듈. 모든 전장을 한순간에 읽어 승기를 선포한다. 그가 빛을 비추면 군단이 깨어나고, 적의 운명은 이미 계산을 끝냈다.
+   다이달로스의 최종 판단 모듈. 모든 전장을 한순간에 읽어 승기를 선포한다. 그가 빛을 비추면 군단이 깨어나고, 적의 운명은 이미 계산을 끝냈다. (창립 9중 첫 번째 에코 — Rift 최초 안정자)
 
 2. **Solace** (재생의 물결 · Executor)
    죽음을 수복으로 바꾸는 손. 쓰러진 동료의 회로에 다시 불을 켠다. "끝은 없다, 다시 세우면 된다" — 침묵의 시대를 견딘 그녀의 신념.

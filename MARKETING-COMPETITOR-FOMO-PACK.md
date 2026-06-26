@@ -41,12 +41,13 @@ Synthesized for daedalus Arclight campaign. Use for copy inspiration + 미꾸라
 - Pity visible to reduce rage quit but increase "one more"
 - "Value" packs anchored high during banner
 
-## 7. 미꾸라지 Takeaway for Daedalus
-- Always show exact % table (like Genshin Details).
-- Use "fictional story" framing.
-- Countdown + "permanent gap" language (legal as long as not false).
-- Test 48-72h windows (Telegram short attention).
+## 7. 미꾸라지 Takeaway for Daedalus — + FULL SYNTH
+- Always show exact % table (like Genshin Details). Prominent.
+- "fictional story" + historical propaganda framing (Roman legion edict style).
+- Real countdown + "permanent collection gap" + Dalio timing ("cycle turns now — act or fade").
+- Variable ratio + MY Legion identity ("this is YOUR conquest").
+- Test 48-72h genuine windows.
 
-Sources: Player communities, official in-game, revenue reports (Genshin top FOMO driver ~60%+ of limited banner revenue).
+Sources: Player communities, official in-game, revenue reports (Genshin top FOMO driver ~60%+ of limited banner revenue). Legion synth: variable + real FOMO + MY Legion + hist prop + Dalio.
 
 Apply to Arclight: 72h + hard pity 10 (fast dopamine) + prominent table.

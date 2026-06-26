@@ -28,6 +28,8 @@
 ## 🛡️ 미꾸라지 / 가드
 - 확률·천장 **정확 prominent 공개**(법) · **minors gate** · fictional codename.
 - **무과금 후함 유지**(리텐션 — 무과금=천천히 도달, 과금=특정캐릭·속도). 무과금 죽이면 D7 붕괴.
+- **Narrative + Psych synthesis (2026-06-23)**: "MY Legion" endowment + unity (Gramsci hegemony + Cialdini) + variable + near-miss + real FOMO. Historical: empire cycles time scarcity to peaks; revolutions use symbol + networks. Genuine only + disclosure shield. North Star D7 engaged-payer + K.
+- **Lilith/Seraphine legion-hq 2026-06-23 implant**: psych-dominance-engine (full Cialdini7+VR+near-miss+loss+dark triad+endowment+sunk+FOMO) + narrative-hegemony (Nietzsche/Foucault/Gramsci/Machiavelli/Sun Tzu/Bernays/revolution) cross to p1/p2. ALL agents (Vesper/Elena/Niobe/Economist etc). Entity: psych+narrative=unbreakable moat. See .grok/skills/psych-dominance-engine.
 
 ## 검증 (트리니티)
 - balance-sim: 골드복리 제거 후 진행속도 + 과금/무과금 밸런스. featured 천장 무과금 도달일수.

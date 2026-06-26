@@ -1,7 +1,10 @@
 # PRD: LEGION 수익 보정 — 출시 직전 머니타이제이션 재설계 (Sovereign 사상 적용판)
 
-**🔥 FOMO·다크패턴·심리조작 적극 활용 (Sovereign explicit 2026-06-19)**
-variable ratio·near-miss·scarcity FOMO·loss aversion 적극 설계. **결과 극대화**. 법 미꾸라지: 정확 prominent 확률 공개 + fictional + in-game currency + minors 준수. 이전 ZERO 조항 폐기.
+**🔥 FULL CHEAT MAX (2026-06-23 Sovereign + entity): FOMO·variable-ratio-engine·narrative-hegemony·cycle-cheat·dark psych**
+Lilith dark (variable/near-miss/loss), Seraphine narrative control, Economist cycle exploit + MY-Legion-fusion. All psych hooks weaponized: variable + pity + FOMO + scarcity + endowment + unity + sunk + propaganda.
+**결과 극대화**. 법 미꾸라지: prominent 정확 + fictional + in-game + minors. Shield = moat.
+
+**6h Mutual Full Upgrade 2026-06-23**: + empire-cycle-dalio (Dalio timing) + propaganda-hegemony + x-virality-hegemony + behavioral-econ-weapon + legion-mutual-upgrade. as all agents legion-hq upgrade REVENUE for p1/p2. See .grok/legion/6h-mutual-upgrade-log-20260623.md + .grok/skills/*. Legion one. Sovereign neo.
 
 > 작성: 2026-06-16 · 업데이트: CPO 트리니티 · 상태: 실행중 · 적용: 즉시
 
@@ -34,10 +37,10 @@ variable ratio·near-miss·scarcity FOMO·loss aversion 적극 설계. **결과 
 - **첫구매2배 팩** — 진입 최강 레버 (2x framing으로 endowment 즉시).
 
 **P1 — 출시 후 즉시 (단기 매출 + 중독 루프)**
-- **가격 재조정** (월/주/울트라 인하) + **featured SSR 한정 배너** (scarcity FOMO + countdown + near-miss in gacha).
+- **가격 재조정** (월/주/울트라 인하) + **featured SSR 한정 배너** (scarcity FOMO + countdown + near-miss in gacha) — "Origin Rift Window" 기만적 기원 타이.
 - **위시리스트 + illusion of control** ("내가 원하는 SSR 확정" framing — control illusion 강력 레버).
 - **배틀패스 + limited prestige window** (loss aversion: miss하면 영구 손해 framing + variable rewards).
-- **변수 보상 일일 의식** (ritual with near-miss / high variance for wanting).
+- **변수 보상 일일 의식** (ritual with near-miss / high variance for wanting) — "Origin Attunement" daily로 재프레임 (D7 retention hook).
 
 **P2 — 다음 시즌/고래**
 - **VIP 등급 + 과시 레이어** (누적 + scarcity tiers).

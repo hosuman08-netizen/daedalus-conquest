@@ -16,13 +16,13 @@
 
 **Prominent Disclosure Text (배너 오픈 즉시 또는 항상 visible)**:
 ```
-【ARCLIGHT 한정 배너 — 확률 공개】
-N 60% | R 25% | SR 13% | SSR 2%
+【ARCLIGHT 한정 배너 — 확률 공개】 (Origin Rift Window)
+N 55% | R 30% | SR 12% | SSR 3%
 Soft Pity: 7회부터 SSR 확률 상승 (최대 15%)
-Hard Pity: 10회 보장 SSR
+Hard Pity: 12회 보장 SSR
 10연: SR 1개 보장
-※ 이 배너는 Legion Chronicles 내 fictional story입니다.
-※ 정확한 확률은 코드와 100% 일치합니다.
+※ 이 배너는 Legion Chronicles 내 fictional story (기만적 기원: Rift 호출)입니다.
+※ 정확한 확률은 코드와 100% 일치합니다. Rates 항상 표시.
 ※ 72시간 후 배너 종료 (다음 기회는 수주~수개월 후)
 ```
 

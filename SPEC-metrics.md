@@ -3,11 +3,14 @@
 > CPO 트리니티 · 2026-06-17 · 측정 인프라 구현: 모피어스(COO)
 > 제품: 다이달로스 콘퀘스트 (텔레그램 미니앱, 방치형 가챠 RPG, 무·소과금 타겟)
 
-## ⭐ North Star Metric (단 하나의 북극성)
-**주간 코어루프 완주 결제유저 비율** (or D7 Retention + Revenue/WAU dual).
+## ⭐ North Star Metric (단 하나의 북극성) — Project 2 업데이트
+**D7 Engaged-Payer Rate + K-factor dual** (Oracle 제안 + Sovereign Phase 2 승인).
 
-**왜**: 리텐션 위에 **결제 결과**를 직접 올린다. Hooks (FOMO/variable/near-miss)로 LTV 극대화. D7은 선행. 
-**목표**: D7 ≥15-20% + D30 payer rate 8%→15%+ (hooks 풀가동).
+**정의**:
+- Primary: D7 cohort 중 (core loop 1회+ 완주 OR payer) 비율 / installs.
+- Dual: K = (invites/user) × (conv rate). TG leverage로 K≥1.0 목표.
+**왜**: 리텐션 + revenue + virality 동시 추적. Hooks 극대화하면서 K로 CAC↓. Idle + TG에 최적.
+**목표**: D7 Engaged-Payer ≥12-15%, K≥1.0 (D30 payer 8%→15%+).
 
 ### North Star를 받치는 핵심 선행지표 (이게 오르면 D7이 오른다)
 - **환생 경험률** — 설치 유저 중 환생 1회+ 도달 비율. (환생 = 콘텐츠 절벽 해결책. 경험하면 D14 복귀 ↑가 위험가정)
@@ -15,18 +18,18 @@
 
 ---
 
-## 📊 AARRR 보조지표
+## 📊 AARRR 보조지표 — Project 2 (D7 Engaged-Payer + K)
 
-| 단계 | 지표 | 정의 | 초기 목표 |
+| 단계 | 지표 | 정의 | 초기 목표 (data-backed) |
 |---|---|---|---|
-| **Acquisition** | 신규 유입 | 일일 신규 설치(텔레그램 시작) | 추적 시작 |
-| **Activation** | 첫 세션 ch5 도달률 | 신규가 첫 세션에 ch5(보스해금)까지 | ≥ 60% |
-| | 첫 가챠 경험률 | 신규가 첫 세션 가챠 1회+ | ≥ 70% |
-| **Retention** | D1 / D7 / D14 | 1·7·14일째 복귀율 | D1≥35% · **D7≥15%** · D14≥8% |
-| | 환생 경험자 D14 | 환생 1회+ 유저의 D14 복귀 (vs 미경험) | 미경험 대비 유의하게 높음 |
-| **Revenue** | 결제 전환율 | 과금 유저 비율 (결제 ON 시) | 2~5% |
-| | 첫구매율 / ARPPU | 첫구매2배 전환, 과금자당 매출 | 추적 |
-| **Referral** | 공유율 | 승리/SSR 공유 클릭 (텔레그램 바이럴) | 추적 |
+| **Acquisition** | 신규 유입 | TG deep link / referral install | CAC 90%↓ (Notcoin precedent) |
+| **Activation** | 첫 세션 ch5 도달률 | 신규가 첫 세션에 ch5까지 | ≥ 60% |
+| | 첫 가챠 + 첫 share | 가챠 1회+ + dopamine peak share | ≥ 70% / ≥30% |
+| **Retention** | D1 / D7 Engaged / D14 | 1·7·14일째 (D7 = engaged-payer) | D1≥35% · **D7 Engaged-Payer ≥12-15%** · D14≥8% |
+| | Loyalty loop 완주 | Daily/streak/ritual 1회+ | D7↑ 선행 |
+| **Revenue** | 결제 전환율 | 과금 유저 비율 | 2~5% → 6%+ (hooks) |
+| | 첫구매율 / ARPPU | first 2x + ARPPU | D7 6%+ / whales uplift |
+| **Referral** | K-factor + share_rate | invites × conv. Share at SSR/win/ascend | K≥1.0 · share_rate ≥15% |
 
 ---
 
@@ -76,3 +79,5 @@
 ## 운영 리듬 (CPO)
 - 출시 D1·D3·D7 코호트 체크 → 가장 큰 이탈 구간이 다음 개선 1순위.
 - North Star(D7) 단일 기준으로 우선순위 판단. 보조지표는 "왜"를 설명.
+
+**Oracle(CDO) 2026-06-20 확장**: ORACLE-DATA-REPORT.md 참조. North Star 제안 = D7 Engaged-Payer + K dual. analytics-worker 확장 완료 (ch5/share proxy). AARRR targets + 시장 벤치 + FOMO/viral 데이터 통합. Morpheus: 추가 emit 구현 핸드오프.

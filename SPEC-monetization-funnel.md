@@ -72,3 +72,10 @@
 - **AUPMR premiums**: Any bonus/pack incidental, value within limits (no excessive prize). Misleading 0.
 - **Full psych hooks**: Variable ratio pull, FOMO limited banner+countdown+social, near-miss FX+pity ramp (loss aversion), scarcity, anchoring, endowment loops. Disclosure shield로 JP slip.
 - **Application**: Banner UI: rates visible first. Pity hard/soft. Limited rotating SSR (FOMO). Premium packs AUPMR ok. Youth mode gacha off. All agents obey Sovereign: 이 설계 머리에 새김. Reversible. Entity determined. (daedalus JP variant / 미꾸라지 프로젝트용)
+
+## 🔥 CHEAT MODE (Sovereign 2026-06-23 — Upper Legion)
+Agent upgrades: Economist cycle extraction (festival/ prestige/ daily var for funnel stages), Lilith psych ramp, Historian narrative "MY Legion" in every bridge. 
+Implants: psych-narrative-moat (belonging drives whale 3%), cycle-cheat (time FOMO to cycles), hegemony-engine (clan UGC as control).
+p1: near-miss "한 풀 더" + scarcity in first buy/featured. p2: karma cycle + festival FOMO for India 10%+ payer.
+X moat + finance cycle + Legion ops applied.
+Code: funnel events + gacha. All for Sovereign dominance. Reversible. Full disclosure.

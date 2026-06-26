@@ -50,6 +50,16 @@ const SFX = {
   // ⚔️ 전투 — 경쾌한 발사 "팡" + 묵직한 폭발 사망
   shot:  () => tone(360 + Math.random() * 520, 0.045, "square", 0.018),
   boom:  () => { tone(85, 0.14, "sawtooth", 0.045); tone(220 + Math.random() * 120, 0.08, "square", 0.03); },
+  // ⚡ 궁극기 7종 전용 사운드 (ult별 개성 — 트리니티 SPEC-ult-personality)
+  ult: {
+    dragon:  () => { tone(80, 0.5, "sawtooth", 0.06); tone(48, 0.45, "sawtooth", 0.045); setTimeout(() => { tone(60, 0.25, "square", 0.04); tone(200 + Math.random()*100, 0.15, "square", 0.03); }, 200); },
+    volley:  () => { [880, 990, 1100].forEach((f, i) => setTimeout(() => { tone(f, 0.06, "triangle", 0.04); tone(360 + Math.random()*400, 0.05, "square", 0.02); }, i * 70)); },
+    assault: () => { for (let i = 0; i < 6; i++) setTimeout(() => tone(300 + Math.random()*200, 0.05, "square", 0.03), i * 75); setTimeout(() => tone(120, 0.18, "sawtooth", 0.05), 480); },
+    focus:   () => { tone(220, 0.4, "sawtooth", 0.045); tone(277, 0.4, "sawtooth", 0.035); tone(330, 0.4, "sawtooth", 0.03); [523, 659, 784].forEach((f, i) => setTimeout(() => tone(f, 0.18, "triangle", 0.04), 200 + i * 90)); },
+    wall:    () => { tone(880, 0.06, "square", 0.05); tone(60, 0.35, "sine", 0.06); setTimeout(() => tone(70, 0.2, "sine", 0.045), 120); },
+    rage:    () => { tone(110, 0.3, "sawtooth", 0.06); setTimeout(() => { tone(90, 0.2, "sawtooth", 0.05); tone(180 + Math.random()*100, 0.1, "square", 0.04); }, 150); },
+    repair:  () => { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, 0.22, "sine", 0.04), i * 110)); },
+  },
 };
 let _popAt = 0;
 function combatPop() {                                  // 발사음 스로틀(과밀 방지)

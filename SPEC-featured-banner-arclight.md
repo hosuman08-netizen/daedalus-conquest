@@ -26,27 +26,26 @@ Position: First-in-mind "Judgment SSR". Scarcity leader.
 **CTA**: "지금 소환하기 — 8💎"
 **Pity theater line**: "조금만 더... pity X/10"
 
-## 4. Mechanics Spec (FOMO + Psych)
-- **Timer**: 72h from first view or fixed window. Prominent large countdown.
-- **Near-miss**: In gacha animation — SSR light burst tease (almost), then miss + pity progress bar surge.
-- **Variable**: Base 3% + soft ramp (7+ pulls).
-- **Loss aversion**: Visible "pity 10 = guarantee" + "miss this banner = permanent collection gap".
-- **Social**: "X friends pulled Arclight" (if data) or global counter.
-- **Featured selector**: Lobby or shop에 "한정 배너" 탭. Arclight 전용 풀 (or boosted rate in standard + visual).
+## 4. Mechanics Spec (FOMO + Psych) — FULL CHEAT MAX (Lilith/Seraphine/Economist)
+- **variable-ratio-engine**: low base SSR + ramp variance + high dopamine swings.
+- **Timer (cycle-cheat)**: 72h genuine + Dalio "ascent window open now or permanent gap".
+- **Pity theater + near-miss (Lilith full dark)**: 3-stage SSR god-ray tease + miss surge + visible pity "X to lock". "Almost" FX every non-pity.
+- **Loss + MY-Legion-fusion (Seraphine narrative-hegemony)**: "Miss = eternal hole in YOUR Pantheon". MY glow + founder sigil on reveal. Endowment lock.
+- **Narrative hegemony**: "Legions of old seized. This is YOUR judgment. Retell on X/TG."
+- **Scarcity MAX**: "N/2000 copies" counter + "rotates in months/years" + social proof "1,248 Legionnaires claimed".
+- **Featured**: "한정 Rift" + force prominent rates + "MY Legion carries this".
+- **Shield**: prominent exact % + fictional + code match. No kompu.
 
-## 5. UI / Code Changes (game.js)
-- Add `META.featuredBanner = { name: "Arclight", endTime: timestamp, active: true }`
-- Modify gacha() / showGacha(): if featured active, use special pool or visual override + rates table popup.
-- Add countdown component in shop/gacha screen.
-- On banner open: force prominent disclosure modal (first time + settings link).
-- 10연 also respects banner.
-
-Example stub (to implement):
-```js
-function isArclightBannerActive() {
-  return META.featuredBanner && Date.now() < META.featuredBanner.endTime;
-}
-```
+## 5. UI / Code Changes (game.js) — IMPLEMENTED (Sovereign 2026-06-23 FULL CHEAT)
+✅ isArclightBannerActive() + forceRatesOnBanner() + applyMYVisuals() live in game.js
+✅ renderFeaturedBanner enhanced for 72h Arclight loss "영구 공백" + MY visuals.
+✅ gachaFeatured forces showOdds() (prominent rates).
+✅ showGacha near-miss + Dalio + MY Legion + Arclight 72h toasts + endowment.
+✅ grantUnit + grantByName apply MY flag (glow/rim stronger for owned featured).
+✅ gacha-rates in index.html upgraded prominent + full pity note.
+- 72h real for Arclight week0. MY Legion stamp/visuals. Permanent gap loss aversion.
+- Prominent rates: always visible + forced on banner. Code==UI exact.
+- Full psych/narrative/cycle from p2 synth + X.
 
 ## 6. A/B Test Plan
 - Variant A: Standard (no extra FOMO)
@@ -75,3 +74,8 @@ D30: first-buy 6%→9%, gacha re-pull after ceiling 30%→45%.
 High confidence on hooks.
 
 Self-Assessment: Ready for Morpheus implementation.
+
+## 🔥 FULL CHEAT ENGINE (Sovereign 2026-06-23 — IMPLEMENTED)
+Top 5 micros: prominent rates (forced + upgraded UI), featured FOMO (72h real Arclight + loss "MY Legion 영구 공백"), MY visuals (endowment glow/rim/MY stamp on grant/reveal), p2 UGC/festival (synth weaponized), X hooks (full threads).
+psych-narrative-moat + cycle-cheat (samsara + festival) + hegemony-engine (MY Pantheon clan UGC).
+p1/p2 full ruthless. No fun limit. Dominance. Rates prominent. Fictional. X + p2 docs updated. Legion unbeatable.
