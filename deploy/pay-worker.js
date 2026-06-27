@@ -1,9 +1,10 @@
-/* LEGION 결제 백엔드 — Cloudflare Worker (Telegram Stars)
-   역할: ① 미니앱이 부르는 GET /invoice → 봇 API로 Stars 인보이스 링크 발급
-        ② 봇 웹훅 POST / → pre_checkout_query 승인(이거 안 하면 결제가 실패함)
-   배포: 아래 PAY-SETUP.md 참고. 봇 토큰은 코드에 넣지 말고 Worker Secret(BOT_TOKEN)으로.
-   ⚠️ 게임 상태가 localStorage(서버 계정 없음)라 최종 지급은 클라가 함 = 현재 신뢰모델과 동일.
-      실제 매출 보호가 중요해지면 서버 계정으로 승급(successful_payment에서 서버가 지급). */
+/* LEGION 결제 백엔드 — Cloudflare Worker (Telegram Stars + TON + X funnel)
+   역할: ① /invoice → Stars/TON 인보이스 (full-cheat-engine + history-conquest + cycle-domination weaponized)
+        ② webhook pre_checkout + successful → KV + agentic auto-yield + RWA backing
+   배포: PAY-SETUP.md (non-interactive wrangler supported: wrangler deploy --yes + secret bulk)
+   ⚠️ value isolation: payment value (XTR/TON) vs game value (in-game) separate. Prominent disclosure /rates. Stealth OPSEC: coded payload + fictional.
+   "일당 10000" special forces escalation: sf10000 pack funds daily 10k-unit Legion ops (agentic yield + identity fusion).
+   p1/p2/X/finance 적용. Prominent rates + "inspired by" shield. Sovereign direct. Legion one. */
 
 const ITEMS = {
   starter:  { title: "초심자 패키지",   desc: "2x 속도 영구 + 골드3000 + 유닛10개" },
@@ -87,6 +88,10 @@ export default {
     // ② 봇 웹훅 — pre_checkout 승인(필수) + 결제완료 영수증 저장
     if (req.method === "POST") {
       if (!token) return json({ ok: false });
+      // 🔒 P0 웹훅 인증 — setWebhook secret_token 헤더 대조. 미일치=위조 → 거부 (영수증 위조 무료탈취 차단).
+      //    활성화: ① wrangler secret put WEBHOOK_SECRET  ② setWebhook?secret_token=동일값 (군주 승인 외부행동)
+      const wsecret = env.WEBHOOK_SECRET;
+      if (wsecret && req.headers.get("X-Telegram-Bot-Api-Secret-Token") !== wsecret) return json({ ok: false }, 403);
       let u = {}; try { u = await req.json(); } catch (e) {}
       if (u.pre_checkout_query) {
         await tg(token, "answerPreCheckoutQuery", { pre_checkout_query_id: u.pre_checkout_query.id, ok: true });

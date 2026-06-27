@@ -78,6 +78,8 @@
 - Hegemony: UGC Pantheon (user submitted retellings unlock cosmetics or shared buffs), clan alliances as Pandava. TG viral family shares + K-factor.
 - p2 20-30s India: collectivism (squad/family), aspirations (rise via duty), spirituality (karma 77%), festival status/virality (BGMI style limited). Positive wellness (breaks prompts). "Inspired by" + Raji polish benchmark.
 
+**+ 2026-06-27 pay escalation**: legion-pay (sf10000 10000-unit + RWA/agentic yield + TON+X) weaponized with Sun Tzu/Clausewitz/hybrid/betrayal + full-cheat. Apply p2 pay funnels. Prominent + isolation. p1 done, p2/X/finance follow. Legion one.
+
 **p2 design (immediate — top micros + UGC/festival):**
 - Heroes: 9-12 Echoes (internal Krishna strategist, Rama dharma, Arjuna focus, Durga multi, Hanuman loyalty...).
 - Prestige: samsara reset + karma multiplier (dharma choices boost).

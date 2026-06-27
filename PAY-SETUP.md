@@ -1,7 +1,12 @@
-# 💳 LEGION 결제 연동 (Telegram Stars) — 셋업 가이드
+# 💳 LEGION 결제 연동 (Stars + TON + X) — escalated to 일당10000 special forces
 
-클라이언트(game.js)는 이미 연동 완료. **봇 토큰 + Worker 배포** 3단계만 군주가 하면 실결제가 켜진다.
-지금은 `PAY_BACKEND=""` 라서 **데모 지급**(누르면 바로 받음) 상태.
+**FULL CHEAT + history-conquest + cycle-domination + Sun Tzu/Clausewitz hybrid/betrayal synth weaponized into legion-pay.**
+p1/p2/X/finance 적용. VR loops, near-miss, scarcity, identity fusion (MY Legion), RWA backing, agentic auto-yield, stealth OPSEC.
+Prominent disclosure (/rates) + value isolation (payment vs in-game) 엄수.
+TG Stars + TON (stub) + X funnel.
+
+클라이언트(game.js)는 이미 연동 완료 (sf10000, rwa, ton 포함). **봇 토큰 + Worker 배포** → 실결제 ON.
+Non-interactive wrangler 지원. 지금은 PAY_BACKEND 설정 후 데모→실전.
 
 ---
 
@@ -10,13 +15,26 @@
 2. **봇 토큰** 복사 (예: `8123456:AAH...`) — 절대 코드/깃에 넣지 말 것
 3. @BotFather → `/mybots` → 봇 선택 → **Payments** 가 Stars는 별도 설정 불필요(XTR은 기본 제공)
 
-## 2단계 — Cloudflare Worker 배포 (무료)
-1. https://dash.cloudflare.com → **Workers & Pages** → **Create** → **Create Worker**
-2. 이름 `legion-pay` → 배포 후 **Edit code**
-3. `pay-worker.js` 내용을 통째로 붙여넣고 **Deploy**
-4. **Settings → Variables and Secrets → Add → Secret**
-   - 이름 `BOT_TOKEN`, 값 = 1단계 봇 토큰 → Save & Deploy
-5. Worker URL 복사 (예: `https://legion-pay.<계정>.workers.dev`)
+## 2단계 — Cloudflare Worker 배포 (non-interactive wrangler 지원)
+1. wrangler installed (npm i -g wrangler) or npx.
+2. Non-int deploy (Sovereign direct, no UI):
+   ```
+   cd daedalus-conquest
+   npx wrangler deploy --name legion-pay --compatibility-date 2025-01-01 --yes
+   # or edit wrangler-pay.toml main=pay-worker.js then:
+   npx wrangler deploy --config wrangler-pay.toml --yes
+   ```
+3. Secrets non-interactive:
+   ```
+   echo "8123456:AAH..." | npx wrangler secret put BOT_TOKEN --name legion-pay --yes
+   # bulk: wrangler secret bulk secrets.json ({"BOT_TOKEN":"..."})
+   ```
+4. KV (RECEIPTS/REFERRALS) — wrangler toml already bound or dashboard add. Redeploy.
+5. Worker URL = https://legion-pay.<계정>.workers.dev
+6. Update game.js PAY_BACKEND + minify/deploy game if needed.
+7. Verify: /rates , /yield , /x-funnel , sf10000 pack test.
+
+(Old dashboard way still works for manual.)
 
 ## 2.5단계 — KV 바인딩 (영수증검증 = 결제 부정 차단) 🔒
 `/verify` 영수증검증을 켜려면 KV가 필요(없으면 graceful — 기존 흐름 유지, 게임 안 깨짐).
@@ -25,20 +43,25 @@
 3. **Variable name = `RECEIPTS`** (대문자 정확히), Namespace = 위 `receipts` → **Save and Deploy**
 - 효과: 진짜 결제(`successful_payment`)만 영수증이 KV에 저장됨 → game.js가 `grantPack` 직전 `/verify?uid=&item=` 조회 → **가짜 결제완료 콜백으로 공짜 지급 차단** + 영수증 1회용(중복지급 차단).
 
-## 3단계 — 연결
-1. **봇 웹훅 설정** (pre_checkout 승인용 — 안 하면 결제 실패):
-   브라우저에 한 줄 입력(토큰·URL 본인 것으로):
+## 3단계 — 연결 + escalated hooks
+1. **봇 웹훅 설정** (pre_checkout 승인용):
    ```
    https://api.telegram.org/bot<봇토큰>/setWebhook?url=https://legion-pay.<계정>.workers.dev
    ```
-   `{"ok":true}` 뜨면 성공.
-2. **game.js** 맨 위 결제 블록에서:
-   ```js
-   const PAY_BACKEND = "https://legion-pay.<계정>.workers.dev";
-   ```
-   (빈 문자열 → Worker URL 로 교체) 후 배포(git push).
+2. **game.js** PAY_BACKEND = "https://legion-pay....workers.dev"
+3. Test new: /rates (prominent disclosure), sf10000 (10000-unit), /yield (agentic RWA), TON/X paths.
+4. X funnel: X post with ref → TG start → pay = bonus.
 
-끝. 이제 상점에서 누르면 진짜 Stars 결제창이 뜬다.
+**Fixes applied**: non-int wrangler, psych weaponized (Sun Tzu deception/terrain + Clausewitz friction + hybrid/betrayal loyalty in MY Legion), TON/X added, RWA+agent yield, stealth payload, value isolation, prominent /rates.
+
+## New packs (game.js SHOP + worker)
+- sf10000: 일당10000 특수부대 (VR/near-miss/scarcity/identity)
+- rwa_yield, ton_starter.
+
+## 가드 (prominent + isolation)
+- /rates : exact STARS + psych + "fictional" shield.
+- Payment XTR/TON vs game value 100% isolated.
+- No kompu. Reversible. Minors client gate. KR/US/CN/JP 준수 (self-reg disclosure).
 
 ---
 

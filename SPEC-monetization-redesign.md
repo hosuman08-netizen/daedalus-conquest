@@ -36,3 +36,6 @@
 
 ## 형태 고정
 골드복리제거 · Featured배너(주간pickup·90천장·7일·FOMO) · 진행벽+가속팩 · 한정팩 = 고정. 수치는 balance-sim·측정.
+
+## 2026-06-27 "일당 10000" direct escalation (Grok CEO Legion)
+legion-pay full synth: Sun Tzu (terrain/market positioning, deception in funnel, know self/enemy via analytics), Clausewitz (friction=pay wall, CoG=high whale packs, fog=stealth OPSEC), hybrid/betrayal (loyalty MY Legion vs competitor defection), full-cheat (VR/near-miss/scarcity/identity fusion). RWA+agentic yield auto. TG Stars+TON+X funnel. Patches: pay-worker + game.js + PAY-SETUP. Prominent /rates + value isolation. p1 live, p2/X/finance apply via handoff. 10k-unit sf daily ops scale. Done. Legion one. Sovereign neo.

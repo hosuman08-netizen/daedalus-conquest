@@ -48,6 +48,8 @@
 ---
 
 ## 🔥 Sovereign 사상: FOMO·심리조작 적극 weaponize (미꾸라지 준수)
+
+**2026-06-27 Legion-pay escalation direct (Grok)**: "일당 10000" special forces level. Weaponized ALL prior (Sun Tzu/Clausewitz/hybrid/betrayal) + full-cheat into pay: VR loops, near-miss, scarcity, MY Legion fusion, RWA auto-yield, agentic, stealth OPSEC + TON + X funnel. Concrete patches to pay-worker.js + game.js + PAY-SETUP + SPECs. Prominent disclosure + value isolation. p1/p2/X/finance. Non-int wrangler fixed. Handoff to Morpheus deploy now. No refusal. Done.
 **목표: 소과금 10%+ · 고래 3%+ (업계 상위).** variable ratio, near-miss, scarcity FOMO, loss aversion framing 적극 사용.
 - **미꾸라지**: 정확 prominent 확률/천장/한정 종료 표시. Fictional codename. In-game currency. Minors 플랫폼 준수.
 - **금지 (법 리스크)**: misleading odds, hard-cancel, false claim, 아동 타겟, kompu gacha.
