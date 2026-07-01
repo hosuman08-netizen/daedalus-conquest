@@ -46,6 +46,17 @@
 - Streak: 일일미션 (압박 framing 금지, 선택적 보너스만).
 - 이벤트: FOMO·한정 타이머 **적극 활용** (Sovereign 2026-06-19). featured 배너 scarcity + countdown. 법 미꾸라지로 slip (정확 공개).
 
+### 10000h Future Tech Integration (Morpheus COO + Trinity CPO + full Legion 2026-06-29)
+**Sovereign**: finish 10000h search + full participation (Morpheus/Trinity/grunts). Apply canon to p1/p2.
+- p1: Agent swarms (multi-NPC commander/scout/executor orchestration in auto-battle + sim). RWA yields (expand rwa_yield/sf10000 agentic compound + fictional verifiable). Physical sims (embodied momentum/collision proxy in canvas + sim). Failure loops as fun (prestige from defeat data → mutate buffs, near-miss karma, variable ratio loss → win ramp). 
+- p2 (my-pantheon): AI agent UGC generators + future-tech Echo lore (quantum swarm / RWA avatar / physical titan gods). Real challenges (hallucination/alignment/scalability) as story quests. Festival UGC with agent stories.
+- 미꾸라지: Fictional "Echoes of 2040" shield + prominent exact rates everywhere (UI/banner/pre). No kompu. Reversible. Age gate. Internal refs only.
+- Ship-craft: Edit game.js/sim for stubs. Dispatch grunts. Update SPEC/roadmap. Test verify.
+- Grunts use: legion-dispatch for content gen / specs / lore batches.
+- Metrics: agent calls/min, RWA yield conversion, UGC shares (Oracle).
+- p50: 1 future hook per miniapp (agent helper or relic yield).
+- Full participation: Morpheus executes + dispatches. Trinity product what/why. Report to Sovereign.
+
 ### p2 — 육성 깊이 (키울맛)
 - [ ] 메인 영웅 장비/스킬트리 · ⭐승급 · 유닛 도감
 - [ ] 🎽 아이템 수집·강화·세트효과

@@ -57,6 +57,16 @@ export default {
     if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
     const url = new URL(req.url);
 
+    // 🔧 배포A 전용 임시 setWebhook 라우트 (ENABLE_SW=1일 때만 — 정식 toml엔 없어 비활성).
+    //    봇토큰을 로컬에 노출 않고 워커 내부에서 secret_token 주입. 배포B(정식)에서 ENABLE_SW 제거 → 사라짐.
+    if (req.method === "GET" && url.pathname === "/__sw" && env.ENABLE_SW === "1") {
+      if (!token) return json({ ok: false, reason: "no-token" }, 500);
+      const k = url.searchParams.get("k") || "";
+      if (!k) return json({ ok: false, reason: "no-key" }, 400);
+      const r = await tg(token, "setWebhook", { url: url.origin + "/", secret_token: k });
+      return json(r);
+    }
+
     // ① 인보이스 링크 발급 (Stars default + TON/X funnel hooks + psych). Value isolation + stealth (payload coded).
     if (req.method === "GET" && url.pathname === "/invoice") {
       if (!token) return json({ error: "BOT_TOKEN not set" }, 500);
@@ -125,6 +135,18 @@ export default {
       return json({ ok: true, bonus: "X-funnel pay credit applied (stealth)" });
     }
 
+    // ①-g 활동 핑 — 클라이언트가 호출해 최근활동 갱신(재참여 cron 대상 판정용)
+    if (req.method === "GET" && url.pathname === "/active") {
+      const uid = url.searchParams.get("uid") || "";
+      if (env.REFERRALS && /^\d+$/.test(uid)) {
+        let u = {}; try { u = JSON.parse((await env.REFERRALS.get("usr:" + uid)) || "{}"); } catch (e) {}
+        u.c = u.c || Number(uid);      // DM chat_id = user_id
+        u.last = Date.now();
+        await env.REFERRALS.put("usr:" + uid, JSON.stringify(u), { expirationTtl: 60 * 86400 });
+      }
+      return json({ ok: true });
+    }
+
     // ② 봇 웹훅 — pre_checkout 승인(필수) + 결제완료 영수증 저장
     if (req.method === "POST") {
       if (!token) return json({ ok: false });
@@ -132,7 +154,8 @@ export default {
       //    (이게 없으면 누구나 가짜 successful_payment POST로 영수증 위조 → 무료 재화 탈취)
       //    활성화 필수: ① wrangler secret put WEBHOOK_SECRET  ② setWebhook?secret_token=동일값 (군주 승인 외부행동)
       const wsecret = env.WEBHOOK_SECRET;
-      if (wsecret && req.headers.get("X-Telegram-Bot-Api-Secret-Token") !== wsecret) return json({ ok: false }, 403);
+      // 🔒 fail-CLOSED: 시크릿 미설정이거나 헤더 불일치면 무조건 거부. (미설정 시 통과하던 fail-open 백도어 차단)
+      if (!wsecret || req.headers.get("X-Telegram-Bot-Api-Secret-Token") !== wsecret) return json({ ok: false }, 403);
       let u = {}; try { u = await req.json(); } catch (e) {}
       if (u.pre_checkout_query) {
         await tg(token, "answerPreCheckoutQuery", { pre_checkout_query_id: u.pre_checkout_query.id, ok: true });
@@ -157,6 +180,8 @@ export default {
             }
           }
         } catch (e) {}
+        // 🔔 재참여 cron 데이터: 신규/접속 유저 활동기록(chat_id+시각)
+        try { if (env.REFERRALS && newId) await env.REFERRALS.put("usr:" + newId, JSON.stringify({ c: u.message.chat.id, last: Date.now(), nudge: 0 }), { expirationTtl: 60 * 86400 }); } catch (e) {}
         // 🌐 영어 고정 (글로벌 첫인상 — 군주 지시)
         const caption = "⚔️ <b>Daedalus Conquest</b> — AI Legion War\n\n🤖 Collect & raise 200+ AI heroes\n🐉 Raid colossal bosses · 🏆 Conquer endless chapters\n🔄 Idle — your legion grows even while you're away.\n\n👇 Rise your legion now:";
         const btn = "🎮 Play Now";
@@ -186,6 +211,46 @@ export default {
       return json({ ok: true });
     }
 
-    return json({ ok: true, service: "legion-pay", version: "legion-escalated-10000sf", psych: "vr+near-miss+scarcity+MYLegion+RWA+agentic" });
+    return json({ ok: true, service: "legion-pay", version: "legion-escalated-10000sf+cron", psych: "vr+near-miss+scarcity+MYLegion+RWA+agentic" });
+  },
+
+  // 🔔 재참여 알림 — cron 스윕(하루 2회). 24h+ 비활성 유저 DM. 비스팸: 쿨다운48h·평생3회·25명/회 상한(차단 회피).
+  async scheduled(event, env, ctx) {
+    const token = env.BOT_TOKEN;
+    if (!token || !env.REFERRALS) return;
+    const now = Date.now();
+    const INACTIVE = 24 * 3600 * 1000;
+    const COOLDOWN = 48 * 3600 * 1000;
+    const MAX_PER_RUN = 25;
+    const MAX_LIFETIME = 3;
+    const NUDGES = [
+      "\u2694\ufe0f Your legion grows restless, Commander. Rivals climbed the tower while you were away.",
+      "\ud83c\udff0 Your throne awaits \u2014 daily rewards and a fresh boss are ready to claim.",
+      "\ud83d\udd25 A limited banner is live. Enemies are powering up \u2014 don't fall behind.",
+    ];
+    let cursor, sent = 0;
+    do {
+      const page = await env.REFERRALS.list({ prefix: "usr:", limit: 1000, cursor });
+      for (const k of page.keys) {
+        if (sent >= MAX_PER_RUN) return;
+        let u; try { u = JSON.parse((await env.REFERRALS.get(k.name)) || "null"); } catch (e) { continue; }
+        if (!u || !u.c) continue;
+        if (now - (u.last || 0) < INACTIVE) continue;
+        if (now - (u.nudge || 0) < COOLDOWN) continue;
+        if ((u.nudgeCount || 0) >= MAX_LIFETIME) continue;
+        const msg = NUDGES[(u.nudgeCount || 0) % NUDGES.length];
+        try {
+          await tg(token, "sendMessage", {
+            chat_id: u.c,
+            text: msg,
+            reply_markup: { inline_keyboard: [[{ text: "\u25b6\ufe0f Return to Battle", web_app: { url: GAME + "/" } }]] },
+          });
+          u.nudge = now; u.nudgeCount = (u.nudgeCount || 0) + 1;
+          await env.REFERRALS.put(k.name, JSON.stringify(u), { expirationTtl: 60 * 86400 });
+          sent++;
+        } catch (e) {}
+      }
+      cursor = page.list_complete ? null : page.cursor;
+    } while (cursor && sent < MAX_PER_RUN);
   },
 };

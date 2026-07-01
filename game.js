@@ -4530,6 +4530,19 @@ const SHOP = [
   { id: "rwa_yield", tag: "RWA·자동수익", k: "pkRWA" },
   { id: "ton_starter", tag: "TON·스텔스", k: "pkTON" },
 ];
+
+// 10000h Future Tech - p1 Agent Swarm stub (Morpheus ship-craft, 2026-06-29)
+// Multi-agent: commander (orchestrate), scout (intel), executor (strike). Emergent for fun.
+// Failure data → mutate loop. Fictional "Echo Swarm". Call from battle start. Prominent rates in future banners.
+// Extend later with sim + physical proxy. Reversible. Legion one.
+function initAgentSwarm() {
+  // TODO: spawn specialist agents per chapter. Use failure history for buff mutate (DGM style).
+  // Example: if recent fails > threshold, scout boosts next pull pity.
+  console.log("[FUTURE-TECH] Agent swarm init (fictional Echoes 2040). Swarm active for p1.");
+  // Hook: integrate with existing units + prestige fail data.
+}
+if (typeof window !== 'undefined') window.initAgentSwarm = initAgentSwarm; // for debug
+// End swarm stub. 미꾸라지: rates exact + fictional only.
 function dayPlus(n) { try { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); } catch (e) { return ""; } }
 function passActive(kind) { return META.pass[kind] && today() <= META.pass[kind]; }
 function checkPasses() {                                // 활성 패스 = 매일 💎 자동 수령

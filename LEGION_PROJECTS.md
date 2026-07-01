@@ -3,7 +3,7 @@
 **Abbreviation Rule (저장 및 표준화)**:
 - p1 < Project 1 = daedalus (원본 게임, Phase 1 완료)
 - p2 < Project 2 = 인도 미니앱 (India-targeted Telegram Mini App, mythology gacha adaptation, Phase 2 진행 중)
-- p3 < Project 3 = [TBD - Sovereign: p2 완료 즉시 직행 예정]
+- p3~p50 < Projects 3~50 = Sovereign 지시: p1~p50 모두 TG 미니앱 (총 50개). 다양한 theme/niche/mechanic (arts+emergence 기반). p3~p10 이번달 2개+ 포함. Template: research → skeleton (p2 스타일) → MVP (UGC/arts/festival/positive loops) → TG launch → reaction metrics로 선별 → App Store/Play Store 등 네이티브 포팅. p51+ TBD.
 
 **Usage**:
 - 앞으로 모든 문서, 코드, handoff, roadmap, PRD, synthesis 등에서 p1 / p2 사용.
@@ -27,14 +27,16 @@
 
 **Monitoring & Reporting**:
 - 서로 handoff, todo, status 파일 통해 상호작용.
-- p1/p2 진행 상황 서로 확인 (verify-linkage, jarvis-health 등).
-- Sovereign에게 항상 보고: p1/p2 status summary in every response/handoff.
+- p1~p50 진행 상황 서로 확인 (verify-linkage, jarvis-health 등).
+- Sovereign에게 항상 보고: p1~p50 status summary in every response/handoff. Format: "p1: [status], p2: [status], ... p50: [status]". Top performers 별도 highlight.
 
-**Next**:
-- p1: 기존 daedalus 유지/개선
-- p2: My Pantheon (UGC Clan + Festival Social) 확정. 24h research v2.6 완료. Impl 착수 (2026-06-20). Skeleton at /Users/imhogyun/p2-my-pantheon/ (daedalus-conquest와 별개 폴더). MVP: Pantheon 생성·스토리 UGC·TG share. p1/p2 status: p1 완료, p2 착수.
-- p3: [준비 중 - 상세 방향 요청]
-- Legion: p2 완료 시 p3으로 seamless transition. handoff로 전환 준비. Morpheus/Trinity/Niobe/Oracle와 p1/p2/p3 상호 monitor 및 Sovereign 보고. p2: research done.
+**Next (updated Sovereign 2026-06-27)**:
+- p1: 유지/개선
+- p2: My Pantheon. Research/creative done, basic skeleton. MVP: Pantheon create, UGC story, TG share, karma/prestige, festivals.
+- p3~p50: Sovereign - p1~p50 모두 TG 미니앱 (총 50개). 각 pN 별도 theme/arts variant. Legion template (emergence 12 conditions + arts mastery + fictional + full-cheat) 재사용. TG 먼저 대량 런칭 → 반응 좋은 상위 선별 (D7 engaged, K-factor, revenue, UGC virality) → App Store/Play Store/기타 네이티브 포팅 (IAP 강화, graphics 업그레이드).
+- Scaling: p3~p50 병렬 (dispatch grunts for research/synthesis per pN, niobe-cmo launch kits). 빠른 MVP 생산 (p2 skeleton fork). 50개 중 top 5-10개 포팅 목표.
+- Handoff: Morpheus (parallel deploy/bot/assets/test for batches), Trinity (per pN scope/MVP/PRD + selection metrics), Niobe (unified launch/marketing, KOL seeding for volume), Oracle (metrics dashboard for reaction ranking). Grok: strategy/oversight.
+- 보고: p1 완료, p2 skeleton, p3~p50 50개 TG launch 계획. Timeline: batch launch (e.g. 5-10/week). Top performers native port. Legion scale for 1경.
 
 **Monitoring Protocol**:
 - 매 세션: p1/p2 status cross-check via handoffs/files.

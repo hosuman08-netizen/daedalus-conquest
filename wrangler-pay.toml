@@ -2,6 +2,10 @@ name = "legion-pay"
 main = "pay-worker.js"
 compatibility_date = "2025-01-01"
 
+# 🔔 재참여 알림 cron — 하루 2회(01·13 UTC) 비활성 유저 스윕 (daedalus-pay에서 통합)
+[triggers]
+crons = ["0 1,13 * * *"]
+
 [[kv_namespaces]]
 binding = "RECEIPTS"
 id = "c1576c198a4f4f7d9b8cbd1ed095e55f"

@@ -248,12 +248,12 @@ Object.assign(I18N.ko, { dPerBattle: "전투" }); Object.assign(I18N.en, { dPerB
 
 // 장비 (힘·지능·민첩·운)
 const GEAR_I18N = {
-  ko: { gTitle: "장비", gCraft: "제작", gEquip: "장착", gEmpty: "장비 없음 — 제작하세요", gFull: "보유 한도 도달 (총 500)", gGot: "🔨 장비 제작: {x}", st_str: "힘", st_int: "체력", st_agi: "민첩", st_luk: "운" },
-  en: { gTitle: "Gear", gCraft: "Craft", gEquip: "Equip", gEmpty: "No gear — craft some", gFull: "Inventory full (total 500)", gGot: "🔨 Crafted: {x}", st_str: "STR", st_int: "VIT", st_agi: "AGI", st_luk: "LUK" },
-  ja: { gTitle: "装備", gCraft: "製作", gEquip: "装着", gEmpty: "装備なし — 製作を", gFull: "所持上限 (合計500)", gGot: "🔨 製作: {x}", st_str: "力", st_int: "体", st_agi: "敏", st_luk: "運" },
-  zh: { gTitle: "装备", gCraft: "制作", gEquip: "装备", gEmpty: "无装备 — 去制作", gFull: "持有上限 (总计500)", gGot: "🔨 制作: {x}", st_str: "力", st_int: "体", st_agi: "敏", st_luk: "运" },
-  hi: { gTitle: "गियर", gCraft: "बनाएं", gEquip: "पहनें", gEmpty: "कोई गियर नहीं", gFull: "धारण सीमा (कुल 500)", gGot: "🔨 बनाया: {x}", st_str: "STR", st_int: "VIT", st_agi: "AGI", st_luk: "LUK" },
-  ru: { gTitle: "Снаряжение", gCraft: "Создать", gEquip: "Надеть", gEmpty: "Нет снаряжения", gFull: "Лимит (всего 500)", gGot: "🔨 Создано: {x}", st_str: "СИЛ", st_int: "ВЫН", st_agi: "ЛОВ", st_luk: "УДЧ" },
+  ko: { gTitle: "장비", gCraft: "제작", gEquip: "장착", gEmpty: "장비 없음 — 제작하세요", gFull: "보유 한도 도달 (총 500)", gGot: "🔨 장비 제작: {x}", st_str: "힘", st_int: "체력", st_agi: "민첩", st_luk: "운", st_mix: "복합", tColLock: "{n}종 수집 필요" },
+  en: { gTitle: "Gear", gCraft: "Craft", gEquip: "Equip", gEmpty: "No gear — craft some", gFull: "Inventory full (total 500)", gGot: "🔨 Crafted: {x}", st_str: "STR", st_int: "VIT", st_agi: "AGI", st_luk: "LUK", st_mix: "MIX", tColLock: "Collect {n} types" },
+  ja: { gTitle: "装備", gCraft: "製作", gEquip: "装着", gEmpty: "装備なし — 製作を", gFull: "所持上限 (合計500)", gGot: "🔨 製作: {x}", st_str: "力", st_int: "体", st_agi: "敏", st_luk: "運", st_mix: "複合", tColLock: "{n}種の収集が必要" },
+  zh: { gTitle: "装备", gCraft: "制作", gEquip: "装备", gEmpty: "无装备 — 去制作", gFull: "持有上限 (总计500)", gGot: "🔨 制作: {x}", st_str: "力", st_int: "体", st_agi: "敏", st_luk: "运", st_mix: "综合", tColLock: "需收集{n}种" },
+  hi: { gTitle: "गियर", gCraft: "बनाएं", gEquip: "पहनें", gEmpty: "कोई गियर नहीं", gFull: "धारण सीमा (कुल 500)", gGot: "🔨 बनाया: {x}", st_str: "STR", st_int: "VIT", st_agi: "AGI", st_luk: "LUK", st_mix: "MIX", tColLock: "{n} प्रकार जमा करें" },
+  ru: { gTitle: "Снаряжение", gCraft: "Создать", gEquip: "Надеть", gEmpty: "Нет снаряжения", gFull: "Лимит (всего 500)", gGot: "🔨 Создано: {x}", st_str: "СИЛ", st_int: "ВЫН", st_agi: "ЛОВ", st_luk: "УДЧ", st_mix: "СМШ", tColLock: "Соберите {n} типов" },
 };
 for (const l in GEAR_I18N) Object.assign(I18N[l], GEAR_I18N[l]);
 Object.assign(I18N.ko, { locked: "미보유", lockedHint: "뽑기로 획득하세요" }); Object.assign(I18N.en, { locked: "Locked", lockedHint: "Pull to unlock" }); Object.assign(I18N.ja, { locked: "未所持", lockedHint: "ガチャで入手" }); Object.assign(I18N.zh, { locked: "未拥有", lockedHint: "抽卡获得" }); Object.assign(I18N.hi, { locked: "लॉक", lockedHint: "गाचा से पाएं" }); Object.assign(I18N.ru, { locked: "Закрыто", lockedHint: "Откройте призывом" });

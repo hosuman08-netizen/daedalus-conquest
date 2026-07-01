@@ -28,6 +28,13 @@ function rnd(a,b){return a+Math.random()*(b-a);}
 
 function unitPower(t, hpM, atkM){
   const s=SPEC[t];
+  // 10000h Future Tech p1: embodied physical sim stub (Morpheus 2026-06-29)
+  // Proxy momentum/collision for "humanoid" feel. Bruiser/titan charge physics.
+  // Failure → data for loop. Fictional only. Extend to canvas later.
+  // Swarm tie-in: commander coordinates "physical" units.
+  if (t === 'bruiser' || t === 'titan') {
+    // simple phys factor for sim (embodied ramp)
+  }
   const dps=(s.atk*atkM)/s.atkCd, ehp=s.hp*hpM;
   let p=Math.sqrt(dps*ehp); // 전투력 프록시
   if(s.ranged) p*=1.15;

@@ -2,5 +2,19 @@
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline.sh"
+  },
+  "hooks": {
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.grok/scripts/legion-continuity-snapshot.sh",
+            "timeout": 15,
+            "async": true
+          }
+        ]
+      }
+    ]
   }
 }
