@@ -288,17 +288,11 @@ function bgmTick() {
 }
 function startSynthBgm() { if (bgmTimer || (META && META.music === false)) return; ensureAudio(); bgmGlobalStep = 0; bgmCurSec = "intro"; bgmTimer = setInterval(bgmTick, MS_MAP.intro); }
 function stopSynthBgm() { if (bgmTimer) { clearInterval(bgmTimer); bgmTimer = null; } }
-function bgmStart() {      // 실제 음원 audio/bgm.mp3 있으면 사용(로열티프리만!), 없으면 합성 Phonk (SPEC)
+function bgmStart() {      // 합성 Phonk BGM 전용. audio/bgm.mp3 파일 없음 → mp3 로드 시도 제거(404 콘솔에러 회피).
   if (META && META.music === false) return;
   ensureAudio();
-  if (bgmAudio === null) {
-    try {
-      bgmAudio = new Audio("audio/bgm.mp3"); bgmAudio.loop = true; bgmAudio.volume = 0.45;
-      bgmAudio.addEventListener("error", () => { bgmAudio = false; startSynthBgm(); });
-    } catch (e) { bgmAudio = false; }
-  }
-  if (bgmAudio) { bgmAudio.play().then(() => stopSynthBgm()).catch(() => startSynthBgm()); }
-  else startSynthBgm();
+  bgmAudio = false;   // mp3 미사용 표시(bgmStop null-safe)
+  startSynthBgm();
 }
 function bgmStop() { stopSynthBgm(); if (bgmAudio && bgmAudio.pause) { try { bgmAudio.pause(); } catch (e) {} } }
 function audioUnlock() {
@@ -2575,9 +2569,17 @@ function draw() {
       }
       // For enemy PNG: clean, no extra circles/lines/rims/spikes (user request for NPC enemies to look proper without unnecessary effects)
     } else {
+      // 폴리시(최소): 아군 잡병도 덜 흐릿하게 — 배킹 디스크 + 청색 림 + 글자 그림자(대비)
+      if (u.side === "p") {
+        const br = u.r + 2.5;
+        const bgd = ctx.createRadialGradient(u.x, u.y, 1, u.x, u.y, br);
+        bgd.addColorStop(0, "rgba(32,44,80,0.9)"); bgd.addColorStop(0.7, "rgba(20,28,52,0.55)"); bgd.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = bgd; ctx.beginPath(); ctx.arc(u.x, u.y, br, 0, 7); ctx.fill();
+        ctx.strokeStyle = "rgba(125,177,255,0.5)"; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(u.x, u.y, br, 0, 7); ctx.stroke();
+      }
       ctx.font = (u.r + 8) + "px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
       const drawGlyph = (u.vis || SPEC[u.t].glyph || "●");
-      ctx.fillText(drawGlyph, u.x, u.y + 1);
+      ctx.save(); ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 1.5; ctx.fillText(drawGlyph, u.x, u.y + 1); ctx.restore();   // 그림자로 대비↑
       if (u.side === "e") {
         // === 적 전용 rich synthetic (glyph + aggression + level scaling) ===
         // redder, spikier, pulsing for high chapter/boss — "할말 나는" 위협적 적

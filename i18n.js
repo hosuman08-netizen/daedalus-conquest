@@ -993,6 +993,13 @@ const ROSTER_I18N = {
 };
 if (typeof window !== "undefined") window.ROSTER_I18N = ROSTER_I18N;
 
+// 폴리시: 상단 스탯바 오버플로우 방지 — pity 라벨 압축(430px에서 안 잘리게)
+Object.assign(I18N.ko, { pityLeft: "🎯 SSR까지 {n}" });
+Object.assign(I18N.en, { pityLeft: "🎯 SSR in {n}" });
+Object.assign(I18N.ja, { pityLeft: "🎯 SSRまで{n}" });
+Object.assign(I18N.zh, { pityLeft: "🎯 距SSR {n}" });
+Object.assign(I18N.hi, { pityLeft: "🎯 SSR तक {n}" });
+Object.assign(I18N.ru, { pityLeft: "🎯 до SSR {n}" });
 // WAVE2 습격(Raid) + 리더보드
 Object.assign(I18N.ko, { "mode.arena": "🗡️ 습격", raidTitle: "군단 습격", raidEnergyLabel: "습격 {n}/{max}", raidShieldLabel: "🛡️ 실드 {n}/{max}", raidNoEnergy: "습격 에너지 부족 — 자정 충전", raidVs: "🗡️ 습격: {name}", raidWin: "🏆 습격 성공! 💰+{gold} 약탈 · +{rp}RP", raidLose: "💀 습격 실패 — 방어군이 막았다", raidAiSuffix: "AI 방어군", raidLoot: "약탈 예상 💰{gold}", raidBtn: "🗡️ 습격", raidUnknownLegion: "적 군단", raidBuyShield: "🛡️ 실드 구매 💎{cost}", raidShieldMax: "실드 최대", raidShieldBought: "🛡️ 실드 +1", raidRevenge: "⚔️ {name}이(가) 널 습격했다! 복수하라", raidRevengeBtn: "복수", raidNote: "🤖 AI 방어군은 정직 표기 · 약탈은 상한·회복 가능",
   lbTitle: "주간 리더보드", lbMetricPower: "전투력", lbMetricCarried: "캐리%", lbMetricTower: "무한탑", lbEndsIn: "마감 {h}시간 {m}분", lbMyRank: "내 순위 #{n}", lbUnranked: "순위권 밖 — 더 강해지고 도전", lbRankBrag: "🏆 순위 자랑", lbOpenBtn: "🏆 리더보드" });
