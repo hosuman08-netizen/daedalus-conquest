@@ -2956,7 +2956,8 @@ function finish(p, e) {
       if (typeof gacha === "function") {
         const hint = document.createElement("button");
         hint.textContent = t("openFirstGacha");
-        hint.style.cssText = "position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;padding:8px 16px;background:#22c55e;color:#000;border:none;border-radius:6px;";
+        // SENSE fix: was raw green #22c55e at z-index:9999 (floated over odds/SSR modals, looked like a debug button). Now theme gold + z-index:11 (above victory overlay to guide, below all other modals so it never covers them).
+        hint.style.cssText = "position:fixed;bottom:88px;left:50%;transform:translateX(-50%);z-index:11;padding:11px 22px;background:linear-gradient(135deg,#f5c451,#d97706);color:#1a1400;font-weight:800;font-size:14px;border:none;border-radius:12px;box-shadow:0 8px 24px rgba(245,196,81,.4);cursor:pointer;";
         hint.onclick = () => { hint.remove(); gacha(); };
         document.body.appendChild(hint);
         setTimeout(() => hint.remove(), 12000);
