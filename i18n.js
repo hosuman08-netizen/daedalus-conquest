@@ -993,6 +993,34 @@ const ROSTER_I18N = {
 };
 if (typeof window !== "undefined") window.ROSTER_I18N = ROSTER_I18N;
 
+// WAVE1 FTUE 재설계 — 몰입형 1줄(광고톤 제거) + 탭투어 제거. tut1 오버라이드 + tutBegin.
+Object.assign(I18N.ko, { tut1: "사령관님, 당신의 군단이 깨어납니다.", tutBegin: "시작 ▶" });
+Object.assign(I18N.en, { tut1: "Your legion awakens, Commander.", tutBegin: "Begin ▶" });
+Object.assign(I18N.ja, { tut1: "指揮官、あなたの軍団が目覚める。", tutBegin: "始める ▶" });
+Object.assign(I18N.zh, { tut1: "指挥官，你的军团正在觉醒。", tutBegin: "开始 ▶" });
+Object.assign(I18N.hi, { tut1: "कमांडर, तुम्हारा लीजन जाग रहा है।", tutBegin: "शुरू ▶" });
+Object.assign(I18N.ru, { tut1: "Командир, ваш легион пробуждается.", tutBegin: "Начать ▶" });
+// WAVE1 J2 데미지팝 라벨
+Object.assign(I18N.ko, { reviveLabel: "부활", chapterCleared: "CH {n} 격파!" });
+Object.assign(I18N.en, { reviveLabel: "REVIVE", chapterCleared: "CH {n} cleared!" });
+Object.assign(I18N.ja, { reviveLabel: "復活", chapterCleared: "CH {n} 撃破!" });
+Object.assign(I18N.zh, { reviveLabel: "复活", chapterCleared: "CH {n} 击破!" });
+Object.assign(I18N.hi, { reviveLabel: "पुनर्जीवन", chapterCleared: "CH {n} पूरा!" });
+Object.assign(I18N.ru, { reviveLabel: "ВОЗРОЖД.", chapterCleared: "Глава {n} пройдена!" });
+// WAVE1 FOMO (F1 무료소환 · F2 AFK저장고)
+Object.assign(I18N.ko, { freeSummonReady: "🎟️ 무료 일일 소환", freeUsed: "✓ 오늘 무료 소환 완료 (자정 리셋)", vaultInfo: "🔋 AFK 저장고: 자리 비운 만큼 자동 골드 · 최대 8시간 저장" });
+Object.assign(I18N.en, { freeSummonReady: "🎟️ Free daily summon", freeUsed: "✓ Free summon done today (resets at midnight)", vaultInfo: "🔋 AFK vault: auto gold while away · stores up to 8h" });
+Object.assign(I18N.ja, { freeSummonReady: "🎟️ 無料デイリー召喚", freeUsed: "✓ 本日の無料召喚済み (0時リセット)", vaultInfo: "🔋 AFK貯蔵: 離席中に自動ゴールド · 最大8時間保存" });
+Object.assign(I18N.zh, { freeSummonReady: "🎟️ 免费每日召唤", freeUsed: "✓ 今日免费召唤已完成 (0点重置)", vaultInfo: "🔋 AFK金库: 离开时自动金币 · 最多存8小时" });
+Object.assign(I18N.hi, { freeSummonReady: "🎟️ मुफ़्त डेली सम्मन", freeUsed: "✓ आज का मुफ़्त सम्मन पूरा (आधी रात रीसेट)", vaultInfo: "🔋 AFK वॉल्ट: दूर रहते ऑटो गोल्ड · 8घं तक संचय" });
+Object.assign(I18N.ru, { freeSummonReady: "🎟️ Бесплатный призыв дня", freeUsed: "✓ Бесплатный призыв на сегодня использован (сброс в полночь)", vaultInfo: "🔋 AFK-хранилище: авто-золото пока вас нет · хранит до 8ч" });
+// WAVE1 활성화/스트릭
+Object.assign(I18N.ko, { openFirstGacha: "→ 첫 소환 (SSR 확정!) 🌟", streakLadder: "🔥 {d}일 연속! 보너스 💎{gem}", firstWinBanner: "🏆 첫 승리! 내 군단이 승리를 봉인했다" });
+Object.assign(I18N.en, { openFirstGacha: "→ First summon (SSR guaranteed!) 🌟", streakLadder: "🔥 {d}-day streak! Bonus 💎{gem}", firstWinBanner: "🏆 First victory! Your legion sealed the win" });
+Object.assign(I18N.ja, { openFirstGacha: "→ 初召喚 (SSR確定!) 🌟", streakLadder: "🔥 {d}日連続! ボーナス💎{gem}", firstWinBanner: "🏆 初勝利! 君の軍団が勝利を決めた" });
+Object.assign(I18N.zh, { openFirstGacha: "→ 首次召唤 (SSR必得!) 🌟", streakLadder: "🔥 连续{d}天! 奖励💎{gem}", firstWinBanner: "🏆 首胜! 你的军团锁定了胜利" });
+Object.assign(I18N.hi, { openFirstGacha: "→ पहला सम्मन (SSR गारंटी!) 🌟", streakLadder: "🔥 {d}-दिन streak! बोनस 💎{gem}", firstWinBanner: "🏆 पहली जीत! तुम्हारे लीजन ने जीत पक्की की" });
+Object.assign(I18N.ru, { openFirstGacha: "→ Первый призыв (SSR гарантирован!) 🌟", streakLadder: "🔥 Серия {d} дней! Бонус 💎{gem}", firstWinBanner: "🏆 Первая победа! Твой легион решил исход" });
 // 잔여 2종 (동시편집 유입분 포함)
 Object.assign(I18N.ko, { firstClearToast: "🎯 첫 완주! 이제 가챠로 첫 영웅 영입 → 내 군단 완성", sfActivated: "⚔️ 특수부대 일당10000 유닛 가동! MY Legion" });
 Object.assign(I18N.en, { firstClearToast: "🎯 First clear! Now recruit your first hero via gacha → complete your legion", sfActivated: "⚔️ Special Forces 10000-unit ops active! MY Legion" });

@@ -1251,8 +1251,8 @@ function spawnArmy(side) {
         const cgAtk = 1 + gcs.str * 0.004, cgHp = 1 + gcs.int * 0.004;
         const cgSpd = 1 - Math.min(0.4, gcs.agi * 0.0035), cgCrit = Math.min(45, 10 + gcs.luk * 0.4);
         const lvK = 1 + lv * 0.12;
-        let hp = Math.round(s.hp * u.mul * lvK * invest * hb.hpMul * (1 + (hb.typeHp[u.arch] || 0)) * syn.hp * cgHp);
-        let atk = Math.round(s.atk * u.mul * lvK * invest * hb.atkMul * (1 + (hb.typeAtk[u.arch] || 0)) * syn.atk * cgAtk);
+        let hp = Math.round(s.hp * u.mul * lvK * invest * hb.hpMul * (1 + (hb.typeHp[u.arch] || 0)) * syn.hp * cgHp * ascHpMul());   // 🔄 환생 선형 HP보너스
+        let atk = Math.round(s.atk * u.mul * lvK * invest * hb.atkMul * (1 + (hb.typeAtk[u.arch] || 0)) * syn.atk * cgAtk * ascAtkMul());   // 🔄 환생 선형 ATK보너스
         let unitAtkCd = s.atkCd * cgSpd * (syn.spd || 1) * (1 - (hb.haste || 0));  // engineer 공속 패시브 실제 반영(표시=실물)
         let unitCrit = Math.min(70, cgCrit + (syn.crit || 0));
         // ch1-8 trivial (squad/편성 경로에도 동일 적용 — 쉬운 시작)
@@ -1386,6 +1386,7 @@ function spawnArmy(side) {
       hpM *= 1.4;
       atkM *= 1.3;
     }
+    if (side === "p") { atkM *= ascAtkMul(); hpM *= ascHpMul(); }   // 🔄 환생 선형 보너스 (제네릭 부대 경로)
     const isBoss = side === "e" && bossFight;
     let rr = isBoss ? s.r * 1.8 : s.r;                 // 🔧 선언을 isBoss 블록 위로 (TDZ 크래시 수정 — 879서 선언전 사용했었음)
     if (isBoss) {
@@ -1502,12 +1503,13 @@ const ASCEND_GATE = 18;                                   // ch18 도달 시 환
 function ascLv(node) { return (META.asc && META.asc[node]) || 0; }
 function etherGain(ch) { ch = ch | 0; if (ch < ASCEND_GATE) return 0; return Math.round(20 * Math.pow(1.18, (ch - ASCEND_GATE) / 2)); } // 깊이비례 기하급수
 // ⚠️ 노드 배율 +8%/lv (1.08): 분리노드라 전투력 = atk×hp = 1.08^(공+체). +18%면 5환생째 폭주(sim 검증) → 1.08이 루프 생존값.
-function ascAtkMul() { return 1; }   // 복리 제거
-function ascHpMul() { return 1; }   // 복리 제거
-function cohesionMul() { return 1; }  // 복리 제거 (소액 표시만 남김)
-function ascGoldMul() { return 1; }   // 복리 제거
+// 🔄 환생 보상: 선형(additive)만 — 복리 절대금지(neo 지시). might/bulwark 노드 +4%/lv + 환생당 +2% (모두 합산, 지수 없음).
+function ascAtkMul() { return 1 + ascLv("might") * 0.04 + (META.ascCount || 0) * 0.02; }
+function ascHpMul()  { return 1 + ascLv("bulwark") * 0.04 + (META.ascCount || 0) * 0.02; }
+function cohesionMul() { return 1 + (META.ascCount || 0) * 0.02; }   // 환생당 +2% 선형
+function ascGoldMul() { return 1; }   // 골드는 plunder 노드(선형)로 별도
 function ascStartGold() { return 0; }
-function ascPowerMul() { return 1; }  // 표시용도 1로 (실제 복리 없음)
+function ascPowerMul() { return 1 + ascLv("might") * 0.02 + ascLv("bulwark") * 0.02 + (META.ascCount || 0) * 0.02; }  // 표시 파워(선형, atk·hp 선형보너스 근사)
 function ascNodeCost(lv) { return Math.round(5 * Math.pow(1.25, lv)); }  // 노드 다음레벨 비용: 5·6·8·10·12·15…
 
 // ── 모드별 전투 셋업 (사이클의 핵심) ─────────────────────────────────────────
@@ -1979,7 +1981,7 @@ function dmg(target, amount, from) {
         target.shield = Math.max(target.shield || 0, 5.5);
         window._aetherReviveUsed = true;
         addFx(target.x, target.y, "overclock");
-        addFx(target.x, target.y - 25, "dnum", "부활", 1, 'p');
+        addFx(target.x, target.y - 25, "dnum", t("reviveLabel"), 1, 'p');
         units.filter(al => al.side==='p' && al.hp > 0 && dist(target, al) < 90).forEach(al => {
           al.hp = Math.min(al.maxHp, al.hp + Math.round(al.maxHp * 0.18));
           addFx(al.x, al.y - 8, "overclock");
@@ -2309,7 +2311,16 @@ function draw() {
     const k = f.t / f.life;
     ctx.globalAlpha = 1 - k;
     if (f.kind === "shot")      { ctx.strokeStyle = f.side === "p" ? "#7db1ff" : "#ff9a9a"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.x2, f.y2); ctx.stroke(); }
-    else if (f.kind === "dnum") { const rise = 26 * k, crit = f.y2 === 1; ctx.textAlign = "center"; ctx.font = crit ? "bold 22px sans-serif" : "bold 13px sans-serif"; if (crit) { ctx.lineWidth = 3; ctx.strokeStyle = "rgba(0,0,0,0.6)"; ctx.strokeText(f.x2, f.x, f.y - 8 - rise); } ctx.fillStyle = crit ? "#fde047" : (f.side === "p" ? "#ffffff" : "#ffb4b4"); ctx.fillText(f.x2, f.x, f.y - 8 - rise); }
+    else if (f.kind === "dnum") {   // J2: easeOutBack 팝(오버슈트→정착) + 크리 펀치 지터
+      const crit = f.y2 === 1 || f.y2 === 1.1; const rise = (crit ? 34 : 26) * k;
+      const g = Math.min(1, k / 0.25), c1 = 1.70158, c3 = c1 + 1;
+      const ease = 1 + c3 * Math.pow(g - 1, 3) + c1 * Math.pow(g - 1, 2);   // easeOutBack
+      const size = Math.max(6, (crit ? 22 : 13) * (0.55 + 0.6 * ease));
+      const jx = crit ? (Math.random() * 3 - 1.5) : 0;
+      ctx.textAlign = "center"; ctx.font = "bold " + size.toFixed(1) + "px sans-serif";
+      if (crit) { ctx.lineWidth = 3; ctx.strokeStyle = "rgba(0,0,0,0.6)"; ctx.strokeText(f.x2, f.x + jx, f.y - 8 - rise); }
+      ctx.fillStyle = crit ? "#fde047" : (f.side === "p" ? "#ffffff" : "#ffb4b4"); ctx.fillText(f.x2, f.x + jx, f.y - 8 - rise);
+    }
     else if (f.kind === "snipe"){ ctx.strokeStyle = "#fde047"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.x2, f.y2); ctx.stroke(); }
     else if (f.kind === "charge"){ ctx.strokeStyle = "#fb923c"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(f.x, f.y, 36 * (0.4 + k), 0, 7); ctx.stroke(); }
     else if (f.kind === "overclock"){ ctx.strokeStyle = "#a3e635"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(f.x, f.y, 85 * (0.3 + k), 0, 7); ctx.stroke(); }
@@ -2866,7 +2877,7 @@ function finish(p, e) {
   const autoMode = (m === "campaign" || m === "tower");
   if (auto && win && autoMode) {
     if (window._montage && META.chapter > window._montageTarget) { endMontage(); return; }   // 몽타주 목표 도달 → 종료
-    if (window._montage) addFx(W / 2, H * 0.28, "dnum", "CH " + (META.chapter - 1) + " 격파!", 1, "p");   // 격파 플래시
+    if (window._montage) addFx(W / 2, H * 0.28, "dnum", t("chapterCleared", { n: (META.chapter - 1) }), 1, "p");   // 격파 플래시
     toast(t("tAutoRun"), "#a3e635");
     updateMeta(); draw();
     setTimeout(() => { if (auto) { reset(); start(); } }, window._montage ? 220 : 1000);   // 몽타주는 고속 재시작
@@ -2898,6 +2909,7 @@ function finish(p, e) {
   if (win && (META.chapter||1) <= 2) {
     const fwin = (typeof t === "function" && t("firstWinOverlay")) || "🏆 첫 승리! 내 군단이 {carried}% 활약 — 네 지휘였다";
     carried = `<div class="rwd2" style="color:#fbbf24;font-size:12px;">${fwin.replace('{carried}', getCarriedFeedback().match(/(\d+)%/)?.[1]||'42')}</div>`;
+    if (!META._firstWinCelebrated) { META._firstWinCelebrated = true; try { confettiBurst(); } catch (e) {} haptic("heavy"); juiceKick(10, 0); }   // J6 첫 승리 감정 피크
   }
   // first activation guide to gacha (SPEC)
   if (win && !META._firstCoreDone) {
@@ -2906,7 +2918,7 @@ function finish(p, e) {
       toast(t("firstClearToast"), "#a3e635");
       if (typeof gacha === "function") {
         const hint = document.createElement("button");
-        hint.textContent = "→ 첫 가챠 열기 (무료 1회 가이드)";
+        hint.textContent = t("openFirstGacha");
         hint.style.cssText = "position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;padding:8px 16px;background:#22c55e;color:#000;border:none;border-radius:6px;";
         hint.onclick = () => { hint.remove(); gacha(); };
         document.body.appendChild(hint);
@@ -3453,6 +3465,7 @@ function gacha() {
     const ssr = RARITY.find(x => x.key === "SSR") || RARITY[3];
     rar = ssr;
   }                 // hard pity 12 SSR (Sovereign 지정)
+  if (!META.firstSSR) { rar = RARITY.find(x => x.key === "SSR") || RARITY[3]; META.firstSSR = 1; }   // 🎯 첫 뽑기 SSR 확정 (activation, pity 무시) — 정확확률 disclosure는 "첫 소환 SSR 보장"으로 정직 공지
   if (["SSR","UR","EX","SR"].includes(rar.key)) META.pity = 0;
   let msg;
   if (rar.key === "SSR" && !META.titanOwned) { META.titanOwned = true; counts.p.titan = 1; msg = t("tTitan"); }
@@ -3501,6 +3514,7 @@ function gacha10() {
       rar = ssr;
     }
     if (i === 9 && best < 2 && (META.pity || 0) < 12) rar = RARITY[2];          // 12연 SR↑ 보장 (단 천장 SSR은 보존)
+    if (i === 0 && !META.firstSSR) { rar = RARITY.find(x => x.key === "SSR") || RARITY[3]; META.firstSSR = 1; }   // 🎯 첫 소환(10연이 첫 뽑기여도) SSR 확정
     if (["SSR","UR","EX","SR"].includes(rar.key)) META.pity = 0;
     best = Math.max(best, RANK[rar.key] || 0);
     const gu = grantUnit(rar.key);
@@ -4282,6 +4296,7 @@ function ssrSpectacle(name) {
   if (txt) txt.textContent = t("legendDescend", { name: name || t("legendName") });
   v.classList.remove("hidden"); void v.offsetWidth; v.classList.add("play-ssr");
   if (SFX && SFX.ssr) SFX.ssr(); haptic("heavy");
+  try { juiceKick(16, 2); setTimeout(() => juiceKick(12, 0), 700); } catch (e) {}   // J3: 빛기둥 강림 순간 J1 셰이크 재사용(임팩트 펀치)
   setTimeout(() => { v.classList.remove("play-ssr"); v.classList.add("hidden"); if (txt) txt.textContent = ""; }, 1900);
 }
 // 일일 출정식 의례 (종교 도메인 — 데일리를 '숙제'가 아닌 '의식'으로). 하루 1회.
@@ -4538,7 +4553,25 @@ function claimPlay(i) {
   // cycle: after claim, hint next action for loop (AFK accrues while away)
   setTimeout(() => toast(t("playMoreToast"), "#a3e635"), 1200);
 }
-function openEvent() { renderAttend(); renderPlay(); renderSeason(); showPage("event"); 
+// 🎟️ F1 무료 일일 소환 (자정 소멸). 젬 비용 상쇄 → gacha() 재사용(pity·첫SSR·연출 그대로). emit free_ticket_used.
+function freeSummon() {
+  if (running) { toast(t("tNoSwitch"), "#ef4444"); return; }
+  if (META.freeTicketDay === today()) { toast(t("freeUsed"), "#8b93a7"); return; }
+  META.freeTicketDay = today();
+  try { logEvent("free_ticket_used", { ch: META.chapter || 1 }); } catch (e) {}
+  META.gems = (META.gems || 0) + GACHA_COST;   // 순비용 0 (gacha가 GACHA_COST 차감)
+  gacha();
+  renderFreeSummon();
+}
+function renderFreeSummon() {
+  const b = $("free-summon"); if (!b) return;
+  const used = META.freeTicketDay === today();
+  b.disabled = used; b.style.opacity = used ? "0.55" : "1";
+  b.textContent = used ? t("freeUsed") : t("freeSummonReady");
+}
+// 🔋 F2 AFK 저장고 안내 (중립 — confirmshame 없음. 자리 비운 만큼 자동 적립, 8h 상한)
+function renderAfkVault() { const el = $("afk-vault"); if (el) el.textContent = t("vaultInfo"); }
+function openEvent() { renderAttend(); renderPlay(); renderSeason(); renderFreeSummon(); renderAfkVault(); showPage("event");
   const orb = $("ritual-orb"); if (orb) orb.style.display = (getLegionSignal() > 1.6 || META.ritualWin===today()) ? "" : "none";
   const vg = $("vanguard-ritual"); if (vg) {
     // Sovereign: 유저가 바로 아는 한국어 benefit 중심으로만. 미스터리 금지.
@@ -4610,6 +4643,10 @@ function claimAttend() {
   }
   // daily streak +1 on claim (for cycle)
   META.loginStreak = (META.loginStreak || 0) + 1;
+  // 🔥 스트릭 계단 보상 (3·5·7일 젬 보너스) — 결석 시 loginStreak 리셋(checkDaily)이 상승동기+손실회피
+  const STREAK_LADDER = { 3: 30, 5: 60, 7: 150 };
+  const sladder = STREAK_LADDER[META.loginStreak];
+  if (sladder) { META.gems = (META.gems || 0) + sladder; setTimeout(() => { toast(t("streakLadder", { d: META.loginStreak, gem: sladder }), "#fbbf24"); try { confettiBurst(); } catch (e) {} }, 950); }
   // rising reward (SPEC)
   let rise = 120 + Math.min(180, Math.floor(META.loginStreak / 2) * 15);
   META.gold += rise;
@@ -4698,6 +4735,7 @@ function logEvent(name, data) {
     // PAY /event 는 metrics 아님 (pay-worker 전용 경로 별도)
   } catch (e) {}
 }
+on("free-summon", "click", freeSummon);
 on("om-ritual", "click", () => { bumpPrestige(1); checkDaily(); if (curPage!=="event") openEvent(); toast(t("omRitualDone"), "#a3e635"); setTimeout(gacha, 700); });
 
 // ── 이벤트/쿠폰 코드 (회원 배포용) ───────────────────────────────────────────
@@ -5745,7 +5783,13 @@ initViralA11y(); // Community Viral A11y loop init (share/profile/a11y/faction/c
 
 $("overlay-btn").addEventListener("click", reset);
 // gacha-btn removed (now handled in shop/quick-pull)
-$("gacha-close").addEventListener("click", () => $("gacha").classList.add("hidden"));
+$("gacha-close").addEventListener("click", () => {
+  $("gacha").classList.add("hidden");
+  if (window._ftueBattlePending) {   // 🎬 FTUE: SSR 카드 닫으면 → 그 SSR 편성한 채 첫 전투 자동시작
+    window._ftueBattlePending = false;
+    setTimeout(() => { try { if (!running && !gameOver && META.mode !== "turnbased") { reset(); start(); } } catch (e) {} }, 350);
+  }
+});
 $("auto").addEventListener("click", toggleAuto);
 $("ult").addEventListener("click", doUlt);
 $("hero-up").addEventListener("click", upgradeHero);
@@ -5775,7 +5819,23 @@ window.addEventListener("resize", () => { if (!running) reset(); });
 // lastSeen 하트비트 (방치 보상 정확도) + 이탈 시 저장
 setInterval(() => { try { META.lastSeen = nowMs(); localStorage.setItem(META_KEY, JSON.stringify(META)); } catch (e) {} }, 15000);
 setInterval(tickPlay, 1000);   // ⏱️ 플레이타임 보상 적립(보이는 동안만)
-document.addEventListener("visibilitychange", () => { if (document.hidden) saveMeta(); });
+// ⏸ 백그라운드(다른 창/탭) 시 전투 일시정지 → 복귀 시 자연 재개 (프리즈 버그 방지, neo 지시)
+let _bgPaused = false;
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    saveMeta();
+    if (running && !gameOver && !tbActive) {
+      _bgPaused = true;
+      if (raf) { cancelAnimationFrame(raf); raf = 0; }
+      const st = $("status"); if (st && st.dataset.prevStatus == null) { st.dataset.prevStatus = st.textContent; st.textContent = t("pause"); }   // 은은한 "⏸ 일시정지"
+    }
+  } else if (_bgPaused) {
+    _bgPaused = false;
+    lastT = 0;   // dt 점프 방지 (다음 프레임에서 기준시각 재설정)
+    const st = $("status"); if (st && st.dataset.prevStatus != null) { st.textContent = st.dataset.prevStatus; delete st.dataset.prevStatus; }
+    if (running && !gameOver && !tbActive) raf = requestAnimationFrame(loop);   // 자연 재개
+  }
+});
 window.addEventListener("beforeunload", saveMeta);
 
 // Escape to close common modals (robust for stuck UI)
@@ -5828,22 +5888,23 @@ if ((META.chapter || 1) <= 2 && ((META.pulls || 0) + (META.owned || []).length) 
 }
 setTimeout(() => { try { maybeSortie(); } catch (e) {} }, 700);   // ⚔️ 일일 출정식 의례
 // 🎓 신규 가이드 튜토리얼 (스포트라이트 코치마크 — 핵심 루프 30초 안내)
+// 🎬 완벽 FTUE (Show, don't tell): 몰입형 1줄만 → 첫 전투 자동시작 → 첫 승리 연출 + 첫 SSR(확정)로 몰입.
+// 탭 가리키기 투어 제거(장사꾼 냄새). 유저는 설명 대신 경험으로 루프에 진입.
 const TUT_STEPS = [
-  { key: "tut1", target: null, nextKey: "tutStart" },
-  { key: "tut2", target: "#start", nextKey: "tutNext" },
-  { key: "tut3", target: "#quick-pull", nextKey: "tutNext" },
-  { key: "tut4", target: ".navtab[data-p='char']", nextKey: "tutNext" },
-  { key: "tut5", target: ".navtab[data-p='shop']", nextKey: "tutNext" },
-  { key: "tut6", target: null, nextKey: "tutConquer" },
+  { key: "tut1", target: null, nextKey: "tutBegin" },
 ];
 let _tutStep = 0;
 function startTutorial() {
   const ov = document.getElementById("tutorial"); if (!ov) return;
   try { showPage("battle"); } catch (e) {}   // 핵심 버튼 보이게
-  _tutStep = 0; ov.style.display = "block";
+  _tutStep = 0;
+  // 부드러운 페이드 인 (jank 제로 — 뚝뚝 끊김 방지)
+  ov.style.opacity = "0"; ov.style.display = "block"; ov.style.transition = "opacity .4s ease";
+  requestAnimationFrame(() => { ov.style.opacity = "1"; });
   try { logEvent("tutorial_start", {}); } catch (e) {}
   const nx = document.getElementById("tut-next"); if (nx) nx.onclick = tutNext;
-  const sk = document.getElementById("tut-skip"); if (sk) sk.onclick = finishTutorial;
+  const sk = document.getElementById("tut-skip"); if (sk) sk.style.display = "none";   // 강제(mandatory) — 첫 진입 1회 필수 완주 (neo). 스킵 제거.
+  const dots = document.getElementById("tut-dots"); if (dots) dots.style.display = TUT_STEPS.length > 1 ? "" : "none";   // 1단계면 점 숨김
   window.addEventListener("resize", tutReposition);
   tutShow();
 }
@@ -5874,10 +5935,27 @@ function tutReposition() {
 }
 function tutNext() { _tutStep++; if (_tutStep >= TUT_STEPS.length) { finishTutorial(); return; } tutShow(); }
 function finishTutorial() {
-  const ov = document.getElementById("tutorial"); if (ov) ov.style.display = "none";
+  const wasFresh = !META.tutDone;
+  const ov = document.getElementById("tutorial");
+  if (ov) { ov.style.transition = "opacity .35s ease"; ov.style.opacity = "0"; setTimeout(() => { ov.style.display = "none"; ov.style.opacity = ""; }, 360); }   // 부드러운 페이드 아웃
   META.tutDone = true; try { saveMeta(); } catch (e) {}
   try { logEvent("tutorial_done", { step: _tutStep }); } catch (e) {}
   window.removeEventListener("resize", tutReposition);
+  // 🎬 SSR 먼저: 몰입환영 → 첫 뽑기 SSR 확정 + J3 풀연출("와") → 그 SSR을 편성한 채 첫 전투(이쁜 히어로가 선두) → J1 승리.
+  //   이유: 이모지 잡병만 나오는 못난 첫 전투를 보기 전에 샤이니 SSR을 먼저 손에 쥐게. (neo 지시)
+  if (wasFresh) setTimeout(() => { try { ftueFirstPull(); } catch (e) {} }, 480);
+}
+// FTUE 확정 첫 SSR 지급 → 편성 선두 배치 → J3 연출. 카드 닫으면 첫 전투 자동시작(이쁜 SSR이 이끔).
+function ftueFirstPull() {
+  const ssr = RARITY.find((x) => x.key === "SSR") || RARITY[3];
+  META.firstSSR = 1;                       // 이 뽑기가 첫 SSR(확정)
+  const gu = grantUnit("SSR");             // 확정 SSR 지급(도감·소유)
+  META.pulls = (META.pulls || 0) + 1;
+  try { logEvent("gacha_pull", { rarity: "SSR", kind: "ftue", isNew: true }); } catch (e) {}   // first_gacha는 showGacha가 1회 emit
+  if (gu) { META.deployed = META.deployed || []; if (META.deployed.indexOf(gu.id) < 0) META.deployed.unshift(gu.id); }   // 편성 선두(이쁜 히어로가 첫 전투를 이끔)
+  window._ftueBattlePending = true;        // 결과 카드 닫으면 첫 전투 시작
+  saveMeta(); updateMeta();
+  showGacha(ssr, gu ? t("gachaGet", { name: gu.name }) : t("tTitan"), gu ? [{ name: gu.name, rarity: "SSR", isNew: true }] : []);   // J3 ssrSpectacle 트리거(암전→빛기둥→슬로모→카드)
 }
 function maybeStartTutorial() {
   if (META.tutDone) return;

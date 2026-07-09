@@ -1,0 +1,14 @@
+name = "legion-raid"
+main = "raid-worker.js"
+compatibility_date = "2025-01-01"
+
+# KV 네임스페이스 2개 생성 필요 (neo, wrangler):
+#   npx wrangler kv namespace create RAID  → id를 아래 채움
+#   npx wrangler kv namespace create RANK
+[[kv_namespaces]]
+binding = "RAID"
+id = "TODO_CREATE_RAID_KV"
+
+[[kv_namespaces]]
+binding = "RANK"
+id = "TODO_CREATE_RANK_KV"
