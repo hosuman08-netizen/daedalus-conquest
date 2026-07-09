@@ -394,7 +394,7 @@ function preloadSSRPortraits() {
   const NUKKI_IDS = new Set([1,2,3,4,5,6,7,8,9]); // 누끼 작업 대상 SSR
   ROSTER.filter(u => ["SSR","UR","EX"].includes(u.rarity) && !ssrPortraits[u.id]).forEach(u => {
     const img = new Image();
-    const src = NUKKI_IDS.has(u.id) ? `art/u${u.id}-nukki.jpg` : `art/u${u.id}.png`;
+    const src = NUKKI_IDS.has(u.id) ? `art/u${u.id}-nukki.png` : `art/u${u.id}.png`;
     img.src = src;
     img.onload = () => {
       ssrPortraits[u.id] = img;
@@ -408,7 +408,7 @@ function loadPortrait(id) {   // 편성된 캐릭 일러스트 lazy 로드 (전 
   if (!id || ssrPortraits[id]) return;
   const NUKKI_IDS = new Set([1,2,3,4,5,6,7,8,9]);
   const img = new Image();
-  const src = NUKKI_IDS.has(id) ? `art/u${id}-nukki.jpg` : `art/u${id}.png`;
+  const src = NUKKI_IDS.has(id) ? `art/u${id}-nukki.png` : `art/u${id}.png`;
   img.src = src;
   img.onload = () => { try { draw(); } catch (e) {} };   // 로드되면 pre-battle 프리뷰도 재렌더(placeholder 잔상 제거)
   ssrPortraits[id] = img;
@@ -3233,7 +3233,7 @@ function _domTopUnit() {   // 대표 = 보유 최고등급(SSR 우선). 편성 �
   for (const id of ids) { const u = ROSTER.find((x) => x.id === id); if (u && (!best || (rk[u.rarity] || 0) > (rk[best.rarity] || 0))) best = u; }
   return best;
 }
-function _domPortraitSrc(u) { const N = new Set([1,2,3,4,5,6,7,8,9]); return N.has(u.id) ? `art/u${u.id}-nukki.jpg` : `art/u${u.id}.png`; }
+function _domPortraitSrc(u) { const N = new Set([1,2,3,4,5,6,7,8,9]); return N.has(u.id) ? `art/u${u.id}-nukki.png` : `art/u${u.id}.png`; }
 function _rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath(); }
 async function buildDominionCardDataURL() {
   const W = 1080, H = 1350, cv = document.createElement("canvas"); cv.width = W; cv.height = H; const c = cv.getContext("2d");
@@ -5570,9 +5570,9 @@ function artHTML(u, glyphCls, imgCls, noGlyph) {
   const slug = unitSlug(u);
   const col = (u.color || '#60a5fa').replace(/"/g, '');
   const b64 = (base + (u.accent || '')).replace(/"/g, '&quot;');
-  // 누끼 우선 (SSR 1-9): u{id}-nukki.jpg → u{id}.png → slug → synth
+  // 누끼 우선 (SSR 1-9): u{id}-nukki.png(투명) → u{id}.png → slug → synth
   const NUKKI_IDS = new Set([1,2,3,4,5,6,7,8,9]);
-  const imgSrc = NUKKI_IDS.has(u.id) ? `art/u${u.id}-nukki.jpg` : `art/u${u.id}.png`;
+  const imgSrc = NUKKI_IDS.has(u.id) ? `art/u${u.id}-nukki.png` : `art/u${u.id}.png`;
   const img = `<img class="${imgCls}" src="${imgSrc}" alt="" loading="lazy" data-c="${col}" data-b="${b64}" data-slug="${slug}">`;
   // safe nukki fallback
   setTimeout(() => {
@@ -5586,7 +5586,7 @@ function artHTML(u, glyphCls, imgCls, noGlyph) {
             // nukki 실패 → 일반 png로 폴백 (src에서 -nukki 제거)
             let next = this.src;
             if (next.includes('-nukki')) {
-              next = next.replace('-nukki.jpg', '.png').replace('-nukki.PNG', '.png');
+              next = next.replace('-nukki.png', '.png').replace('-nukki.jpg', '.png').replace('-nukki.PNG', '.png');
             } else {
               next = `art/ssr/${slug}.png`;
             }
