@@ -993,6 +993,13 @@ const ROSTER_I18N = {
 };
 if (typeof window !== "undefined") window.ROSTER_I18N = ROSTER_I18N;
 
+// WAVE1 #4 Dominion 이미지 카드
+Object.assign(I18N.ko, { cardBragBtn: "🖼️ 자랑 카드 공유", cardGenerating: "🖼️ 자랑 카드 생성 중…", cardRatesLine: "SSR 3% · 전체 확률 게임 내 정확 공개 · 게임 내 전용 재화", cardShareText: "MY Legion carried {top}%! 나랑 AI 군단 키우자 👇", rankBragWeek: "#{n} 이번 주 (⚡{power} · {carried}%)" });
+Object.assign(I18N.en, { cardBragBtn: "🖼️ Share brag card", cardGenerating: "🖼️ Generating brag card…", cardRatesLine: "SSR 3% · exact odds fully shown in-game · in-game items only", cardShareText: "MY Legion carried {top}%! Build an AI legion with me 👇", rankBragWeek: "#{n} this week (⚡{power} · {carried}%)" });
+Object.assign(I18N.ja, { cardBragBtn: "🖼️ 自慢カード共有", cardGenerating: "🖼️ 自慢カード生成中…", cardRatesLine: "SSR 3% · 全確率をゲーム内で正確公開 · ゲーム内専用アイテム", cardShareText: "MY Legion carried {top}%! 一緒にAI軍団を育てよう 👇", rankBragWeek: "#{n} 今週 (⚡{power} · {carried}%)" });
+Object.assign(I18N.zh, { cardBragBtn: "🖼️ 分享炫耀卡", cardGenerating: "🖼️ 生成炫耀卡中…", cardRatesLine: "SSR 3% · 全部概率游戏内准确公开 · 仅限游戏内物品", cardShareText: "MY Legion carried {top}%! 一起养AI军团吧 👇", rankBragWeek: "#{n} 本周 (⚡{power} · {carried}%)" });
+Object.assign(I18N.hi, { cardBragBtn: "🖼️ ब्रैग कार्ड शेयर", cardGenerating: "🖼️ ब्रैग कार्ड बन रहा है…", cardRatesLine: "SSR 3% · सभी दरें गेम में पूरी प्रकट · केवल इन-गेम आइटम", cardShareText: "MY Legion carried {top}%! मेरे साथ AI लीजन बनाओ 👇", rankBragWeek: "#{n} इस हफ्ते (⚡{power} · {carried}%)" });
+Object.assign(I18N.ru, { cardBragBtn: "🖼️ Поделиться карточкой", cardGenerating: "🖼️ Создаю карточку…", cardRatesLine: "SSR 3% · точные шансы полностью в игре · только внутриигровые предметы", cardShareText: "MY Legion carried {top}%! Собери ИИ-легион со мной 👇", rankBragWeek: "#{n} на этой неделе (⚡{power} · {carried}%)" });
 // WAVE1 FTUE 재설계 — 몰입형 1줄(광고톤 제거) + 탭투어 제거. tut1 오버라이드 + tutBegin.
 Object.assign(I18N.ko, { tut1: "사령관님, 당신의 군단이 깨어납니다.", tutBegin: "시작 ▶" });
 Object.assign(I18N.en, { tut1: "Your legion awakens, Commander.", tutBegin: "Begin ▶" });

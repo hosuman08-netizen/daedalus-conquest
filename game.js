@@ -3209,31 +3209,7 @@ function getCarriedFeedback() {
 function getTGUserId() {
   try { return (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) || "guest"; } catch(e){ return "guest"; }
 }
-function shareDominion() {
-  const uid = getTGUserId();
-  const key = "share_" + uid;
-  const last = META[key] || 0;
-  const now = Date.now();
-  const CD = 24*60*60*1000; // 24h exact cooldown anti-abuse
-  if (now - last < CD) {
-    const h = Math.ceil((CD - (now-last))/3600000);
-    toast(t("shareCooldown", {h}), "#f87171"); haptic("error"); return;
-  }
-  // exact verify: TG user present or guest lock (prevents easy multi abuse)
-  if (!tg || uid === "guest") { toast(t("tgOnlyShare"), "#fbbf24"); }
-  const founders = Math.min(9, (META.owned||[]).filter(x=>x<10).length || 3);
-  const topCarried = (META.carriedLog && META.carriedLog.length) ? Math.max(...META.carriedLog.map(c=>c.pct)) : 68;
-  const handoffProxy = Math.floor((META.pulls||12) * 0.7 + founders*4); // real handoff density proxy
-  const faction = META.factionName || "My Legion";
-  const text = `MY Legion carried ${topCarried}%! ${t("legionQuoteViral")}\n${faction} · Founders ${founders}/9 · Power ~${handoffProxy}\n#LEGION #LEGION`;
-  // TG native: copy + prompt (or tg open if avail); reward on success
-  try { navigator.clipboard.writeText(text); } catch(e){}
-  if (tg) { try { tg.HapticFeedback.impactOccurred("medium"); } catch(e){} }
-  META.gems = (META.gems||0) + 5; META[key] = now; saveMeta(); updateMeta();
-  toast(t("shareReward") + " · " + t("shareSent"), "#a3e635");
-  // profile card visual hint
-  setTimeout(()=> toast(t("dominionCard") + " " + founders + "/9 " + topCarried + "% " + t("factionTag") + " " + faction, "#fbbf24"), 900);
-}
+function shareDominion(trigger) { shareDominionCard(trigger || "profile"); }   // 🖼️ 텍스트→이미지 카드로 교체
 function getDominionCardText() {
   const founders = Math.min(9, (META.owned||[]).filter(x=>x<10).length || 3);
   const top = (META.carriedLog && META.carriedLog.length) ? Math.max(...META.carriedLog.map(c=>c.pct)) : 68;
@@ -3243,54 +3219,86 @@ function getDominionCardText() {
   return `MY DOMINION\nFounders ${founders}/9 · Top carried ${top}%\n"${t("carriedQuote")}"\nHandoff density proxy: ${proxy}\n${fac}${rankBrag ? "\n" + rankBrag : ""}`;
 }
 
-// Dominion 이미지 카드 (canvas → PNG) — SPEC MVP
-function renderDominionCard() {
-  const canvas = document.createElement("canvas");
-  canvas.width = 1080; canvas.height = 1350;
-  const ctx = canvas.getContext("2d");
-  const founders = Math.min(9, (META.owned||[]).filter(x=>x<10).length || 3);
-  const top = (META.carriedLog && META.carriedLog.length) ? Math.max(...META.carriedLog.map(c=>c.pct)) : 68;
+// ── 🖼️ Dominion 이미지 카드 (1080×1350 canvas → PNG) — 자랑용 바이럴 자산 ──
+const FACTION_HEX = { Strategist: "#67e8f9", Executor: "#fbbf24", Swarm: "#a3e635", Guardian: "#60a5fa", Intel: "#c084fc" };
+function _domImg(src) { return new Promise((res) => { try { const im = new Image(); im.crossOrigin = "anonymous"; im.onload = () => res(im); im.onerror = () => res(null); im.src = src; } catch (e) { res(null); } }); }
+function _domTopUnit() {   // 대표 = 보유 최고등급(SSR 우선). 편성 선두 우선.
+  if (typeof ROSTER === "undefined") return null;
+  const rk = { EX: 5, UR: 4, SSR: 3, SR: 2, R: 1, N: 0 };
+  const ids = ((META.deployed && META.deployed.slice()) || []).concat(META.owned || []);
+  let best = null;
+  for (const id of ids) { const u = ROSTER.find((x) => x.id === id); if (u && (!best || (rk[u.rarity] || 0) > (rk[best.rarity] || 0))) best = u; }
+  return best;
+}
+function _domPortraitSrc(u) { const N = new Set([1,2,3,4,5,6,7,8,9]); return N.has(u.id) ? `art/u${u.id}-nukki.jpg` : `art/u${u.id}.png`; }
+function _rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath(); }
+async function buildDominionCardDataURL() {
+  const W = 1080, H = 1350, cv = document.createElement("canvas"); cv.width = W; cv.height = H; const c = cv.getContext("2d");
+  const founders = Math.min(9, (META.owned || []).filter((x) => x < 10).length);
+  const top = (META.carriedLog && META.carriedLog.length) ? Math.max(...META.carriedLog.map((cc) => cc.pct)) : 68;
   const power = Math.round((getDeployedUnits().length ? squadPower() : legionPower()) * ascPowerMul());
-  const ch = META.chapter || 1;
-  const fac = META.factionName || "My Legion";
-  const rank = window._pendingRankBrag || "";
-
-  // dark gradient bg
-  const g = ctx.createLinearGradient(0,0,0,1350);
-  g.addColorStop(0,"#0b0d14"); g.addColorStop(1,"#1a1f2e");
-  ctx.fillStyle = g; ctx.fillRect(0,0,1080,1350);
-
-  // header
-  ctx.fillStyle = "#fbbf24"; ctx.font = "bold 64px sans-serif";
-  ctx.fillText("DAEDALUS", 60, 90);
-  ctx.fillStyle = "#e2e8f0"; ctx.font = "48px sans-serif";
-  ctx.fillText(fac, 60, 150);
-
-  // main stats
-  ctx.fillStyle = "#fff"; ctx.font = "bold 72px sans-serif";
-  ctx.fillText(`⚡ ${fmtNum(power)}`, 60, 280);
-  ctx.font = "48px sans-serif";
-  ctx.fillText(`Founders ${founders}/9  ·  carried ${top}%`, 60, 350);
-  ctx.fillText(`ch${ch}  ·  ${rank}`, 60, 420);
-
-  // simple SSR portrait placeholder
-  ctx.fillStyle = "#334155"; ctx.fillRect(60, 480, 960, 600);
-  ctx.fillStyle = "#fbbf24"; ctx.font = "bold 120px sans-serif";
-  ctx.fillText("MY SSR", 300, 820);
-
-  // bottom disclosure + link (prominent for legal)
-  ctx.fillStyle = "#94a3b8"; ctx.font = "32px sans-serif";
-  ctx.fillText("Fictional. Core free. Optional Stars cosmetic.", 60, 1180);
-  ctx.fillText("t.me/daedalus_conquest_bot", 60, 1230);
-
-  // download/share
-  const url = canvas.toDataURL("image/png");
-  const a = document.createElement("a");
-  a.href = url; a.download = "my-dominion.png";
-  a.click();
-  toast(t("dominionPng"), "#a3e635");
+  const ch = Math.max(META.maxChapter || 0, META.chapter || 1), asc = META.ascCount || 0;
+  const u = _domTopUnit();
+  const accent = FACTION_HEX[(u && u.faction)] || "#fbbf24";
+  const legion = (META.factionName && String(META.factionName).slice(0, 22)) || t("dominionCard");
+  // 배경: 다크 세로 그라디언트 + 파벌색 라디얼 글로우
+  const bg = c.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, "#070910"); bg.addColorStop(1, "#141a2b");
+  c.fillStyle = bg; c.fillRect(0, 0, W, H);
+  const rad = c.createRadialGradient(W/2, 560, 80, W/2, 560, 720); rad.addColorStop(0, accent + "33"); rad.addColorStop(1, "#00000000");
+  c.fillStyle = rad; c.fillRect(0, 0, W, H);
+  c.strokeStyle = accent; c.lineWidth = 6; _rr(c, 24, 24, W-48, H-48, 40); c.stroke();
+  // 헤더
+  c.textAlign = "left"; c.fillStyle = "#fbbf24"; c.font = "900 74px system-ui,sans-serif"; c.fillText("DAEDALUS", 72, 128);
+  c.fillStyle = accent; c.font = "700 46px system-ui,sans-serif"; c.fillText(legion, 74, 190);
+  // 대표 SSR 초상 (rounded frame + glow)
+  const fx = 180, fy = 240, fw = 720, fh = 620;
+  c.save(); c.shadowColor = accent; c.shadowBlur = 60; c.fillStyle = "#0d1220"; _rr(c, fx, fy, fw, fh, 32); c.fill(); c.restore();
+  let img = null; if (u) img = await _domImg(_domPortraitSrc(u));
+  if (u && !img && !new Set([1,2,3,4,5,6,7,8,9]).has(u.id)) img = await _domImg(`art/ssr/${(u.name||"").toLowerCase().replace(/[^a-z0-9]+/g,"-")}.png`);
+  c.save(); _rr(c, fx, fy, fw, fh, 32); c.clip();
+  if (img) { const s = Math.max(fw/img.width, fh/img.height); const dw = img.width*s, dh = img.height*s; c.drawImage(img, fx+(fw-dw)/2, fy+(fh-dh)/2, dw, dh); }
+  else { c.fillStyle = accent; c.font = "220px system-ui,sans-serif"; c.textAlign = "center"; c.fillText((u && (u.vis || u.glyph)) || "🐉", fx+fw/2, fy+fh/2+80); c.textAlign = "left"; }
+  c.restore();
+  c.strokeStyle = accent; c.lineWidth = 4; _rr(c, fx, fy, fw, fh, 32); c.stroke();
+  // 대표 유닛명 + 칭호
+  if (u) { c.textAlign = "center"; c.fillStyle = "#fff"; c.font = "800 50px system-ui,sans-serif"; c.fillText(u.name || "", W/2, 930);
+    if (u.title) { c.fillStyle = "#cbd5e1"; c.font = "34px system-ui,sans-serif"; c.fillText(u.title, W/2, 980); } c.textAlign = "left"; }
+  // 배지 (2행 pill)
+  const pills = [ ["⚡ " + fmtNum(power), "#fde047"], ["📖 ch" + ch, "#93c5fd"], ["🌟 " + founders + "/9", "#fbbf24"], ["🎖️ " + top + "%", "#a3e635"], ["🔄 ⬡" + asc, "#c084fc"] ];
+  c.font = "700 36px system-ui,sans-serif"; c.textAlign = "center"; c.textBaseline = "middle";
+  let px = 72, py = 1050; const gap = 20, ph = 74;
+  for (const [txt, col] of pills) { const pw = c.measureText(txt).width + 56; if (px + pw > W - 72) { px = 72; py += ph + 18; } c.fillStyle = "#111826"; _rr(c, px, py, pw, ph, 20); c.fill(); c.strokeStyle = col; c.lineWidth = 3; _rr(c, px, py, pw, ph, 20); c.stroke(); c.fillStyle = col; c.fillText(txt, px + pw/2, py + ph/2 + 2); px += pw + gap; }
+  c.textBaseline = "alphabetic"; c.textAlign = "left";
+  // 하단: 정확 확률 1줄(i18n) + 봇링크
+  c.fillStyle = "#8b93a7"; c.font = "30px system-ui,sans-serif"; c.fillText(t("cardRatesLine"), 72, H - 96);
+  c.fillStyle = accent; c.font = "700 34px system-ui,sans-serif"; c.fillText("t.me/daedalus_conquest_bot", 72, H - 48);
+  return cv.toDataURL("image/png");
+}
+// 카드 생성 + 공유시트 (Web Share files → 실패 시 다운로드+TG텍스트). 리워드+쿨다운.
+async function shareDominionCard(trigger) {
+  const uid = getTGUserId(), key = "share_" + uid, now = Date.now(), CD = 24*60*60*1000;
+  if (now - (META[key] || 0) < CD) { const h = Math.ceil((CD - (now - (META[key]||0)))/3600000); toast(t("shareCooldown", { h: h }), "#f87171"); haptic("error"); return; }
+  toast(t("cardGenerating"), "#67e8f9");
+  let dataURL; try { dataURL = await buildDominionCardDataURL(); } catch (e) { toast(t("shareFail"), "#ef4444"); return; }
+  try { logEvent("share_card_generated", { trigger: trigger || "manual" }); } catch (e) {}
+  const shareText = t("cardShareText", { top: (META.carriedLog && META.carriedLog.length) ? Math.max(...META.carriedLog.map((cc) => cc.pct)) : 68 });
+  let sent = false;
+  try {
+    const blob = await (await fetch(dataURL)).blob();
+    const file = new File([blob], "my-dominion.png", { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text: shareText }); sent = true; }
+  } catch (e) { if (e && e.name === "AbortError") return; }   // 유저 취소 → 리워드 안 줌
+  if (!sent) {   // 폴백: PNG 다운로드 + TG 텍스트 공유시트
+    try { const a = document.createElement("a"); a.href = dataURL; a.download = "my-dominion.png"; a.click(); } catch (e) {}
+    const link = "https://t.me/daedalus_conquest_bot";
+    if (typeof tg !== "undefined" && tg && tg.openTelegramLink) tg.openTelegramLink("https://t.me/share/url?url=" + encodeURIComponent(link) + "&text=" + encodeURIComponent(shareText));
+  }
+  try { logEvent("share_card_sent", { trigger: trigger || "manual", fallback: sent ? 0 : 1 }); } catch (e) {}
+  META.gems = (META.gems || 0) + 5; META[key] = now; saveMeta(); updateMeta();
+  toast(t("shareReward") + " · " + t("shareSent"), "#a3e635"); haptic("medium");
   delete window._pendingRankBrag;
 }
+function renderDominionCard() { shareDominionCard("manual"); }   // 하위호환
 
 // ── 가챠 (뽑기) — 등급·천장·전설해금 ─────────────────────────────────────────
 const GACHA_COST = 8;   // 캐릭 단차: 💰골드100 → 💎젬8 (10연 💎80과 화폐 통일·비교가능. 1젬≈100골드라 골드단차=사실상 무한공짜였음. 트리니티 옵션A)
@@ -3666,15 +3674,9 @@ function showGacha(rar, msg, results) {
     // Trinity P0: SSR share hook (switchInline or TG share with start=ref)
     setTimeout(() => {
       const sh = document.createElement('button');
-      sh.textContent = t("shareResult");
+      sh.textContent = t("cardBragBtn");
       sh.style.cssText = 'margin:8px 0;padding:6px 12px;background:#22c55e;color:#fff;border:none;border-radius:6px;cursor:pointer';
-      sh.onclick = () => {
-        const uid = getTGUserId();
-        const link = `https://t.me/daedalus_conquest_bot?start=ref${uid}_ssr`;
-        if (tg && tg.openTelegramLink) tg.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent(t("shareSSRText")));
-        else window.open(link, '_blank');
-        logEvent('share_clicked', { type: 'ssr', ref: uid });
-      };
+      sh.onclick = () => { try { logEvent('share_clicked', { type: 'ssr', ref: getTGUserId() }); } catch(e){} shareDominionCard('ssr'); };   // 🖼️ SSR 직후 자랑 카드
       const list = $('gacha-list'); if (list && list.parentNode) list.parentNode.appendChild(sh);
     }, 2200);
   }
@@ -3691,15 +3693,9 @@ function mountShareHook(kind, shareText, mountSelector) {
     if (document.getElementById(id)) return;                 // 중복 방지
     const sh = document.createElement("button");
     sh.id = id;
-    sh.textContent = t("shareResult");
+    sh.textContent = t("cardBragBtn");
     sh.style.cssText = "margin:8px 0;padding:6px 12px;background:#22c55e;color:#fff;border:none;border-radius:6px;cursor:pointer";
-    sh.onclick = () => {
-      const link = `https://t.me/daedalus_conquest_bot?start=ref${uid}_${kind}`;
-      if (typeof tg !== "undefined" && tg && tg.openTelegramLink) {
-        tg.openTelegramLink("https://t.me/share/url?url=" + encodeURIComponent(link) + "&text=" + encodeURIComponent(shareText));
-      } else { window.open(link, "_blank"); }
-      try { logEvent("share_clicked", { type: kind, ref: uid }); } catch (e) {}
-    };
+    sh.onclick = () => { try { logEvent("share_clicked", { type: kind, ref: uid }); } catch (e) {} shareDominionCard(kind); };   // 🖼️ SSR/보스/환생 공통 자랑 카드
     const mount = document.querySelector(mountSelector);
     if (mount && mount.parentNode) mount.parentNode.appendChild(sh);
     else if (mount) mount.appendChild(sh);
@@ -4157,7 +4153,7 @@ function bragToDominionCard() {
   const lb = getWeeklyLeaderboard().find(e => e.name === "You" || e.rank === "You");
   if (lb) {
     // attach rank to next dominion card
-    window._pendingRankBrag = `#${lb.rank} 이번 주 (⚡${fmtNum(lb.power)} · ${lb.carried}%)`;
+    window._pendingRankBrag = t("rankBragWeek", { n: lb.rank, power: fmtNum(lb.power), carried: lb.carried });
   }
   if (typeof renderDominionCard === "function") renderDominionCard();
   else if (typeof shareDominion === "function") shareDominion();
@@ -4193,7 +4189,7 @@ function renderProfile() {
 // Viral/A11y wiring (index share + profile + a11y toggles + Dominion export)
 function initViralA11y() {
   const shareBtn = $("share-dominion"); if (shareBtn) shareBtn.onclick = () => { haptic("medium"); shareDominion(); };
-  const expBtn = $("export-dominion"); if (expBtn) expBtn.onclick = () => { const txt = getDominionCardText(); try{navigator.clipboard.writeText(txt);}catch(e){}; toast(t("dominionCopied") + txt.split("\n")[1], "#a3e635"); haptic("light"); };
+  const expBtn = $("export-dominion"); if (expBtn) expBtn.onclick = () => { haptic("light"); shareDominionCard("export"); };   // 🖼️ 텍스트복사 → 이미지 카드
   const fc = $("faction-name"); if (fc && !fc.oninput) fc.oninput = () => { META.factionName = (fc.value||"").slice(0,16); saveMeta(); };
   const hc = $("set-highcontrast"); if (hc) hc.onclick = () => { META.highContrast = !META.highContrast; saveMeta(); updateToggles(); document.body.classList.toggle("high-contrast", !!META.highContrast); toast(t("a11yHigh"), "#67e8f9"); };
   const vf = $("set-vfxfallback"); if (vf) vf.onclick = () => { META.vfxFallback = !META.vfxFallback; saveMeta(); updateToggles(); document.body.classList.toggle("vfx-fallback", !!META.vfxFallback); toast(t("a11yVfx"), "#c084fc"); };
