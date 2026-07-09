@@ -17,7 +17,7 @@ function enemyForChapter(ch){ch=Math.max(1,ch|0);
   // match game.js: ch1-8 trivial (easy start), 9-20 ramp, 21+ wall for spend
   if (ch <= 8) return {drone:1+Math.floor((ch-1)/2),marksman:ch>=5?1:0,guardian:0,bruiser:0,commander:0,titan:0};
   if (ch <= 20) return {drone:2+Math.floor((ch-8)/2),marksman:1+Math.floor((ch-9)/5),guardian:ch>=12?1+Math.floor((ch-12)/6):0,bruiser:ch>=16?1:0,commander:0,titan:0};
-  return {drone:4+Math.floor((ch-20)/2),marksman:3+Math.floor((ch-20)/4),guardian:2+Math.floor((ch-20)/5),bruiser:1+Math.floor((ch-20)/4),commander:ch>=30?1+Math.floor((ch-30)/8):0,titan:ch>=50?1+Math.floor((ch-50)/30):0};
+  return {drone:8+Math.floor((ch-20)/2),marksman:3+Math.floor((ch-20)/4),guardian:2+Math.floor((ch-20)/5),bruiser:1+Math.floor((ch-20)/4),commander:ch>=30?1+Math.floor((ch-30)/8):0,titan:ch>=50?1+Math.floor((ch-50)/30):0};
 }
 function enemyPowerMul(ch){ ch=ch|0; if(ch<=8) return 0.7; if(ch<=20) return 1.0; return 1+Math.max(0,ch-20)*0.028; }
 function lvMul(lv,stat){return stat==="hp"?1+lv*0.15:1+lv*0.12;}

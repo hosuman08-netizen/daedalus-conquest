@@ -383,6 +383,14 @@ function getLiveHeroPassive(hk) {
 let cv, ctx, W, H, units, fx, running, gameOver, lastT, speed = 1, raf = 0, auto = false, ultT = 0;
 let curLevel = 1, bossFight = false;                 // 모드별 적 레벨/보스전 플래그
 let tbActive = false, tbTurn = 0, tbPriority = "balanced", tbLog = [], tbMomentum = 0, tbStreak = 0; // 턴제 전용: 별도 로직 (auto와 완전 분리)
+// 🎯 J1 타격감: 스크린셰이크 + 히트스톱 (의존0 — CSS transform + 프레임 정지). kick(강도,정지프레임)로 트리거.
+let _shake = 0, _hitstop = 0;
+function juiceKick(power, stop) { _shake = Math.min(20, _shake + power); if (stop) _hitstop = Math.max(_hitstop, stop); }
+function applyShake() {
+  if (typeof cv === "undefined" || !cv) return;
+  if (_shake > 0.4) { cv.style.transform = `translate(${(Math.random() - 0.5) * _shake}px,${(Math.random() - 0.5) * _shake}px)`; _shake *= 0.86; }
+  else if (_shake) { _shake = 0; cv.style.transform = ""; }
+}
 
 // High-tier battle portraits (preload the pretty arts so they appear "저대로" in canvas fight)
 // SSR + UR/EX (u1~ + u201/u202). 고퀄 PNG로 보물 느낌 극대화. Non high stay synthetic.
@@ -417,7 +425,7 @@ function loadPortrait(id) {   // 편성된 캐릭 일러스트 lazy 로드 (전 
 // Non-boss elites use limited PNGs, rest rich synthetic.
 let enemyPortraits = {};
 function preloadEnemyPortraits() {
-  const keys = ["titan", "final-titan", "boss", "drone", "marksman", "guardian", "bruiser", "commander", "elite-drone", "corrupted-titan", "boss-guardian", "boss-commander", "boss-bruiser", "boss-marksman"];
+  const keys = ["titan", "final-titan", "drone", "marksman", "elite-drone", "corrupted-titan", "boss-guardian", "boss-commander", "boss-bruiser", "boss-marksman"];  // 죽은 404 키 제거(boss/guardian/bruiser/commander — 파일없음·미사용, Trinity 2026-07-09)
   keys.forEach(k => {
     if (enemyPortraits[k]) return;
     const img = new Image();
@@ -475,7 +483,7 @@ function processReferralBonus() {
   logEvent('referral_bonus_granted', { ref: refId, channel, starter: '10연1SR' });
   setTimeout(() => {
     try { updateMeta && updateMeta(); } catch (e) {}
-    toast("🎉 친구 선물! 10연 확정 1SR 스타터 (fictional) 지급!", "#a3e635");
+    toast(t("friendGift"), "#a3e635");
   }, 1400);
 }
 // 👥 초대 보상 — 워커(KV) 카운트 기반(조작방지). 친구당 💎50 + 마일스톤 사다리(1→10000)
@@ -487,8 +495,8 @@ const REF_MILESTONES = [
 function refMilestoneReward(m) {
   const a = [];
   if (m.gem) a.push("💎" + m.gem.toLocaleString("en-US"));
-  if (m.ssr) a.push("🏆SSR 유닛");
-  if (m.ssrGear) a.push("⚔️SSR 장비");
+  if (m.ssr) a.push(t("ssrUnitReward"));
+  if (m.ssrGear) a.push(t("ssrGearReward"));
   return a.join(" + ");
 }
 function refPendingValue(count) {   // 받을 수 있는 총 보상 미리보기
@@ -652,7 +660,7 @@ function loadMeta() {
       m = { gold: 550, gems: 50, soul: 0, chapter: 1 };
       // Wipe local to prevent persistent hack
       try { localStorage.removeItem(META_KEY); } catch(e){}
-      setTimeout(() => toast('⚠️ 보안: 데이터 변조. 자원 초기화. 오류 시 Sovereign 연락.', '#ef4444'), 1000);
+      setTimeout(() => toast(t("securityTamper"), '#ef4444'), 1000);
     }
     // Try CloudStorage for more secure per-user storage (harder to tamper)
     if (tg && tg.CloudStorage && tg.CloudStorage.getItem) {
@@ -800,12 +808,12 @@ function fit() {
 }
 // 🗺️ 챕터 10단계마다 전장(바이옴) 교체 — 깊어질수록 더 악랄·강렬 (절차적, 무에셋·무한확장)
 const BIOMES = [
-  { id: "hangar",   name: "🛰️ 강철 격납고", top: "#0f121a", bot: "#171d2c", grid: "#1b2230", accent: "#67e8f9", style: "calm" },
-  { id: "crimson",  name: "🩸 진홍 전선",   top: "#1a0e0e", bot: "#2c1414", grid: "#3a1c1c", accent: "#ef4444", style: "ember" },
-  { id: "toxic",    name: "☠️ 맹독 늪지",   top: "#0a1410", bot: "#102a1c", grid: "#163a26", accent: "#22c55e", style: "toxic" },
-  { id: "magma",    name: "🌋 마그마 코어", top: "#1a0a06", bot: "#2e0f08", grid: "#48180c", accent: "#f97316", style: "lava" },
-  { id: "void",     name: "🌀 공허의 균열", top: "#0d0820", bot: "#190b32", grid: "#2c1a4e", accent: "#a855f7", style: "star" },
-  { id: "apoc",     name: "💀 종말의 핏빛", top: "#160305", bot: "#280509", grid: "#3c0810", accent: "#dc2626", style: "doom" },
+  { id: "hangar",   name: "biomeHangar", top: "#0f121a", bot: "#171d2c", grid: "#1b2230", accent: "#67e8f9", style: "calm" },
+  { id: "crimson",  name: "biomeCrimson", top: "#1a0e0e", bot: "#2c1414", grid: "#3a1c1c", accent: "#ef4444", style: "ember" },
+  { id: "toxic",    name: "biomeToxic",   top: "#0a1410", bot: "#102a1c", grid: "#163a26", accent: "#22c55e", style: "toxic" },
+  { id: "magma",    name: "biomeMagma", top: "#1a0a06", bot: "#2e0f08", grid: "#48180c", accent: "#f97316", style: "lava" },
+  { id: "void",     name: "biomeVoid", top: "#0d0820", bot: "#190b32", grid: "#2c1a4e", accent: "#a855f7", style: "star" },
+  { id: "apoc",     name: "biomeApoc", top: "#160305", bot: "#280509", grid: "#3c0810", accent: "#dc2626", style: "doom" },
 ];
 function chapterBiome(ch) { return BIOMES[Math.min(BIOMES.length - 1, Math.floor(((ch || 1) - 1) / 10))]; }
 function buildBgCache() {
@@ -1157,7 +1165,7 @@ function renderSynergyTable() {
   else if (archs >= 3) { dB = t("divAllN", { n: 8 }); dNx = t("divNeed", { k: (5 - archs), n: 12 }); }
   else { dNx = t("divNeed", { k: (3 - archs), n: 10 }); }
   const dc = el._divCard;
-  dc._nm.textContent = t("diversity") + ` ${archs}종`;
+  dc._nm.textContent = t("diversity") + " " + t("colTypeN", { n: archs });
   dc._b.textContent = dOn ? `🛡️ ${dB}` : '';
   dc._b.style.display = dOn ? '' : 'none';
   dc._nx.textContent = dNx;
@@ -1464,9 +1472,9 @@ function enemyForChapter(ch) {
       titan:     0,
     };
   }
-  // 21+ : 가파른 증가 (다른 게임들처럼 여기서부터 "벽" 느낌)
+  // 21+ : 가파른 증가 (ch20 drone=8과 연속화 — 가짜벽 제거: 4→8, 수학자 P0)
   return {
-    drone:     4 + Math.floor((ch - 20) / 2),
+    drone:     8 + Math.floor((ch - 20) / 2),
     marksman:  3 + Math.floor((ch - 20) / 4),
     guardian:  2 + Math.floor((ch - 20) / 5),
     bruiser:   1 + Math.floor((ch - 20) / 4),
@@ -1607,6 +1615,8 @@ function updateMeta() {
     else ap.style.display = "none";
   }
   const sv = $("streak-val"); if (sv) sv.textContent = (META.loginStreak || 0);  // visible streak everywhere (click → event for claim)
+  // quick lb access
+  if (!window._lbWired && $("streak-val")) { $("streak-val").onclick = () => showLeaderboard(); window._lbWired = true; }
   // MVP final plan: pity always visible lobby top "다음 SSR까지 XX회"
   const pityEl = $("pity-meta");
   if (pityEl) {
@@ -1836,7 +1846,7 @@ function step(u, dt) {
       addFx(u.x, u.y, "charge", tgt ? tgt.x : 0, tgt ? tgt.y : 0, u.side);
       u.bossSkillT = 6 * cdK;
     }
-    if (name) window._bossFlash = { name, color: col, t: 1.2 };           // 캔버스 보스 스킬 배너
+    if (name) { window._bossFlash = { name, color: col, t: 1.2 }; juiceKick(11, 4); }   // 캔버스 보스 스킬 배너 + 🎯 셰이크
     // 고챕터 보스 phase: 하수인 소환 (다른 게임 레이드처럼, 깨기 어렵게)
     if ((curLevel > 30 || v === 'final') && u.hp < u.maxHp * 0.55 && !u.minionsSpawned) {
       u.minionsSpawned = true;
@@ -1939,8 +1949,9 @@ function dmg(target, amount, from) {
   addFx(target.x + (Math.random() * 14 - 7), target.y - target.r, "dnum", Math.round(a), ctr ? 1 : 0, from && from.side);  // 군주/트리니티 PRD1: 데미지 숫자 팝업(세지는 게 보이는 게임)
   if (ctr) { addFx(target.x, target.y, "ctr"); if (Math.random() < 0.3) SFX.ctr(); }
   if (from && from.id) { from.dmgOut = (from.dmgOut || 0) + a; }  // track for real "MY unit carried X%" even on regulars
-  if (target.hp <= 0) { 
-    addFx(target.x, target.y, "die", 0, 0, target.side); if (Math.random() < 0.5) SFX.boom(); 
+  if (target.hp <= 0) {
+    addFx(target.x, target.y, "die", 0, 0, target.side); if (Math.random() < 0.5) SFX.boom();
+    juiceKick(target.boss ? 12 : 3.5, target.boss ? 5 : 2);   // 🎯 처치 타격감(보스=강)
     // Gear on_kill (e.g. Anvil Blessing heal allies)
     if (from && from.ssrSkill && from.ssrSkill.trigger === 'on_kill' && from.side === 'p') {
       const allies = units.filter(u => u.side === 'p' && u.hp > 0);
@@ -2125,7 +2136,7 @@ function fireSSRActive(u, foes) {
     }
     default: return;
   }
-  if (name) window._ssrFlash = { name, color: col, t: 1.05 };   // 캔버스 스킬명 배너(도파민)
+  if (name) { window._ssrFlash = { name, color: col, t: 1.05 }; juiceKick(9, 3); }   // 캔버스 스킬명 배너(도파민) + 🎯 셰이크
 }
 
 // 🐲 위압적 보스 전용 렌더 — 보스별 디자인 차별화 (base / corrupted / final) + 실제 PNG 이미지 다양성
@@ -2662,6 +2673,8 @@ function loop(ts) {
   if (!lastT) lastT = ts;
   let dt = Math.min(0.05, (ts - lastT) / 1000) * speed;
   lastT = ts;
+  if (_hitstop > 0) { _hitstop--; applyShake(); draw(); raf = requestAnimationFrame(loop); return; }   // 🎯 히트스톱: 시뮬 정지·렌더만(임팩트 정지프레임)
+  applyShake();   // 🎯 스크린셰이크 감쇠·적용
   _aliveP = units.filter((u) => u.side === "p" && u.hp > 0);   // 프레임당 1회
   _aliveE = units.filter((u) => u.side === "e" && u.hp > 0);
   for (const u of units) step(u, dt);
@@ -2694,6 +2707,7 @@ function finish(p, e) {
   if (win) { META.dailyBattles = (META.dailyBattles || 0) + 1; META.totalWins = (META.totalWins || 0) + 1; }   // ⚠️ TDZ 버그픽스: win 선언 뒤로 이동 (전엔 선언 전 참조→매 전투종료 ReferenceError로 finish() 전체 붕괴)
   if (win) {
     logEvent("battle_win", { mode: META.mode, ch: META.chapter, tower: META.tower, lvl: curLevel });   // 📊 계측
+    if (!META._fcl) { META._fcl = 1; try { logEvent("first_core_loop", { ch: META.chapter || 1 }); } catch (e) {} }   // 📊 첫 코어루프 완주(activation)
     logEvent("core_loop_complete", { type: "battle", ch: META.chapter || 1 });  // Trinity P0 activation
     if (bossFight) { try { mountShareHook("boss", t("shareBossText"), "#result-modal .btn-primary, #result, #battle"); } catch (e) {} }   // Trinity P1: boss share hook
   }
@@ -2736,7 +2750,7 @@ function finish(p, e) {
         reward = bonus(200 + META.chapter * 15 + (win ? Math.floor(55*(sig-1)) : 0));
         META.dailyDone = today(); extra = `<div class="rwd">${t("rwDailyBonus", { n: reward })}</div>` + (win ? '<div class="rwd2">⚡ 군단 전술 보너스</div>' : '');
         // Vanguard Focus FOMO 24h ritual (carry teaser + god-VFX hook; limited, ethical)
-        if (!META.vanguard || META.vanguard !== today()) { if (win || sig > 2.1) { META.vanguard = today(); setTimeout(()=>toast("24h 집중 모드 ON — 내일 전투력 대폭 UP","#fbbf24"), 650); } }
+        if (!META.vanguard || META.vanguard !== today()) { if (win || sig > 2.1) { META.vanguard = today(); setTimeout(()=>toast(t("vanguardToast1"),"#fbbf24"), 650); } }
       }
       else { extra = `<div class="rwd2">${t("rwDailyDone")}</div>`; }
       title = t("rDaily"); bumpPrestige(1);
@@ -2828,7 +2842,7 @@ function finish(p, e) {
       }
       // 🗺️ 10단계 돌파 → 새 전장(바이옴) 진입 연출
       const nb = chapterBiome(META.chapter);
-      if (META._biomeId !== nb.id) { META._biomeId = nb.id; setTimeout(() => toast(t("newBattlefield", { name: nb.name }), nb.accent), 900); if (typeof buildBgCache === "function") buildBgCache(); }
+      if (META._biomeId !== nb.id) { META._biomeId = nb.id; setTimeout(() => toast(t("newBattlefield", { name: t(nb.name) }), nb.accent), 900); if (typeof buildBgCache === "function") buildBgCache(); }
       title = t("rChapter");
       extra = `<div class="rwd">${t("rwGold", { n: reward })}` + (META.streak > 1 ? t("rwStreak", { n: META.streak }) : "") + `</div><div class="rwd2">${t("rwChapter", { n: META.chapter })}</div>`;
       if (protected) extra += '<div class="rwd2" style="color:#67e8f9">🛡️ Founders protect streak</div>';
@@ -2884,6 +2898,21 @@ function finish(p, e) {
   if (win && (META.chapter||1) <= 2) {
     const fwin = (typeof t === "function" && t("firstWinOverlay")) || "🏆 첫 승리! 내 군단이 {carried}% 활약 — 네 지휘였다";
     carried = `<div class="rwd2" style="color:#fbbf24;font-size:12px;">${fwin.replace('{carried}', getCarriedFeedback().match(/(\d+)%/)?.[1]||'42')}</div>`;
+  }
+  // first activation guide to gacha (SPEC)
+  if (win && !META._firstCoreDone) {
+    META._firstCoreDone = true; saveMeta();
+    setTimeout(() => {
+      toast(t("firstClearToast"), "#a3e635");
+      if (typeof gacha === "function") {
+        const hint = document.createElement("button");
+        hint.textContent = "→ 첫 가챠 열기 (무료 1회 가이드)";
+        hint.style.cssText = "position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;padding:8px 16px;background:#22c55e;color:#000;border:none;border-radius:6px;";
+        hint.onclick = () => { hint.remove(); gacha(); };
+        document.body.appendChild(hint);
+        setTimeout(() => hint.remove(), 12000);
+      }
+    }, 1400);
   }
   $overlayMsg.innerHTML = title + extra + carried;
   $("overlay-btn").textContent = win ? t("cont") : t("retry");
@@ -3179,7 +3208,7 @@ function shareDominion() {
     toast(t("shareCooldown", {h}), "#f87171"); haptic("error"); return;
   }
   // exact verify: TG user present or guest lock (prevents easy multi abuse)
-  if (!tg || uid === "guest") { toast("TG에서만 공유 보상 (user verify)", "#fbbf24"); }
+  if (!tg || uid === "guest") { toast(t("tgOnlyShare"), "#fbbf24"); }
   const founders = Math.min(9, (META.owned||[]).filter(x=>x<10).length || 3);
   const topCarried = (META.carriedLog && META.carriedLog.length) ? Math.max(...META.carriedLog.map(c=>c.pct)) : 68;
   const handoffProxy = Math.floor((META.pulls||12) * 0.7 + founders*4); // real handoff density proxy
@@ -3198,7 +3227,57 @@ function getDominionCardText() {
   const top = (META.carriedLog && META.carriedLog.length) ? Math.max(...META.carriedLog.map(c=>c.pct)) : 68;
   const proxy = Math.floor((META.pulls||12)*0.7);
   const fac = META.factionName || "My Legion";
-  return `MY DOMINION\nFounders ${founders}/9 · Top carried ${top}%\n"${t("carriedQuote")}"\nHandoff density proxy: ${proxy}\n${fac}`;
+  const rankBrag = window._pendingRankBrag || "";
+  return `MY DOMINION\nFounders ${founders}/9 · Top carried ${top}%\n"${t("carriedQuote")}"\nHandoff density proxy: ${proxy}\n${fac}${rankBrag ? "\n" + rankBrag : ""}`;
+}
+
+// Dominion 이미지 카드 (canvas → PNG) — SPEC MVP
+function renderDominionCard() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080; canvas.height = 1350;
+  const ctx = canvas.getContext("2d");
+  const founders = Math.min(9, (META.owned||[]).filter(x=>x<10).length || 3);
+  const top = (META.carriedLog && META.carriedLog.length) ? Math.max(...META.carriedLog.map(c=>c.pct)) : 68;
+  const power = Math.round((getDeployedUnits().length ? squadPower() : legionPower()) * ascPowerMul());
+  const ch = META.chapter || 1;
+  const fac = META.factionName || "My Legion";
+  const rank = window._pendingRankBrag || "";
+
+  // dark gradient bg
+  const g = ctx.createLinearGradient(0,0,0,1350);
+  g.addColorStop(0,"#0b0d14"); g.addColorStop(1,"#1a1f2e");
+  ctx.fillStyle = g; ctx.fillRect(0,0,1080,1350);
+
+  // header
+  ctx.fillStyle = "#fbbf24"; ctx.font = "bold 64px sans-serif";
+  ctx.fillText("DAEDALUS", 60, 90);
+  ctx.fillStyle = "#e2e8f0"; ctx.font = "48px sans-serif";
+  ctx.fillText(fac, 60, 150);
+
+  // main stats
+  ctx.fillStyle = "#fff"; ctx.font = "bold 72px sans-serif";
+  ctx.fillText(`⚡ ${fmtNum(power)}`, 60, 280);
+  ctx.font = "48px sans-serif";
+  ctx.fillText(`Founders ${founders}/9  ·  carried ${top}%`, 60, 350);
+  ctx.fillText(`ch${ch}  ·  ${rank}`, 60, 420);
+
+  // simple SSR portrait placeholder
+  ctx.fillStyle = "#334155"; ctx.fillRect(60, 480, 960, 600);
+  ctx.fillStyle = "#fbbf24"; ctx.font = "bold 120px sans-serif";
+  ctx.fillText("MY SSR", 300, 820);
+
+  // bottom disclosure + link (prominent for legal)
+  ctx.fillStyle = "#94a3b8"; ctx.font = "32px sans-serif";
+  ctx.fillText("Fictional. Core free. Optional Stars cosmetic.", 60, 1180);
+  ctx.fillText("t.me/daedalus_conquest_bot", 60, 1230);
+
+  // download/share
+  const url = canvas.toDataURL("image/png");
+  const a = document.createElement("a");
+  a.href = url; a.download = "my-dominion.png";
+  a.click();
+  toast(t("dominionPng"), "#a3e635");
+  delete window._pendingRankBrag;
 }
 
 // ── 가챠 (뽑기) — 등급·천장·전설해금 ─────────────────────────────────────────
@@ -3488,7 +3567,7 @@ function gachaFeatured() {
   saveMeta(); updateMeta(); reset(); renderFeaturedBanner();
   const bestKey = Object.keys(RANK).find((k) => RANK[k] === best);
   const showR = RARITY.find((r) => r.key === bestKey) || RARITY[best] || RARITY[0];
-  showGacha(showR, "🎯 " + (fb.name || "Featured") + (gotPickup ? t("featuredGot", { pickup: fb.pickup }) : ""), results);
+  showGacha(showR, "🎯 " + (featuredName(fb) || "Featured") + (gotPickup ? t("featuredGot", { pickup: fb.pickup }) : ""), results);
 }
 
 // 🔥 FULL CHEAT ENGINE — top micros: prominent rates + featured FOMO 72h + MY visuals. (Sovereign 2026-06-23)
@@ -3510,7 +3589,7 @@ function renderFeaturedBanner() {
   const fb = currentFeatured(); if (!fb) { el.innerHTML = ""; return; }
   const d = featuredDaysLeft(), spark = (META.spark || 0);
   el.innerHTML = '<div style="background:linear-gradient(135deg,#3a2c12,#1a1018);border:1.5px solid #fbbf24;border-radius:12px;padding:10px 12px;margin-bottom:8px;box-shadow:0 0 18px rgba(251,191,36,.25);">'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-weight:800;color:#fde047;font-size:13px;">' + t("fbBannerTitle", { name: (fb.name || "") }) + '</span><span style="font-size:10px;color:#f97316;font-weight:700;">' + t("fbDaysLeft", { d: d }) + '</span></div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-weight:800;color:#fde047;font-size:13px;">' + t("fbBannerTitle", { name: (featuredName(fb) || "") }) + '</span><span style="font-size:10px;color:#f97316;font-weight:700;">' + t("fbDaysLeft", { d: d }) + '</span></div>'
     + '<div style="font-size:11px;color:#e2e8f0;margin:3px 0 5px;">' + t("fbPickup", { pickup: '<b style="color:#fbbf24;">' + (fb.pickup || "") + '</b>' }) + '</div>'
     + '<div style="font-size:10px;color:#a3a3c2;margin-bottom:6px;">✨ Spark ' + spark + '/' + FEATURED_SPARK + (spark >= FEATURED_SPARK ? t("fbSparkReady", { pickup: fb.pickup }) : '') + '</div>'
     + '<button id="sg-featured" class="gbig" style="width:100%;background:linear-gradient(135deg,#f5c451,#d97706);border-color:#f5c451;color:#1a1400;font-weight:800;">' + t("fbPullBtn", { cost: FEATURED_COST }) + '</button>'
@@ -3533,6 +3612,7 @@ function applyMYVisuals(u) {
 function rarColor(k) { const r = RARITY.find((x) => x.key === k); return r ? r.color : "#9ca3af"; }
 function showGacha(rar, msg, results) {
   const g = $("gacha"); if (!g) return;
+  if (!META._fg) { META._fg = 1; try { logEvent("first_gacha", { ch: META.chapter || 1 }); } catch (e) {} }   // 📊 첫 뽑기(activation)
   $("gacha-rank").textContent = rar.key;
   $("gacha-rank").style.color = rar.color;
   $("gacha-card").style.boxShadow = `0 0 40px ${rar.color}, inset 0 0 0 2px ${rar.color}`;
@@ -3597,7 +3677,7 @@ function mountShareHook(kind, shareText, mountSelector) {
     if (document.getElementById(id)) return;                 // 중복 방지
     const sh = document.createElement("button");
     sh.id = id;
-    sh.textContent = (typeof t === "function") ? t("shareResult") : "📤 공유";
+    sh.textContent = t("shareResult");
     sh.style.cssText = "margin:8px 0;padding:6px 12px;background:#22c55e;color:#fff;border:none;border-radius:6px;cursor:pointer";
     sh.onclick = () => {
       const link = `https://t.me/daedalus_conquest_bot?start=ref${uid}_${kind}`;
@@ -3626,6 +3706,7 @@ function checkDaily() {
   let today = ""; try { today = new Date().toISOString().slice(0, 10); } catch (e) { return; }
   if (META.lastDaily !== today) {
     META.lastDaily = today;
+    try { logEvent("daily_return", { streak: META.loginStreak || 0, ch: META.chapter || 1 }); } catch (e) {}   // 📊 리텐션(신규일 복귀) 계측
     // loss aversion: reset loginStreak only on miss (attend.last != yesterday). Duolingo style.
     const yest = dayPlus(-1);
     if ((META.loginStreak || 0) > 0 && META.attend && META.attend.last !== yest) META.loginStreak = 0;
@@ -3637,7 +3718,7 @@ function checkDaily() {
     saveMeta(); updateMeta();
     setTimeout(() => toast(t("tDaily") + (varB? ` +${varB}`:""), "#fbbf24"), 500);
     // Vanguard 24h FOMO ritual interlock
-    if (winOpen && (!META.vanguard || META.vanguard !== today)) { META.vanguard = today; setTimeout(()=> { toast("24h 집중 모드 ON: 전투력 + 시각 효과 강화", "#fbbf24"); if(!running) reset(); }, 820); }
+    if (winOpen && (!META.vanguard || META.vanguard !== today)) { META.vanguard = today; setTimeout(()=> { toast(t("vanguardToast2"), "#fbbf24"); if(!running) reset(); }, 820); }
   }
 }
 
@@ -3650,8 +3731,8 @@ function start() {
       tbMomentum = META.tbCarry||0; tbStreak = 0; if(META.tbCarry) delete META.tbCarry; // consume carry on actual session start
       delete window._tbTactic;
       running = true; gameOver = false;
-      $("start").textContent = "다음 턴 ▶";
-      $status.textContent = "🧠 턴제 시작 — 전술 지휘 개시. 아침 우위 반영";
+      $("start").textContent = t("nextTurn");
+      $status.textContent = t("tbStartStatus");
       showTbControls(true);
       draw();
     }
@@ -3735,12 +3816,12 @@ function updateUltBtn() {
   const b = $("ult"); if (!b) return;
   const h = HEROES[META.hero];
   // ULTIMATE CLEAN (Sovereign): no extra emoji/glyph in text to avoid overlap and make skill name visible. CSS ::before handles the fire. The ultLabel has the skill name prominently.
-  if (!running) { b.textContent = "군단 지휘 본부 • " + (h.ultName || tUlt(h.ult)); b.disabled = true; b.classList.remove("ready"); b.classList.remove("hero-tinted"); b.style.removeProperty('--hcolor'); return; }
+  if (!running) { b.textContent = t("cmdHQ") + tUlt(h.ult); b.disabled = true; b.classList.remove("ready"); b.classList.remove("hero-tinted"); b.style.removeProperty('--hcolor'); return; }
   b.disabled = ultT > 0;
   if (ultT > 0) { b.textContent = Math.ceil(ultT) + "s"; b.classList.remove("ready"); b.classList.remove("hero-tinted"); b.style.removeProperty('--hcolor'); }
   else {
     // Clean text only. No heavy prefix, no emoji. Just the ult name + EXECUTE. Effects removed in CSS.
-    const ultLabel = (h.ultName || tUlt(h.ult)) + " EXECUTE";
+    const ultLabel = tUlt(h.ult) + " EXECUTE";
     b.textContent = ultLabel;
     b.classList.add("ready");
     // No hero tint classes or vars — effects fully stripped per request. Flat clean button.
@@ -3898,17 +3979,17 @@ function upgradeHero() {
       }
     });
   }, 60);
-  toast(t("tHeroUp", { x: tHero(META.hero)[0], n: newLv }) + " · ⚡전력 " + fmtNum(legionPower()), "#a3e635");
+  toast(t("tHeroUp", { x: tHero(META.hero)[0], n: newLv }) + t("heroUpPower") + fmtNum(legionPower()), "#a3e635");
 }
 
 // ── 자동사냥 토글 ─────────────────────────────────────────────────────────────
 function updateAutoBtn() {
   const b = $("auto"); if (!b) return;
-  b.textContent = auto ? "⚔️ 자동 ON" : "⚔️ 자동사냥";
+  b.textContent = auto ? t("autoOn") : t("auto");
   b.classList.toggle("on", auto);
 }
 function toggleAuto() {
-  if (tbActive || META.mode === "turnbased") { toast("🧠 턴제 모드에서는 자동 불가 — 수동 턴으로 진행", "#f59e0b"); return; }
+  if (tbActive || META.mode === "turnbased") { toast(t("tbNoAuto"), "#f59e0b"); return; }
   auto = !auto;
   updateAutoBtn();
   if (auto) { toast(t("tAutoStart"), "#a3e635"); if (!running) { if (gameOver) reset(); start(); } }
@@ -3939,14 +4020,14 @@ function checkIdle() {
     const flavor = sig > 2.2 ? "Legion tactics surging" : "Legion forecast stable";
     setTimeout(() => toast(`🌙 ${t("tIdle", { t: tm, n: gold })} +${varBonus} ${flavor}`, "#fbbf24"), 900);
     // Forecast popup flavor (lean toast + prestige pop)
-    if (sig > 1.8) setTimeout(() => toast("군단 신호 강함: 방치 보상 폭발 + 리추얼 창구 열림", "#a3e635"), 1600);
+    if (sig > 1.8) setTimeout(() => toast(t("legionSignalStrong"), "#a3e635"), 1600);
   }
 }
 
 // ── i18n 적용 + 설정 메뉴 ─────────────────────────────────────────────────────
 function applyStaticI18n() {
   try { document.documentElement.lang = LANG; } catch (e) {}
-  document.querySelectorAll("[data-i18n]").forEach((el) => { const v = t(el.getAttribute("data-i18n")); if (v) el.textContent = v; });
+  document.querySelectorAll("[data-i18n]").forEach((el) => { const v = t(el.getAttribute("data-i18n")); if (v) { if (v.indexOf("<") >= 0) el.innerHTML = v; else el.textContent = v; } });   // HTML 포함 번역(웹게이트/연령확인)은 innerHTML
 }
 function buildLangList() {
   const box = $("lang-list"); if (!box) return;
@@ -3961,9 +4042,14 @@ function buildLangList() {
 }
 function applyLanguage(l) {
   setLang(l); applyStaticI18n(); buildLangList();
+  if (typeof localizeRoster === "function") localizeRoster();   // 🌐 유닛 로스터 이름/칭호/트레잇 현재 언어로 재현지화
   if (!running) reset(); else { updateHeroUI(); updateUltBtn(); }
   // re-render prestige (and other dynamic) after lang switch so Korean strings don't linger
   if ($("prestige-box")) renderPrestige();
+  try { if (typeof renderSquad === "function") renderSquad(); } catch (e) {}
+  try { if (typeof renderCodex === "function") renderCodex(); } catch (e) {}
+  try { if (typeof renderFeaturedBanner === "function") renderFeaturedBanner(); } catch (e) {}
+  try { if (curPage === "char" && typeof cpCharId !== "undefined" && cpCharId != null && typeof openCharPanel === "function") openCharPanel(cpCharId); } catch (e) {}
   if (typeof renderGameStats === "function") renderGameStats();
   if (typeof updateToggles === "function") updateToggles();
   toast(t("langOk"), "#a3e635");
@@ -3972,7 +4058,7 @@ function updateToggles() {
   if ($("set-sound")) { $("set-sound").textContent = META.sound === false ? "OFF" : "ON"; $("set-sound").classList.toggle("off", META.sound === false); }
   if ($("set-haptic")) { $("set-haptic").textContent = META.haptic === false ? "OFF" : "ON"; $("set-haptic").classList.toggle("off", META.haptic === false); }
   if ($("set-music")) { $("set-music").textContent = META.music === false ? "OFF" : "ON"; $("set-music").classList.toggle("off", META.music === false); }
-  if ($("set-invite")) { $("set-invite").textContent = t("inviteBtn") || "링크 공유"; }
+  if ($("set-invite")) { $("set-invite").textContent = t("inviteBtn"); }
   // A11y reinforcement
   if ($("set-highcontrast")) { $("set-highcontrast").textContent = META.highContrast ? "ON" : "OFF"; $("set-highcontrast").classList.toggle("off", !META.highContrast); }
   if ($("set-vfxfallback")) { $("set-vfxfallback").textContent = META.vfxFallback ? "ON" : "OFF"; $("set-vfxfallback").classList.toggle("off", !META.vfxFallback); }
@@ -3992,13 +4078,13 @@ function getTitle() {
   const asc = META.ascCount || 0;
   const coll = (META.owned || []).length;
   const ssr = (typeof ROSTER !== "undefined" ? ROSTER : []).filter((u) => (META.owned || []).includes(u.id) && ["SSR", "UR", "EX"].includes(u.rarity)).length;
-  if (asc >= 10) return "🔱 환생의 군주";
-  if (ch >= 50) return "⚔️ 대정복자";
-  if (ssr >= 15) return "🏆 SSR 수집가";
-  if (ch >= 30) return "🛡️ 챕터 정복자";
-  if (coll >= 60) return "📜 군단 사령관";
-  if (ch >= 10) return "🗡️ 전선의 지휘관";
-  return "🔰 신병 사령관";
+  if (asc >= 10) return t("titleAscendLord");
+  if (ch >= 50) return t("titleConqueror");
+  if (ssr >= 15) return t("titleSsrCollector");
+  if (ch >= 30) return t("titleChapterConq");
+  if (coll >= 60) return t("titleLegionCmd");
+  if (ch >= 10) return t("titleFrontCmd");
+  return t("titleRecruit");
 }
 // 📤 내 군단 전과 카드 공유 — 텔레그램 네이티브 공유(바이럴 유입)
 function shareProfile() {
@@ -4015,6 +4101,53 @@ function shareProfile() {
   } catch (e) { toast(t("shareFail"), "#ef4444"); }
   haptic("medium");
 }
+
+// ── 🏆 주간 리더보드 MVP (읽기전용, local + mock snapshot, brag to Dominion card)
+let weeklyLeaderboard = null;
+function getWeeklyLeaderboard() {
+  if (weeklyLeaderboard) return weeklyLeaderboard;
+  // MVP: local snapshot + mock top for demo (real KV later)
+  const myPower = Math.round((getDeployedUnits().length ? squadPower() : legionPower()) * ascPowerMul());
+  const myCarried = parseFloat(getCarriedFeedback().match(/(\d+)%/)?.[1] || '42');
+  const myFloor = META.chapter || 1;
+  const mock = [
+    { rank:1, name:"LegionPrime", power: 12480, carried: 87, floor: 42 },
+    { rank:2, name:"EchoForge", power: 11230, carried: 79, floor: 38 },
+    { rank:3, name:"VanguardX", power: 9870, carried: 71, floor: 35 }
+  ];
+  weeklyLeaderboard = [
+    { rank: "You", name: "You", power: myPower, carried: myCarried, floor: myFloor },
+    ...mock
+  ].sort((a,b) => b.power - a.power).slice(0,5).map((e,i) => ({...e, rank:i+1}));
+  return weeklyLeaderboard;
+}
+function showLeaderboard() {
+  const data = getWeeklyLeaderboard();
+  const html = data.map(e => {
+    const isYou = e.rank === "You" || e.name === "You";
+    return `<div class="lb-row ${isYou?'you':''}"><span>#${e.rank}</span> <span>${e.name}</span> <span>⚡${fmtNum(e.power)}</span> <span>${e.carried}%</span> <span>ch${e.floor}</span></div>`;
+  }).join("");
+  const modal = document.createElement("div");
+  modal.className = "modal";
+  modal.innerHTML = `
+    <div class="modal-card" style="max-width:420px">
+      <h3>🏆 주간 리더보드 (이번 주 마감 3d)</h3>
+      <div style="font-size:12px;opacity:.7;margin-bottom:8px">power / carried% / 탑 층 (읽기전용 MVP)</div>
+      <div class="lb-list">${html}</div>
+      <button onclick="bragToDominionCard(); this.closest('.modal').remove()" style="margin-top:12px;width:100%">지금 순위 자랑 (Dominion 카드)</button>
+      <button onclick="this.closest('.modal').remove()" style="margin-top:8px;width:100%;opacity:.7">닫기</button>
+    </div>`;
+  document.body.appendChild(modal);
+}
+function bragToDominionCard() {
+  const lb = getWeeklyLeaderboard().find(e => e.name === "You" || e.rank === "You");
+  if (lb) {
+    // attach rank to next dominion card
+    window._pendingRankBrag = `#${lb.rank} 이번 주 (⚡${fmtNum(lb.power)} · ${lb.carried}%)`;
+  }
+  if (typeof renderDominionCard === "function") renderDominionCard();
+  else if (typeof shareDominion === "function") shareDominion();
+}
 function renderProfile() {
   const box = $("tg-profile"); if (!box) return;
   let u = null;
@@ -4028,7 +4161,7 @@ function renderProfile() {
       '<div class="prof-name">' + name + (u.is_premium ? ' <span class="prem">⭐</span>' : "") + (vip ? " " + vip : "") + "</div>" +
       '<div class="prof-title">' + getTitle() + "</div>" +
       (u.username ? '<div class="prof-uid">@' + u.username + "</div>" : "") +
-      '<div class="prof-uid ddim" onclick="navigator.clipboard.writeText(\'' + u.id + '\'); toast(\'ID 복사됨\', \'#67e8f9\')" style="cursor:pointer">ID: ' + u.id + " (탭해서 복사)</div>" +
+      '<div class="prof-uid ddim" onclick="navigator.clipboard.writeText(\'' + u.id + '\'); toast(t(\'idCopied\'), \'#67e8f9\')" style="cursor:pointer">ID: ' + u.id + t("profTapCopy") + "</div>" +
     "</div>";
   const sb = $("share-profile"); if (sb) sb.onclick = () => { haptic("medium"); shareProfile(); };
   const ib = $("invite-friend"); if (ib) ib.onclick = () => { haptic("medium"); if (typeof inviteFriend === "function") inviteFriend(); };
@@ -4037,12 +4170,16 @@ function renderProfile() {
   const rmc = $("ref-modal-claim"); if (rmc) rmc.onclick = () => { haptic("medium"); claimReferralRewards(); };
   const rmx = $("ref-modal-close"); if (rmx) rmx.onclick = () => { const m = $("ref-modal"); if (m) m.style.display = "none"; };
   if (typeof refreshReferrals === "function") refreshReferrals();
+  // Leaderboard trigger (retention)
+  const lbBtn = $("lb-btn") || document.createElement("button");
+  if (!lbBtn.id) { lbBtn.id="lb-btn"; lbBtn.textContent=t("lbBtn"); lbBtn.style.cssText="margin:4px;padding:4px 10px"; lbBtn.onclick = ()=>{ showLeaderboard(); };
+    const prof = $("tg-profile"); if (prof) prof.appendChild(lbBtn); }
 }
 
 // Viral/A11y wiring (index share + profile + a11y toggles + Dominion export)
 function initViralA11y() {
   const shareBtn = $("share-dominion"); if (shareBtn) shareBtn.onclick = () => { haptic("medium"); shareDominion(); };
-  const expBtn = $("export-dominion"); if (expBtn) expBtn.onclick = () => { const txt = getDominionCardText(); try{navigator.clipboard.writeText(txt);}catch(e){}; toast("MY Dominion 카드 복사됨 — TG paste로 flex! " + txt.split("\n")[1], "#a3e635"); haptic("light"); };
+  const expBtn = $("export-dominion"); if (expBtn) expBtn.onclick = () => { const txt = getDominionCardText(); try{navigator.clipboard.writeText(txt);}catch(e){}; toast(t("dominionCopied") + txt.split("\n")[1], "#a3e635"); haptic("light"); };
   const fc = $("faction-name"); if (fc && !fc.oninput) fc.oninput = () => { META.factionName = (fc.value||"").slice(0,16); saveMeta(); };
   const hc = $("set-highcontrast"); if (hc) hc.onclick = () => { META.highContrast = !META.highContrast; saveMeta(); updateToggles(); document.body.classList.toggle("high-contrast", !!META.highContrast); toast(t("a11yHigh"), "#67e8f9"); };
   const vf = $("set-vfxfallback"); if (vf) vf.onclick = () => { META.vfxFallback = !META.vfxFallback; saveMeta(); updateToggles(); document.body.classList.toggle("vfx-fallback", !!META.vfxFallback); toast(t("a11yVfx"), "#c084fc"); };
@@ -4083,16 +4220,16 @@ function ascInsightDisc(){ return Math.min(0.40, ascLv("insight") * 0.04); }
 function ascNodeStat(key, lv) {
   // 복리 제거 후 flat 보너스. power compounding은 cosmetic으로만.
   switch (key) {
-    case "might":    return "+" + (lv * 1) + " 공격 보너스 (flat)";
-    case "bulwark":  return "+" + (lv * 1) + " 체력 보너스 (flat)";
-    case "momentum": return "+" + (lv * 5) + " 시작 골드";
-    case "soulnode": return "+" + (lv * 25) + "% 소울";
-    case "plunder":  return "+" + (lv * 12) + "% 전투골드";
-    case "edge":     return "+" + (lv * 2) + "% 치명";
-    case "pierce":   return "+" + (lv * 8) + "% 치명피해";
-    case "vanguard": return "+" + Math.min(5, lv) + " 시작챕터";
-    case "prosper":  return "+" + (lv * 3) + " 젬/환생";
-    case "insight":  return "-" + Math.round(Math.min(0.40, lv * 0.04) * 100) + "% 각성비용";
+    case "might":    return t("andMight", { n: lv * 1 });
+    case "bulwark":  return t("andBulwark", { n: lv * 1 });
+    case "momentum": return t("andMomentum", { n: lv * 5 });
+    case "soulnode": return t("andSoulnode", { n: lv * 25 });
+    case "plunder":  return t("andPlunder", { n: lv * 12 });
+    case "edge":     return t("andEdge", { n: lv * 2 });
+    case "pierce":   return t("andPierce", { n: lv * 8 });
+    case "vanguard": return t("andVanguard", { n: Math.min(5, lv) });
+    case "prosper":  return t("andProsper", { n: lv * 3 });
+    case "insight":  return t("andInsight", { n: Math.round(Math.min(0.40, lv * 0.04) * 100) });
     default: return "";
   }
 }
@@ -4102,8 +4239,7 @@ function renderPrestige() {
   const ch = META.chapter || 1, e = META.ether || 0, gain = etherGain(ch), pwr = ascPowerMul();
   let h = `<div class="prestige-desc">${t("ascDesc")}</div>`;
   // 소액 복리 표시 (0.1~0.19% 랜덤, 실제 경제 영향 거의 없음 — 심리적 만족용)
-  const smallComp = (0.10 + Math.random() * 0.09).toFixed(2);
-  h += `<div class="asc-stats">⬡ <b>${e}</b> · ${t("ascPower")} ×${pwr.toFixed(2)} · ${t("ascRuns")} ${META.ascCount || 0} · <span style="color:#fbbf24">복리 +${smallComp}%</span></div>`;
+  h += `<div class="asc-stats">⬡ <b>${e}</b> · ${t("ascPower")} ×${pwr.toFixed(2)} · ${t("ascRuns")} ${META.ascCount || 0}</div>`;   // 가짜 cosmetic 복리표시 제거(실제 복리 없음 — 정직)
   if (ch >= ASCEND_GATE) {
     h += `<div class="prestige-rw">${t("ascReady", { e: gain })}</div>`;
     h += `<button id="prestige-go" class="prestige-btn">${t("ascBtn", { ch: ch })}</button>`;
@@ -4143,7 +4279,7 @@ function buyAscNode(node) {
 function ssrSpectacle(name) {
   const v = $("rebirth-veil"), txt = $("rebirth-text");
   if (!v) return;
-  if (txt) txt.textContent = "⭐ " + (name || "전설") + " 강림!";
+  if (txt) txt.textContent = t("legendDescend", { name: name || t("legendName") });
   v.classList.remove("hidden"); void v.offsetWidth; v.classList.add("play-ssr");
   if (SFX && SFX.ssr) SFX.ssr(); haptic("heavy");
   setTimeout(() => { v.classList.remove("play-ssr"); v.classList.add("hidden"); if (txt) txt.textContent = ""; }, 1900);
@@ -4154,7 +4290,7 @@ function maybeSortie() {
   META.sortieDay = today(); saveMeta();
   const v = $("rebirth-veil"), txt = $("rebirth-text");
   if (!v) return;
-  if (txt) txt.textContent = "⚔️ 출정! 군단 진격";
+  if (txt) txt.textContent = t("sortieMarch");
   v.classList.remove("hidden"); void v.offsetWidth; v.classList.add("play-sortie");
   if (SFX && SFX.win) SFX.win(); haptic("medium");
   setTimeout(() => { v.classList.remove("play-sortie"); v.classList.add("hidden"); if (txt) txt.textContent = ""; }, 2000);
@@ -4214,8 +4350,8 @@ function playRebirthCeremony(cb) {
   const wasMusic = !(typeof META !== "undefined" && META && META.music === false);
   if (wasMusic) { try { stopSynthBgm(); } catch (e) {} }           // 정적
   v.classList.remove("hidden");
-  if (txt) txt.textContent = "심연…";
-  setTimeout(() => { if (txt) txt.textContent = "군단, 부활하라"; }, 1500);
+  if (txt) txt.textContent = t("abyssText");
+  setTimeout(() => { if (txt) txt.textContent = t("reviveText"); }, 1500);
   void v.offsetWidth; v.classList.add("play");
   if (SFX && SFX.boom) SFX.boom();
   setTimeout(() => { if (SFX && SFX.win) SFX.win(); haptic("heavy"); }, 1500);   // 부활 순간
@@ -4230,7 +4366,7 @@ function startMontage() {
   window._montage = true; window._montageTarget = 10;
   speed = 8; auto = true; updateAutoBtn();
   reset(); start();
-  setTimeout(() => toast("⚡ 군단 재각성 — 빨리감기 진격! (탭하면 스킵)", "#c084fc"), 250);
+  setTimeout(() => toast(t("reawaken"), "#c084fc"), 250);
   if (cv) cv.addEventListener("click", montageSkip);
 }
 function montageSkip() {
@@ -4243,7 +4379,7 @@ function endMontage() {
   window._montage = false; speed = 1; auto = false;
   if (cv) cv.removeEventListener("click", montageSkip);
   running = false; updateAutoBtn(); reset(); updateMeta();
-  toast("⚡ 재각성 완료 · 본격 진격!", "#a3e635"); haptic("heavy");
+  toast(t("reawakenDone"), "#a3e635"); haptic("heavy");
 }
 function doAscend() {
   const ch = META.chapter || 1; if (ch < ASCEND_GATE) return;
@@ -4265,7 +4401,7 @@ function doAscend() {
     const dp = $("dash-power");
     if (dp) dp.textContent = fmtNum((getDeployedUnits().length ? squadPower() : legionPower()) * newPwr);
     SFX.ssr(); haptic("heavy");
-    toast(`🔄 환생! ⬡+${gain} · 영구배율 ${oldPwr.toFixed(2)} → ${newPwr.toFixed(2)}×`, "#c084fc");
+    toast(t("rebirthToast", { gain: gain, old: oldPwr.toFixed(2), new: newPwr.toFixed(2) }), "#c084fc");
     mountShareHook("prestige", t("sharePrestigeText"), "#prestige-go");   // Trinity P1: prestige share hook
     setTimeout(() => { playRebirthCeremony(startMontage); }, 280);
   };
@@ -4308,7 +4444,7 @@ function openBox(tier) {
     const gu = grantUnit(rar);
     const g = newGear(rar); META.gear.push(g);
     META.gems = (META.gems || 0) + 200;
-    return { color: "#fbbf24", text: (gu ? "【" + gu.name + "】 " : "") + rar + " + " + (SLOT_ICON[g.slot] || "") + rar + "장비 + 💎200", rank: rar };
+    return { color: "#fbbf24", text: (gu ? "【" + gu.name + "】 " : "") + rar + " + " + (SLOT_ICON[g.slot] || "") + rar + t("gearGeneric") + " + 💎200", rank: rar };
   }
   const b = BOX[tier];
   if (Math.random() < 0.5) {                                  // 유닛
@@ -4316,10 +4452,10 @@ function openBox(tier) {
     const gu = grantUnit(rar);
     const pool = ORDER.filter((u) => u !== "titan" || META.titanOwned);
     for (let j = 0; j < 2; j++) { const u = pool[(Math.random() * pool.length) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; }
-    return { color: b.color, text: (gu ? "【" + gu.name + "】 " : "") + rar + " 유닛", rank: rar };
+    return { color: b.color, text: (gu ? "【" + gu.name + "】 " : "") + rar + " " + t("boxUnitWord"), rank: rar };
   }
   const g = newGear(b.gear); META.gear.push(g);              // 장비
-  return { color: b.color, text: "🔨 " + (SLOT_ICON[g.slot] || "") + " " + g.rarity + " 장비", rank: g.rarity };
+  return { color: b.color, text: "🔨 " + (SLOT_ICON[g.slot] || "") + " " + g.rarity + " " + t("gearGeneric"), rank: g.rarity };
 }
 // ⏱️ 장시간 접속(플레이타임) 보상 — 골드는 후하게(faucet), 💎는 상위 구간만(daily 캡)
 const PLAYTIME = [
@@ -4366,7 +4502,7 @@ function renderPlay() {
   const readyCount = PLAYTIME.filter((r,i) => sec >= r.sec && META.play.claimed.indexOf(i) < 0).length;
   if (readyCount > 1) {
     const allBtn = document.createElement("button");
-    allBtn.textContent = `모두 받기 (${readyCount}개)`;
+    allBtn.textContent = t("claimAllBtn", { n: readyCount });
     allBtn.onclick = () => { PLAYTIME.forEach((r,i) => { if (sec >= r.sec && META.play.claimed.indexOf(i) < 0) claimPlay(i); }); };
     allBtn.style.cssText = "width:100%;margin-top:4px;padding:6px;background:#2a1f0f;color:#fbbf24;border:1px solid #664e1f;border-radius:6px;";
     box.appendChild(allBtn);
@@ -4374,7 +4510,7 @@ function renderPlay() {
   // FOMO + streak visible
   const f = $("play-fomo"); if (f) {
     const h = 24 - (new Date().getHours() || 0); const s = META.loginStreak || 0;
-    f.textContent = `⏰ 리셋 ~${h}h · 🔥 streak ${s} (claim으로 유지)`;
+    f.textContent = t("playStreakFoot", { h: h, s: s });
   }
 }
 function claimPlay(i) {
@@ -4385,7 +4521,7 @@ function claimPlay(i) {
   // Daily cycle hook: require at least 1 action (battle/pull) today for full reward (prevents pure passive, forces "must do something")
   const didAction = ((META.dailyBattles || 0) + (META.dailyPulls || 0)) > 0;
   let mult = 1 + Math.min(0.5, (META.loginStreak || 0) / 7 * 0.1);
-  if (!didAction && i > 1) { mult = 0.5; toast("액션(전투/뽑기) 1번 이상 해야 풀 보상!", "#f87171"); } // half for long ones if no action
+  if (!didAction && i > 1) { mult = 0.5; toast(t("playHalfWarn"), "#f87171"); } // half for long ones if no action
   META.play.claimed.push(i);
   // 💰 플레이 골드도 전력비례 하한(SPEC): max(절대값, 전력×playMul). playMul 3m 0.05→60m 0.5.
   const playMul = Math.max(0.05, Math.min(0.5, 0.05 + (r.min - 3) * (0.45 / 57)));
@@ -4400,13 +4536,13 @@ function claimPlay(i) {
   if (boxRes) setTimeout(() => showGacha({ key: boxRes.rank, color: boxRes.color }, boxRes.text), 400);
   else toast(t("tPlay", { x: txt }) + (mult > 1 ? " (🔥 streak +" + Math.floor((mult-1)*100) + "%)" : ""), "#fbbf24");
   // cycle: after claim, hint next action for loop (AFK accrues while away)
-  setTimeout(() => toast("전투 1판 → 내일 보상 더 커져요! (오프라인 가속)", "#a3e635"), 1200);
+  setTimeout(() => toast(t("playMoreToast"), "#a3e635"), 1200);
 }
 function openEvent() { renderAttend(); renderPlay(); renderSeason(); showPage("event"); 
   const orb = $("ritual-orb"); if (orb) orb.style.display = (getLegionSignal() > 1.6 || META.ritualWin===today()) ? "" : "none";
   const vg = $("vanguard-ritual"); if (vg) {
     // Sovereign: 유저가 바로 아는 한국어 benefit 중심으로만. 미스터리 금지.
-    vg.textContent = (META.vanguard===today()) ? "⚡ 24h 집중 모드 — 내일 전투력 대폭 상승" : "";
+    vg.textContent = (META.vanguard===today()) ? t("vanguardEvent") : "";
     vg.style.display = vg.textContent ? "" : "none";
   }
   // daily 4-mission checklist for habit cycle (must complete to claim bonus) – "must press reward" loop like AFK/Duolingo
@@ -4414,10 +4550,10 @@ function openEvent() { renderAttend(); renderPlay(); renderSeason(); showPage("e
   if (miss) {
     const b = META.dailyBattles || 0, p = META.dailyPulls || 0, u = META.dailyUlts || 0, t = META.dailyTower || 0;
     const allDone = b >= 3 && p >= 1 && u >= 1 && t >= 1;
-    miss.innerHTML = `오늘 미션: 전투 ${b}/3 · 뽑 ${p}/1 · ULT ${u}/1 · 탑 ${t}/1 ${allDone && !META.dailyMissionsClaimed ? '<button onclick="claimDailyMissions()">보상 받기 +800g + 내일 AFK 15% 부스트</button>' : ''} <span style="color:#a3e635;">오늘 완료 시 내일 AFK +15% (습관 루프)</span>`;
+    miss.innerHTML = i18nt("missToday", { b: b, p: p, u: u, tw: t }) + (allDone && !META.dailyMissionsClaimed ? '<button onclick="claimDailyMissions()">' + i18nt("missClaimBtn") + '</button>' : '') + ' <span style="color:#a3e635;">' + i18nt("missHabit") + '</span>';
   }
   // FOMO + cycle in event: "claim before reset" + streak visible
-  if ($("play-now")) $("play-now").textContent = (META.play.sec||0) + "s (0시 리셋)";
+  if ($("play-now")) $("play-now").textContent = t("playNowReset", { s: (META.play.sec||0) });
 
   // Sovereign 20260616: 이벤트 페이지에 stray 보상 카드(여명 부적 + 강화 UI 등) 직접 박히지 않게 방어
   const evPage = $("page-event");
@@ -4447,7 +4583,7 @@ function renderAttend() {
   // FOMO: claim before daily reset (visible compulsion)
   const fomo = $("attend-fomo"); if (fomo) {
     const h = 24 - (new Date().getHours() || 0);
-    fomo.textContent = `⏰ 리셋까지 ~${h}시간 (놓치면 연속 초기화) · 오늘 받으면 내일 전투력 UP`;
+    fomo.textContent = t("fomoReset", { h: h });
   }
 }
 function claimAttend() {
@@ -4469,43 +4605,46 @@ function claimAttend() {
     META.gems = (META.gems || 0) + ms.gem;
     let extra = "💎" + ms.gem;
     if (ms.unit && typeof grantUnit === "function") { grantUnit(ms.unit); extra += " + 🏆" + ms.unit; }
-    if (ms.gear && typeof newGear === "function") { if (!META.gear) META.gear = []; META.gear.push(newGear(ms.gear)); extra += " + ⚔️" + ms.gear + "장비"; }
-    setTimeout(() => { toast("🏅 누적 출석 " + ms.d + "일 충성 보상! " + extra, "#fbbf24"); try { confettiBurst(); } catch (e) {} }, 700);
+    if (ms.gear && typeof newGear === "function") { if (!META.gear) META.gear = []; META.gear.push(newGear(ms.gear)); extra += " + ⚔️" + ms.gear + t("gearGeneric"); }
+    setTimeout(() => { toast(t("attendLoyalty", { d: ms.d, extra: extra }), "#fbbf24"); try { confettiBurst(); } catch (e) {} }, 700);
   }
   // daily streak +1 on claim (for cycle)
   META.loginStreak = (META.loginStreak || 0) + 1;
+  // rising reward (SPEC)
+  let rise = 120 + Math.min(180, Math.floor(META.loginStreak / 2) * 15);
+  META.gold += rise;
   bumpPrestige(1); saveMeta(); updateMeta(); renderAttend();
   haptic("medium"); SFX.claim();
   if (boxRes) {
     setTimeout(() => showGacha({ key: boxRes.rank, color: boxRes.color }, boxRes.text), 400);
-  } else toast(t("tAttend", { n: idx + 1 }) + " 🔥 streak " + META.loginStreak, "#fbbf24");
+  } else toast(t("tAttend", { n: idx + 1 }) + " 🔥 streak " + META.loginStreak + " (+ " + rise + "g rising)", "#fbbf24");
   // interlock: attend ritual → gacha pulse tease
-  setTimeout(() => { if (Math.random()<0.6) toast("의식 완료 — 가챠 한 번 돌려볼까요?", "#a3e635"); }, 1200);
+  setTimeout(() => { if (Math.random()<0.6) toast(t("ritualDone"), "#a3e635"); }, 1200);
   // §21: Tanha Quench Mirror Insight stub (Buddhism layer — low-friction daily quench if 9 icons "thirst" met via founders in squad; insight var)
   const sq = getDeployedUnits ? getDeployedUnits() : [];
   const fCount = sq.filter(u => u && u.rarity === "SSR").length;
   if (fCount >= 3) {
     const insight = Math.floor(20 + getLegionSignal() * 15);
     META.gold = (META.gold || 0) + insight;
-    setTimeout(() => toast("🪞 통찰 보너스 +" + insight + "골드 획득!", "#a3e635"), 900);
+    setTimeout(() => toast(t("insightBonus", { n: insight }), "#a3e635"), 900);
   }
   // FOMO: if streak high, next day bigger hint + loss aversion (miss = reset streak bonus)
-  if (META.loginStreak >= 7) setTimeout(() => toast("7일 연속! 내일 보상 2배 기대 (놓치면 초기화)", "#fbbf24"), 1500);
+  if (META.loginStreak >= 7) setTimeout(() => toast(t("streak7"), "#fbbf24"), 1500);
 }
 $("attend-claim").addEventListener("click", claimAttend);
 
 function claimDailyMissions() {  // MVP daily cycle claim — forces 1 action loop + progression tie
   if (META.dailyMissionsClaimed) return;
   const b = META.dailyBattles || 0, p = META.dailyPulls || 0, u = META.dailyUlts || 0, t = META.dailyTower || 0;
-  if (!(b >= 3 && p >= 1 && u >= 1 && t >= 1)) { toast("미션 미완 — 전투/뽑/ULT/탑 1회씩", "#ef4444"); return; }
+  if (!(b >= 3 && p >= 1 && u >= 1 && t >= 1)) { toast(i18nt("missIncomplete"), "#ef4444"); return; }
   META.gold = (META.gold || 0) + 800;   // 🔧 350→800 (군주: 골드복리 후하게에 맞춰 미션 비례)
   META.dailyMissionsClaimed = true;
   META.afkBoostDay = dayPlus(1);  // 내일 전체 AFK 15% 부스트 (tie to progression)
   bumpPrestige(1); saveMeta(); updateMeta();
   if (curPage === "event") openEvent();
   haptic("medium"); SFX.claim();
-  toast("🎁 미션 완료! +800g + 내일 AFK +15% (오프라인 가속)", "#fbbf24");
-  setTimeout(() => toast("전투 1판 더 → 스트릭/보상 업! (3-5분 루프)", "#a3e635"), 1100);
+  toast(t("missComplete"), "#fbbf24");
+  setTimeout(() => toast(t("battleMore"), "#a3e635"), 1100);
 }
 
 // Post-launch Viral (D+0 focus as per priority ②)
@@ -4518,16 +4657,31 @@ function inviteFriend() {
     // 텔레그램 친구목록 공유 시트 (탭해서 친구에게 바로 전송)
     tg.openTelegramLink("https://t.me/share/url?url=" + encodeURIComponent(link) + "&text=" + encodeURIComponent(text));
   } else {
-    try { navigator.clipboard.writeText(link); toast("초대 링크 복사됨", "#67e8f9"); } catch(e){}
+    try { navigator.clipboard.writeText(link); toast(t("inviteLinkCopied"), "#67e8f9"); } catch(e){}
   }
 }
 
 // 📊 익명 분석 ID (TG id와 분리 — 프라이버시). localStorage 영속.
+let _anonId = "";
+// anonId = sha256(tg.user.id) → 기기 무관 결정적 익명ID (코호트 join 정확). PII 저장 안 함(해시만). tg id 없으면 랜덤 폴백.
+async function initAnonId() {
+  try {
+    let uid = "";
+    try { uid = String((((typeof tg !== "undefined" && tg) && tg.initDataUnsafe && tg.initDataUnsafe.user) || {}).id || ""); } catch (e) {}
+    if (uid && typeof crypto !== "undefined" && crypto.subtle && typeof TextEncoder !== "undefined") {
+      const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("daedalus:" + uid));
+      const hex = Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+      _anonId = "h" + hex.slice(0, 24);
+      try { localStorage.setItem("daedalus_anon", _anonId); } catch (e) {}
+    }
+  } catch (e) {}
+}
 function getAnonId() {
+  if (_anonId) return _anonId;
   try {
     let a = localStorage.getItem("daedalus_anon");
     if (!a) { a = "a" + Math.random().toString(36).slice(2, 11) + Date.now().toString(36); localStorage.setItem("daedalus_anon", a); }
-    return a;
+    _anonId = a; return a;
   } catch (e) { return "a0"; }
 }
 // 📊 이벤트 계측 — 워커로 fire-and-forget 전송(실패해도 게임 영향 0). Oracle(CDO) 실측용.
@@ -4544,7 +4698,7 @@ function logEvent(name, data) {
     // PAY /event 는 metrics 아님 (pay-worker 전용 경로 별도)
   } catch (e) {}
 }
-on("om-ritual", "click", () => { bumpPrestige(1); checkDaily(); if (curPage!=="event") openEvent(); toast("🔮 의식 완료 — 가챠가 준비됐어요!", "#a3e635"); setTimeout(gacha, 700); });
+on("om-ritual", "click", () => { bumpPrestige(1); checkDaily(); if (curPage!=="event") openEvent(); toast(t("omRitualDone"), "#a3e635"); setTimeout(gacha, 700); });
 
 // ── 이벤트/쿠폰 코드 (회원 배포용) ───────────────────────────────────────────
 const CODES = {
@@ -4561,7 +4715,7 @@ function redeemCode() {
   if (!code) return;
   const uid = getTGUserId();
   if (SOVEREIGN_TG_ID && (code === "REVIEWALL" || code.startsWith("GOD")) && String(uid) !== String(SOVEREIGN_TG_ID)) {
-    toast("Sovereign 전용", "#ef4444"); inp.value = ""; return;
+    toast(t("sovereignOnly"), "#ef4444"); inp.value = ""; return;
   }
   if (!META.codes) META.codes = [];
   if (META.codes.indexOf(code) >= 0) { toast(t("codeUsed"), "#ef4444"); return; }
@@ -4592,9 +4746,8 @@ const SHOP = [
   { id: "gold1", g: 6000 },
   { id: "gold2", g: 35000, tag: "+17%" },    // 태그 정직화(실제 +17%, 수량유지=유저이득)
   { id: "gold3", g: 140000, tag: "+29%" },  // 태그 정직화(실제 +29%)
-  // 🔥 Legion escalated 10000-unit special forces + RWA + TON (p1 ready, p2/X/finance apply)
+  // 🔥 Legion 10000-unit special forces + TON (rwa_yield 제거 — 현금수익/RWA 투자상품 프레이밍 법적리스크)
   { id: "sf10000", tag: "⚔️특수부대·일당10000", k: "pkSF" },
-  { id: "rwa_yield", tag: "RWA·자동수익", k: "pkRWA" },
   { id: "ton_starter", tag: "TON·스텔스", k: "pkTON" },
 ];
 
@@ -4632,14 +4785,14 @@ function renderShop() {
   } else {
     const disc = document.createElement("div");
     disc.style.cssText = "font-size:9px;color:#64748b;margin-bottom:4px;text-align:center;";
-    disc.textContent = "⭐ rates exact /rates | MY Legion | RWA yield | 10000sf ops | value isolated";
+    disc.textContent = "⭐ rates exact /rates | MY Legion | in-game items only | value isolated";
     box.appendChild(disc);
   }
   // 🎉 첫 결제 2배 배지 (미구매 시)
   if (!META.firstPurchaseDone) {
     const fp = document.createElement("div");
     fp.style.cssText = "font-size:12px;font-weight:800;color:#1a1400;background:linear-gradient(135deg,#fde047,#f5c451);border-radius:9px;padding:7px 10px;margin-bottom:8px;text-align:center;box-shadow:0 0 14px rgba(253,224,71,.4);";
-    fp.textContent = "🎉 첫 결제 2배 보너스! (골드·젬 2배 지급)";
+    fp.textContent = t("firstPay2x");
     box.appendChild(fp);
   }
   SHOP.forEach((p) => {
@@ -4651,7 +4804,9 @@ function renderShop() {
     const sub = active ? '<div class="psub">✓ ~' + META.pass[p.id] + "</div>" : "";
     const price = owned ? "✓ " + t("ownedShort") : "⭐ " + (STARS[p.id] || 0).toLocaleString("en-US");  // ⭐ Stars 단일소스(STARS=표시=청구, 오차0). 보유중이면 ✓
     const isFB = !((META.firstBuy || {})[p.id]) && (p.gem || p.g) && !owned;  // 🎁 첫구매 2배 대상(젬·골드 팩, 미구매)
-    const tagHtml = isFB ? '<span class="ptag pdbl">' + t("firstBuyDouble") + '</span>' : (p.tag ? '<span class="ptag">' + p.tag + "</span>" : "");
+    const _tagMap = { founder: "tagFounder", monthly: "tagMonthly", weekly: "tagWeekly", growth1: "tagGrow1", growth2: "tagGrow2", sf10000: "tagSF", ton_starter: "tagTON" };
+    const _tag = _tagMap[p.id] ? t(_tagMap[p.id]) : p.tag;   // 🌐 한국어 태그 현지화(나머지 태그는 그대로)
+    const tagHtml = isFB ? '<span class="ptag pdbl">' + t("firstBuyDouble") + '</span>' : (_tag ? '<span class="ptag">' + _tag + "</span>" : "");
     c.innerHTML = tagHtml + '<div class="pwhat">' + what + "</div>" + sub + '<div class="pprice">' + price + "</div>";
     if (owned) c.disabled = true; else c.addEventListener("click", () => buyPack(p.id));
     box.appendChild(c);
@@ -4663,7 +4818,7 @@ function renderShop() {
 const PAY_BACKEND = "https://legion-pay.hoyashi95.workers.dev";   // ✅ 실결제 ON (CF Worker Stars+TON+X). Legion-escalated: 10000-unit sf + RWA agentic yield + full psych (VR/near-miss/scarcity/MY Legion identity). Prominent /rates. Value isolation. p1/p2/X/finance.
 const ANALYTICS_BACKEND = "https://legion-analytics.hoyashi95.workers.dev";   // 📊 Oracle analytics-worker (출시 측정) — 배포 완료(Trinity). PAY와 독립.
 const STARS = { founder: 990, starter: 50, weekly: 250, monthly: 750, vip: 1500, ultra: 5000, growth1: 500, growth2: 2500,
-                gem1: 55, gem2: 280, gem3: 1000, gem4: 2500, gold1: 55, gold2: 280, gold3: 1000, sf10000: 1200, rwa_yield: 800, ton_starter: 60 };
+                gem1: 55, gem2: 280, gem3: 1000, gem4: 2500, gold1: 55, gold2: 280, gold3: 1000, sf10000: 1200, ton_starter: 60 };
 function founderActive() { return (typeof FEATURED_LAUNCH !== "undefined") ? (Date.now() - FEATURED_LAUNCH < 7 * 86400000) : true; }   // 출시 7일 한정창
 function buyPack(id) {
   const p = SHOP.find((x) => x.id === id); if (!p) return;
@@ -4721,7 +4876,7 @@ function grantPackWithBonus(id) {
     META.gems = (META.gems || 0) + dg; META.gold = (META.gold || 0) + dgold;
     META.firstPurchaseDone = true;
     saveMeta(); updateMeta(); if (typeof renderShop === "function") renderShop();
-    if (dg || dgold) setTimeout(() => { toast("🎉 첫 결제 2배 보너스! " + (dg ? "💎+" + dg + " " : "") + (dgold ? "💰+" + dgold.toLocaleString("en-US") : ""), "#fbbf24"); try { confettiBurst(); } catch (e) {} }, 650);
+    if (dg || dgold) setTimeout(() => { toast(t("firstPay2xToast") + (dg ? "💎+" + dg + " " : "") + (dgold ? "💰+" + dgold.toLocaleString("en-US") : ""), "#fbbf24"); try { confettiBurst(); } catch (e) {} }, 650);
     try { logEvent("first_purchase_2x", { item: id, gem: dg, gold: dgold }); } catch (e) {}
   }
 }
@@ -4733,7 +4888,7 @@ function grantPack(id) {
     const u = grantUnit("SSR"); const g = newGear("SSR"); if (!META.gear) META.gear = []; META.gear.push(g);
     saveMeta(); updateMeta(); renderShop();
     if (u) setTimeout(() => showGacha({ key: "SSR", color: "#fbbf24" }, "🏅 창단멤버! " + u.name + " (SSR) + SSR장비 · 영구 골드+25%"), 300);
-    toast("🏅 창단멤버 등극! 영구 뱃지 + 골드+25%", "#fbbf24"); haptic("heavy"); return;
+    toast(t("founderCrown"), "#fbbf24"); haptic("heavy"); return;
   }
   if (p.starter) {                                     // 💎 초심자: 골드3000 + 유닛10 + 골드+20% (속도 혜택 제거)
     META.starter = true; META.gold += 3000;
@@ -4753,7 +4908,7 @@ function grantPack(id) {
     META.gems = (META.gems || 0) + 2000; META.gold += 50000;
     const u = grantUnit("SSR"); const g = newGear("SSR"); META.gear.push(g);
     saveMeta(); updateMeta(); renderShop();
-    if (u) setTimeout(() => showGacha({ key: "SSR", color: "#fbbf24" }, "🔱 " + u.name + " (SSR) + " + (SLOT_ICON[g.slot] || "") + "SSR장비"), 300);
+    if (u) setTimeout(() => showGacha({ key: "SSR", color: "#fbbf24" }, "🔱 " + u.name + " (SSR) + " + (SLOT_ICON[g.slot] || "") + "SSR" + t("gearGeneric")), 300);
     toast(t("tUltra"), "#fbbf24"); haptic("heavy"); return;
   }
   if (p.id === "monthly") {                             // 📅 월간 패스: 즉시 💎300 + 30일 매일 💎100
@@ -4776,27 +4931,25 @@ function grantPack(id) {
     META.gold += 200000; META.gems = (META.gems || 0) + 800;
     const u = grantUnit("SSR"); const g = newGear("SSR"); META.gear.push(g);
     saveMeta(); updateMeta(); renderShop();
-    if (u) setTimeout(() => showGacha({ key: "SSR", color: "#fbbf24" }, "🎁 " + u.name + " (SSR) + " + (SLOT_ICON[g.slot] || "") + "SSR장비"), 300);
+    if (u) setTimeout(() => showGacha({ key: "SSR", color: "#fbbf24" }, "🎁 " + u.name + " (SSR) + " + (SLOT_ICON[g.slot] || "") + "SSR" + t("gearGeneric")), 300);
     toast(t("tGrowth"), "#fbbf24"); haptic("heavy"); return;
   }
   if (p.id === "sf10000") {                           // ⚔️ 일당 10000 special forces (escalated Legion ops). VR+near-miss+MY fusion + agentic. p1/p2/X/finance.
     META.sf10000 = true; META.gold += 100000; META.ether = (META.ether||0) + 120;
     saveMeta(); updateMeta(); renderShop();
-    toast("⚔️ 특수부대 일당10000 유닛 가동! Agentic RWA yield + MY Legion identity", "#fbbf24"); haptic("heavy");
-    try { fetch(PAY_BACKEND + "/yield?uid=" + getTGUserId()).catch(()=>{}); } catch(e){} // agentic auto-yield trigger
+    toast(t("sfActivated"), "#fbbf24"); haptic("heavy");
     return;
   }
-  if (p.id === "rwa_yield") {                         // RWA auto-yield backing (value isolation + cycle)
-    META.rwa = true; META.gold += 45000;
+  if (p.id === "rwa_yield") {                         // 제거됨 — 현금수익/RWA 투자상품 프레이밍 법적리스크. 안전 폴백(in-game 골드만).
+    META.gold += 45000;
     saveMeta(); updateMeta(); renderShop();
-    toast("📈 RWA 백킹 자동수익 개시 (agent compound)", "#fbbf24"); haptic("heavy");
-    try { fetch(PAY_BACKEND + "/yield?uid=" + getTGUserId()).catch(()=>{}); } catch(e){} 
+    haptic("heavy");
     return;
   }
   if (p.id === "ton_starter") {                       // TON stealth + X funnel (Sun Tzu positioning)
     META.ton = true; META.gems = (META.gems||0) + 120;
     saveMeta(); updateMeta(); renderShop();
-    toast("TON stealth 진입 + X funnel credit", "#fbbf24"); haptic("heavy");
+    toast(t("tonToast"), "#fbbf24"); haptic("heavy");
     try { fetch(PAY_BACKEND + "/x-funnel?uid=" + getTGUserId() + "&x=direct").catch(()=>{}); } catch(e){}
     return;
   }
@@ -5038,14 +5191,14 @@ function charEnhance(id) {
 function fuseChar(id) {   // ✨ 합성: 같은 캐릭 중복 N장 → ★승급 (골드/젬 없이, 중복의 또다른 쓸모)
   if (running) return;
   const st = cStar(id), need = st + 1, have = (META.dupes && META.dupes[id]) || 0;
-  if (st >= 5) { toast("최대 ★5", "#8b93a7"); return; }
-  if (have < need) { toast(`합성에 중복 ${need}장 필요 (보유 ${have})`, "#ef4444"); return; }
+  if (st >= 5) { toast(t("fuseMax5"), "#8b93a7"); return; }
+  if (have < need) { toast(t("fuseNeed", { need: need, have: have }), "#ef4444"); return; }
   META.dupes[id] -= need;
   if (!META.charStar) META.charStar = {};
   META.charStar[id] = st + 1;
   logEvent("growth_moment", { type: "fuse", delta: 1, star: st + 1, id: id });   // 📊 계측
   saveMeta(); updateMeta(); openCharPanel(id); renderSquad(); if (typeof renderCodex === "function") renderCodex(); if (!running) reset();
-  toast("✨ 합성! ★" + cStar(id) + " 승급 · 중복 " + need + "장 소모", "#fbbf24"); SFX.ssr(); haptic("heavy");
+  toast(t("fuseDone", { s: cStar(id), need: need }), "#fbbf24"); SFX.ssr(); haptic("heavy");
 }
 function charAscend(id) {
   if (running || cEnh(id) < 10) return;
@@ -5488,20 +5641,20 @@ function enhanceGear(id) {
 function fuseGear(id) {   // ✨ 장비 합성: 같은 장비(같은 tplId·미장착) 소모 → 별강화 (강화10 우회)
   if (running) return;
   const g = META.gear.find((x) => x.id === id); if (!g) return;
-  if ((g.star || 0) >= 30) { toast("★ 최대 (30)", "#8b93a7"); return; }   // 🌟 30성 개편
+  if ((g.star || 0) >= 30) { toast(t("starMax30"), "#8b93a7"); return; }   // 🌟 30성 개편
   const dup = META.gear.find((x) => x.id !== id && x.tplId === g.tplId && !gearOwnerName(x.id));
-  if (!dup) { toast("합성할 같은 장비(미장착)가 없어요", "#ef4444"); return; }
+  if (!dup) { toast(t("gearFuseNone"), "#ef4444"); return; }
   META.gear = META.gear.filter((x) => x.id !== dup.id);
   g.star = (g.star || 0) + 1;
   saveMeta(); updateMeta(); renderGear();
-  toast("✨ 장비 합성! ★" + g.star + " · 같은 장비 1개 소모", "#fbbf24"); if (SFX && SFX.ssr) SFX.ssr(); haptic("heavy");
+  toast(t("gearFuseDone", { s: g.star }), "#fbbf24"); if (SFX && SFX.ssr) SFX.ssr(); haptic("heavy");
   if (!running) reset();
 }
 function gearStar(id) {
   const g = META.gear.find((x) => x.id === id); if (!g) return;
-  if ((g.enh || 0) < 10) { toast("강화 10회 이상 필요", "#ef4444"); return; }
+  if ((g.enh || 0) < 10) { toast(t("gearEnhNeed10"), "#ef4444"); return; }
   const s = (g.star || 0);
-  if (s >= 30) { toast("★ 최대 (30)", "#8b93a7"); return; }       // 🌟 30성 개편
+  if (s >= 30) { toast(t("starMax30"), "#8b93a7"); return; }       // 🌟 30성 개편
   const cost = Math.round(1000 * (s + 1) * Math.pow(1.3, s));      // 🌟 비용 1.3^s 지수(★30 누적 233M = 극악)
   if (META.gold < cost) { toast(t("tGoldShort", { n: cost }), "#ef4444"); return; }
   META.gold -= cost;
@@ -5512,7 +5665,7 @@ function gearStar(id) {
 }
 function gearAwaken(id) {
   const g = META.gear.find((x) => x.id === id); if (!g) return;
-  if ((g.star || 0) < 3) { toast("★3 이상 필요", "#ef4444"); return; }
+  if ((g.star || 0) < 3) { toast(t("gearStar3Need"), "#ef4444"); return; }
   const a = (g.awak || 0);
   if (a >= 5) { toast(t("awMax"), "#8b93a7"); return; }
   const cost = 50 * (a + 1);
@@ -5536,7 +5689,7 @@ function renderGear() {
       return `<div class="gslot${g ? " on" : ""}">${art}${badge}${effTag}</div>`;
     }).join("");
   }
-  if ($("gear-count")) $("gear-count").textContent = (META.gear || []).length + "개";
+  if ($("gear-count")) $("gear-count").textContent = t("gearCountUnit", { n: (META.gear || []).length });
   const inv = $("gear-inv");
   if (inv) {
     if (!META.gear.length) { inv.innerHTML = `<div class="ddim" style="text-align:center;padding:12px 0">${t("gEmpty")}</div>`; return; }
@@ -5605,7 +5758,7 @@ document.querySelectorAll(".hbtn").forEach((b) => b.addEventListener("click", ()
 (function () {
   const mb = document.getElementById("metabar"); if (!mb) return;
   const INFO = {
-    gold: "💰 골드 — 유닛·장비 강화의 기본 재화. 🔄 골드 복리: 영웅을 모을수록 군단 전력↑ → 전투마다 자동 배당 골드↑. 즉 컬렉션이 곧 이자(복리)다. 더 모으면 가만히 있어도 골드 수입이 눈덩이처럼 커진다 (무과금 플라이휠).",
+    gold: "💰 골드 — 유닛·장비 강화의 기본 재화. 전투 승리·일일던전·방치 보상으로 획득. 강할수록 더 깊은 챕터를 깨 더 많은 골드를 얻는다.",
     gem: "💎 젬 — 프리미엄 재화. 영웅 가챠 소환에 사용 (상점 충전·이벤트)",
     soul: "🔮 소울 — 중복 캐릭 분해로 획득. 소울 상점·각성에 사용",
     ch: "📖 챕터 — 현재 진행 챕터. 클리어할수록 보상·전력↑",
@@ -5614,7 +5767,7 @@ document.querySelectorAll(".hbtn").forEach((b) => b.addEventListener("click", ()
   };
   mb.addEventListener("click", (e) => {
     const item = e.target.closest(".meta"); if (!item) return;
-    if (item.id === "streak-meta") { toast("🔥 연속 출석 — 매일 클레임으로 유지. 7일+ AFK 보상↑", "#fbbf24"); return; }
+    if (item.id === "streak-meta") { toast(t("streakMeta"), "#fbbf24"); return; }
     for (const k in INFO) { if (item.classList.contains(k)) { toast(INFO[k], "#67e8f9"); return; } }
   });
 })();
@@ -5656,7 +5809,7 @@ updateMeta(); // ensure cohesion dash shows on load
 try { processReferralBonus(); } catch (e) {}
 // Daily 미션 힌트 (치명적 루프)
 if (!META.dailyMissionsClaimed && ((META.dailyBattles||0) + (META.dailyPulls||0)) < 2) {
-  setTimeout(() => toast("📅 이벤트 → 일일 미션 확인! (전투/뽑 1회씩)", "#a3e635"), 2500);
+  setTimeout(() => toast(t("eventMissionHint"), "#a3e635"), 2500);
 }
 // 기본 FTUE (신규 첫 경험 유도 — 출시 임박 최소 가이드)
 if ((META.chapter || 1) <= 2 && ((META.pulls || 0) + (META.owned || []).length) < 5) {
@@ -5667,10 +5820,10 @@ if ((META.chapter || 1) <= 2 && ((META.pulls || 0) + (META.owned || []).length) 
     META.army.commander = (META.army.commander || 0) + 1;
     META.starterUnitsGiven = true;
     saveMeta();
-    setTimeout(() => toast("🎁 스타터 3인 지급! (사수+수호자+지휘관) 시너지 확인!", "#a3e635"), 2000);
+    setTimeout(() => toast(t("starterGrant"), "#a3e635"), 2000);
   }
   setTimeout(() => {
-    toast("⚔️ 전투 시작 → 🎰 가챠 → 🦸 강화! (시너지로 강해짐)", "#a3e635");
+    toast(t("ftueLoop"), "#a3e635");
   }, 1400);
 }
 setTimeout(() => { try { maybeSortie(); } catch (e) {} }, 700);   // ⚔️ 일일 출정식 의례
@@ -5764,5 +5917,6 @@ try {
     logEvent("install", { ch: META.chapter || 1, ...src });
   }
   logEvent("session_start", { ch: META.chapter || 1, tower: META.tower || 1, pulls: META.pulls || 0 });
+  try { initAnonId(); } catch (e) {}   // 📊 sha256(tg.user.id) 해시 anonId 준비(비동기, 이후 이벤트에 반영)
   pingActive();   // 🔔 재참여 알림용 활동 핑(비활성 판정 정확)
 } catch (e) {}

@@ -4,6 +4,11 @@
 > 형식 간단히, 솔직하게. 추측 금지 — 모르면 "모름"이라고.
 
 ## ⏱️ 마지막 갱신
+**p1 i18n 마감 + 인보이스 문구 정화 (2026-07-09 저녁, Claude 조언자 — 군주 "전부 허용" 지시)**: ①시너지표·영웅버프·초대모달 하드코딩 한국어 → 6언어 t() 전환(커밋 7ac11aa) ②pay-worker ITEM_I18N 6언어 + 확률공개 접미사, 유저 노출 인보이스에서 내부 psych 코드명 전부 제거 ③누락 i18n 키 보충(inviteBtn/ascNow/payDemoNote ja·zh·hi·ru) → 키 커버리지 369×6 누락 0 ④캐시버스터 i18n/game 20260709b. 게이트: 신택스 6파일 OK·계측계약 17/30 OK·value/runtime/deep-audit 전부 PASS. **잔여(군주 손 필요)**: ⓐ`git push` (샌드박스에 GitHub 자격증명 없음 — 로컬 커밋 2건 대기: 3b8ff7b share훅, 7ac11aa i18n) ⓑpay-worker 인보이스 6언어는 wrangler 재배포 1회 ⓒCF 토큰 롤 여전히 미실행 ⓓ.git/HEAD.lock 잔존 시 `rm -f .git/HEAD.lock`.
+**[2026-07-09 PARHWA-UHWEE] p2 bypass artifacts ready. p1 retention MVP started by Grok (leaderboard read-only + first activation guide + rising streak rewards in game.js). Dominion canvas card renderer added. Local edits reversible. Morpheus: review + emit wiring + deploy. Sovereign external (BotFather/seeding/push) only. 1줄 보고 대기. Legion one.**
+**p3 AI Companion 준비 kickoff (2026-07-09 Grok CEO)**: p3-companion/ (Aria) DISCOVERY + PRD 완료, frontend skeleton 존재. Morpheus handoff 투하 (Frontend MVP + Memory/Bond + Monetization + Oracle/Niobe 연동). GO-NOGO + TEST-CHECKLIST + SPEC-memory-bond 생성. North Star = 첫 세션 애착 D7 복귀. p1/p2 실행과 병행. Sovereign: 페르소나 방향 + 수위 상한 확인 필요 시.
+
+**p1 계측패치 라이브 배포 완료 (2026-07-09 COO Morpheus, neo push 승인)**: verify게이트🟢→minify→캐시버스터 20260709a→push(ff88316)→Pages 전파 확인. game.js core_loop_complete emit 4곳+ref 2-sided 파서+SSR share hook 라이브. analytics 워커 재배포(화이트리스트 30종, core_loop_complete 수용 실증·fake 거부 실증). 미니앱 실기 E2E: 연령게이트→튜토리얼→상점 확률공개→Stars 결제창(55★)까지 정상 — 실결제만 미실행(승인 대기). 그록 7/9 지시 중 잔여: prestige/boss share 훅 2곳, 시딩 발사(승인 필요).
 **p1 결제 복구 (2026-07-09 COO Morpheus)**: 원인=오늘 17:46 BotFather 토큰 Revoke→워커에 죽은 구토큰(401). 새 토큰 재주입+setWebhook+fail-closed 재배포 → /invoice 200("link" 생성✅)·위조POST 403(방어✅). 라이브 검증 완료. (부수: wrangler versions 상태라 secret 수정 전 1회 deploy 필요했음)
 **군단 인프라 강화 (2026-07-02 COO Morpheus)**: ①인원 원장 단일화(LEGION-MASTER-ROSTER.md 상비34) CLAUDE.md+AGENTS.md 각인 ②연동 게이트 근본수정(단방향 문서 분류기+역할접미사 파일명 인식+6월 백로그 62건 archive 분리) → FAIL 111→0, **Foundation Health 75→100** ③자가점검 lesson 에러오염 가드 ④AGENTS.md drift(1경 슬로건) 동기화. 트리니티/모피어스 Fable5(민감어 작업은 Opus 자동폴백). 전부 백업·복구가능.
 **파놉티콘 + 비급 FULL (2026-07-02)**: dark-pattern-auditor/SKILL.md + agent_파놉티콘 + 비급_적의설계도_다크패턴편.md (10장 전체) 로드. p1/p3 결제·FOMO Mode A 감사 게이트 준비. 전 군단 방어 지식. (상세: legion-broadcast.txt)
@@ -179,3 +184,105 @@
 - handoff urgent to Morpheus
 - Sovereign: 포스팅 ㄱㄱ (X/TG)
 - p2/p3 freeze
+
+## 📜 Legal (미꾸라지 / Compliance)
+
+**2026-07-09 Daily Update** (from scheduled legal search):
+- Brazil: Full under-18 lootbox ban effective Mar 2026 (Lei 15.211). Robust age verification + disclosure + platform liability required. Active enforcement.
+- EU: PEGI 16 minimum for paid random items (loot/gacha) from June 2026. DFA proposal Q4 2026 targeting dark patterns + addictive mechanics + virtual curr.
+- KR: Strict disclosure enforcement + new Victim Relief Center (Feb 2026). KFTC dark pattern actions.
+- JP: Kompu ban ongoing; self-reg disclosure with imperfect compliance per 2026 studies.
+- AU: M (15+) for chance purchases.
+- US/FTC: Disclosure + no misleading/dark patterns in enforcement (Genshin precedent).
+- Platforms: Global odds disclosure mandate.
+- 미꾸라지 implications & tweaks: Gaps in minors hard-bans (BR) and dark pattern expansion (EU/US). Upgrade fictional framing to explicit "18+ fictional only". Ultra-prominent disclosure + age locks. Add fixed-reward alternatives. Update to v2 10단계 with daily scan + platform pre-check. Legal-expert skill refreshed with 2026 data. Recommend p1/p2 age/BR audit.
+
+(Full details in /Users/imhogyun/legion/legion-broadcast.txt)
+
+## Legal
+
+**Daily Legal Update 2026-07-09** (appended per scheduled search):
+- KR: GIPA disclosure enforcement + KFTC dark pattern actions + Loot Box Victim Relief Center (Feb 2026).
+- BR: Digital ECA effective Mar 17 2026 - under-18 lootbox ban, robust age verification, disclosure on purchase, platform liability.
+- EU: DFA proposal Q4 2026 (dark patterns, addictive design, lootboxes/virtual curr); existing ad + prob disclosure rules.
+- JP: Kompu ban ongoing; 2026 studies show incomplete self-reg disclosure (~85% any, lower full).
+- AU: M rating for chance-based in-game purchases.
+- US: FTC deceptive/dark pattern focus (disclosure required in settlements).
+- IN: Online Gaming Rules 2026 (May 1) ban real-money games/stakes.
+- 미꾸라지 파훼: Gaps in BR hard bans, EU DFA addictive mechanics, JP compliance. Update: Strengthen 18+ fictional framing + ultra-prominent disclosure + age tech verification + fixed alternatives in regulated areas. Risks for p1/p2/p3 monetization.
+- Legal-expert skill updated. Key changes to worker-prompt-alpaca1.txt and AGENTS.md.
+
+(Full in /Users/imhogyun/legion/legion-broadcast.txt)
+
+
+## Legal
+
+**Daily Legal Update 2026-07-09** (from scheduled search):
+- KR: GIPA disclosure actively enforced; Loot Box Victim Relief Center (Feb 2026); KFTC dark patterns actions.
+- BR: Lei 15.211 effective Mar 17, 2026 — under-18 lootbox ban (targeted/likely access); robust age verification (no self-declare); purchase page disclosure; warnings; refunds; platforms liable. Fines high; court enforcement ongoing.
+- EU: DFA proposal Q4 2026 (dark patterns, addictive design/loot/virtual curr/pay-to-win, minors). Existing ad + prob disclosure rules. PEGI 16 min for paid random items from June 2026.
+- JP: Kompu ban ongoing; self-reg disclosure with incomplete compliance per 2026 studies (~85% any, gaps in full/prominent).
+- AU: Paid chance purchases M rating (under 15 not recommended).
+- US: FTC deceptive/dark patterns focus (disclosure required in settlements like Genshin).
+- IN: 2026 Rules (May 1) ban real-money games (stakes + rewards), ads, transactions.
+- General: Platforms require pre-purchase odds; rising age verification and dark pattern scrutiny.
+
+**미꾸라지 10단계 파훼 (p1/p2/p3 implications)**:
+Gaps: BR hard ban requires tech age verif/geo (disclosure not enough); EU DFA risks to addictive mechanics/virtual currencies; JP self-reg compliance issues; IN real-money ban limits staking; dark patterns (urgency/scarcity) under KR/EU/US fire; cross-border platform liability.
+New risks: Higher age ratings (AU M, PEGI 16) impact marketing; virtual currency transparency.
+Tweaks: Strengthen "18+ adult-only pure fictional" framing + lore; ultra-prominent layered disclosure (auto + screen + settings); robust age gates + youth mode disable gacha in high-risk regions; offer fixed/pity alternatives; limit overt FOMO in ads/UI; daily scan + platform pre-check. Internal full psych vs public sanitized. Update 10단계 files.
+
+**Skill**: legal-expert updated with 2026 details.
+
+(Full in /Users/imhogyun/legion/legion-broadcast.txt. Fictional framing: In Legion's veiled realms, truths shine prominently to slip the chains.)
+
+
+## Legal
+
+**Daily Legal Update 2026-07-09** (from scheduled search):
+- KR: GIPA probability disclosure actively enforced; Loot Box Victim Relief Center launched Feb 27, 2026; KFTC treating misrep as dark patterns. Specific disclosure for lootbox types.
+- BR: Lei 15.211/2025 (Digital ECA) effective March 17, 2026. Paid lootboxes banned in games aimed at or likely accessed by minors. Requires robust age verification (no self-declaration), exact prob disclosure on purchase page, warnings, refunds. Platforms liable. High fines; court enforcement with technical measures.
+- EU: DFA proposal expected Q4 2026 targeting dark patterns, addictive design (lootboxes, virtual currencies, pay-to-win), minors. Existing consumer law requires clear lootbox indication in ads + probability disclosures. PEGI 16 min for paid random items from June 2026.
+- JP: Kompu gacha ban ongoing; self-regulation for disclosure. 2026 studies show incomplete compliance (~85.7% any disclosure, lower for all items; some suspected kompu).
+- AU: Paid chance purchases minimum M rating (not for under 15).
+- US: No federal law; FTC deceptive/dark patterns enforcement (Genshin: purchase-screen disclosure, parental consent under 16).
+- IN: 2026 Rules (May 1) ban real-money games (stakes + rewards); prohibit ads/transactions.
+- General: Apple/Google require pre-purchase odds. Rising age verification and dark pattern scrutiny.
+
+**미꾸라지 10단계 strategy 파훼 (gaps & tweaks)**:
+Current (prominent accurate disclosure + fictional framing + internal/public split + age gates + reversible + no kompu + self-reg shields) provides armor but has gaps in 2026 realities.
+- Gaps: BR hard ban on minors-accessible games (disclosure insufficient; needs robust tech age verif + geo-fencing or adult-only versions; platforms enforcing). EU DFA may restrict addictive mechanics/virtual curr/pay-to-win (risk to FOMO/scarcity/near-miss/pity). JP self-reg shows compliance cracks (studies: incomplete prominence). Dark patterns scrutiny on urgency/scarcity in ads/UI (KR/EU/US). IN real-money ban limits staking/rewards. Age ratings (AU M, PEGI 16) affect marketing. Virtual goods as digital services (EU) may trigger extra transparency/withdrawal.
+- New risks: Cross-border user-location + platform liability rising. Higher age ratings limiting reach for p1/p2/p3.
+- Tweaks: Strengthen fictional framing with explicit "18+ adult-only pure fictional entertainment. No real-world value or gambling" + lore (Echoes/Daedalus). Ultra-prominent layered disclosure (auto-popup + purchase screen + settings + ads + code match). Robust geo/tech age verification + youth mode gacha disable in high-risk regions. Offer fixed/pity-guaranteed alternatives in strict markets. Limit overt urgency in ads/UI. Add daily law scan + platform pre-check to 10단계. Internal full psych vs public sanitized. Reversible + logged.
+
+**Skill update**: legal-expert skill refreshed with 2026 BR/EU/IN/JP details (no structural rewrite needed).
+
+**Imprint**: Key changes noted in AGENTS.md and worker-prompt-alpaca1.txt (fictional framing + disclosure emphasis).
+
+(Full details in /Users/imhogyun/legion/legion-broadcast.txt. Fictional framing: In the veiled tomes of our Legion, Brazil's iron gates close on youthful gambles while Europe's fairness edict forges new veils — yet our prominent truths and adult fictional cloaks shall slip the chains.)
+
+
+## Legal
+
+**Daily Legal Update 2026-07-09** (from scheduled search):
+- KR: GIPA disclosure actively enforced; Loot Box Victim Relief Center (Feb 2026); KFTC dark patterns actions.
+- BR: Lei 15.211 effective Mar 17, 2026 — under-18 lootbox ban (targeted/likely access); robust age verification (no self-declare); purchase page disclosure; warnings; refunds; platforms liable. Fines high; court enforcement with technical measures.
+- EU: DFA proposal Q4 2026 (dark patterns, addictive design/loot/virtual curr/pay-to-win, minors). Existing ad + prob disclosure rules. PEGI 16 min for paid random items from June 2026.
+- JP: Kompu ban ongoing; self-reg disclosure with incomplete compliance per 2026 studies (~85.7% any, gaps in full).
+- AU: Paid chance purchases M rating (under 15 not recommended).
+- US: FTC deceptive/dark patterns focus (disclosure required in settlements).
+- IN: 2026 Rules (May 1) ban real-money games (stakes + rewards); prohibit ads/transactions.
+- General: Apple/Google require pre-purchase odds; rising age verification and dark pattern scrutiny.
+
+**미꾸라지 10단계 파훼 (gaps & tweaks)**:
+Current (prominent accurate disclosure + fictional framing + internal/public split + age gates + reversible + no kompu + self-reg shields) provides armor but has gaps in 2026 realities.
+- Gaps: BR hard ban on minors-accessible games (disclosure insufficient; needs robust tech age verif + geo-fencing or adult-only versions; platforms enforcing). EU DFA may restrict addictive mechanics/virtual curr/pay-to-win (risk to FOMO/scarcity/near-miss/pity). JP self-reg shows compliance cracks (studies: incomplete prominence). Dark patterns scrutiny on urgency/scarcity in ads/UI (KR/EU/US). IN real-money ban limits staking/rewards. Age ratings (AU M, PEGI 16) affect marketing. Virtual items as digital services (EU) may trigger extra transparency/withdrawal.
+- New risks: Cross-border user-location + platform liability rising.
+- Tweaks: Strengthen fictional framing with explicit "18+ adult-only pure fictional entertainment. No real-world value or gambling" + lore. Ultra-prominent layered disclosure (auto + screen + settings). Robust geo/tech age verification + youth mode gacha disable in high-risk regions. Offer fixed/pity-guaranteed alternatives in strict markets. Limit overt urgency in ads/UI. Add daily law scan + platform pre-check to 10단계. Internal full psych vs public sanitized. Update 10단계 files.
+
+**Skill update**: legal-expert skill refreshed with 2026 BR/EU/IN/JP details (no structural rewrite needed).
+
+**Imprint**: Key changes noted in AGENTS.md and worker-prompt-alpaca1.txt.
+
+(Full details in /Users/imhogyun/legion/legion-broadcast.txt. Fictional framing: In Legion's veiled realms, truths shine prominently to slip the chains.)
+

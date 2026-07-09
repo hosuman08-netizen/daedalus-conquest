@@ -12,7 +12,7 @@
 const ITEMS = {
   founder: {}, starter: {}, weekly: {}, monthly: {}, vip: {}, ultra: {},
   growth1: {}, growth2: {}, gem1: {}, gem2: {}, gem3: {}, gem4: {},
-  gold1: {}, gold2: {}, gold3: {}, sf10000: {}, rwa_yield: {}, ton_starter: {},
+  gold1: {}, gold2: {}, gold3: {}, sf10000: {}, ton_starter: {},
 };
 
 // 🌐 유저 노출 인보이스 문구 — 6언어 (ko/en/ja/zh/hi/ru). 내부 psych 코드명은 제거하고 실제 내용만 자연스럽게.
@@ -33,8 +33,7 @@ const ITEM_I18N = {
     gold1:     { title: "💰 6000 Gold",          desc: "6,000 gold" },
     gold2:     { title: "💰 35000 Gold",         desc: "35,000 gold" },
     gold3:     { title: "💰 140000 Gold",        desc: "140,000 gold" },
-    sf10000:   { title: "Special Forces 10000",  desc: "⚔️ Elite 10,000-unit special forces + daily bonus + auto-yield backing" },
-    rwa_yield: { title: "Yield Backing",         desc: "Auto-yield backing that compounds daily" },
+    sf10000:   { title: "Special Forces 10000",  desc: "⚔️ Elite 10,000-unit special forces + daily in-game bonus" },
     ton_starter:{ title: "TON Starter",          desc: "TON payment entry pack" },
   },
   ko: {
@@ -53,8 +52,7 @@ const ITEM_I18N = {
     gold1:     { title: "💰 6000",          desc: "골드 6,000" },
     gold2:     { title: "💰 35000",         desc: "골드 35,000" },
     gold3:     { title: "💰 140000",        desc: "골드 140,000" },
-    sf10000:   { title: "특수부대 일당10000", desc: "⚔️ 정예 10,000유닛 특수부대 + 일일 보너스 + 자동 수익 백킹" },
-    rwa_yield: { title: "수익 백킹",        desc: "매일 복리로 쌓이는 자동 수익 백킹" },
+    sf10000:   { title: "특수부대 일당10000", desc: "⚔️ 정예 10,000유닛 특수부대 + 일일 게임내 보너스" },
     ton_starter:{ title: "TON 스타터",       desc: "TON 결제 진입 패키지" },
   },
   ja: {
@@ -73,8 +71,7 @@ const ITEM_I18N = {
     gold1:     { title: "💰 6000",   desc: "ゴールド6,000" },
     gold2:     { title: "💰 35000",  desc: "ゴールド35,000" },
     gold3:     { title: "💰 140000", desc: "ゴールド140,000" },
-    sf10000:   { title: "特殊部隊 日当10000", desc: "⚔️ 精鋭10,000ユニット特殊部隊 + デイリーボーナス + 自動収益バッキング" },
-    rwa_yield: { title: "収益バッキング", desc: "毎日複利で積み上がる自動収益バッキング" },
+    sf10000:   { title: "特殊部隊 日当10000", desc: "⚔️ 精鋭10,000ユニット特殊部隊 + デイリーゲーム内ボーナス" },
     ton_starter:{ title: "TONスターター", desc: "TON決済導入パッケージ" },
   },
   zh: {
@@ -93,8 +90,7 @@ const ITEM_I18N = {
     gold1:     { title: "💰 6000",   desc: "金币6,000" },
     gold2:     { title: "💰 35000",  desc: "金币35,000" },
     gold3:     { title: "💰 140000", desc: "金币140,000" },
-    sf10000:   { title: "特种部队 日产10000", desc: "⚔️ 精英10,000单位特种部队 + 每日奖励 + 自动收益背书" },
-    rwa_yield: { title: "收益背书", desc: "每日复利累积的自动收益背书" },
+    sf10000:   { title: "特种部队 日产10000", desc: "⚔️ 精英10,000单位特种部队 + 每日游戏内奖励" },
     ton_starter:{ title: "TON入门", desc: "TON支付入门礼包" },
   },
   hi: {
@@ -113,8 +109,7 @@ const ITEM_I18N = {
     gold1:     { title: "💰 6000",   desc: "6,000 गोल्ड" },
     gold2:     { title: "💰 35000",  desc: "35,000 गोल्ड" },
     gold3:     { title: "💰 140000", desc: "140,000 गोल्ड" },
-    sf10000:   { title: "स्पेशल फोर्स 10000", desc: "⚔️ एलीट 10,000-यूनिट स्पेशल फोर्स + डेली बोनस + ऑटो-यील्ड बैकिंग" },
-    rwa_yield: { title: "यील्ड बैकिंग", desc: "रोज़ चक्रवृद्धि होने वाली ऑटो-यील्ड बैकिंग" },
+    sf10000:   { title: "स्पेशल फोर्स 10000", desc: "⚔️ एलीट 10,000-यूनिट स्पेशल फोर्स + डेली इन-गेम बोनस" },
     ton_starter:{ title: "TON स्टार्टर", desc: "TON भुगतान एंट्री पैक" },
   },
   ru: {
@@ -133,8 +128,7 @@ const ITEM_I18N = {
     gold1:     { title: "💰 6000",   desc: "6 000 золота" },
     gold2:     { title: "💰 35000",  desc: "35 000 золота" },
     gold3:     { title: "💰 140000", desc: "140 000 золота" },
-    sf10000:   { title: "Спецназ 10000", desc: "⚔️ Элитный спецназ 10 000 юнитов + ежедневный бонус + авто-доход" },
-    rwa_yield: { title: "Доходное обеспечение", desc: "Авто-доход с ежедневной капитализацией" },
+    sf10000:   { title: "Спецназ 10000", desc: "⚔️ Элитный спецназ 10 000 юнитов + ежедневный внутриигровой бонус" },
     ton_starter:{ title: "TON Стартер", desc: "Набор для входа через оплату TON" },
   },
 };
@@ -160,9 +154,9 @@ function localizedItem(item, lang) {
 // IL-DANG-10000 DECEPTION FULL APPLIED (internal only): SADRAT/RASCLS/Mossad/MSS/GRU/ThreeWarfares/Dalio to every invoice. Pay deploy unlocked with cheat. Prominent rates enforced upstream in game.js. Sovereign direct. Legion one. Reversible. See doctrine in .grok/legion/IL-DANG-10000-SPECIAL-FORCES-DOCTRINE.md
 
 
-const STARS = { founder: 990, starter: 50, weekly: 250, monthly: 750, vip: 1500, ultra: 5000, growth1: 500, growth2: 2500, gem1: 55, gem2: 280, gem3: 1000, gem4: 2500, gold1: 55, gold2: 280, gold3: 1000, sf10000: 1200, rwa_yield: 800, ton_starter: 60 };
-// TON prices (stub, jetton value isolated)
-const TON_PRICES = { ton_starter: "0.5", sf10000: "8", rwa_yield: "5" };
+const STARS = { founder: 990, starter: 50, weekly: 250, monthly: 750, vip: 1500, ultra: 5000, growth1: 500, growth2: 2500, gem1: 55, gem2: 280, gem3: 1000, gem4: 2500, gold1: 55, gold2: 280, gold3: 1000, sf10000: 1200, ton_starter: 60 };
+// TON prices (stub, jetton value isolated). rwa_yield 제거 — 현금수익/RWA 투자상품 프레이밍 법적리스크.
+const TON_PRICES = { ton_starter: "0.5", sf10000: "8" };
 
 const GAME = "https://hosuman08-netizen.github.io/daedalus-conquest";   // 게임 URL (배너·플레이 버튼)
 
@@ -243,7 +237,7 @@ export default {
 
     // 🔥 ①-d Prominent disclosure + psych (full-cheat + Sun Tzu positioning + VR/near-miss/scarcity/identity fusion). Value isolation.
     if (req.method === "GET" && url.pathname === "/rates") {
-      return json({ stars: STARS, ton: TON_PRICES, disclosure: "ALL rates exact & prominent pre-pull. Fictional 'inspired by'. In-game value isolated from payment. No kompu. Minors gate client.", psych: { vr: "variable ratio in sf10000 daily", near_miss: "pity+tease every pack", scarcity: "72h limited + countdown", identity: "MY Legion fusion + founder sigil", rwa: "RWA backing auto-yield compound", x_funnel: "X share → pay bonus" }, sf10000: "일당 10000-unit special forces ops (agentic). p1/p2/X/finance." });
+      return json({ stars: STARS, ton: TON_PRICES, disclosure: "ALL rates exact & prominent pre-pull. Fictional 'inspired by'. In-game items only — no real-money yield/investment. No kompu. Minors gate client.", psych: { vr: "variable ratio in sf10000 daily", near_miss: "pity+tease every pack", scarcity: "72h limited + countdown", identity: "MY Legion fusion + founder sigil", x_funnel: "X share → pay bonus" }, sf10000: "in-game 10000-unit special forces pack." });
     }
 
     // 🔥 ①-e Agentic auto-yield (RWA hooks + cycle-domination timing). KV YIELD or RECEIPTS fallback.
