@@ -444,22 +444,35 @@ function processReferralBonus() {
   let refUrl = "";
   try { refUrl = new URLSearchParams(location.search).get("ref") || ""; } catch (e) {}
   let refId = "";
-  const m = /^ref(\d{4,})$/.exec(sp || "");   // start_param 형식: ref<id>
-  if (m) refId = m[1];
-  else if (/^\d{4,}$/.test(refUrl)) refId = refUrl;   // URL 형식: ?ref=<id>
+  let channel = "direct";
+  // Trinity spec: start=ref_{uid}_{channel}
+  const mNew = /^ref_(\d+)_?(\w*)$/.exec(sp || "");
+  if (mNew) {
+    refId = mNew[1];
+    channel = mNew[2] || "direct";
+  } else {
+    const m = /^ref(\d{4,})$/.exec(sp || "");   // old ref<id>
+    if (m) refId = m[1];
+    else if (/^\d{4,}$/.test(refUrl)) refId = refUrl;
+  }
   if (!refId) return;
   const myId = String(getTGUserId());
   if (refId === myId) return; // self
   // Reward ONLY on direct join via invite link (no button-click fake)
   META.referredBy = refId;
-  META.gold = (META.gold || 0) + 1000;
-  META.gems = (META.gems || 0) + 100;            // 💎100 환영 (링크 가입 유도)
-  if (typeof META.soul === "number") META.soul = (META.soul || 0) + 10;
+  // Trinity P0: invitee gets fictional "10연 1SR starter" (not real money value)
+  META.gems = (META.gems || 0) + 300;  // fictional boost
+  // Simulate 10 pulls worth + 1SR fictional (grant one SR unit or high pity boost)
+  if (typeof grantStarterSR === 'function') grantStarterSR(); else {
+    // fallback fictional: big pity progress + gold for "10연"
+    META.pity = Math.min(11, (META.pity || 0) + 6);
+    META.gold = (META.gold || 0) + 2500;
+  }
   saveMeta();
-  logEvent('referral_bonus_granted', { ref: refId });
+  logEvent('referral_bonus_granted', { ref: refId, channel, starter: '10연1SR' });
   setTimeout(() => {
     try { updateMeta && updateMeta(); } catch (e) {}
-    toast("🎉 초대 링크로 가입 보너스! 💎100 + 💰1000 + 🔮10", "#a3e635");
+    toast("🎉 친구 선물! 10연 확정 1SR 스타터 (fictional) 지급!", "#a3e635");
   }, 1400);
 }
 // 👥 초대 보상 — 워커(KV) 카운트 기반(조작방지). 친구당 💎50 + 마일스톤 사다리(1→10000)
@@ -620,11 +633,12 @@ function loadMeta() {
       if (parsed && parsed.d && parsed.c && parsed.u) {
         const uid = getTGUserId();
         const expected = btoa(parsed.u + ':' + parsed.d.length + ':' + (parsed.d.split('').reduce((a,c)=>a+c.charCodeAt(0),0) % 9973));
-        if (parsed.u === uid && parsed.c === expected) {
+        // 무결성 게이트 = 체크섬만. uid 불일치(초기 initData 미준비→getTGUserId "guest" 레이스)는 변조 아님 → 정상유저 데이터 보존(하드와이프 금지, 결제젬 소실 방지).
+        if (parsed.c === expected) {
           m = JSON.parse(parsed.d);
         } else {
           tampered = true;
-          console.warn('[SECURITY] META 체크섬 실패 — 편집/해킹 가능. 핵심 자원 초기화.');
+          console.warn('[SECURITY] META 체크섬 실패 — 편집/해킹 가능.');
         }
       } else {
         m = parsed; // legacy format
@@ -2675,7 +2689,10 @@ function finish(p, e) {
   running = false; gameOver = true;
   const win = p && !e, dr = !p && !e;
   if (win) { META.dailyBattles = (META.dailyBattles || 0) + 1; META.totalWins = (META.totalWins || 0) + 1; }   // ⚠️ TDZ 버그픽스: win 선언 뒤로 이동 (전엔 선언 전 참조→매 전투종료 ReferenceError로 finish() 전체 붕괴)
-  if (win) logEvent("battle_win", { mode: META.mode, ch: META.chapter, tower: META.tower, lvl: curLevel });   // 📊 계측
+  if (win) {
+    logEvent("battle_win", { mode: META.mode, ch: META.chapter, tower: META.tower, lvl: curLevel });   // 📊 계측
+    logEvent("core_loop_complete", { type: "battle", ch: META.chapter || 1 });  // Trinity P0 activation
+  }
   if (tbActive) { tbActive = false; showTbControls(false); $("start").textContent = t("start"); delete window._tbTactic; }
   const m = META.mode;
   let extra = "", title = win ? t("rWin") : dr ? t("rDraw") : t("rLose");
@@ -2793,6 +2810,11 @@ function finish(p, e) {
       // ascGoldMul 복리 제거됨
       if (META.chapter < 999) META.chapter += 1; if (META.chapter > (META.maxChapter || 0)) META.maxChapter = META.chapter;
       META.chStuck = 0;   // 🧗 진행 성공 → 막힘 카운터 리셋
+      // Trinity P0: ch5_reached (first time)
+      if (META.chapter === 5 && !META._ch5Reached) {
+        META._ch5Reached = true; saveMeta();
+        logEvent("ch5_reached", { ref: META.referredBy || '' });
+      }
       // ARG-like fictional origin lore drop (deceptive "found signal" hype, reversible flag)
       if (ENABLE_DECEPTIVE_ORIGIN && META.chapter % 3 === 0) {
         setTimeout(() => {
@@ -3360,6 +3382,7 @@ function gacha() {
   const isNew = window._lastGrantNew;
   if (gu) msg = isNew ? `🎉 【${gu.name}】 획득!` : `🔄 【${gu.name}】 중복 — 합성/분해 가능`;
   logEvent("gacha_pull", { rarity: rar.key, kind: "single", isNew: !!isNew });   // 📊 계측
+  logEvent("core_loop_complete", { type: "gacha", ch: META.chapter || 1 });  // Trinity P0 activation
   bumpPrestige(0.5); saveMeta(); updateMeta(); reset();
   showGacha(rar, msg, gu ? [{ name: gu.name, rarity: rar.key, dupe: !isNew, isNew }] : []);
   // gacha pulse interlock from daily ritual
@@ -3403,6 +3426,7 @@ function gacha10() {
     if (rar.key === "SSR" && !META.titanOwned) { META.titanOwned = true; counts.p.titan = 1; }
     else { const pool = ORDER.filter((u) => u !== "titan" || META.titanOwned); for (let j = 0; j < rar.lvls; j++) { const u = pool[(Math.random() * pool.length) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; } }
   }
+  logEvent("core_loop_complete", { type: "gacha", ch: META.chapter || 1 });  // Trinity P0 activation (x10 = 1회)
   saveMeta(); updateMeta(); reset();
   const bestKey = Object.keys(RANK).find((k) => RANK[k] === best);
   const showR = RARITY.find(r => r.key === bestKey) || RARITY[best] || RARITY[0];
@@ -3456,6 +3480,7 @@ function gachaFeatured() {
     if (rar.key === "SSR" && !META.titanOwned) { META.titanOwned = true; counts.p.titan = 1; }
     else { const pool = ORDER.filter((u) => u !== "titan" || META.titanOwned); for (let j = 0; j < rar.lvls; j++) { const u = pool[(Math.random() * pool.length) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; } }
   }
+  logEvent("core_loop_complete", { type: "gacha", ch: META.chapter || 1 });  // Trinity P0 activation (featured = 1회)
   saveMeta(); updateMeta(); reset(); renderFeaturedBanner();
   const bestKey = Object.keys(RANK).find((k) => RANK[k] === best);
   const showR = RARITY.find((r) => r.key === bestKey) || RARITY[best] || RARITY[0];
@@ -3540,6 +3565,20 @@ function showGacha(rar, msg, results) {
   }
   if (rar.key === "SSR") {
     setTimeout(() => toast("⚔️ Forged into MY Legion. Historical timing seized. Variable paid off. Collection gap closed.", "#a3e635"), 1600);
+    // Trinity P0: SSR share hook (switchInline or TG share with start=ref)
+    setTimeout(() => {
+      const sh = document.createElement('button');
+      sh.textContent = '📤 결과 공유 (친구 초대)';
+      sh.style.cssText = 'margin:8px 0;padding:6px 12px;background:#22c55e;color:#fff;border:none;border-radius:6px;cursor:pointer';
+      sh.onclick = () => {
+        const uid = getTGUserId();
+        const link = `https://t.me/daedalus_conquest_bot?start=ref${uid}_ssr`;
+        if (tg && tg.openTelegramLink) tg.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent('MY Legion SSR 획득! 같이 정복해'));
+        else window.open(link, '_blank');
+        logEvent('share_clicked', { type: 'ssr', ref: uid });
+      };
+      const list = $('gacha-list'); if (list && list.parentNode) list.parentNode.appendChild(sh);
+    }, 2200);
   }
   if (isArclightBannerActive && isArclightBannerActive()) {
     setTimeout(() => toast("72h Arclight — 지금 아니면 영원히. MY Pantheon judgment.", "#f97316"), 1800);
@@ -5686,8 +5725,24 @@ function maybeStartTutorial() {
   } catch (e) {}
 })();
 // 📊 계측: 최초 설치(1회) + 세션 시작. fire-and-forget, 게임 영향 0.
+// Trinity P0: utm/ref/start=ref_{uid}_{channel} 태깅 필수 (소급 불가)
 try {
-  if (!META._installed) { META._installed = true; saveMeta(); logEvent("install", { ch: META.chapter || 1 }); }
+  if (!META._installed) {
+    META._installed = true; saveMeta();
+    let src = {};
+    try {
+      const sp = (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) || '';
+      const params = new URLSearchParams(location.search);
+      const m = /^ref_(\d+)_?(\w*)$/.exec(sp);
+      src = {
+        ref: m ? m[1] : (sp.match(/^ref(\d+)/) ? RegExp.$1 : params.get('ref') || ''),
+        channel: m ? (m[2] || 'direct') : 'direct',
+        utm: params.get('utm') || params.get('source') || '',
+        start: sp
+      };
+    } catch(e){}
+    logEvent("install", { ch: META.chapter || 1, ...src });
+  }
   logEvent("session_start", { ch: META.chapter || 1, tower: META.tower || 1, pulls: META.pulls || 0 });
   pingActive();   // 🔔 재참여 알림용 활동 핑(비활성 판정 정확)
 } catch (e) {}

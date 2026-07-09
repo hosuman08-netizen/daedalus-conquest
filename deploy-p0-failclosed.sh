@@ -13,18 +13,24 @@ S="$(cat ~/.webhook_secret_tmp)"
 W="https://legion-pay.hoyashi95.workers.dev"
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "▶ [1/4] WEBHOOK_SECRET 워커에 주입"
+echo "▶ [1/5] BOT_TOKEN 워커에 주입 (env.BOT_TOKEN — 결제 API 호출용. ★이게 빠져서 결제가 안 됐음★)"
+printf '%s' "$BOT_TOKEN" | npx wrangler secret put BOT_TOKEN -c wrangler-pay.toml
+
+echo "▶ [2/5] WEBHOOK_SECRET 워커에 주입"
 printf '%s' "$S" | npx wrangler secret put WEBHOOK_SECRET -c wrangler-pay.toml
 
-echo "▶ [2/4] setWebhook secret_token 주입 (텔레그램 → 이후 모든 웹훅에 헤더 동봉)"
+echo "▶ [3/5] setWebhook secret_token 주입 (텔레그램 → 이후 모든 웹훅에 헤더 동봉)"
 RESP=$(curl -s "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook?url=${W}&secret_token=${S}")
 echo "    $RESP"
-echo "$RESP" | grep -q '"ok":true' || { echo "❌ setWebhook 실패 — 중단(배포 안 함). 봇토큰 확인."; exit 1; }
+echo "$RESP" | grep -q '"ok":true' || { echo "❌ setWebhook 실패 — 중단(배포 안 함). 봇토큰 재발급 여부 확인(BotFather)."; exit 1; }
 
-echo "▶ [3/4] fail-closed 정식본 배포"
+echo "▶ [4/5] fail-closed 정식본 배포 (정식 toml → /__sw 백도어도 함께 제거)"
 npx wrangler deploy -c wrangler-pay.toml 2>&1 | tail -4
 
-echo "▶ [4/4] 검증 — 헤더 없는 위조 POST는 403이어야 정상"
+echo "▶ [5/5] 검증 — 헤더 없는 위조 POST는 403 + 인보이스 생성 성공이어야 정상"
+sleep 2
+INV=$(curl -s -o /dev/null -w '%{http_code}' "$W/invoice?item=starter&uid=1")
+echo "    /invoice 응답: $INV  (200=BOT_TOKEN 작동·결제복구 ✅ / 502=아직 토큰문제 ❌)"
 sleep 2
 CODE=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$W/" -H 'Content-Type: application/json' -d '{"message":{"successful_payment":{"invoice_payload":"gem1:hack"}}}')
 echo "    위조 POST 응답: $CODE  (403=방어작동 ✅ / 200=실패 ❌)"

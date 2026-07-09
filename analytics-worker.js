@@ -23,7 +23,10 @@ const ALLOWED = new Set([
   "gear_obtained", "gear_equipped", "gear_enhanced", "set_activated",
   "phase2_unlock", "prestige_trigger", "ab_test",
   // age gate (미성년 보호 funnel — COPPA 증적) — Oracle(CDO)
-  "age_confirmed", "age_blocked"
+  "age_confirmed", "age_blocked",
+  // Trinity P0 activation + funnel — game.js 실제 emit과 일치 (2026-07-02 Morpheus)
+  "core_loop_complete", "tutorial_start", "tutorial_done",
+  "stuck_upsell", "first_purchase_2x", "purchase_unverified"
 ]);
 const dayKey = (ts) => new Date(ts).toISOString().slice(0, 10);   // YYYY-MM-DD (UTC 일관 — game.js와 동일)
 

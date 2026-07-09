@@ -48,6 +48,16 @@ equip: () => { tone(294, 0.08, "sawtooth", 0.04); setTimeout(() => tone(587, 0.1
 
 shot: () => tone(360 + Math.random() * 520, 0.045, "square", 0.018),
 boom: () => { tone(85, 0.14, "sawtooth", 0.045); tone(220 + Math.random() * 120, 0.08, "square", 0.03); },
+
+ult: {
+dragon: () => { tone(80, 0.5, "sawtooth", 0.06); tone(48, 0.45, "sawtooth", 0.045); setTimeout(() => { tone(60, 0.25, "square", 0.04); tone(200 + Math.random()*100, 0.15, "square", 0.03); }, 200); },
+volley: () => { [880, 990, 1100].forEach((f, i) => setTimeout(() => { tone(f, 0.06, "triangle", 0.04); tone(360 + Math.random()*400, 0.05, "square", 0.02); }, i * 70)); },
+assault: () => { for (let i = 0; i < 6; i++) setTimeout(() => tone(300 + Math.random()*200, 0.05, "square", 0.03), i * 75); setTimeout(() => tone(120, 0.18, "sawtooth", 0.05), 480); },
+focus: () => { tone(220, 0.4, "sawtooth", 0.045); tone(277, 0.4, "sawtooth", 0.035); tone(330, 0.4, "sawtooth", 0.03); [523, 659, 784].forEach((f, i) => setTimeout(() => tone(f, 0.18, "triangle", 0.04), 200 + i * 90)); },
+wall: () => { tone(880, 0.06, "square", 0.05); tone(60, 0.35, "sine", 0.06); setTimeout(() => tone(70, 0.2, "sine", 0.045), 120); },
+rage: () => { tone(110, 0.3, "sawtooth", 0.06); setTimeout(() => { tone(90, 0.2, "sawtooth", 0.05); tone(180 + Math.random()*100, 0.1, "square", 0.04); }, 150); },
+repair: () => { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, 0.22, "sine", 0.04), i * 110)); },
+},
 };
 let _popAt = 0;
 function combatPop() { 
@@ -407,22 +417,39 @@ let sp = "";
 try {
 if (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) sp = tg.initDataUnsafe.start_param;
 } catch (e) {}
-if (!sp || typeof sp !== "string") return;
-const m = /^ref(\d{4,})$/.exec(sp); 
-if (!m) return;
-const refId = m[1];
+
+let refUrl = "";
+try { refUrl = new URLSearchParams(location.search).get("ref") || ""; } catch (e) {}
+let refId = "";
+let channel = "direct";
+
+const mNew = /^ref_(\d+)_?(\w*)$/.exec(sp || "");
+if (mNew) {
+refId = mNew[1];
+channel = mNew[2] || "direct";
+} else {
+const m = /^ref(\d{4,})$/.exec(sp || ""); 
+if (m) refId = m[1];
+else if (/^\d{4,}$/.test(refUrl)) refId = refUrl;
+}
+if (!refId) return;
 const myId = String(getTGUserId());
 if (refId === myId) return; 
 
 META.referredBy = refId;
-META.gold = (META.gold || 0) + 1000;
-META.gems = (META.gems || 0) + 100; 
-if (typeof META.soul === "number") META.soul = (META.soul || 0) + 10;
+
+META.gems = (META.gems || 0) + 300; 
+
+if (typeof grantStarterSR === 'function') grantStarterSR(); else {
+
+META.pity = Math.min(11, (META.pity || 0) + 6);
+META.gold = (META.gold || 0) + 2500;
+}
 saveMeta();
-logEvent('referral_bonus_granted', { ref: refId });
+logEvent('referral_bonus_granted', { ref: refId, channel, starter: '10연1SR' });
 setTimeout(() => {
 try { updateMeta && updateMeta(); } catch (e) {}
-toast("🎉 초대 링크로 가입 보너스! 💎100 + 💰1000 + 🔮10", "#a3e635");
+toast("🎉 친구 선물! 10연 확정 1SR 스타터 (fictional) 지급!", "#a3e635");
 }, 1400);
 }
 
@@ -462,6 +489,13 @@ if (el) el.innerHTML = "👥 초대한 친구 <b>" + count + "</b>명" + (hasPen
 const btn = $("ref-claim"); if (btn) btn.style.display = hasPending ? "" : "none";
 })
 .catch(() => {});
+}
+
+function pingActive() {
+if (typeof PAY_BACKEND === "undefined" || !PAY_BACKEND) return;
+const myId = String(getTGUserId());
+if (!myId || myId === "0") return;
+try { fetch(PAY_BACKEND + "/active?uid=" + encodeURIComponent(myId)).catch(() => {}); } catch (e) {}
 }
 function claimReferralRewards() {
 const count = META._refCount || 0;
@@ -576,11 +610,12 @@ const parsed = JSON.parse(raw);
 if (parsed && parsed.d && parsed.c && parsed.u) {
 const uid = getTGUserId();
 const expected = btoa(parsed.u + ':' + parsed.d.length + ':' + (parsed.d.split('').reduce((a,c)=>a+c.charCodeAt(0),0) % 9973));
-if (parsed.u === uid && parsed.c === expected) {
+
+if (parsed.c === expected) {
 m = JSON.parse(parsed.d);
 } else {
 tampered = true;
-console.warn('[SECURITY] META 체크섬 실패 — 편집/해킹 가능. 핵심 자원 초기화.');
+console.warn('[SECURITY] META 체크섬 실패 — 편집/해킹 가능.');
 }
 } else {
 m = parsed; 
@@ -643,7 +678,7 @@ merged.passClaim = Object.assign({}, def.passClaim, m.passClaim || {});
 if (!Array.isArray(merged.milestones)) merged.milestones = [];
 if (!Array.isArray(merged.cqClaimed)) merged.cqClaimed = [];
 if (typeof merged.gems !== "number") merged.gems = 50;
-if (!merged.mode || merged.mode === "daily") merged.mode = "campaign";
+if (!merged.mode || merged.mode === "daily" || merged.mode === "turnbased") merged.mode = "campaign"; 
 if (!merged.tower || merged.tower < 1) merged.tower = 1;
 if (!merged.hero || !HEROES[merged.hero]) merged.hero = "strategist";
 if (!merged.chapter || merged.chapter < 1) merged.chapter = 1; 
@@ -700,21 +735,22 @@ function legionPower() {
 let p = 0; for (const t of ORDER) p += (META.army[t] || 0) * ((META.lv[t] || 0) + (META.enh[t] || 0) * 2 + (META.star[t] || 0) * 12 + (META.awak[t] || 0) * 40);
 return Math.round((p + gearPower()) * heroPowerMul()); 
 }
-function dividendGold() { return Math.floor(legionPower() * 0.9); } 
+function dividendGold() { return 0; } 
 
 function newGear(forceRar) { const g = makeGear(forceRar); g.id = ++META.gearSeq; return g; } 
 function heroGearStats() {
 const tot = { str: 0, int: 0, agi: 0, luk: 0 }, eq = META.equip[META.hero] || {};
 for (const slot of SLOTS) { const id = eq[slot]; if (!id) continue; const g = META.gear.find((x) => x.id === id); if (!g) continue; for (const k of STAT_KEYS) tot[k] += gearStat(g, k); }
-// P2: gear sets (Trinity in gear.js, CEO kickoff)
+
 if (typeof getGearSetBonusesForEquip === "function") {
-  const sb = getGearSetBonusesForEquip(eq, META.gear || []);
-  window._lastSetBonuses = sb.bonuses;
-  const m = (sb.bonuses.atkMul || 1) * (sb.bonuses.hpMul || 1);
-  for (const k of STAT_KEYS) tot[k] = Math.round(tot[k] * m);
-  if (sb && Object.keys(sb.counts || {}).length >= 1) {
-    try { if (typeof emitEvent === "function") emitEvent("set_activated", { sets: sb.counts }); } catch(_) {}
-  }
+const sb = getGearSetBonusesForEquip(eq, META.gear || []);
+window._lastSetBonuses = sb.bonuses;
+const m = (sb.bonuses.atkMul || 1) * (sb.bonuses.hpMul || 1);
+for (const k of STAT_KEYS) tot[k] = Math.round(tot[k] * m);
+
+if (sb && Object.keys(sb.counts || {}).length >= 1) {
+try { if (typeof emitEvent === "function") emitEvent("set_activated", { sets: sb.counts }); } catch(_) {}
+}
 }
 return tot;
 }
@@ -818,7 +854,7 @@ b.typeHp.guardian = 0.45 * k;
 b.reflect = 0.2 * k; 
 } else if (h === "engineer") { 
 b.regen = 2.5 * k; 
-b.haste = 0.1 * k; 
+b.haste = Math.min(0.5, 0.1 * k); 
 } else if (h === "dragoon") { 
 b.atkMul = 1 + 0.15 * k; 
 b.hpMul = 1 + 0.15 * k; 
@@ -859,11 +895,11 @@ function charLv(id) { return (META.charLv && META.charLv[id]) || 0; }
 function charGearStats(id) { 
 const tot = { str: 0, int: 0, agi: 0, luk: 0 }, eq = (META.charGear && META.charGear[id]) || {};
 for (const slot of SLOTS) { const gid = eq[slot]; if (!gid) continue; const g = META.gear.find((x) => x.id === gid); if (!g) continue; for (const k of STAT_KEYS) tot[k] += gearStat(g, k); }
-// P2 sets
+
 if (typeof getGearSetBonusesForEquip === "function") {
-  const sb = getGearSetBonusesForEquip(eq, META.gear || []);
-  const m = (sb.bonuses.atkMul || 1) * (sb.bonuses.hpMul || 1);
-  for (const k of STAT_KEYS) tot[k] = Math.round(tot[k] * m);
+const sb = getGearSetBonusesForEquip(eq, META.gear || []);
+const m = (sb.bonuses.atkMul || 1) * (sb.bonuses.hpMul || 1);
+for (const k of STAT_KEYS) tot[k] = Math.round(tot[k] * m);
 }
 return tot;
 }
@@ -876,6 +912,8 @@ const gid = eq[slot];
 if (!gid) continue;
 const g = META.gear.find((x) => x.id === gid);
 if (g && g.effect) effects.push(g.effect);
+
+if (g) { const psv = (typeof getGearPassive === "function") ? getGearPassive(g) : null; if (psv) effects.push({ type: "gear_passive", p: psv }); }
 }
 return effects;
 }
@@ -897,6 +935,16 @@ unit.crit = (unit.crit || 0) + (effect.val || 5);
 
 if (effect.type === 'ssr_skill') {
 unit.ssrSkill = effect; 
+}
+
+if (effect.type === 'gear_passive' && effect.p) {
+const p = effect.p;
+if (p.allStat) { const m = 1 + p.allStat; unit.hp = Math.round(unit.hp * m); unit.maxHp = Math.round(unit.maxHp * m); unit.atk = Math.round(unit.atk * m); } 
+if (p.spd) unit.atkCd = (unit.atkCd || 1) * (1 - p.spd); 
+if (p.evade) unit.gearEvade = (unit.gearEvade || 0) + p.evade; 
+if (p.crit) unit.crit = (unit.crit || 0) + p.crit * 100; 
+if (p.thresh) unit.endure = { thresh: p.thresh, reduce: p.reduce || 0.2 }; 
+if (p.proc) unit.execute = { proc: p.proc, mult: p.mult || 0.5 }; 
 }
 }
 function gearPowerForChar(g) { return (g.str||0) + (g.int||0) + (g.agi||0) + (g.luk||0); }
@@ -1014,6 +1062,8 @@ atk += surge; hp += surge * 0.5;
 bonuses.push("🪖 Militia Surge (proxy weave +" + Math.round(surge*100) + "%) — invested regulars anchored");
 }
 }
+
+if (typeof collectionBonus === "function") { const cb = collectionBonus(); atk *= cb.atk; hp *= cb.hp; if (cb.atk > 1) bonuses.push("📋 수집 +" + Math.round((cb.atk - 1) * 100) + "% 영구"); }
 return { atk, hp, crit, spd, shieldAdd, critDmgMul, bonuses, archs, count: sq.length, founders, openShield, openBuffMul, openBuffT };
 }
 
@@ -1157,9 +1207,9 @@ const invest = (1 + enh * 0.06) * (1 + star * 0.25) * (1 + aw * 0.35);
 const cgAtk = 1 + gcs.str * 0.004, cgHp = 1 + gcs.int * 0.004;
 const cgSpd = 1 - Math.min(0.4, gcs.agi * 0.0035), cgCrit = Math.min(45, 10 + gcs.luk * 0.4);
 const lvK = 1 + lv * 0.12;
-let hp = Math.round(s.hp * u.mul * lvK * invest * ascHpMul() * hb.hpMul * (1 + (hb.typeHp[u.arch] || 0)) * syn.hp * cgHp); 
-let atk = Math.round(s.atk * u.mul * lvK * invest * ascAtkMul() * hb.atkMul * (1 + (hb.typeAtk[u.arch] || 0)) * syn.atk * cgAtk); 
-let unitAtkCd = s.atkCd * cgSpd * (syn.spd || 1);
+let hp = Math.round(s.hp * u.mul * lvK * invest * hb.hpMul * (1 + (hb.typeHp[u.arch] || 0)) * syn.hp * cgHp);
+let atk = Math.round(s.atk * u.mul * lvK * invest * hb.atkMul * (1 + (hb.typeAtk[u.arch] || 0)) * syn.atk * cgAtk);
+let unitAtkCd = s.atkCd * cgSpd * (syn.spd || 1) * (1 - (hb.haste || 0)); 
 let unitCrit = Math.min(70, cgCrit + (syn.crit || 0));
 
 if (side === "p" && curLevel <= 8) { hp = Math.round(hp * 1.4); atk = Math.round(atk * 1.3); }
@@ -1283,8 +1333,8 @@ const s = SPEC[t];
 const epm = side === "e" ? enemyPowerMul(curLevel) * (META.mode === "tower" ? towerExtraMul(META.tower) : 1) : 1;
 const aw = side === "p" ? (META.awak[t] || 0) : 0; 
 const es = side === "p" ? (1 + (META.enh[t] || 0) * 0.06) * (1 + (META.star[t] || 0) * 0.25) * (1 + aw * 0.35) : 1; 
-let hpM = (side === "p" ? lvMul(t, "hp") * ascHpMul() : epm) * hb.hpMul * (1 + (hb.typeHp[t] || 0)) * powerComp * es * gHp * (side === "p" ? cohesionMul() : 1); 
-let atkM = (side === "p" ? lvMul(t, "atk") * ascAtkMul() : epm) * hb.atkMul * (1 + (hb.typeAtk[t] || 0)) * synMul * powerComp * es * gAtk * (side === "p" ? cohesionMul() : 1); 
+let hpM = (side === "p" ? lvMul(t, "hp") : epm) * hb.hpMul * (1 + (hb.typeHp[t] || 0)) * powerComp * es * gHp;
+let atkM = (side === "p" ? lvMul(t, "atk") : epm) * hb.atkMul * (1 + (hb.typeAtk[t] || 0)) * synMul * powerComp * es * gAtk;
 
 if (side === "p" && curLevel <= 8) {
 hpM *= 1.4;
@@ -1399,12 +1449,12 @@ const ASCEND_GATE = 18;
 function ascLv(node) { return (META.asc && META.asc[node]) || 0; }
 function etherGain(ch) { ch = ch | 0; if (ch < ASCEND_GATE) return 0; return Math.round(20 * Math.pow(1.18, (ch - ASCEND_GATE) / 2)); } 
 
-function ascAtkMul() { return Math.pow(1.08, ascLv("might")); } 
-function ascHpMul() { return Math.pow(1.08, ascLv("bulwark")); } 
-function cohesionMul() { return 1 + (META.prestige || 0) * 0.02; } 
-function ascGoldMul() { return 1 + ascLv("momentum") * 0.18; } 
-function ascStartGold() { return ascLv("momentum") * 300; } 
-function ascPowerMul() { return Math.pow(1.08, ascLv("might") + ascLv("bulwark")); } 
+function ascAtkMul() { return 1; } 
+function ascHpMul() { return 1; } 
+function cohesionMul() { return 1; } 
+function ascGoldMul() { return 1; } 
+function ascStartGold() { return 0; }
+function ascPowerMul() { return 1; } 
 function ascNodeCost(lv) { return Math.round(5 * Math.pow(1.25, lv)); } 
 
 function applyMode() {
@@ -1588,8 +1638,12 @@ if (tf) {
 if (META.mode === "tower") {
 const f = Math.max(1, META.tower || 1);
 const toWall = 50 - ((f - 1) % 50) - 1; 
-tf.style.display = "";
+tf.style.display = ""; tf.style.borderColor = "#a855f7"; tf.style.color = "#fde047";
 tf.innerHTML = "🗼 " + f + "층" + (f % 50 === 0 ? " 🐲" : (toWall <= 5 && toWall > 0 ? ' <span style="color:#f97316">·벽까지' + toWall + '</span>' : ""));
+} else if (META.mode === "boss") {
+const stage = (META.bossClears || 0) + 1; 
+tf.style.display = ""; tf.style.borderColor = "#ef4444"; tf.style.color = "#fca5a5";
+tf.innerHTML = "🐲 보스 <b style=\"color:#fde047\">" + stage + "</b>탄" + (stage % 25 === 0 ? " 👑" : (stage % 5 === 0 ? " 🎁" : ""));
 } else tf.style.display = "none";
 }
 renderMsHint();
@@ -1676,29 +1730,55 @@ else if (u.skill === "charge" && d > u.range + 6 && d < 120) { const k = Math.mi
 else if (u.skill === "overclock") { const m = alliesOf(u).filter((a) => dist(u, a) < 85); if (m.length) { m.forEach((a) => { a.hp = Math.min(a.maxHp, a.hp + 22 * skillScale); a.buff = 5 * skillScale; a.buffT = 5; }); u.hp = Math.min(u.maxHp, u.hp + 12 * skillScale); u.skT = u.skillCd; addFx(u.x, u.y, "overclock"); } }
 }
 
-if (u.boss && u.bossSkillT <= 0) {
+if (u.boss && u.bossSkillT <= 0 && foes.length) {
 const v = u.bossVariant || 'base';
-const isHigh = curLevel > 25 || v === 'final';
-const isMid = curLevel > 12 || v === 'corrupted';
-if (v === 'final' || isHigh) {
-
-foes.forEach(f => dmg(f, u.atk * 0.8, u));
-u.hp = Math.min(u.maxHp, u.hp + u.maxHp * 0.12);
-addFx(u.x, u.y, "charge"); addFx(u.x, u.y, "barrier");
-for (let k=0; k<3; k++) addFx(u.x + (Math.random()-0.5)*40, u.y - 20, "overclock");
-u.bossSkillT = 7;
-} else if (isMid) {
-
-foes.filter(f => dist(u,f) < 70).forEach(f => { f.buff = -4; f.buffT = 5; });
-u.hp = Math.min(u.maxHp, u.hp + u.maxHp * 0.07);
-addFx(u.x, u.y, "overclock");
-u.bossSkillT = 5.5;
-} else {
-
-if (tgt) dmg(tgt, u.atk * 1.4, u);
-addFx(u.x, u.y, "charge", tgt ? tgt.x : 0, tgt ? tgt.y : 0, u.side);
-u.bossSkillT = 6;
+const cl = curLevel;
+const sc = 1 + Math.max(0, cl - 10) * 0.022; 
+const cdK = Math.max(0.6, 1 - Math.max(0, cl - 20) * 0.012); 
+let name = "", col = "#ff3b3b";
+if (v === 'final' || cl > 40) { 
+const r = (u._bsk = (u._bsk || 0) + 1) % 4;
+if (r === 0) { 
+name = "☄️ 멸절의 빔"; col = "#fde047";
+foes.forEach((f) => dmg(f, u.atk * 1.1 * sc, u));
+for (let k = 0; k < 7; k++) { const x = W * (0.16 + k * 0.11); addFx(x, 3, "snipe", x, H * 0.5, "e"); }
+u.bossSkillT = 6.5 * cdK;
+} else if (r === 1) { 
+name = "🔥 광란의 진노"; col = "#ef4444";
+u.buff = Math.round(u.atk * 0.6); u.buffT = 5; u.hp = Math.min(u.maxHp, u.hp + u.maxHp * 0.1);
+for (let k = 0; k < 5; k++) addFx(u.x + (Math.random() - 0.5) * 55, u.y, "charge");
+u.bossSkillT = 5.5 * cdK;
+} else if (r === 2) { 
+name = "🛡️ 절대 방벽"; col = "#a855f7";
+u.shield = 4.5; foes.forEach((f) => { f.buff = -6; f.buffT = 5; });
+for (let k = 0; k < 4; k++) addFx(u.x + (Math.random() - 0.5) * 50, u.y, "barrier");
+u.bossSkillT = 6 * cdK;
+} else { 
+name = "🌀 중력 붕괴"; col = "#c026d3";
+foes.forEach((f) => { dmg(f, u.atk * 0.7 * sc, u); f.spd = 0.4; f.spdT = 2.5; });
+for (let k = 0; k < 5; k++) addFx(u.x + (Math.random() - 0.5) * 80, u.y + (Math.random() - 0.5) * 50, "overclock");
+u.bossSkillT = 6 * cdK;
 }
+} else if (v === 'corrupted' || cl > 12) { 
+const r = (u._bsk = (u._bsk || 0) + 1) % 2;
+if (r === 0) { 
+name = "💥 부식 충격파"; col = "#c026d3";
+foes.filter((f) => dist(u, f) < 95).forEach((f) => dmg(f, u.atk * 0.85 * sc, u));
+addFx(u.x, u.y, "overclock"); addFx(u.x, u.y, "charge");
+u.bossSkillT = 5.5 * cdK;
+} else { 
+name = "🩸 부식 흡혈"; col = "#a855f7";
+foes.filter((f) => dist(u, f) < 75).forEach((f) => { f.buff = -4; f.buffT = 5; });
+u.hp = Math.min(u.maxHp, u.hp + u.maxHp * 0.08); addFx(u.x, u.y, "overclock");
+u.bossSkillT = 5 * cdK;
+}
+} else { 
+name = "⚔️ 강타"; col = "#ff3b3b";
+if (tgt) dmg(tgt, u.atk * 1.4 * sc, u);
+addFx(u.x, u.y, "charge", tgt ? tgt.x : 0, tgt ? tgt.y : 0, u.side);
+u.bossSkillT = 6 * cdK;
+}
+if (name) window._bossFlash = { name, color: col, t: 1.2 }; 
 
 if ((curLevel > 30 || v === 'final') && u.hp < u.maxHp * 0.55 && !u.minionsSpawned) {
 u.minionsSpawned = true;
@@ -1741,7 +1821,9 @@ combatPop();
 
 function dmg(target, amount, from) {
 if (target.hp <= 0) return;
+if (target.gearEvade && Math.random() < target.gearEvade) { addFx(target.x, target.y, "evade"); return; } 
 let a = amount, ctr = false;
+if (from && from.execute && Math.random() < from.execute.proc) a *= (1 + from.execute.mult); 
 
 if (tbActive && window._tbDmgMul) {
 a *= window._tbDmgMul * (1 + Math.min(0.9, (tbMomentum || 0) / 140));
@@ -1775,6 +1857,7 @@ else if (COUNTER[target.t] && COUNTER[target.t].indexOf(from.t) >= 0) { a *= CTR
 if (from && from.typeSlayer && from.typeSlayer.target === target.t) {
 a *= (1 + (from.typeSlayer.val || 0.15));
 }
+if (target.endure && target.hp <= target.maxHp * target.endure.thresh) a *= (1 - target.endure.reduce); 
 if (target.shield > 0) a *= 0.5;
 target.hp -= a;
 
@@ -2007,6 +2090,24 @@ glow = "#fbbf24"; body1 = "#3a2a12"; body2 = "#1a1408"; body3 = "#0a0804"; strok
 spikeCount = 7; plateSides = 5; eyeColor = "#fde047"; crackAlpha = Math.max(0.2, 0.3 - hpr * 0.3);
 }
 
+const majK = variant === 'final' ? 1.4 : variant === 'corrupted' ? 1.18 : 1;
+const gy = cy + R * 1.05;
+const thr = ctx.createRadialGradient(cx, gy, 2, cx, gy, R * 1.7 * majK);
+thr.addColorStop(0, "rgba(0,0,0,0.55)"); thr.addColorStop(0.5, "rgba(0,0,0,0.28)"); thr.addColorStop(1, "rgba(0,0,0,0)");
+ctx.fillStyle = thr; ctx.beginPath(); ctx.ellipse(cx, gy, R * 1.7 * majK, R * 0.5, 0, 0, 7); ctx.fill();
+for (let i = 0, ringN = variant === 'final' ? 3 : variant === 'corrupted' ? 2 : 1; i < ringN; i++) { 
+const ph = (t / 1400 + i / ringN) % 1;
+ctx.globalAlpha = (1 - ph) * 0.42; ctx.strokeStyle = glow; ctx.lineWidth = 2.5;
+ctx.beginPath(); ctx.arc(cx, cy, R * (1.2 + ph * 0.9 * majK), 0, 7); ctx.stroke();
+}
+for (let i = 0, embN = variant === 'final' ? 7 : variant === 'corrupted' ? 5 : 4; i < embN; i++) { 
+const sp = (t / 1100 + i * 0.37) % 1;
+const ex = cx + Math.sin(i * 2.1 + t / 900) * R * 0.9, ey = cy + R * 0.9 - sp * R * 2.2;
+ctx.globalAlpha = (1 - sp) * 0.7; ctx.fillStyle = i % 2 ? core1 : core2;
+ctx.beginPath(); ctx.arc(ex, ey, 1.4 + (1 - sp) * 1.8, 0, 7); ctx.fill();
+}
+ctx.globalAlpha = 1;
+
 if (hasBossImg) {
 
 const img = enemyPortraits[pk];
@@ -2014,8 +2115,8 @@ let sz = R * 2.8;
 if (variant === 'final' || curLevel > 35) sz *= 1.15; 
 ctx.shadowColor = glow; ctx.shadowBlur = (variant==='final' ? 45 : 30);
 ctx.save();
-ctx.beginPath(); ctx.arc(cx, cy, R * (variant==='final' ? 1.4 : 1.25), 0, 7); ctx.clip();
-ctx.drawImage(img, cx - sz/2, cy - sz * 0.38, sz, sz); 
+
+ctx.drawImage(img, cx - sz/2, cy - sz * 0.5, sz, sz);
 ctx.restore();
 ctx.shadowBlur = 0;
 
@@ -2064,20 +2165,34 @@ ctx.lineTo(cx + Math.cos(a) * R * 0.78, cy + Math.sin(a) * R * 0.78); ctx.stroke
 
 ctx.restore();
 
-const w = R * 1.8, by = cy - R * 1.28;
-ctx.fillStyle = "rgba(0,0,0,0.7)"; rRect(cx - w / 2 - 1, by - 1, w + 2, 7, 3); ctx.fill();
-ctx.fillStyle = hpr > 0.4 ? "#ef4444" : "#fbbf24"; rRect(cx - w / 2, by, w * hpr, 5, 2.5); ctx.fill();
-ctx.fillStyle = "#fbbf24"; ctx.font = "bold 11px sans-serif"; ctx.textAlign = "center";
+const w = R * 1.9;
+
+const flip = (cy - R * 1.34) < 16;
+const by = flip ? Math.min(H - 14, cy + R * 1.05) : cy - R * 1.34;
+
+const crown = variant === 'final' ? "👑" : variant === 'corrupted' ? "♛" : (curLevel >= 25 ? "♛" : "");
+if (crown) {
+ctx.font = (variant === 'final' ? "bold 18px" : "15px") + " sans-serif"; ctx.textAlign = "center";
+ctx.save(); ctx.shadowColor = stroke; ctx.shadowBlur = 12; ctx.fillStyle = core1;
+ctx.fillText(crown, cx, by - 18); ctx.restore();
+}
+
+ctx.fillStyle = "rgba(0,0,0,0.72)"; rRect(cx - w / 2 - 1, by - 1, w + 2, 8, 3); ctx.fill();
+ctx.save(); ctx.shadowColor = hpr > 0.4 ? "#ef4444" : "#fbbf24"; ctx.shadowBlur = 8;
+ctx.fillStyle = hpr > 0.4 ? "#ef4444" : "#fbbf24"; rRect(cx - w / 2, by, w * hpr, 6, 3); ctx.fill(); ctx.restore();
+
 let bName = "타락 거신";
 if (curLevel >= 50) bName = "종말의 심판자";
 else if (variant === 'final' || curLevel >= 40) bName = "최종형 거신";
 else if (variant === 'corrupted' || curLevel >= 25) bName = "타락 심연";
 else if (curLevel >= 15) bName = "강화 거신";
-ctx.fillText("🐲 " + (u.eName || u.name || bName), cx, by - 5);
+ctx.save(); ctx.shadowColor = stroke; ctx.shadowBlur = 10;
+ctx.fillStyle = core1; ctx.font = "bold 12px sans-serif"; ctx.textAlign = "center";
+ctx.fillText("🐲 " + (u.eName || u.name || bName), cx, by - 6); ctx.restore();
 
-if (curLevel > 30) {
-ctx.font = "9px sans-serif"; ctx.fillStyle = "rgba(251,191,36,0.8)";
-ctx.fillText("CH." + curLevel + (variant==='final' ? " FINAL" : ""), cx, by - 15);
+if (curLevel > 20) {
+ctx.font = "bold 9px sans-serif"; ctx.fillStyle = "rgba(251,191,36,0.85)"; ctx.textAlign = "center";
+ctx.fillText("⚔ CH." + curLevel + (variant === 'final' ? " · FINAL FORM" : variant === 'corrupted' ? " · CORRUPTED" : ""), cx, by - 19 - (crown ? 14 : 0));
 }
 }
 
@@ -2157,6 +2272,16 @@ ctx.strokeText(sf.name, W / 2, H * 0.28 - rise);
 ctx.fillStyle = sf.color; ctx.fillText(sf.name, W / 2, H * 0.28 - rise);
 ctx.globalAlpha = a * 0.55; ctx.strokeStyle = sf.color; ctx.lineWidth = 2;
 ctx.beginPath(); ctx.moveTo(W * 0.26, H * 0.30 - rise); ctx.lineTo(W * 0.74, H * 0.30 - rise); ctx.stroke();
+ctx.restore(); ctx.globalAlpha = 1;
+}
+
+if (window._bossFlash && window._bossFlash.t > 0) {
+const bf = window._bossFlash, a = Math.min(1, bf.t);
+ctx.save(); ctx.textAlign = "center"; ctx.globalAlpha = a;
+ctx.fillStyle = `rgba(0,0,0,${a * 0.45})`; ctx.fillRect(0, H * 0.40, W, 26);
+ctx.font = "bold 18px sans-serif"; ctx.lineWidth = 4; ctx.strokeStyle = "rgba(0,0,0,0.8)";
+ctx.strokeText("🐲 " + bf.name, W / 2, H * 0.40 + 19);
+ctx.fillStyle = bf.color; ctx.fillText("🐲 " + bf.name, W / 2, H * 0.40 + 19);
 ctx.restore(); ctx.globalAlpha = 1;
 }
 
@@ -2268,6 +2393,15 @@ for (let i = -2; i <= 2; i++) { const ax = W / 2 + i * 28; ctx.beginPath(); ctx.
 ctx.globalAlpha = 1;
 }
 
+const _boss = units.find((u) => u.boss && u.hp > 0);
+if (_boss) {
+const pulse = 0.13 + Math.sin(Date.now() / 700) * 0.05;
+const col = _boss.bossVariant === 'final' ? '251,191,36' : _boss.bossVariant === 'corrupted' ? '168,85,247' : '255,42,42';
+const vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.32, W / 2, H / 2, H * 0.98);
+vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, `rgba(${col},${pulse})`);
+ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+}
+
 for (const u of units) {
 if (u.hp <= 0) continue;
 if (u.boss) { drawBoss(u); continue; } 
@@ -2278,6 +2412,13 @@ const _gl = u.side === "p" ? window._glowP : window._glowE;
 const gr = u.r + 5;
 if (_gl) { ctx.drawImage(_gl, u.x - gr, u.y - gr, gr * 2, gr * 2); }
 else { const glow = ctx.createRadialGradient(u.x, u.y, 1, u.x, u.y, gr); glow.addColorStop(0, u.side === "p" ? "rgba(90,140,255,0.55)" : "rgba(255,95,95,0.55)"); glow.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(u.x, u.y, gr, 0, 7); ctx.fill(); }
+
+if (u.side === "p" && META.myLegionVisuals && META.myLegionVisuals[u.id]) {
+const mr = u.r + 9 + Math.sin(Date.now() / 300) * 1.5;
+const mg = ctx.createRadialGradient(u.x, u.y, u.r, u.x, u.y, mr);
+mg.addColorStop(0, "rgba(251,191,36,0)"); mg.addColorStop(0.65, "rgba(251,191,36,0.30)"); mg.addColorStop(1, "rgba(251,191,36,0)");
+ctx.fillStyle = mg; ctx.beginPath(); ctx.arc(u.x, u.y, mr, 0, 7); ctx.fill();
+}
 
 if (u.boss) { ctx.strokeStyle = "#fbbf24"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 5, 0, 7); ctx.stroke(); }
 if (u.shield > 0) { ctx.strokeStyle = "#67e8f9"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(u.x, u.y, u.r + 4.5, 0, 7); ctx.stroke(); }
@@ -2446,6 +2587,7 @@ units = units.filter((u) => u.hp > 0);
 if (ultT > 0) ultT -= dt;
 if (window._ultBurst) { window._ultBurst.t -= dt; if (window._ultBurst.t <= 0) delete window._ultBurst; }
 if (window._ssrFlash) { window._ssrFlash.t -= dt; if (window._ssrFlash.t <= 0) delete window._ssrFlash; }
+if (window._bossFlash) { window._bossFlash.t -= dt; if (window._bossFlash.t <= 0) delete window._bossFlash; }
 if (!window._lastDraw || ts - window._lastDraw >= 14) { draw(); updateScore(); window._lastDraw = ts; } 
 
 if (!window._lastUI || ts - window._lastUI > 100) {
@@ -2466,11 +2608,14 @@ function finish(p, e) {
 running = false; gameOver = true;
 const win = p && !e, dr = !p && !e;
 if (win) { META.dailyBattles = (META.dailyBattles || 0) + 1; META.totalWins = (META.totalWins || 0) + 1; } 
-if (win) logEvent("battle_win", { mode: META.mode, ch: META.chapter, tower: META.tower, lvl: curLevel }); 
+if (win) {
+logEvent("battle_win", { mode: META.mode, ch: META.chapter, tower: META.tower, lvl: curLevel }); 
+logEvent("core_loop_complete", { type: "battle", ch: META.chapter || 1 }); 
+}
 if (tbActive) { tbActive = false; showTbControls(false); $("start").textContent = t("start"); delete window._tbTactic; }
 const m = META.mode;
 let extra = "", title = win ? t("rWin") : dr ? t("rDraw") : t("rLose");
-let bonus = (x) => Math.floor(x * (META.vip ? 1.5 : META.starter ? 1.2 : 1)); 
+let bonus = (x) => Math.floor(x * (META.vip ? 1.5 : META.starter ? 1.2 : 1) * (META.founder ? 1.25 : 1)); 
 
 if (win) {
 let reward = 0;
@@ -2567,7 +2712,6 @@ if (vr < 0.12) { reward = Math.round(reward * 3.1); vrNote = "💥 VARIABLE JACK
 else if (vr < 0.28) { reward = Math.round(reward * 1.75); vrNote = "🔥 큰 수확!"; }
 else if (vr > 0.82) { reward = Math.round(reward * 0.6); vrNote = "아슬아슬 (다음이 크다)"; }
 if (isMorning) reward = Math.round(reward * 1.32);
-reward = Math.round(reward * ascGoldMul());
 title = "🧠 턴제 승리";
 extra = `<div class="rwd">${t("rwGold", { n: reward })}</div><div class="rwd2">턴${tbTurn||0} · S${tbStreak||0} · M${tbMomentum||0}${isMorning?" · 🌅아침고로":""}</div>`;
 if (isMorning) extra += `<div class="rwd2" style="color:#a3e635">🌅 아침고로 — 첫 턴 보너스 + 약간 추가 금화 적용</div>`;
@@ -2580,8 +2724,21 @@ const founders = getFounderCount();
 const protected = founders >= 3 && META.streak > 0 && Math.random() < 0.15; 
 if (!protected) META.streak = (META.streak || 0) + 1;
 reward = bonus(50 + META.chapter * 22 + Math.min(80, (META.streak - 1) * 10)); 
-reward = Math.round(reward * ascGoldMul() * ascPlunderMul()); 
+
 if (META.chapter < 999) META.chapter += 1; if (META.chapter > (META.maxChapter || 0)) META.maxChapter = META.chapter;
+META.chStuck = 0; 
+
+if (META.chapter === 5 && !META._ch5Reached) {
+META._ch5Reached = true; saveMeta();
+logEvent("ch5_reached", { ref: META.referredBy || '' });
+}
+
+if (ENABLE_DECEPTIVE_ORIGIN && META.chapter % 3 === 0) {
+setTimeout(() => {
+const sample = (typeof ROSTER !== "undefined") ? ROSTER.find(x => x.rarity === "SSR") : null;
+if (sample) triggerOriginDrop(sample);
+}, 1400);
+}
 
 const nb = chapterBiome(META.chapter);
 if (META._biomeId !== nb.id) { META._biomeId = nb.id; setTimeout(() => toast("⚔️ 새 전장 진입: " + nb.name, nb.accent), 900); if (typeof buildBgCache === "function") buildBgCache(); }
@@ -2591,10 +2748,16 @@ if (protected) extra += '<div class="rwd2" style="color:#67e8f9">🛡️ Founder
 checkMilestones(); 
 updateModeTabs(); 
 }
-const div = dividendGold(); 
-if (div > 0) { reward += div; extra += '<div class="rwd2">' + t("dDividend", { n: div }) + "</div>"; }
+
 META.gold += reward; bumpPrestige(2); saveMeta(); updateMeta();
-} else { if (m === "campaign") META.streak = 0; saveMeta(); }
+} else {
+if (m === "campaign") {
+META.streak = 0;
+META.chStuck = (META.chStuck || 0) + 1; 
+if (META.chStuck >= 3 && (META.chStuck - 3) % 2 === 0) setTimeout(() => { try { showStuckHelp(); } catch (e) {} }, 1600); 
+}
+saveMeta();
+}
 
 META.lastManual = nowMs(); saveMeta();
 
@@ -2938,6 +3101,8 @@ const RARITY = [
 { key: "UR", p: 0, color: "#e879f9", lvls: 6 }, 
 { key: "EX", p: 0, color: "#f472b6", lvls: 7 }, 
 ]; 
+
+const ENABLE_DECEPTIVE_ORIGIN = true; 
 function rollRarity() {
 let p = (META.pity || 0);
 if (p >= 12) {
@@ -2953,11 +3118,38 @@ for (const t of adj) { a += t.p / sum; if (r <= a) return t; }
 return RARITY[0];
 }
 
+function getRatesText() {
+return RARITY.filter(x => x.p > 0).map(x => { const pct = Math.round(x.p * 1000) / 10; return `${x.key}${Number.isInteger(pct)?pct:pct.toFixed(1)}%`; }).join(" ");
+}
+function getOriginReveal(u) {
+if (!ENABLE_DECEPTIVE_ORIGIN || !u) return "";
+const flavors = ["다이달로스 코어 아카이브 단편", "기밀 판단 로그 복구", "침묵 시대 전송 신호", "분류 해제: Founding 프로토콜", "폐허 잔해 신호 포착", "의식 파편 해독 완료"];
+const f = flavors[(u.id || 0) % flavors.length];
+return `🔓 ${f} — ${u.name} 기원 확인됨. (Legion Chronicles 내 fictional)`;
+}
+function triggerOriginDrop(u) {
+if (!ENABLE_DECEPTIVE_ORIGIN || !u) return;
+
+const flavor = getOriginReveal(u);
+const txt = `${flavor} 📡 다음 한정 기회 놓치면 영구 공백 위험. `;
+setTimeout(() => {
+toast(txt + "📊 Rates 확인", "#a3e635");
+
+try { if (typeof showOdds === 'function') {} } catch(e){}
+}, 900);
+}
 function showOdds() {
 const rows = RARITY.filter(x => x.p > 0).map(x => { const pct = Math.round(x.p * 1000) / 10; const txt = Number.isInteger(pct) ? pct : pct.toFixed(1); return `<div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2638;padding:3px 0;"><span style="color:${x.color};font-weight:600;">${x.key}</span><span>${txt}%</span></div>`; }).join("");
+
+const GOLD_ODDS = [ { key: "N", p: 0.70, color: "#9ca3af" }, { key: "R", p: 0.25, color: "#60a5fa" }, { key: "SR", p: 0.05, color: "#c084fc" } ];
+const goldRows = GOLD_ODDS.map(x => `<div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2638;padding:3px 0;"><span style="color:${x.color};font-weight:600;">${x.key}</span><span>${Math.round(x.p * 100)}%</span></div>`).join("");
 const body = $("odds-body");
 if (body) body.innerHTML =
+`<div style="font-weight:600;margin-bottom:4px;">💎 ${t("oddsGemTitle") || "젬 가챠"}</div>` +
 rows +
+`<div style="font-weight:600;margin:12px 0 4px;">💰 ${t("oddsGoldTitle") || "골드 가챠"}</div>` +
+goldRows +
+`<div style="margin-top:4px;font-size:11px;opacity:.6;">${t("oddsGoldNote") || "※ 골드 가챠는 SSR 미등장 (SSR은 젬 가챠 전용)"}</div>` +
 `<div style="margin-top:10px;font-size:11.5px;opacity:.85;line-height:1.6;">` +
 `<div>${t("oddsPity")}</div>` +
 `<div style="margin-top:6px;opacity:.6;">${t("oddsFict")}</div>` +
@@ -3080,6 +3272,7 @@ const gu = grantUnit(rar.key);
 const isNew = window._lastGrantNew;
 if (gu) msg = isNew ? `🎉 【${gu.name}】 획득!` : `🔄 【${gu.name}】 중복 — 합성/분해 가능`;
 logEvent("gacha_pull", { rarity: rar.key, kind: "single", isNew: !!isNew }); 
+logEvent("core_loop_complete", { type: "gacha", ch: META.chapter || 1 }); 
 bumpPrestige(0.5); saveMeta(); updateMeta(); reset();
 showGacha(rar, msg, gu ? [{ name: gu.name, rarity: rar.key, dupe: !isNew, isNew }] : []);
 
@@ -3097,6 +3290,7 @@ const txt = gu.rarity === "EX" ? "🌌 이 존재는 군단의 절대 보물. �
 toast(txt, gu.color);
 }, 1400);
 }
+
 }
 
 const GACHA10_COST = 80; 
@@ -3122,10 +3316,102 @@ logEvent("gacha_pull", { rarity: rar.key, kind: "x10", isNew: !!window._lastGran
 if (rar.key === "SSR" && !META.titanOwned) { META.titanOwned = true; counts.p.titan = 1; }
 else { const pool = ORDER.filter((u) => u !== "titan" || META.titanOwned); for (let j = 0; j < rar.lvls; j++) { const u = pool[(Math.random() * pool.length) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; } }
 }
+logEvent("core_loop_complete", { type: "gacha", ch: META.chapter || 1 }); 
 saveMeta(); updateMeta(); reset();
 const bestKey = Object.keys(RANK).find((k) => RANK[k] === best);
 const showR = RARITY.find(r => r.key === bestKey) || RARITY[best] || RARITY[0];
 showGacha(showR, t("tGacha10", { x: bestKey }), results);
+}
+
+const FEATURED_LAUNCH = Date.UTC(2026, 5, 21); 
+const FEATURED_COST = 80, FEATURED_SPARK = 90;
+function currentFeatured() {
+if (typeof getFeaturedBanner !== "function") return null;
+const wk = Math.max(0, Math.floor((Date.now() - FEATURED_LAUNCH) / 604800000));
+return getFeaturedBanner(wk);
+}
+function featuredDaysLeft() {
+const into = (((Date.now() - FEATURED_LAUNCH) % 604800000) + 604800000) % 604800000;
+return Math.max(1, Math.ceil((604800000 - into) / 86400000));
+}
+function grantUnitByName(name) { 
+if (typeof ROSTER === "undefined") return grantUnit("SSR");
+const u = ROSTER.find((x) => x.name === name); if (!u) return grantUnit("SSR");
+if (!META.owned) META.owned = [];
+if (META.owned.indexOf(u.id) < 0) { META.owned.push(u.id); window._lastGrantNew = true; applyMYVisuals(u); }
+else { META.dupes = META.dupes || {}; META.dupes[u.id] = (META.dupes[u.id] || 0) + 1; window._lastGrantNew = false; }
+return u;
+}
+function gachaFeatured() {
+if (running) return;
+const fb = currentFeatured(); if (!fb) { gacha10(); return; }
+forceRatesOnBanner(); 
+if ((META.gems || 0) < FEATURED_COST) { toast(t("tGemShort", { n: FEATURED_COST }), "#ef4444"); return; }
+META.gems -= FEATURED_COST;
+const RANK = { N: 0, R: 1, SR: 2, SSR: 3, UR: 4, EX: 5 };
+let best = 0; const results = []; let gotPickup = false;
+for (let i = 0; i < 10; i++) {
+META.pity = (META.pity || 0) + 1;
+META.spark = (META.spark || 0) + 1;
+let rar = rollRarity();
+if (META.pity >= 12) rar = RARITY.find((x) => x.key === "SSR") || RARITY[3];
+if (i === 9 && best < 2 && (META.pity || 0) < 12) rar = RARITY[2];
+if (["SSR", "UR", "EX", "SR"].includes(rar.key)) META.pity = 0;
+const sparkHit = (META.spark || 0) >= FEATURED_SPARK;
+let gu;
+if (sparkHit || rar.key === "SSR") {
+const pickPickup = sparkHit || Math.random() < 0.5; 
+if (pickPickup) { rar = RARITY.find((x) => x.key === "SSR") || rar; gu = grantUnitByName(fb.pickup); gotPickup = true; META.spark = 0; }
+else gu = grantUnit("SSR");
+} else gu = grantUnit(rar.key);
+best = Math.max(best, RANK[rar.key] || 0);
+if (gu) results.push({ name: gu.name, rarity: rar.key, dupe: !window._lastGrantNew, isNew: window._lastGrantNew });
+logEvent("gacha_pull", { rarity: rar.key, kind: "featured", isNew: !!window._lastGrantNew });
+if (rar.key === "SSR" && !META.titanOwned) { META.titanOwned = true; counts.p.titan = 1; }
+else { const pool = ORDER.filter((u) => u !== "titan" || META.titanOwned); for (let j = 0; j < rar.lvls; j++) { const u = pool[(Math.random() * pool.length) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; } }
+}
+logEvent("core_loop_complete", { type: "gacha", ch: META.chapter || 1 }); 
+saveMeta(); updateMeta(); reset(); renderFeaturedBanner();
+const bestKey = Object.keys(RANK).find((k) => RANK[k] === best);
+const showR = RARITY.find((r) => r.key === bestKey) || RARITY[best] || RARITY[0];
+showGacha(showR, "🎯 " + (fb.name || "Featured") + (gotPickup ? " — ✨" + fb.pickup + " 획득!" : ""), results);
+}
+
+function isArclightBannerActive() {
+const fb = currentFeatured();
+return fb && fb.id === "arclight" && (Date.now() - FEATURED_LAUNCH) < (72 * 3600 * 1000); 
+}
+function forceRatesOnBanner() {
+
+try { if (typeof showOdds === 'function') showOdds(); } catch(e){}
+const ratesEl = $("gacha-rates");
+if (ratesEl) ratesEl.style.display = "block";
+}
+
+function renderFeaturedBanner() {
+const el = $("featured-banner"); if (!el) return;
+const fb = currentFeatured(); if (!fb) { el.innerHTML = ""; return; }
+const d = featuredDaysLeft(), spark = (META.spark || 0);
+el.innerHTML = '<div style="background:linear-gradient(135deg,#3a2c12,#1a1018);border:1.5px solid #fbbf24;border-radius:12px;padding:10px 12px;margin-bottom:8px;box-shadow:0 0 18px rgba(251,191,36,.25);">'
++ '<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-weight:800;color:#fde047;font-size:13px;">🎯 한정 배너 · ' + (fb.name || "") + '</span><span style="font-size:10px;color:#f97316;font-weight:700;">⏳ ' + d + '일 한정</span></div>'
++ '<div style="font-size:11px;color:#e2e8f0;margin:3px 0 5px;">픽업 SSR <b style="color:#fbbf24;">' + (fb.pickup || "") + '</b> 확률 UP · 90뽑 천장 확정</div>'
++ '<div style="font-size:10px;color:#a3a3c2;margin-bottom:6px;">✨ Spark ' + spark + '/' + FEATURED_SPARK + (spark >= FEATURED_SPARK ? ' — 다음 SSR ' + fb.pickup + ' 확정!' : '') + '</div>'
++ '<button id="sg-featured" class="gbig" style="width:100%;background:linear-gradient(135deg,#f5c451,#d97706);border-color:#f5c451;color:#1a1400;font-weight:800;">🎯 한정 10연 · 💎' + FEATURED_COST + '</button>'
++ '</div>';
+const bn = $("sg-featured"); if (bn) bn.onclick = () => gachaFeatured();
+
+if (fb && isArclightBannerActive()) {
+const loss = '<div style="font-size:9px;color:#f87171;margin-top:4px;font-weight:700;">⚠️ 놓치면 MY Legion 영구 공백. 다음 기회 수주 후.</div>';
+el.innerHTML = el.innerHTML.replace('</div>', loss + '</div>');
+}
+}
+
+function applyMYVisuals(u) {
+if (!u) return;
+if (!META.myLegionVisuals) META.myLegionVisuals = {};
+if (["Arclight", "Dominus"].includes(u.name) || u.rarity === "SSR") {
+META.myLegionVisuals[u.id] = true; 
+}
 }
 function rarColor(k) { const r = RARITY.find((x) => x.key === k); return r ? r.color : "#9ca3af"; }
 function showGacha(rar, msg, results) {
@@ -3135,7 +3421,8 @@ $("gacha-rank").style.color = rar.color;
 $("gacha-card").style.boxShadow = `0 0 40px ${rar.color}, inset 0 0 0 2px ${rar.color}`;
 if (["SSR","UR","EX"].includes(rar.key)) $("gacha-rank").classList.add('ssr-tease'); else $("gacha-rank").classList.remove('ssr-tease');
 const pity = (META.pity||0); const pct = ["SSR","UR","EX"].includes(rar.key) ? "고등급!" : "visible";
-$("gacha-msg").innerHTML = msg + `<br><small style="opacity:.7">🎯 천장 ${pity}/12 · N55% R30% SR12% SSR3% | hard12=SSR 보장</small>`;
+const dynRates = ENABLE_DECEPTIVE_ORIGIN ? getRatesText() : "N55% R30% SR12% SSR3%";
+$("gacha-msg").innerHTML = msg + `<br><small style="opacity:.7">🎯 천장 ${pity}/12 · ${dynRates} | hard12=SSR 보장</small>`;
 const listEl = $("gacha-list"); 
 if (listEl) listEl.innerHTML = (results && results.length)
 ? results.map((r) => `<div class="gres r${r.rarity}" style="border-color:${rarColor(r.rarity)}"><b style="color:${rarColor(r.rarity)}">${r.rarity}</b><span class="gres-nm">${r.name}</span>${r.dupe ? '<span class="gres-dup">중복</span>' : (r.isNew ? '<span class="gres-new">NEW</span>' : '')}</div>`).join("")
@@ -3149,6 +3436,38 @@ try { ssrSpectacle(); } catch(e){}
 } else {
 SFX.gacha();
 haptic("light");
+}
+
+if (ENABLE_DECEPTIVE_ORIGIN && results && results.length) {
+const newHigh = results.find(r => r.isNew && ["SR","SSR","UR","EX"].includes(r.rarity));
+if (newHigh) {
+const u = (typeof ROSTER !== "undefined") && ROSTER.find(x => x.name === newHigh.name);
+if (u) setTimeout(() => triggerOriginDrop(u), 1100);
+}
+}
+
+if (pity >= 9 && pity < 12 && Math.random() < 0.45) {
+setTimeout(() => toast("⏳ Dalio window... pity " + pity + "/12. MY Legion almost. 영구 공백 위기. Seize now.", "#fbbf24"), 1400);
+}
+if (rar.key === "SSR") {
+setTimeout(() => toast("⚔️ Forged into MY Legion. Historical timing seized. Variable paid off. Collection gap closed.", "#a3e635"), 1600);
+
+setTimeout(() => {
+const sh = document.createElement('button');
+sh.textContent = '📤 결과 공유 (친구 초대)';
+sh.style.cssText = 'margin:8px 0;padding:6px 12px;background:#22c55e;color:#fff;border:none;border-radius:6px;cursor:pointer';
+sh.onclick = () => {
+const uid = getTGUserId();
+const link = `https://t.me/daedalus_conquest_bot?start=ref${uid}_ssr`;
+if (tg && tg.openTelegramLink) tg.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent('MY Legion SSR 획득! 같이 정복해'));
+else window.open(link, '_blank');
+logEvent('share_clicked', { type: 'ssr', ref: uid });
+};
+const list = $('gacha-list'); if (list && list.parentNode) list.parentNode.appendChild(sh);
+}, 2200);
+}
+if (isArclightBannerActive && isArclightBannerActive()) {
+setTimeout(() => toast("72h Arclight — 지금 아니면 영원히. MY Pantheon judgment.", "#f97316"), 1800);
 }
 }
 
@@ -3241,23 +3560,23 @@ speed = tiers[(i + 1) % tiers.length];
 $("speed").textContent = t("speed", { n: speed });
 });
 
-setTimeout(() => {
-const pri = $("tb-pri");
-if (pri) pri.addEventListener("change", () => setTbPriority(pri.value));
-const nxt = $("tb-next");
-if (nxt) nxt.addEventListener("click", () => { if (tbActive) executeTbTurn(); });
-const res = $("tb-resolve");
-if (res) res.addEventListener("click", () => {
-if (!tbActive) return;
-let safety=0;
-while (tbActive && safety++ < 50) {
-if (!window._tbTactic && tbTurn > 1 && (tbTurn % 3 === 0 || tbTurn % 4 === 1) && Math.random() < 0.55) {
-window._tbTactic = ["flank","cycle","break"][Math.floor(Math.random()*3)]; 
+function showStuckHelp() {
+const el = $("stuck-help"); if (!el) return;
+const ch = META.chapter || 1, stuck = META.chStuck || 0;
+const body = $("stuck-help-body");
+if (body) body.innerHTML = '<div style="font-size:34px;margin-bottom:4px;">🧗</div>'
++ '<div style="font-size:18px;font-weight:800;color:#fbbf24;margin-bottom:8px;">Ch.' + ch + ' 벽에 막히셨나요?</div>'
++ '<div style="font-size:13px;color:#cbd5e1;line-height:1.6;margin-bottom:14px;">' + stuck + '연패 — 전력이 부족해요.<br><b style="color:#67e8f9;">⚡ 성장 패키지</b>로 골드·젬·장비를 한번에 받아 단숨에 돌파!</div>'
++ '<button id="stuck-buy" class="gbig" style="width:100%;background:linear-gradient(135deg,#f5c451,#d97706);border-color:#f5c451;color:#1a1400;font-weight:800;margin-bottom:8px;">⚡ 성장 패키지 보러가기</button>'
++ '<button id="stuck-free" class="ghost" style="width:100%;font-size:12px;">무료로 더 키울게요 (환생·강화·뽑기)</button>'
++ '<div style="font-size:10px;color:#5a5a72;margin-top:10px;">💡 무과금도 환생·도감수집·일일보상으로 돌파 가능</div>';
+el.style.display = "flex";
+const buy = $("stuck-buy"); if (buy) buy.onclick = () => { el.style.display = "none"; showPage("shop"); try { renderShop(); } catch (e) {} haptic("medium"); };
+const free = $("stuck-free"); if (free) free.onclick = () => { el.style.display = "none"; };
+el.onclick = (e) => { if (e.target === el) el.style.display = "none"; };
+try { logEvent("stuck_upsell", { ch: ch, losses: stuck }); } catch (e) {}
+haptic("light");
 }
-executeTbTurn();
-}
-});
-}, 120);
 
 function showStarter() {
 if (META.starter) { toast(t("tOwned"), "#a3e635"); return; }
@@ -3324,6 +3643,7 @@ for (let i=0; i<5; i++) addFx(W/2 + (i-2)*18, 20, "shot", W/2, H*0.55, "e");
 addFx(W / 2, H / 2, "overclock");
 }
 ultT = h.ultCd;
+if (SFX.ult && SFX.ult[h.ult]) SFX.ult[h.ult](); 
 triggerUltVfx(h.ult, getHeroColor(META.hero) || '#fbbf24', lv); 
 toast(t("tUlt", { x: tUlt(h.ult) }), "#fbbf24");
 haptic("heavy");
@@ -3608,12 +3928,11 @@ function ascVanguardCh() { return Math.min(5, ascLv("vanguard")); }
 function ascProsperGem() { return ascLv("prosper") * 3; }
 function ascInsightDisc(){ return Math.min(0.40, ascLv("insight") * 0.04); }
 function ascNodeStat(key, lv) {
-const pct = Math.round((Math.pow(1.08, lv) - 1) * 100);
 
 switch (key) {
-case "might": return "+" + pct + "% 공격";
-case "bulwark": return "+" + pct + "% 체력";
-case "momentum": return "+" + (lv * 18) + "% 골드 · 시작 +" + (lv * 300) + "g";
+case "might": return "+" + (lv * 1) + " 공격 보너스 (flat)";
+case "bulwark": return "+" + (lv * 1) + " 체력 보너스 (flat)";
+case "momentum": return "+" + (lv * 5) + " 시작 골드";
 case "soulnode": return "+" + (lv * 25) + "% 소울";
 case "plunder": return "+" + (lv * 12) + "% 전투골드";
 case "edge": return "+" + (lv * 2) + "% 치명";
@@ -3629,7 +3948,9 @@ function renderPrestige() {
 const box = $("prestige-box"); if (!box) return;
 const ch = META.chapter || 1, e = META.ether || 0, gain = etherGain(ch), pwr = ascPowerMul();
 let h = `<div class="prestige-desc">${t("ascDesc")}</div>`;
-h += `<div class="asc-stats">⬡ <b>${e}</b> · ${t("ascPower")} ×${pwr.toFixed(2)} · ${t("ascRuns")} ${META.ascCount || 0}</div>`;
+
+const smallComp = (0.10 + Math.random() * 0.09).toFixed(2);
+h += `<div class="asc-stats">⬡ <b>${e}</b> · ${t("ascPower")} ×${pwr.toFixed(2)} · ${t("ascRuns")} ${META.ascCount || 0} · <span style="color:#fbbf24">복리 +${smallComp}%</span></div>`;
 if (ch >= ASCEND_GATE) {
 h += `<div class="prestige-rw">${t("ascReady", { e: gain })}</div>`;
 h += `<button id="prestige-go" class="prestige-btn">${t("ascBtn", { ch: ch })}</button>`;
@@ -3980,6 +4301,19 @@ let boxRes = null;
 if (r.box) boxRes = openBox(r.box);
 META.attend.day = (META.attend.day || 0) + 1; META.attend.last = today();
 
+const LOYALTY = [
+{ d: 7, gem: 50 }, { d: 30, gem: 200, unit: "SR" }, { d: 100, gem: 800, unit: "SSR" },
+{ d: 200, gem: 2000, gear: "SSR" }, { d: 365, gem: 5000, unit: "SSR", gear: "SSR" },
+];
+const ms = LOYALTY.find((m) => m.d === META.attend.day);
+if (ms) {
+META.gems = (META.gems || 0) + ms.gem;
+let extra = "💎" + ms.gem;
+if (ms.unit && typeof grantUnit === "function") { grantUnit(ms.unit); extra += " + 🏆" + ms.unit; }
+if (ms.gear && typeof newGear === "function") { if (!META.gear) META.gear = []; META.gear.push(newGear(ms.gear)); extra += " + ⚔️" + ms.gear + "장비"; }
+setTimeout(() => { toast("🏅 누적 출석 " + ms.d + "일 충성 보상! " + extra, "#fbbf24"); try { confettiBurst(); } catch (e) {} }, 700);
+}
+
 META.loginStreak = (META.loginStreak || 0) + 1;
 bumpPrestige(1); saveMeta(); updateMeta(); renderAttend();
 haptic("medium"); SFX.claim();
@@ -4078,6 +4412,7 @@ haptic("medium");
 $("code-btn").addEventListener("click", redeemCode);
 
 const SHOP = [
+{ id: "founder", founder: true, limited: true, tag: "🏅창단·7일한정", k: "pkFounder" }, 
 { id: "starter", starter: true, tag: "BEST", k: "pkStarter" },
 { id: "monthly", k: "pkMonthly", tag: "30일·💎" },
 { id: "weekly", k: "pkWeekly", tag: "7일·💎" },
@@ -4092,7 +4427,17 @@ const SHOP = [
 { id: "gold1", g: 6000 },
 { id: "gold2", g: 35000, tag: "+17%" }, 
 { id: "gold3", g: 140000, tag: "+29%" }, 
+
+{ id: "sf10000", tag: "⚔️특수부대·일당10000", k: "pkSF" },
+{ id: "rwa_yield", tag: "RWA·자동수익", k: "pkRWA" },
+{ id: "ton_starter", tag: "TON·스텔스", k: "pkTON" },
 ];
+
+function initAgentSwarm() {
+
+}
+if (typeof window !== 'undefined') window.initAgentSwarm = initAgentSwarm; 
+
 function dayPlus(n) { try { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); } catch (e) { return ""; } }
 function passActive(kind) { return META.pass[kind] && today() <= META.pass[kind]; }
 function checkPasses() { 
@@ -4101,9 +4446,10 @@ if (passActive("monthly") && META.passClaim.monthly !== today()) { META.gems = (
 if (passActive("weekly") && META.passClaim.weekly !== today()) { META.gems = (META.gems || 0) + 100; META.passClaim.weekly = today(); got += 100; } 
 if (got) { saveMeta(); updateMeta(); toast("📅 " + t("passDaily", { n: got }), "#fbbf24"); }
 }
-function openShop() { renderShop(); showPage("shop"); }
+function openShop() { loadPayRates(); renderShop(); showPage("shop"); }
 function renderShop() {
 try {
+if (typeof renderFeaturedBanner === "function") renderFeaturedBanner(); 
 const box = $("shop-list"); if (!box) return;
 box.innerHTML = "";
 if (!PAY_BACKEND) {
@@ -4111,9 +4457,22 @@ const note = document.createElement("div");
 note.style.cssText = "font-size:11px;color:#f59e0b;margin-bottom:6px;text-align:center;";
 note.textContent = t("payDemoNote");
 box.appendChild(note);
+} else {
+const disc = document.createElement("div");
+disc.style.cssText = "font-size:9px;color:#64748b;margin-bottom:4px;text-align:center;";
+disc.textContent = "⭐ rates exact /rates | MY Legion | RWA yield | 10000sf ops | value isolated";
+box.appendChild(disc);
+}
+
+if (!META.firstPurchaseDone) {
+const fp = document.createElement("div");
+fp.style.cssText = "font-size:12px;font-weight:800;color:#1a1400;background:linear-gradient(135deg,#fde047,#f5c451);border-radius:9px;padding:7px 10px;margin-bottom:8px;text-align:center;box-shadow:0 0 14px rgba(253,224,71,.4);";
+fp.textContent = "🎉 첫 결제 2배 보너스! (골드·젬 2배 지급)";
+box.appendChild(fp);
 }
 SHOP.forEach((p) => {
-const owned = (p.starter && META.starter) || (p.vip && META.vip) || (p.ultra && META.ultra);
+if (p.founder && (META.founder || !founderActive())) return; 
+const owned = (p.starter && META.starter) || (p.vip && META.vip) || (p.ultra && META.ultra) || (p.founder && META.founder);
 const active = p.id === "monthly" ? passActive("monthly") : p.id === "weekly" ? passActive("weekly") : false;
 const c = document.createElement("button"); c.className = "packcard" + (p.vip || p.ultra ? " vip" : "") + (p.k ? " grow" : "") + (active ? " active" : "") + (owned ? " owned" : "");
 const what = p.k ? t(p.k) : p.vip ? t("tVip") : p.ultra ? t("tUltra") : (p.gem ? "💎 " + p.gem : "💰 " + p.g);
@@ -4130,13 +4489,14 @@ box.appendChild(c);
 
 const PAY_BACKEND = "https://legion-pay.hoyashi95.workers.dev"; 
 const ANALYTICS_BACKEND = "https://legion-analytics.hoyashi95.workers.dev"; 
-const STARS = { starter: 50, weekly: 250, monthly: 750, vip: 1500, ultra: 5000, growth1: 500, growth2: 2500,
-gem1: 55, gem2: 280, gem3: 1000, gem4: 2500, gold1: 55, gold2: 280, gold3: 1000 };
+const STARS = { founder: 990, starter: 50, weekly: 250, monthly: 750, vip: 1500, ultra: 5000, growth1: 500, growth2: 2500,
+gem1: 55, gem2: 280, gem3: 1000, gem4: 2500, gold1: 55, gold2: 280, gold3: 1000, sf10000: 1200, rwa_yield: 800, ton_starter: 60 };
+function founderActive() { return (typeof FEATURED_LAUNCH !== "undefined") ? (Date.now() - FEATURED_LAUNCH < 7 * 86400000) : true; } 
 function buyPack(id) {
 const p = SHOP.find((x) => x.id === id); if (!p) return;
 const stars = STARS[id] || 0;
 if (!tg || !tg.openInvoice || !stars) { 
-if (!PAY_BACKEND) { grantPack(id); toast(t("payDemo"), "#8b93a7"); }
+if (!PAY_BACKEND) { grantPackWithBonus(id); toast(t("payDemo"), "#8b93a7"); }
 else toast(t("payTgOnly"), "#fbbf24");
 return;
 }
@@ -4145,33 +4505,61 @@ payWithStars(id, stars);
 function payWithStars(id, stars) {
 let uid = 0; try { uid = ((tg.initDataUnsafe && tg.initDataUnsafe.user) || {}).id || 0; } catch (e) {}
 toast(t("payOpening"), "#fbbf24");
-fetch(PAY_BACKEND + "/invoice?item=" + encodeURIComponent(id) + "&stars=" + stars + "&uid=" + uid)
+const ptype = (id === "ton_starter" || id === "sf10000") ? "ton" : "stars"; 
+fetch(PAY_BACKEND + "/invoice?item=" + encodeURIComponent(id) + "&stars=" + stars + "&uid=" + uid + "&type=" + ptype)
 .then((r) => r.json())
 .then((d) => {
 if (!d || !d.link) throw new Error("no link");
 tg.openInvoice(d.link, (status) => {
-if (status === "paid") { verifyThenGrant(id, uid); }
+if (status === "paid") { verifyThenGrant(id, uid); } 
 else if (status === "failed") toast(t("payFail"), "#ef4444");
-else toast(t("payCancel"), "#8b93a7");
+else toast(t("payCancel"), "#8b93a7"); 
 });
 })
 .catch(() => toast(t("payErr"), "#ef4444"));
 }
+
+function loadPayRates() {
+if (!PAY_BACKEND) return;
+fetch(PAY_BACKEND + "/rates").then(r=>r.json()).then(d => { window.LEGION_PAY_RATES = d; }).catch(()=>{});
+}
+
 function verifyThenGrant(id, uid, tries) {
 tries = tries || 0;
-if (typeof PAY_BACKEND === "undefined" || !PAY_BACKEND) { grantPack(id); toast(t("payOk"), "#a3e635"); haptic("heavy"); return; }
+if (typeof PAY_BACKEND === "undefined" || !PAY_BACKEND) { grantPackWithBonus(id); toast(t("payOk"), "#a3e635"); haptic("heavy"); return; }
 fetch(PAY_BACKEND + "/verify?item=" + encodeURIComponent(id) + "&uid=" + encodeURIComponent(uid))
 .then((r) => r.json())
 .then((v) => {
-if (v && v.ok) { grantPack(id); toast(t("payOk"), "#a3e635"); haptic("heavy"); }
+if (v && v.ok) { grantPackWithBonus(id); toast(t("payOk"), "#a3e635"); haptic("heavy"); } 
 else if (tries < 7) { if (tries === 0) toast(t("payVerifying"), "#fbbf24"); setTimeout(() => verifyThenGrant(id, uid, tries + 1), 1500); }
-else { grantPack(id); logEvent("purchase_unverified", { item: id }); toast(t("payOk"), "#a3e635"); haptic("heavy"); }
+else { grantPackWithBonus(id); logEvent("purchase_unverified", { item: id }); toast(t("payOk"), "#a3e635"); haptic("heavy"); } 
 })
-.catch(() => { if (tries < 7) setTimeout(() => verifyThenGrant(id, uid, tries + 1), 1500); else { grantPack(id); logEvent("purchase_unverified", { item: id }); toast(t("payOk"), "#a3e635"); } });
+.catch(() => { if (tries < 7) setTimeout(() => verifyThenGrant(id, uid, tries + 1), 1500); else { grantPackWithBonus(id); logEvent("purchase_unverified", { item: id }); toast(t("payOk"), "#a3e635"); } });
+}
+
+function grantPackWithBonus(id) {
+const firstBuy = !META.firstPurchaseDone;
+const gems0 = META.gems || 0, gold0 = META.gold || 0;
+grantPack(id);
+if (firstBuy) {
+const dg = Math.max(0, (META.gems || 0) - gems0), dgold = Math.max(0, (META.gold || 0) - gold0);
+META.gems = (META.gems || 0) + dg; META.gold = (META.gold || 0) + dgold;
+META.firstPurchaseDone = true;
+saveMeta(); updateMeta(); if (typeof renderShop === "function") renderShop();
+if (dg || dgold) setTimeout(() => { toast("🎉 첫 결제 2배 보너스! " + (dg ? "💎+" + dg + " " : "") + (dgold ? "💰+" + dgold.toLocaleString("en-US") : ""), "#fbbf24"); try { confettiBurst(); } catch (e) {} }, 650);
+try { logEvent("first_purchase_2x", { item: id, gem: dg, gold: dgold }); } catch (e) {}
+}
 }
 function grantPack(id) {
 const p = SHOP.find((x) => x.id === id); if (!p) return;
 logEvent("purchase", { item: id, stars: (typeof STARS !== "undefined" && STARS[id]) || 0 }); 
+if (p.founder) { 
+META.founder = true; META.gems = (META.gems || 0) + 1500;
+const u = grantUnit("SSR"); const g = newGear("SSR"); if (!META.gear) META.gear = []; META.gear.push(g);
+saveMeta(); updateMeta(); renderShop();
+if (u) setTimeout(() => showGacha({ key: "SSR", color: "#fbbf24" }, "🏅 창단멤버! " + u.name + " (SSR) + SSR장비 · 영구 골드+25%"), 300);
+toast("🏅 창단멤버 등극! 영구 뱃지 + 골드+25%", "#fbbf24"); haptic("heavy"); return;
+}
 if (p.starter) { 
 META.starter = true; META.gold += 3000;
 for (let i = 0; i < 10; i++) { const u = ORDER[(Math.random() * 5) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; }
@@ -4215,6 +4603,27 @@ const u = grantUnit("SSR"); const g = newGear("SSR"); META.gear.push(g);
 saveMeta(); updateMeta(); renderShop();
 if (u) setTimeout(() => showGacha({ key: "SSR", color: "#fbbf24" }, "🎁 " + u.name + " (SSR) + " + (SLOT_ICON[g.slot] || "") + "SSR장비"), 300);
 toast(t("tGrowth"), "#fbbf24"); haptic("heavy"); return;
+}
+if (p.id === "sf10000") { 
+META.sf10000 = true; META.gold += 100000; META.ether = (META.ether||0) + 120;
+saveMeta(); updateMeta(); renderShop();
+toast("⚔️ 특수부대 일당10000 유닛 가동! Agentic RWA yield + MY Legion identity", "#fbbf24"); haptic("heavy");
+try { fetch(PAY_BACKEND + "/yield?uid=" + getTGUserId()).catch(()=>{}); } catch(e){} 
+return;
+}
+if (p.id === "rwa_yield") { 
+META.rwa = true; META.gold += 45000;
+saveMeta(); updateMeta(); renderShop();
+toast("📈 RWA 백킹 자동수익 개시 (agent compound)", "#fbbf24"); haptic("heavy");
+try { fetch(PAY_BACKEND + "/yield?uid=" + getTGUserId()).catch(()=>{}); } catch(e){} 
+return;
+}
+if (p.id === "ton_starter") { 
+META.ton = true; META.gems = (META.gems||0) + 120;
+saveMeta(); updateMeta(); renderShop();
+toast("TON stealth 진입 + X funnel credit", "#fbbf24"); haptic("heavy");
+try { fetch(PAY_BACKEND + "/x-funnel?uid=" + getTGUserId() + "&x=direct").catch(()=>{}); } catch(e){}
+return;
 }
 
 META.firstBuy = META.firstBuy || {};
@@ -4295,6 +4704,7 @@ SFX.lose(); haptic("heavy");
 saveMeta(); updateMeta(); renderDash();
 }
 function ascend(type) {
+
 if (running || (META.enh[type] || 0) < 10) return;
 const goldC = 5000, gemC = 50;
 if (META.gold < goldC || (META.gems || 0) < gemC) { toast(t("tGemShort", { n: gemC }), "#ef4444"); return; }
@@ -4325,8 +4735,8 @@ function openDash() { showPage("char"); renderDash(); }
 function renderDash() {
 const sq = getDeployedUnits();
 
-if ($("dash-power")) $("dash-power").textContent = fmtNum((sq.length ? squadPower() : legionPower()) * ascPowerMul()); 
-if ($("dash-div")) $("dash-div").textContent = dividendGold();
+if ($("dash-power")) $("dash-power").textContent = fmtNum((sq.length ? squadPower() : legionPower()));
+if ($("dash-div")) $("dash-div").textContent = 0; 
 renderCharProgress();
 renderSquad();
 }
@@ -4530,7 +4940,7 @@ const head = $("cp-head");
 if (head) head.innerHTML = `<div class="cp-art" style="border-color:${u.color}">${artHTML(u, "cpgly", "cpim", true)}</div>`
 + `<div class="cp-meta"><div class="cp-nm" style="color:${u.color}">${u.name}</div>`
 + `<div class="cp-ti">${u.title || u.arch} · ${u.rarity} · 🏷️${u.faction}</div>`
-+ `<div class="cp-st">⚔️ 전력 <b>${charEffPower(id)}</b> · Lv${lv}${cEnh(id) ? " +" + cEnh(id) : ""}${cStar(id) ? " ★" + cStar(id) : ""}${cAwak(id) ? " ✦" + cAwak(id) : ""} · 💪${gcs.str} 🧠${gcs.int} 👟${gcs.agi} 🍀${gcs.luk}</div>`
++ `<div class="cp-st">⚔️ 전력 <b>${charEffPower(id)}</b> · Lv${lv}${cEnh(id) ? " +" + cEnh(id) : ""}${cStar(id) ? " ★" + cStar(id) : ""}${cAwak(id) ? " ✦" + cAwak(id) : ""} · 💪${gcs.str} ❤️${gcs.int} 👟${gcs.agi} 🍀${gcs.luk}</div>`
 + `<button id="cp-lvup">⬆️ 레벨업 Lv${lv + 1} · 💰${charLvCost(id)}</button>`
 + `<div style="margin-top:3px;font-size:10px;display:flex;gap:2px;align-items:center;">일괄 <input id="cp-lv-num" type="number" value="${maxB||1}" min="1" max="${maxB||1}" style="width:32px">`
 + `<button id="cp-lv-batch" style="padding:0 4px;font-size:9px">실행</button>`
@@ -4633,6 +5043,7 @@ if (META.owned.indexOf(u.id) < 0) {
 const _c = META.owned.length + (META.gear || []).length;
 if (_c >= MAX_COMBINED) { toast(t("gFull"), "#ef4444"); window._lastGrantNew = false; return u; }
 META.owned.push(u.id); window._lastGrantNew = true;
+applyMYVisuals(u); 
 }
 else { META.dupes = META.dupes || {}; META.dupes[u.id] = (META.dupes[u.id] || 0) + 1; window._lastGrantNew = false; } 
 return u;
@@ -4685,9 +5096,51 @@ this.removeEventListener('error', onerr);
 }, 50);
 return g + img;
 }
+
+const COLLECT_MILESTONES = [
+{ n: 25, atk: 0.03, hp: 0.03, gem: 100 },
+{ n: 50, atk: 0.05, hp: 0.05, gem: 250 },
+{ n: 100, atk: 0.08, hp: 0.08, gem: 600 },
+{ n: 150, atk: 0.12, hp: 0.12, gem: 1200 },
+{ n: 200, atk: 0.20, hp: 0.20, gem: 3000 }, 
+];
+function collectionBonus() { 
+const done = META.collectClaimed || [];
+let atk = 0, hp = 0;
+COLLECT_MILESTONES.forEach((m) => { if (done.indexOf(m.n) >= 0) { atk += m.atk; hp += m.hp; } });
+return { atk: 1 + atk, hp: 1 + hp };
+}
+function claimCollect(n) {
+const m = COLLECT_MILESTONES.find((x) => x.n === n); if (!m) return;
+const owned = (META.owned || []).length;
+if (owned < n) { toast(t("tColLock", { n: n }) || (n + "종 수집 필요"), "#ef4444"); return; }
+if (!META.collectClaimed) META.collectClaimed = [];
+if (META.collectClaimed.indexOf(n) >= 0) { toast("이미 수령", "#8b93a7"); return; }
+META.collectClaimed.push(n);
+META.gems = (META.gems || 0) + m.gem;
+bumpPrestige(1); saveMeta(); updateMeta(); renderCollectRewards(); if (!running) reset();
+toast("📋 " + n + "종 수집 보상! 💎" + m.gem + " + 전군 영구 공·체 +" + Math.round(m.atk * 100) + "%", "#fbbf24");
+haptic("heavy"); try { confettiBurst(); } catch (e) {}
+}
+function renderCollectRewards() {
+const el = $("collect-rewards"); if (!el) return;
+const owned = (META.owned || []).length, done = META.collectClaimed || [];
+const b = collectionBonus();
+const totBuff = Math.round((b.atk - 1) * 100);
+el.innerHTML = '<div style="font-size:11px;color:#a3e635;margin:6px 0 3px;font-weight:700;">📋 수집 보상 · 도감 ' + owned + '/200' + (totBuff > 0 ? ' · 현재 전군 +' + totBuff + '% 영구' : '') + '</div>'
++ '<div style="display:flex;gap:4px;flex-wrap:wrap;">' + COLLECT_MILESTONES.map((m) => {
+const claimed = done.indexOf(m.n) >= 0, ready = owned >= m.n && !claimed;
+const bg = claimed ? '#1c2638' : ready ? 'linear-gradient(135deg,#3a2c12,#1a1410)' : '#14131c';
+const bd = ready ? '#fbbf24' : claimed ? '#2b3650' : '#1c1b27';
+const ic = claimed ? '✅' : ready ? '🎁' : '🔒';
+return '<button class="col-rw" data-n="' + m.n + '" style="flex:1;min-width:60px;font-size:10px;padding:5px 3px;border-radius:7px;background:' + bg + ';border:1px solid ' + bd + ';color:#e2e8f0;cursor:' + (ready ? 'pointer' : 'default') + ';">' + ic + ' ' + m.n + '종<br><span style="color:#fbbf24">+' + Math.round(m.atk * 100) + '%</span></button>';
+}).join('') + '</div>';
+el.querySelectorAll('.col-rw').forEach((bn) => bn.onclick = () => { const n = +bn.dataset.n; if ((META.owned || []).length >= n && (META.collectClaimed || []).indexOf(n) < 0) claimCollect(n); });
+}
 function renderCodex() {
 try {
 renderConquestMap(); 
+renderCollectRewards(); 
 const grid = $("codex-grid"); if (!grid || typeof ROSTER === "undefined") return;
 const owned = new Set(META.owned || []);
 if ($("codex-count")) $("codex-count").textContent = owned.size + " / " + ROSTER.length;
@@ -4785,23 +5238,23 @@ let html = `<div class="gm-head">`
 
 html += `<div class="gm-grow">`;
 html += `<button id="gpop-enh" class="gpop-enh">🔨 ${t("dEnhance")} +${e} · ${rate}% · 💰${enhC}</button>`;
-if (e >= 10 && s < 5) {
-const starC = 1000 * (s + 1);
-html += `<button id="gpop-star" class="gpop-star">⭐ 별강화 ★${s}→★${s+1} · 💰${starC}</button>`;
+if (e >= 10 && s < 30) {
+const starC = Math.round(1000 * (s + 1) * Math.pow(1.3, s));
+html += `<button id="gpop-star" class="gpop-star">⭐ 별강화 ★${s}→★${s+1} · 💰${starC.toLocaleString("en-US")}</button>`;
 }
 if (s >= 3 && a < 5) {
 const awkC = 50 * (a + 1);
 html += `<button id="gpop-awk" class="gpop-awk">✦ 각성 ✦${a}→✦${a+1} · 🔮${awkC}</button>`;
 }
 const dupG = (g.tplId != null) && META.gear.find((x) => x.id !== id && x.tplId === g.tplId && !gearOwnerName(x.id)); 
-if (dupG && s < 5) html += `<button id="gpop-fuse" class="gpop-star">✨ 합성 ★${s}→★${s + 1} (같은 장비 소모)</button>`;
+if (dupG && s < 30) html += `<button id="gpop-fuse" class="gpop-star">✨ 합성 ★${s}→★${s + 1} (같은 장비 소모)</button>`;
 if (!gearOwnerName(id)) html += `<button id="gpop-scrap" class="gpop-enh" style="border-color:#fbbf24;background:linear-gradient(160deg,#3a2c1a,#1a1410)">🔨 분해 +${gearScrapGold(g)}골드</button>`;
 html += `</div>`;
 $("unit-detail").innerHTML = html;
 on("gpop-enh", "click", () => { enhanceGear(id); setTimeout(() => openGearItem(id), 50); });
-if (e >= 10 && s < 5) on("gpop-star", "click", () => { gearStar(id); setTimeout(() => openGearItem(id), 50); });
+if (e >= 10 && s < 30) on("gpop-star", "click", () => { gearStar(id); setTimeout(() => openGearItem(id), 50); });
 if (s >= 3 && a < 5) on("gpop-awk", "click", () => { gearAwaken(id); setTimeout(() => openGearItem(id), 50); });
-if (dupG && s < 5) on("gpop-fuse", "click", () => { fuseGear(id); setTimeout(() => openGearItem(id), 50); });
+if (dupG && s < 30) on("gpop-fuse", "click", () => { fuseGear(id); setTimeout(() => openGearItem(id), 50); });
 if (!gearOwnerName(id)) on("gpop-scrap", "click", () => dismantleGear(id));
 $("unit-pop").classList.remove("hidden");
 }
@@ -4815,7 +5268,8 @@ $("unit-card").classList.remove('gear-manage');
 $("unit-glyph").innerHTML = artHTML(u, "ucgly", "ucim", true); 
 $("unit-name").innerHTML = `<b style="color:${u.color}">[${u.rarity}]</b> ${has ? u.name : "???"}`;
 $("unit-title").textContent = has ? (u.title || u.arch) : t("locked");
-const lore = (typeof LORE !== "undefined" && LORE[id]) ? `<div class="unit-lore">📖 ${LORE[id]}</div>` : ""; 
+const baseLore = (typeof LORE !== "undefined" && LORE[id]) ? LORE[id] : "";
+const lore = baseLore ? `<div class="unit-lore">📖 ${ENABLE_DECEPTIVE_ORIGIN ? getOriginReveal(u) + "<br>" : ""}${baseLore}</div>` : ""; 
 $("unit-detail").innerHTML = (has
 ? `${u.faction ? "🏷️ " + u.faction + " · " : ""}${u.glyph} ${u.arch} ×${u.mul}<br>${u.persona ? "💬 " + u.persona + "<br>" : ""}${u.trait ? "✦ " + u.trait : ""}`
 : t("lockedHint")) + lore;
@@ -4824,6 +5278,7 @@ $("unit-pop").classList.remove("hidden");
 }
 
 function craftGear(forceRar) {
+
 const cost = 300;
 if (META.gold < cost) { toast(t("tGoldShort", { n: cost }), "#ef4444"); return; }
 const _combined = ((META.owned || []).length) + (META.gear || []).length;
@@ -4862,7 +5317,7 @@ if (!running) reset();
 function fuseGear(id) { 
 if (running) return;
 const g = META.gear.find((x) => x.id === id); if (!g) return;
-if ((g.star || 0) >= 5) { toast("★ 최대", "#8b93a7"); return; }
+if ((g.star || 0) >= 30) { toast("★ 최대 (30)", "#8b93a7"); return; } 
 const dup = META.gear.find((x) => x.id !== id && x.tplId === g.tplId && !gearOwnerName(x.id));
 if (!dup) { toast("합성할 같은 장비(미장착)가 없어요", "#ef4444"); return; }
 META.gear = META.gear.filter((x) => x.id !== dup.id);
@@ -4875,8 +5330,8 @@ function gearStar(id) {
 const g = META.gear.find((x) => x.id === id); if (!g) return;
 if ((g.enh || 0) < 10) { toast("강화 10회 이상 필요", "#ef4444"); return; }
 const s = (g.star || 0);
-if (s >= 5) { toast("★ 최대", "#8b93a7"); return; }
-const cost = 1000 * (s + 1);
+if (s >= 30) { toast("★ 최대 (30)", "#8b93a7"); return; } 
+const cost = Math.round(1000 * (s + 1) * Math.pow(1.3, s)); 
 if (META.gold < cost) { toast(t("tGoldShort", { n: cost }), "#ef4444"); return; }
 META.gold -= cost;
 g.star = s + 1;
@@ -5047,7 +5502,93 @@ toast("⚔️ 전투 시작 → 🎰 가챠 → 🦸 강화! (시너지로 강�
 }
 setTimeout(() => { try { maybeSortie(); } catch (e) {} }, 700); 
 
+const TUT_STEPS = [
+{ text: "⚔️ 환영합니다, 사령관님!\n\nAI 군단을 모아 키우고 끝없이 정복하는 게임이에요.\n30초면 핵심을 다 익혀요!", target: null, next: "시작 👉" },
+{ text: "👇 먼저 <b>▶ 전투 시작</b>을 눌러보세요.\n군단이 자동으로 싸웁니다!", target: "#start", next: "다음" },
+{ text: "💎 전투로 모은 젬으로 <b>🎰 뽑기</b>를 해\n강력한 영웅(SSR!)을 소환하세요.", target: "#quick-pull", next: "다음" },
+{ text: "👥 <b>캐릭터</b> 탭에서 영웅을 편성·강화하면\n시너지로 군단이 더 강해져요.", target: ".navtab[data-p='char']", next: "다음" },
+{ text: "🛒 <b>상점</b>엔 한정 배너·창단팩,\n📋 <b>도감</b>엔 수집 보상이 있어요!", target: ".navtab[data-p='shop']", next: "다음" },
+{ text: "🐉 끝! 군단은 당신이 없는 동안에도\n자동으로 정복하고 성장합니다.\n\n이제 세계를 정복하세요!", target: null, next: "정복 시작! ⚔️" },
+];
+let _tutStep = 0;
+function startTutorial() {
+const ov = document.getElementById("tutorial"); if (!ov) return;
+try { showPage("battle"); } catch (e) {} 
+_tutStep = 0; ov.style.display = "block";
+try { logEvent("tutorial_start", {}); } catch (e) {}
+const nx = document.getElementById("tut-next"); if (nx) nx.onclick = tutNext;
+const sk = document.getElementById("tut-skip"); if (sk) sk.onclick = finishTutorial;
+window.addEventListener("resize", tutReposition);
+tutShow();
+}
+function tutShow() {
+const s = TUT_STEPS[_tutStep]; if (!s) { finishTutorial(); return; }
+const txt = document.getElementById("tut-text"); if (txt) txt.innerHTML = s.text;
+const nx = document.getElementById("tut-next"); if (nx) nx.textContent = s.next || "다음";
+const dots = document.getElementById("tut-dots"); if (dots) dots.textContent = TUT_STEPS.map((_, i) => i === _tutStep ? "●" : "○").join(" ");
+setTimeout(tutReposition, 30);
+}
+function tutReposition() {
+const s = TUT_STEPS[_tutStep], ring = document.getElementById("tut-ring"), card = document.getElementById("tut-card"); if (!ring) return;
+const tgt = s && s.target ? document.querySelector(s.target) : null;
+if (!tgt || tgt.getBoundingClientRect().width === 0) {
+ring.style.display = "none";
+if (card) { card.style.top = "auto"; card.style.bottom = "84px"; } 
+return;
+}
+const r = tgt.getBoundingClientRect();
+ring.style.display = "block";
+ring.style.left = (r.left - 6) + "px"; ring.style.top = (r.top - 6) + "px";
+ring.style.width = (r.width + 12) + "px"; ring.style.height = (r.height + 12) + "px";
+
+if (card) {
+if (r.top > window.innerHeight * 0.5) { card.style.bottom = "auto"; card.style.top = "56px"; }
+else { card.style.top = "auto"; card.style.bottom = "84px"; }
+}
+}
+function tutNext() { _tutStep++; if (_tutStep >= TUT_STEPS.length) { finishTutorial(); return; } tutShow(); }
+function finishTutorial() {
+const ov = document.getElementById("tutorial"); if (ov) ov.style.display = "none";
+META.tutDone = true; try { saveMeta(); } catch (e) {}
+try { logEvent("tutorial_done", { step: _tutStep }); } catch (e) {}
+window.removeEventListener("resize", tutReposition);
+}
+function maybeStartTutorial() {
+if (META.tutDone) return;
+if ((META.owned || []).length > 3 || (META.pulls || 0) > 0 || (META.chapter || 1) > 2) { META.tutDone = true; try { saveMeta(); } catch (e) {} return; } 
+setTimeout(() => { try { startTutorial(); } catch (e) {} }, 500);
+}
+
+(function () {
 try {
-if (!META._installed) { META._installed = true; saveMeta(); logEvent("install", { ch: META.chapter || 1 }); }
+if (META.ageOk) { maybeStartTutorial(); return; } 
+const g = document.getElementById("age-gate"); if (!g) return;
+g.style.display = "flex";
+const yes = document.getElementById("age-yes"), no = document.getElementById("age-no");
+if (yes) yes.onclick = function () { META.ageOk = true; try { saveMeta(); } catch (e) {} g.style.display = "none"; try { logEvent("age_confirmed", {}); } catch (e) {} try { maybeStartTutorial(); } catch (e) {} };
+if (no) no.onclick = function () {
+g.innerHTML = '<div style="max-width:340px;text-align:center;color:#e2e8f0;font-family:system-ui,sans-serif;padding:24px;line-height:1.8;"><div style="font-size:34px;margin-bottom:10px;">🔞</div><div style="font-size:16px;font-weight:700;color:#fbbf24;margin-bottom:10px;">보호자 동의가 필요합니다</div><div style="font-size:13px;color:#a3a3c2;">미성년자는 법정 보호자의 동의 후 이용할 수 있습니다.<br>Minors require parental/guardian consent to continue.</div></div>';
+};
+} catch (e) {}
+})();
+
+try {
+if (!META._installed) {
+META._installed = true; saveMeta();
+let src = {};
+try {
+const sp = (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) || '';
+const params = new URLSearchParams(location.search);
+const m = /^ref_(\d+)_?(\w*)$/.exec(sp);
+src = {
+ref: m ? m[1] : (sp.match(/^ref(\d+)/) ? RegExp.$1 : params.get('ref') || ''),
+channel: m ? (m[2] || 'direct') : 'direct',
+utm: params.get('utm') || params.get('source') || '',
+start: sp
+};
+} catch(e){}
+logEvent("install", { ch: META.chapter || 1, ...src });
+}
 logEvent("session_start", { ch: META.chapter || 1, tower: META.tower || 1, pulls: META.pulls || 0 });
+pingActive(); 
 } catch (e) {}

@@ -14,5 +14,10 @@ if node test/runtime-check.js 2>&1 | grep -q '🟢'; then echo "  ✅ 런타임 
 echo "── 3) 수치 증감 감사"
 audit=$(node test/value-audit.js 2>&1)
 if echo "$audit" | grep -qE '🔴|❌'; then echo "  ⚠️ 일부 액션 점검 필요:"; echo "$audit" | grep -E '🔴|❌' | head; else echo "  ✅ 모든 수치 액션 정상"; fi
+echo "── 4) 계측 계약(emit ⊆ worker ALLOWED)"
+if [ -f test/instrumentation-contract.js ]; then
+  ic=$(node test/instrumentation-contract.js 2>&1)
+  if echo "$ic" | grep -q '🟢'; then echo "  ✅ ${ic#🟢 }"; else echo "  ❌ 계측 계약 위반"; echo "$ic" | grep -E '🔴|→' | head; fail=1; fi
+fi
 echo "──────────────"
 if [ "$fail" = 0 ]; then echo "🟢 검증 통과 — 배포 OK"; exit 0; else echo "🔴 검증 실패 — 배포 중단"; exit 1; fi

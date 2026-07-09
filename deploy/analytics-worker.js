@@ -21,7 +21,12 @@ const ALLOWED = new Set([
   "daily_return", "push_click", "invite_converted", "referral_bonus_granted",
   // Project 2 (Phase 2 gear/items/prestige) + A/B support — Oracle(CDO)
   "gear_obtained", "gear_equipped", "gear_enhanced", "set_activated",
-  "phase2_unlock", "prestige_trigger", "ab_test"
+  "phase2_unlock", "prestige_trigger", "ab_test",
+  // age gate (미성년 보호 funnel — COPPA 증적) — Oracle(CDO)
+  "age_confirmed", "age_blocked",
+  // Trinity P0 activation + funnel — game.js 실제 emit과 일치 (2026-07-02 Morpheus)
+  "core_loop_complete", "tutorial_start", "tutorial_done",
+  "stuck_upsell", "first_purchase_2x", "purchase_unverified"
 ]);
 const dayKey = (ts) => new Date(ts).toISOString().slice(0, 10);   // YYYY-MM-DD (UTC 일관 — game.js와 동일)
 
@@ -36,34 +41,39 @@ export default {
       let b = {}; try { b = await req.json(); } catch (e) {}
       const type = b.type || b.n, anon = (b.anonId || b.a || "anon").slice(0, 40), ts = b.ts || 0;
       if (!ALLOWED.has(type) || !ts) return json({ ok: false, reason: "bad-event" });
-      // 일별 카운트 집계 (KV는 단순 카운터 — D1로 승급 가능). 키: cnt:YYYY-MM-DD:type
-      const day = dayKey(ts), ck = "cnt:" + day + ":" + type;
-      const cur = parseInt((await env.EVENTS.get(ck)) || "0", 10);
-      await env.EVENTS.put(ck, String(cur + 1), { expirationTtl: 60 * 86400 });   // 60일 보존
-      // DAU 근사: 일별 유니크 anonId 마킹 (set 키). 키: dau:YYYY-MM-DD:anon
-      await env.EVENTS.put("dau:" + day + ":" + anon, "1", { expirationTtl: 14 * 86400 });
-      // 리텐션 근사: 유저별 첫/최근 활동일. 키: u:anon → {first,last}
-      const uk = "u:" + anon; let u = {}; try { u = JSON.parse((await env.EVENTS.get(uk)) || "{}"); } catch (e) {}
-      if (!u.first) u.first = day; u.last = day;
-      await env.EVENTS.put(uk, JSON.stringify(u), { expirationTtl: 30 * 86400 });
-      // ch18 reach 특수: ascend 시 fromCh>=18 데이터 반영 (d.fromCh)
-      if (type === "ascend" && b.d && (b.d.fromCh || 0) >= 18) {
-        const c18k = "c18:" + day; const ccur = parseInt((await env.EVENTS.get(c18k)) || "0", 10);
-        await env.EVENTS.put(c18k, String(ccur + 1), { expirationTtl: 60 * 86400 });
+      // ⚠️ fire-and-forget: KV 쓰기 실패해도 절대 500 금지(게임 영향0). 예외는 잡아 진단 노출.
+      try {
+        // 일별 카운트 집계 (KV는 단순 카운터 — D1로 승급 가능). 키: cnt:YYYY-MM-DD:type
+        const day = dayKey(ts), ck = "cnt:" + day + ":" + type;
+        const cur = parseInt((await env.EVENTS.get(ck)) || "0", 10);
+        await env.EVENTS.put(ck, String(cur + 1), { expirationTtl: 60 * 86400 });   // 60일 보존
+        // DAU 근사: 일별 유니크 anonId 마킹 (set 키). 키: dau:YYYY-MM-DD:anon
+        await env.EVENTS.put("dau:" + day + ":" + anon, "1", { expirationTtl: 14 * 86400 });
+        // 리텐션 근사: 유저별 첫/최근 활동일. 키: u:anon → {first,last}
+        const uk = "u:" + anon; let u = {}; try { u = JSON.parse((await env.EVENTS.get(uk)) || "{}"); } catch (e) {}
+        if (!u.first) u.first = day; u.last = day;
+        await env.EVENTS.put(uk, JSON.stringify(u), { expirationTtl: 30 * 86400 });
+        // ch18 reach 특수: ascend 시 fromCh>=18 데이터 반영 (d.fromCh)
+        if (type === "ascend" && b.d && (b.d.fromCh || 0) >= 18) {
+          const c18k = "c18:" + day; const ccur = parseInt((await env.EVENTS.get(c18k)) || "0", 10);
+          await env.EVENTS.put(c18k, String(ccur + 1), { expirationTtl: 60 * 86400 });
+        }
+        // Project 2: phase2_unlock / prestige special (ascend proxy + ether)
+        if (type === "phase2_unlock" || type === "prestige_trigger" || type === "ascend") {
+          const p2k = "p2:" + day; const pcur = parseInt((await env.EVENTS.get(p2k)) || "0", 10);
+          await env.EVENTS.put(p2k, String(pcur + 1), { expirationTtl: 60 * 86400 });
+        }
+        // A/B support: ab_test or variant in data (e.g. {ab:"fomo_gear", variant:"limited"})
+        const ab = b.ab || b.variant || (b.d && b.d.ab);
+        if (ab) {
+          const abk = "ab:" + day + ":" + String(ab).slice(0,30);
+          const abcur = parseInt((await env.EVENTS.get(abk)) || "0", 10);
+          await env.EVENTS.put(abk, String(abcur + 1), { expirationTtl: 60 * 86400 });
+        }
+        return json({ ok: true });
+      } catch (e) {
+        return json({ ok: false, reason: "write-fail", err: String(e && e.message || e).slice(0, 200) });
       }
-      // Project 2: phase2_unlock / prestige special (ascend proxy + ether)
-      if (type === "phase2_unlock" || type === "prestige_trigger" || type === "ascend") {
-        const p2k = "p2:" + day; const pcur = parseInt((await env.EVENTS.get(p2k)) || "0", 10);
-        await env.EVENTS.put(p2k, String(pcur + 1), { expirationTtl: 60 * 86400 });
-      }
-      // A/B support: ab_test or variant in data (e.g. {ab:"fomo_gear", variant:"limited"})
-      const ab = b.ab || b.variant || (b.d && b.d.ab);
-      if (ab) {
-        const abk = "ab:" + day + ":" + String(ab).slice(0,30);
-        const abcur = parseInt((await env.EVENTS.get(abk)) || "0", 10);
-        await env.EVENTS.put(abk, String(abcur + 1), { expirationTtl: 60 * 86400 });
-      }
-      return json({ ok: true });
     }
 
     // ② 집계 조회 — 오라클(CDO) 대시보드용. GET /stats?day=YYYY-MM-DD

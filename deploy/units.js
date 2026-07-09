@@ -2,6 +2,21 @@ const ARCHES = ["drone", "marksman", "guardian", "bruiser", "commander", "titan"
 const ARCH_GLYPH = { drone: "🛸", marksman: "🎯", guardian: "🛡️", bruiser: "🤖", commander: "🧠", titan: "🐉" };
 
 const SSR_VIS = { Arclight: "⚖️", Solace: "🌊", Cipher: "🔭", Ignis: "🔥", Vector: "↯", Vespera: "🐝", Aegis: "🛡️", Anvil: "🔨", Dominus: "👑" };
+
+const FEATURED_BANNERS = [
+{ id: "arclight", pickup: "Arclight", name: "심판의 서막", en: "Arc of Judgment", durationDays: 7, sparkPity: 90, upRate: 0.015 },
+{ id: "dominus", pickup: "Dominus", name: "군림의 시간", en: "Reign Eternal", durationDays: 7, sparkPity: 90, upRate: 0.015 },
+{ id: "ignis", pickup: "Ignis", name: "겁화의 강림", en: "Inferno Descent", durationDays: 7, sparkPity: 90, upRate: 0.015 },
+{ id: "vector", pickup: "Vector", name: "전율의 가속", en: "Surge Protocol", durationDays: 7, sparkPity: 90, upRate: 0.015 },
+{ id: "aegis", pickup: "Aegis", name: "불멸의 방벽", en: "Eternal Bastion", durationDays: 7, sparkPity: 90, upRate: 0.015 },
+{ id: "cipher", pickup: "Cipher", name: "심연의 해독", en: "Cipher's Eye", durationDays: 7, sparkPity: 90, upRate: 0.015 },
+{ id: "vespera", pickup: "Vespera", name: "여명의 군무", en: "Dawn Swarm", durationDays: 7, sparkPity: 90, upRate: 0.015 },
+{ id: "solace", pickup: "Solace", name: "정적의 물결", en: "Tides of Solace", durationDays: 7, sparkPity: 90, upRate: 0.015 },
+{ id: "anvil", pickup: "Anvil", name: "단조의 의지", en: "Anvil's Resolve", durationDays: 7, sparkPity: 90, upRate: 0.015 },
+];
+function getFeaturedBanner(weekIdx) { const n = FEATURED_BANNERS.length; return FEATURED_BANNERS[(((weekIdx || 0) % n) + n) % n]; }
+if (typeof window !== "undefined") { window.FEATURED_BANNERS = FEATURED_BANNERS; window.getFeaturedBanner = getFeaturedBanner; }
+
 const FACTION_ACCENT = { Strategist: "🧠", Executor: "⚙️", Swarm: "🐜", Guardian: "🛡️", Intel: "👁️" };
 const ARCH_NOUN = {
 drone: ["정찰기", "벌떼", "비행체", "추적자", "날개", "탐사기"],
@@ -23,15 +38,15 @@ const RARITY_COLOR = { N: "#9ca3af", R: "#60a5fa", SR: "#c084fc", SSR: "#fbbf24"
 const FACTIONS = ["Strategist", "Executor", "Swarm", "Guardian", "Intel"];
 
 const SSR_CHARS = [
-{ name: "Arclight", title: "심판의 빛", persona: "군단의 전략적 판단자. 승기를 읽어 전군을 각성시킨다", faction: "Strategist", trait: "처치 시 전군 AI+1.5 · 3초 치명 연쇄" },
-{ name: "Solace", title: "재생의 물결", persona: "실행의 수호자. 사망을 수복으로 바꾼다", faction: "Executor", trait: "아군 사망 시 주변 3체 연쇄 수복(HP25%)" },
-{ name: "Cipher", title: "정밀 해독", persona: "정밀한 감시자. 적의 약점을 드러낸다", faction: "Intel", trait: "적 방어 30% 무시 · 약점 노출(아군 다음 2명 치명+25%)" },
-{ name: "Ignis", title: "광란의 폭주", persona: "광란의 파괴자. 다칠수록 강해진다", faction: "Swarm", trait: "HP30%↓ 시 공격 x2.5 · 피해 반사" },
-{ name: "Vector", title: "동시 지휘", persona: "조율의 사령관. 부대를 한 번에 움직인다", faction: "Strategist", trait: "아군 3체 동시 돌격 · 속도+25%" },
-{ name: "Vespera", title: "군집 분열", persona: "스웜의 군주. 개체는 약하나 무리는 무적", faction: "Swarm", trait: "사망 시 하급 2~3체 분열 소환 · 군집 3+ 시 폭주" },
-{ name: "Aegis", title: "수호의 방벽", persona: "감시의 방벽. 아군을 먼저 지킨다", faction: "Guardian", trait: "전투 시작 시 아군 2체 8초 보호막" },
-{ name: "Anvil", title: "건설 프로토콜", persona: "수리와 건설의 핵심", faction: "Executor", trait: "8초마다 임시 구조물 또는 팀 재생+10%(3초)" },
-{ name: "Dominus", title: "군단의 핵", persona: "군림자. 군단의 정점", faction: "Guardian", trait: "팀 내 SSR 1체당 전군 스탯+5%(최대25%)" },
+{ name: "Arclight", title: "심판의 빛", persona: "군단의 전략적 판단자. 승기를 읽어 전군을 각성시킨다", faction: "Strategist", arch: "commander", trait: "처치 시 전군 AI+1.5 · 3초 치명 연쇄" },
+{ name: "Solace", title: "재생의 물결", persona: "실행의 수호자. 사망을 수복으로 바꾼다", faction: "Executor", arch: "guardian", trait: "아군 사망 시 주변 3체 연쇄 수복(HP25%)" },
+{ name: "Cipher", title: "정밀 해독", persona: "정밀한 감시자. 적의 약점을 드러낸다", faction: "Intel", arch: "marksman", trait: "적 방어 30% 무시 · 약점 노출(아군 다음 2명 치명+25%)" },
+{ name: "Ignis", title: "광란의 폭주", persona: "광란의 파괴자. 다칠수록 강해진다", faction: "Swarm", arch: "bruiser", trait: "HP30%↓ 시 공격 x2.5 · 피해 반사" },
+{ name: "Vector", title: "동시 지휘", persona: "조율의 사령관. 부대를 한 번에 움직인다", faction: "Strategist", arch: "commander", trait: "아군 3체 동시 돌격 · 속도+25%" },
+{ name: "Vespera", title: "군집 분열", persona: "스웜의 군주. 개체는 약하나 무리는 무적", faction: "Swarm", arch: "bruiser", trait: "사망 시 하급 2~3체 분열 소환 · 군집 3+ 시 폭주" },
+{ name: "Aegis", title: "수호의 방벽", persona: "감시의 방벽. 아군을 먼저 지킨다", faction: "Guardian", arch: "guardian", trait: "전투 시작 시 아군 2체 8초 보호막" },
+{ name: "Anvil", title: "건설 프로토콜", persona: "수리와 건설의 핵심", faction: "Executor", arch: "titan", trait: "8초마다 임시 구조물 또는 팀 재생+10%(3초)" },
+{ name: "Dominus", title: "군단의 핵", persona: "군림자. 군단의 정점", faction: "Guardian", arch: "titan", trait: "팀 내 SSR 1체당 전군 스탯+5%(최대25%)" },
 ];
 
 const SR_CHARS = [
@@ -61,6 +76,8 @@ const u = { id: ++id, arch: arch, rarity: rar, faction: fac, color: RARITY_COLOR
 if (rar === "SSR" && ssrIdx < SSR_CHARS.length) {
 const c = SSR_CHARS[ssrIdx++];
 u.name = c.name; u.title = c.title; u.persona = c.persona; u.trait = c.trait; if (c.faction) u.faction = c.faction;
+if (c.arch) { u.arch = c.arch; u.glyph = ARCH_GLYPH[c.arch]; } 
+u.mul = 3.0; 
 u.vis = SSR_VIS[c.name] || u.glyph; u.accent = FACTION_ACCENT[u.faction] || "";
 } else if (rar === "SR" && srIdx < SR_CHARS.length) {
 const c = SR_CHARS[srIdx++]; u.name = c.name; u.title = c.title;
