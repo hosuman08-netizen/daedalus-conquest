@@ -805,6 +805,100 @@ const SKILL_I18N = {
 };
 for (const l in SKILL_I18N) Object.assign(I18N[l], SKILL_I18N[l]);
 
+// 🔗 그룹5 — 영웅 패시브 + 버프 텍스트 + 시너지/조합 칩 (6언어). 진영명(Executor/Strategist 등)은 유지.
+const SYN_I18N = {
+  ko: {
+    hpvStrategist: "전군 AI +{ai} · 집중사격 (치명타 확률 +{crit}%)", hpvBerserker: "광폭화: 피해 입을 때마다 공격 +{atk}% (스택, 최대 50%)", hpvWarden: "철벽: 전군 피해 감소 {red}% · 진입 시 보호막", hpvRanger: "정밀 사격: 원거리 유닛 관통 +{pierce}% · 다중 타격 확률", hpvMech: "기계화: 중형 유닛 HP +{hp}% + 반격 피해", hpvEngineer: "수리 프로토콜: 전군 재생 +{regen}/s · 과부하(공속)", hpvDragoon: "용의 권능: 전군 +{all}% · 궁극기 위력 대폭 증가",
+    btAllAtk: "전군 공격 +{n}%", btAllHp: "전군 체력 +{n}%", btTypeAtk: "{name} 공격 +{n}%", btTypeHp: "{name} 체력 +{n}%", btRegen: "전군 재생 +{n}/s", btAiBonus: "전군 지능 +{n}", btCrit: "치명타 +{n}%", btPierce: "관통 +{n}%", btDmgRed: "피해감소 {n}%", btReflect: "반격 {n}%", btHaste: "공속 +{n}%", btUltPower: "궁극기 위력 +{n}%",
+    synExecutor: "{ic} {f} ×{n} 공속+{m}%", synStrategist: "{ic} {f} ×{n} 치명+{m}%", synSwarm: "{ic} {f} ×{n} 공격+{m}%", synGuardianShield: "{ic} {f} ×{n} 체력+{m}% +시작실드", synGuardian: "{ic} {f} ×{n} 체력+{m}%", synIntel: "{ic} {f} ×{n} 치명피해+{m}%", synDiversity: "🔀 다양성 ×{n} 전군+{m}%", synSrPrecision: "✦ SR 정밀 ×{n} 치명+{c}%", synSsrCommand: "🌟 SSR 지휘 ×{n} 공·체+{m}%", synSsrOpen: "⚡ SSR 개전 가속 — 시작 {t}초 공격+{m}%·실드", synCollect: "📋 수집 +{n}% 영구",
+    fxCrit: "치명", fxSpd: "공속", fxAtk: "공", fxHp: "체", fxShieldSuffix: " +실드", fxCritDmg: "치명피해", synMax: "★ MAX", synOneMore: "1명 더 → {label}+{v}%", synNeedMore: "{k}명 더 → {label}+{v}%", divAllN: "전군+{n}%", divNeed: "{k}종 더 → +{n}%", comboDeployed: "편성 {n}체",
+  },
+  en: {
+    hpvStrategist: "All-army AI +{ai} · Focus Fire (crit chance +{crit}%)", hpvBerserker: "Berserk: ATK +{atk}% each time hit (stacks, max 50%)", hpvWarden: "Iron Wall: all-army damage taken -{red}% · barrier on entry", hpvRanger: "Precision Fire: ranged pierce +{pierce}% · multi-hit chance", hpvMech: "Mechanize: medium unit HP +{hp}% + counter damage", hpvEngineer: "Repair Protocol: all-army regen +{regen}/s · overclock (atk spd)", hpvDragoon: "Dragon's Might: all-army +{all}% · ult power greatly boosted",
+    btAllAtk: "All ATK +{n}%", btAllHp: "All HP +{n}%", btTypeAtk: "{name} ATK +{n}%", btTypeHp: "{name} HP +{n}%", btRegen: "All regen +{n}/s", btAiBonus: "All AI +{n}", btCrit: "Crit +{n}%", btPierce: "Pierce +{n}%", btDmgRed: "Dmg reduction {n}%", btReflect: "Reflect {n}%", btHaste: "Atk spd +{n}%", btUltPower: "Ult power +{n}%",
+    synExecutor: "{ic} {f} ×{n} atk spd+{m}%", synStrategist: "{ic} {f} ×{n} crit+{m}%", synSwarm: "{ic} {f} ×{n} ATK+{m}%", synGuardianShield: "{ic} {f} ×{n} HP+{m}% +start shield", synGuardian: "{ic} {f} ×{n} HP+{m}%", synIntel: "{ic} {f} ×{n} crit dmg+{m}%", synDiversity: "🔀 Diversity ×{n} all+{m}%", synSrPrecision: "✦ SR Precision ×{n} crit+{c}%", synSsrCommand: "🌟 SSR Command ×{n} ATK·HP+{m}%", synSsrOpen: "⚡ SSR Opening Rush — first {t}s ATK+{m}%·shield", synCollect: "📋 Collection +{n}% permanent",
+    fxCrit: "Crit", fxSpd: "Atk spd", fxAtk: "ATK", fxHp: "HP", fxShieldSuffix: " +shield", fxCritDmg: "Crit dmg", synMax: "★ MAX", synOneMore: "1 more → {label}+{v}%", synNeedMore: "{k} more → {label}+{v}%", divAllN: "all+{n}%", divNeed: "{k} more types → +{n}%", comboDeployed: "Deployed {n}",
+  },
+  ja: {
+    hpvStrategist: "全軍AI +{ai} · 集中砲火 (クリ率 +{crit}%)", hpvBerserker: "狂暴化: 被弾ごとに攻撃 +{atk}% (スタック, 最大50%)", hpvWarden: "鉄壁: 全軍被ダメ -{red}% · 出撃時バリア", hpvRanger: "精密射撃: 遠距離貫通 +{pierce}% · 多段ヒット確率", hpvMech: "機械化: 中型ユニットHP +{hp}% + 反撃ダメージ", hpvEngineer: "修理プロトコル: 全軍再生 +{regen}/s · オーバークロック(攻速)", hpvDragoon: "竜の権能: 全軍 +{all}% · 奥義威力大幅UP",
+    btAllAtk: "全軍攻撃 +{n}%", btAllHp: "全軍HP +{n}%", btTypeAtk: "{name} 攻撃 +{n}%", btTypeHp: "{name} HP +{n}%", btRegen: "全軍再生 +{n}/s", btAiBonus: "全軍知能 +{n}", btCrit: "クリ +{n}%", btPierce: "貫通 +{n}%", btDmgRed: "被ダメ減 {n}%", btReflect: "反撃 {n}%", btHaste: "攻速 +{n}%", btUltPower: "奥義威力 +{n}%",
+    synExecutor: "{ic} {f} ×{n} 攻速+{m}%", synStrategist: "{ic} {f} ×{n} クリ+{m}%", synSwarm: "{ic} {f} ×{n} 攻撃+{m}%", synGuardianShield: "{ic} {f} ×{n} HP+{m}% +開始シールド", synGuardian: "{ic} {f} ×{n} HP+{m}%", synIntel: "{ic} {f} ×{n} クリダメ+{m}%", synDiversity: "🔀 多様性 ×{n} 全軍+{m}%", synSrPrecision: "✦ SR精密 ×{n} クリ+{c}%", synSsrCommand: "🌟 SSR指揮 ×{n} 攻·HP+{m}%", synSsrOpen: "⚡ SSR開戦加速 — 開始{t}秒 攻撃+{m}%·シールド", synCollect: "📋 収集 +{n}% 永久",
+    fxCrit: "クリ", fxSpd: "攻速", fxAtk: "攻", fxHp: "HP", fxShieldSuffix: " +シールド", fxCritDmg: "クリダメ", synMax: "★ MAX", synOneMore: "あと1体 → {label}+{v}%", synNeedMore: "あと{k}体 → {label}+{v}%", divAllN: "全軍+{n}%", divNeed: "あと{k}種 → +{n}%", comboDeployed: "編成 {n}体",
+  },
+  zh: {
+    hpvStrategist: "全军AI +{ai} · 集火 (暴击率 +{crit}%)", hpvBerserker: "狂暴: 每次受击攻击 +{atk}% (叠加, 最高50%)", hpvWarden: "铁壁: 全军受伤 -{red}% · 入场护盾", hpvRanger: "精准射击: 远程穿透 +{pierce}% · 多重打击几率", hpvMech: "机械化: 中型单位HP +{hp}% + 反击伤害", hpvEngineer: "维修协议: 全军回复 +{regen}/s · 超频(攻速)", hpvDragoon: "龙之权能: 全军 +{all}% · 必杀威力大幅提升",
+    btAllAtk: "全军攻击 +{n}%", btAllHp: "全军血量 +{n}%", btTypeAtk: "{name} 攻击 +{n}%", btTypeHp: "{name} 血量 +{n}%", btRegen: "全军回复 +{n}/s", btAiBonus: "全军智能 +{n}", btCrit: "暴击 +{n}%", btPierce: "穿透 +{n}%", btDmgRed: "伤害减免 {n}%", btReflect: "反击 {n}%", btHaste: "攻速 +{n}%", btUltPower: "必杀威力 +{n}%",
+    synExecutor: "{ic} {f} ×{n} 攻速+{m}%", synStrategist: "{ic} {f} ×{n} 暴击+{m}%", synSwarm: "{ic} {f} ×{n} 攻击+{m}%", synGuardianShield: "{ic} {f} ×{n} 血量+{m}% +起始护盾", synGuardian: "{ic} {f} ×{n} 血量+{m}%", synIntel: "{ic} {f} ×{n} 暴伤+{m}%", synDiversity: "🔀 多样性 ×{n} 全军+{m}%", synSrPrecision: "✦ SR精密 ×{n} 暴击+{c}%", synSsrCommand: "🌟 SSR指挥 ×{n} 攻·血+{m}%", synSsrOpen: "⚡ SSR开战加速 — 起始{t}秒 攻击+{m}%·护盾", synCollect: "📋 收集 +{n}% 永久",
+    fxCrit: "暴击", fxSpd: "攻速", fxAtk: "攻", fxHp: "血", fxShieldSuffix: " +护盾", fxCritDmg: "暴伤", synMax: "★ MAX", synOneMore: "再1名 → {label}+{v}%", synNeedMore: "再{k}名 → {label}+{v}%", divAllN: "全军+{n}%", divNeed: "再{k}种 → +{n}%", comboDeployed: "编成 {n}",
+  },
+  hi: {
+    hpvStrategist: "पूरी सेना AI +{ai} · केंद्रित फायर (क्रिट +{crit}%)", hpvBerserker: "उन्माद: हर चोट पर ATK +{atk}% (स्टैक, अधिकतम 50%)", hpvWarden: "लौह दीवार: पूरी सेना क्षति -{red}% · प्रवेश पर ढाल", hpvRanger: "सटीक फायर: रेंज्ड भेदन +{pierce}% · मल्टी-हिट मौका", hpvMech: "मशीनीकरण: मध्यम यूनिट HP +{hp}% + पलटवार क्षति", hpvEngineer: "मरम्मत प्रोटोकॉल: पूरी सेना रिजेन +{regen}/s · ओवरक्लॉक (ATK स्पीड)", hpvDragoon: "ड्रैगन शक्ति: पूरी सेना +{all}% · अल्टीमेट शक्ति भारी बढ़त",
+    btAllAtk: "पूरी सेना ATK +{n}%", btAllHp: "पूरी सेना HP +{n}%", btTypeAtk: "{name} ATK +{n}%", btTypeHp: "{name} HP +{n}%", btRegen: "पूरी सेना रिजेन +{n}/s", btAiBonus: "पूरी सेना AI +{n}", btCrit: "क्रिट +{n}%", btPierce: "भेदन +{n}%", btDmgRed: "क्षति कमी {n}%", btReflect: "पलटवार {n}%", btHaste: "ATK स्पीड +{n}%", btUltPower: "अल्टी शक्ति +{n}%",
+    synExecutor: "{ic} {f} ×{n} ATK स्पीड+{m}%", synStrategist: "{ic} {f} ×{n} क्रिट+{m}%", synSwarm: "{ic} {f} ×{n} ATK+{m}%", synGuardianShield: "{ic} {f} ×{n} HP+{m}% +शुरू ढाल", synGuardian: "{ic} {f} ×{n} HP+{m}%", synIntel: "{ic} {f} ×{n} क्रिट क्षति+{m}%", synDiversity: "🔀 विविधता ×{n} पूरी सेना+{m}%", synSrPrecision: "✦ SR सटीकता ×{n} क्रिट+{c}%", synSsrCommand: "🌟 SSR कमान ×{n} ATK·HP+{m}%", synSsrOpen: "⚡ SSR ओपनिंग रश — पहले {t}s ATK+{m}%·ढाल", synCollect: "📋 संग्रह +{n}% स्थायी",
+    fxCrit: "क्रिट", fxSpd: "ATK स्पी", fxAtk: "ATK", fxHp: "HP", fxShieldSuffix: " +ढाल", fxCritDmg: "क्रिट क्षति", synMax: "★ MAX", synOneMore: "1 और → {label}+{v}%", synNeedMore: "{k} और → {label}+{v}%", divAllN: "पूरी सेना+{n}%", divNeed: "{k} और प्रकार → +{n}%", comboDeployed: "तैनात {n}",
+  },
+  ru: {
+    hpvStrategist: "ИИ всей армии +{ai} · Сосредоточенный огонь (шанс крита +{crit}%)", hpvBerserker: "Берсерк: ATK +{atk}% за каждое попадание (стак, макс 50%)", hpvWarden: "Железная стена: урон по армии -{red}% · щит при входе", hpvRanger: "Точный огонь: пробитие дальнобойных +{pierce}% · шанс мультиудара", hpvMech: "Механизация: HP средних юнитов +{hp}% + урон контратаки", hpvEngineer: "Протокол ремонта: реген армии +{regen}/с · разгон (скор. атаки)", hpvDragoon: "Мощь дракона: вся армия +{all}% · сила ульты сильно повышена",
+    btAllAtk: "Атака всех +{n}%", btAllHp: "HP всех +{n}%", btTypeAtk: "{name} атака +{n}%", btTypeHp: "{name} HP +{n}%", btRegen: "Реген всех +{n}/с", btAiBonus: "ИИ всех +{n}", btCrit: "Крит +{n}%", btPierce: "Пробитие +{n}%", btDmgRed: "Снижение урона {n}%", btReflect: "Отражение {n}%", btHaste: "Скор. атаки +{n}%", btUltPower: "Сила ульты +{n}%",
+    synExecutor: "{ic} {f} ×{n} скор.атаки+{m}%", synStrategist: "{ic} {f} ×{n} крит+{m}%", synSwarm: "{ic} {f} ×{n} ATK+{m}%", synGuardianShield: "{ic} {f} ×{n} HP+{m}% +стартовый щит", synGuardian: "{ic} {f} ×{n} HP+{m}%", synIntel: "{ic} {f} ×{n} крит.урон+{m}%", synDiversity: "🔀 Разнообразие ×{n} всем+{m}%", synSrPrecision: "✦ SR Точность ×{n} крит+{c}%", synSsrCommand: "🌟 SSR Командование ×{n} ATK·HP+{m}%", synSsrOpen: "⚡ SSR Стартовый рывок — первые {t}с ATK+{m}%·щит", synCollect: "📋 Коллекция +{n}% навсегда",
+    fxCrit: "Крит", fxSpd: "Ск.атк", fxAtk: "Атк", fxHp: "HP", fxShieldSuffix: " +щит", fxCritDmg: "Крит.урон", synMax: "★ MAX", synOneMore: "ещё 1 → {label}+{v}%", synNeedMore: "ещё {k} → {label}+{v}%", divAllN: "всем+{n}%", divNeed: "ещё {k} типов → +{n}%", comboDeployed: "выставлено {n}",
+  },
+};
+for (const l in SYN_I18N) Object.assign(I18N[l], SYN_I18N[l]);
+
+// 🧩 그룹4 — 캐릭터/장비 패널 + 배치 프리뷰 + 수집 (6언어)
+const PANEL_I18N = {
+  ko: {
+    cpPower: "전력", cpLevelUp: "⬆️ 레벨업 Lv{n} · 💰{cost}", cpBatch: "일괄", cpRun: "실행", cpAll: "전부",
+    cpFuse: "✨ 합성 ★{s}→★{s2} (중복 {need}장)", cpFuseDim: "✨ 합성 중복 {dup}/{need}", cpAscLock: "⭐ +10강 시 {combo}", cpAwaken: "✦ 각성 🔮{cost}", cpAwakLock: "✦ ★3↑ 각성",
+    cpUnequipped: "미착용", cpEquipHint: "🎒 위 슬롯을 탭해 장비를 장착하세요", cpPickHint: "⚔️🛡️👟🍀💠 — 부위 슬롯을 탭하면 그 부위 장비가 여기 떠요", cpGearCount: "장비 {n}개", cpCloseX: "✕ 닫기", cpNoSlotGear: "이 부위 없음 — 제작", cpRecommend: "★추천", cpEquip: "장착",
+    deployGeneric: "일반 군단 배치 — 투자한 정예가 곧 신화 (char 창에서 수집 유닛 편성)", deploySortie: "⚔️ 출전 {n}", deployEliteNote: "(네가 키운 정예)",
+    gearGeneric: "장비", gearWornBy: " · 🎽 {owner} 착용중", gpopStar: "⭐ 별강화 ★{s}→★{s2} · 💰{cost}", gpopAwaken: "✦ 각성 ✦{a}→✦{a2} · 🔮{cost}", gpopFuse: "✨ 합성 ★{s}→★{s2} (같은 장비 소모)", gpopScrap: "🔨 분해 +{gold}골드",
+    collectNeed: "{n}종 수집 필요", collectRewardToast: "📋 {n}종 수집 보상! 💎{gem} + 전군 영구 공·체 +{pct}%", collectHeader: "📋 수집 보상 · 도감 {owned}/200", collectCurBuff: " · 현재 전군 +{buff}% 영구", colTypeN: "{n}종",
+  },
+  en: {
+    cpPower: "Power", cpLevelUp: "⬆️ Level up Lv{n} · 💰{cost}", cpBatch: "Batch", cpRun: "Run", cpAll: "All",
+    cpFuse: "✨ Fuse ★{s}→★{s2} (dup {need})", cpFuseDim: "✨ Fuse dup {dup}/{need}", cpAscLock: "⭐ {combo} at +10", cpAwaken: "✦ Awaken 🔮{cost}", cpAwakLock: "✦ Awaken at ★3+",
+    cpUnequipped: "Empty", cpEquipHint: "🎒 Tap a slot above to equip gear", cpPickHint: "⚔️🛡️👟🍀💠 — tap a slot to see gear for it here", cpGearCount: "gear {n}", cpCloseX: "✕ Close", cpNoSlotGear: "None for this slot — craft", cpRecommend: "★rec", cpEquip: "Equip",
+    deployGeneric: "General legion deployment — invested elites become myth (deploy collected units in Units tab)", deploySortie: "⚔️ Sortie {n}", deployEliteNote: "(elites you raised)",
+    gearGeneric: "gear", gearWornBy: " · 🎽 worn by {owner}", gpopStar: "⭐ Star up ★{s}→★{s2} · 💰{cost}", gpopAwaken: "✦ Awaken ✦{a}→✦{a2} · 🔮{cost}", gpopFuse: "✨ Fuse ★{s}→★{s2} (consume same gear)", gpopScrap: "🔨 Dismantle +{gold} gold",
+    collectNeed: "Collect {n} needed", collectRewardToast: "📋 {n}-collection reward! 💎{gem} + permanent all ATK·HP +{pct}%", collectHeader: "📋 Collection rewards · Codex {owned}/200", collectCurBuff: " · now all +{buff}% permanent", colTypeN: "{n}",
+  },
+  ja: {
+    cpPower: "戦力", cpLevelUp: "⬆️ レベルアップ Lv{n} · 💰{cost}", cpBatch: "一括", cpRun: "実行", cpAll: "全部",
+    cpFuse: "✨ 合成 ★{s}→★{s2} (重複{need})", cpFuseDim: "✨ 合成 重複 {dup}/{need}", cpAscLock: "⭐ +10強化で {combo}", cpAwaken: "✦ 覚醒 🔮{cost}", cpAwakLock: "✦ ★3以上で覚醒",
+    cpUnequipped: "未装着", cpEquipHint: "🎒 上のスロットをタップして装備", cpPickHint: "⚔️🛡️👟🍀💠 — 部位スロットをタップするとその装備が表示", cpGearCount: "装備 {n}個", cpCloseX: "✕ 閉じる", cpNoSlotGear: "この部位なし — 製作", cpRecommend: "★推奨", cpEquip: "装着",
+    deployGeneric: "一般軍団配置 — 投資した精鋭が神話に (キャラ画面で編成)", deploySortie: "⚔️ 出撃 {n}", deployEliteNote: "(君が育てた精鋭)",
+    gearGeneric: "装備", gearWornBy: " · 🎽 {owner} 装着中", gpopStar: "⭐ 星強化 ★{s}→★{s2} · 💰{cost}", gpopAwaken: "✦ 覚醒 ✦{a}→✦{a2} · 🔮{cost}", gpopFuse: "✨ 合成 ★{s}→★{s2} (同じ装備消費)", gpopScrap: "🔨 分解 +{gold}ゴールド",
+    collectNeed: "{n}種収集が必要", collectRewardToast: "📋 {n}種収集報酬! 💎{gem} + 全軍永久攻·HP +{pct}%", collectHeader: "📋 収集報酬 · 図鑑 {owned}/200", collectCurBuff: " · 現在 全軍 +{buff}% 永久", colTypeN: "{n}種",
+  },
+  zh: {
+    cpPower: "战力", cpLevelUp: "⬆️ 升级 Lv{n} · 💰{cost}", cpBatch: "批量", cpRun: "执行", cpAll: "全部",
+    cpFuse: "✨ 合成 ★{s}→★{s2} (重复{need})", cpFuseDim: "✨ 合成 重复 {dup}/{need}", cpAscLock: "⭐ +10强化后 {combo}", cpAwaken: "✦ 觉醒 🔮{cost}", cpAwakLock: "✦ ★3以上觉醒",
+    cpUnequipped: "未装备", cpEquipHint: "🎒 点击上方槽位装备", cpPickHint: "⚔️🛡️👟🍀💠 — 点击部位槽位查看该部位装备", cpGearCount: "装备 {n}件", cpCloseX: "✕ 关闭", cpNoSlotGear: "该部位无 — 制作", cpRecommend: "★推荐", cpEquip: "装备",
+    deployGeneric: "普通军团部署 — 投资的精英终成神话 (在角色页编成收集单位)", deploySortie: "⚔️ 出战 {n}", deployEliteNote: "(你培养的精英)",
+    gearGeneric: "装备", gearWornBy: " · 🎽 {owner} 装备中", gpopStar: "⭐ 星强化 ★{s}→★{s2} · 💰{cost}", gpopAwaken: "✦ 觉醒 ✦{a}→✦{a2} · 🔮{cost}", gpopFuse: "✨ 合成 ★{s}→★{s2} (消耗相同装备)", gpopScrap: "🔨 分解 +{gold}金币",
+    collectNeed: "需收集{n}种", collectRewardToast: "📋 收集{n}种奖励! 💎{gem} + 全军永久攻·血 +{pct}%", collectHeader: "📋 收集奖励 · 图鉴 {owned}/200", collectCurBuff: " · 当前 全军 +{buff}% 永久", colTypeN: "{n}种",
+  },
+  hi: {
+    cpPower: "शक्ति", cpLevelUp: "⬆️ लेवल अप Lv{n} · 💰{cost}", cpBatch: "बैच", cpRun: "चलाएँ", cpAll: "सभी",
+    cpFuse: "✨ फ्यूज ★{s}→★{s2} (डुप्लि {need})", cpFuseDim: "✨ फ्यूज डुप्लि {dup}/{need}", cpAscLock: "⭐ +10 पर {combo}", cpAwaken: "✦ जागृति 🔮{cost}", cpAwakLock: "✦ ★3+ पर जागृति",
+    cpUnequipped: "खाली", cpEquipHint: "🎒 गियर लगाने के लिए ऊपर स्लॉट टैप करें", cpPickHint: "⚔️🛡️👟🍀💠 — स्लॉट टैप करें, उस भाग का गियर यहाँ दिखेगा", cpGearCount: "गियर {n}", cpCloseX: "✕ बंद", cpNoSlotGear: "इस भाग का नहीं — बनाएँ", cpRecommend: "★सुझाव", cpEquip: "लगाएँ",
+    deployGeneric: "सामान्य लीजन तैनाती — निवेशित एलीट बनें मिथक (यूनिट टैब में संग्रहित यूनिट तैनात करें)", deploySortie: "⚔️ अभियान {n}", deployEliteNote: "(आपके पाले एलीट)",
+    gearGeneric: "गियर", gearWornBy: " · 🎽 {owner} पहने है", gpopStar: "⭐ स्टार अप ★{s}→★{s2} · 💰{cost}", gpopAwaken: "✦ जागृति ✦{a}→✦{a2} · 🔮{cost}", gpopFuse: "✨ फ्यूज ★{s}→★{s2} (समान गियर खर्च)", gpopScrap: "🔨 तोड़ें +{gold} गोल्ड",
+    collectNeed: "{n} संग्रह चाहिए", collectRewardToast: "📋 {n} संग्रह इनाम! 💎{gem} + पूरी सेना स्थायी ATK·HP +{pct}%", collectHeader: "📋 संग्रह इनाम · कोडेक्स {owned}/200", collectCurBuff: " · अभी पूरी सेना +{buff}% स्थायी", colTypeN: "{n}",
+  },
+  ru: {
+    cpPower: "Сила", cpLevelUp: "⬆️ Уровень Lv{n} · 💰{cost}", cpBatch: "Пакет", cpRun: "Запуск", cpAll: "Все",
+    cpFuse: "✨ Синтез ★{s}→★{s2} (дубли {need})", cpFuseDim: "✨ Синтез дубли {dup}/{need}", cpAscLock: "⭐ {combo} при +10", cpAwaken: "✦ Пробуждение 🔮{cost}", cpAwakLock: "✦ Пробуждение при ★3+",
+    cpUnequipped: "Пусто", cpEquipHint: "🎒 Нажмите слот выше, чтобы надеть снаряжение", cpPickHint: "⚔️🛡️👟🍀💠 — нажмите слот, снаряжение для него появится здесь", cpGearCount: "снаряжение {n}", cpCloseX: "✕ Закрыть", cpNoSlotGear: "Нет для этого слота — создать", cpRecommend: "★реком", cpEquip: "Надеть",
+    deployGeneric: "Общее развёртывание легиона — вложенные элиты станут легендой (расставьте собранных юнитов во вкладке Юниты)", deploySortie: "⚔️ Вылазка {n}", deployEliteNote: "(элита, которую ты вырастил)",
+    gearGeneric: "снаряжение", gearWornBy: " · 🎽 надето: {owner}", gpopStar: "⭐ Звезда ★{s}→★{s2} · 💰{cost}", gpopAwaken: "✦ Пробуждение ✦{a}→✦{a2} · 🔮{cost}", gpopFuse: "✨ Синтез ★{s}→★{s2} (расход того же снаряжения)", gpopScrap: "🔨 Разобрать +{gold} золота",
+    collectNeed: "Нужно собрать {n}", collectRewardToast: "📋 Награда за {n} в коллекции! 💎{gem} + постоянно всей армии ATK·HP +{pct}%", collectHeader: "📋 Награды коллекции · Кодекс {owned}/200", collectCurBuff: " · сейчас всем +{buff}% навсегда", colTypeN: "{n}",
+  },
+};
+for (const l in PANEL_I18N) Object.assign(I18N[l], PANEL_I18N[l]);
+
 let LANG = "ko";
 function detectLang() {
   let code = "";
@@ -814,6 +908,12 @@ function detectLang() {
   return LANGS.indexOf(code) >= 0 ? code : "en";
 }
 function setLang(l) { if (I18N[l]) { LANG = l; try { localStorage.setItem("daedalus_lang", l); } catch (e) {} } }
+// 🩹 누락 키 보충 (en 폴백으로 동작하던 것 자국어화) — 2026-07-09
+Object.assign(I18N.ko, { ascNow: "현재" });
+Object.assign(I18N.ja, { inviteBtn: "リンクを共有", ascNow: "現在", payDemoNote: "🧪 デモモード(実際のTelegram Stars決済はWorkerデプロイ後に連携)" });
+Object.assign(I18N.zh, { inviteBtn: "分享链接", ascNow: "当前", payDemoNote: "🧪 演示模式(真实Telegram Stars支付需部署Worker后接入)" });
+Object.assign(I18N.hi, { inviteBtn: "लिंक साझा करें", ascNow: "अभी", payDemoNote: "🧪 डेमो मोड (असली Telegram Stars भुगतान Worker डिप्लॉय के बाद)" });
+Object.assign(I18N.ru, { inviteBtn: "Поделиться ссылкой", ascNow: "Сейчас", payDemoNote: "🧪 Демо-режим (реальная оплата Telegram Stars — после деплоя Worker)" });
 function t(key, p) {
   let s = (I18N[LANG] && I18N[LANG][key]) || (I18N.en[key]) || key;
   if (p) for (const k in p) s = s.replace("{" + k + "}", p[k]);

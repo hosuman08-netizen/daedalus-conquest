@@ -362,19 +362,19 @@ function getLiveHeroPassive(hk) {
   const lv = META.heroLv[hk] || 1;
   const k = heroScale(lv);
   if (hk === 'strategist') {
-    return `전군 AI +${heroAiBonus(lv)} · 집중사격 (치명타 확률 +${Math.round(5 * k)}%)`;
+    return t("hpvStrategist", { ai: heroAiBonus(lv), crit: Math.round(5 * k) });
   } else if (hk === 'berserker') {
-    return `광폭화: 피해 입을 때마다 공격 +${Math.round(8 * k)}% (스택, 최대 50%)`;
+    return t("hpvBerserker", { atk: Math.round(8 * k) });
   } else if (hk === 'warden') {
-    return `철벽: 전군 피해 감소 ${Math.round(12 * k)}% · 진입 시 보호막`;
+    return t("hpvWarden", { red: Math.round(12 * k) });
   } else if (hk === 'ranger') {
-    return `정밀 사격: 원거리 유닛 관통 +${Math.round(25 * k)}% · 다중 타격 확률`;
+    return t("hpvRanger", { pierce: Math.round(25 * k) });
   } else if (hk === 'mech') {
-    return `기계화: 중형 유닛 HP +${Math.round(35 * k)}% + 반격 피해`;
+    return t("hpvMech", { hp: Math.round(35 * k) });
   } else if (hk === 'engineer') {
-    return `수리 프로토콜: 전군 재생 +${(2.5 * k).toFixed(1)}/s · 과부하(공속)`;
+    return t("hpvEngineer", { regen: (2.5 * k).toFixed(1) });
   } else if (hk === 'dragoon') {
-    return `용의 권능: 전군 +${Math.round(12 * k)}% · 궁극기 위력 대폭 증가`;
+    return t("hpvDragoon", { all: Math.round(12 * k) });
   }
   const tr = tHero(hk);
   return tr ? tr[1] : '';
@@ -904,18 +904,18 @@ function heroPowerMul() {
 // 영웅 버프 텍스트(레벨 반영 실제값) — 강화 시 효과가 화면에 오르는 게 보이게(군주: "레벨만 오르고 효과 똑같음" 픽스)
 function heroBuffText() {
   const hb = heroBuffs(), p = [];
-  if (hb.atkMul > 1.001) p.push("전군 공격 +" + Math.round((hb.atkMul - 1) * 100) + "%");
-  if (hb.hpMul > 1.001) p.push("전군 체력 +" + Math.round((hb.hpMul - 1) * 100) + "%");
-  for (const t in (hb.typeAtk || {})) if (hb.typeAtk[t] > 0) p.push(((SPEC[t] && SPEC[t].name) || t) + " 공격 +" + Math.round(hb.typeAtk[t] * 100) + "%");
-  for (const t in (hb.typeHp || {})) if (hb.typeHp[t] > 0) p.push(((SPEC[t] && SPEC[t].name) || t) + " 체력 +" + Math.round(hb.typeHp[t] * 100) + "%");
-  if (hb.regen > 0) p.push("전군 재생 +" + hb.regen.toFixed(1) + "/s");
-  if (hb.aiBonus > 0) p.push("전군 지능 +" + hb.aiBonus);
-  if (hb.crit > 0) p.push("치명타 +" + Math.round(hb.crit) + "%");
-  if (hb.pierce > 0) p.push("관통 +" + Math.round(hb.pierce) + "%");
-  if (hb.pierce < 0) p.push("피해감소 " + Math.round(-hb.pierce) + "%");
-  if (hb.reflect > 0) p.push("반격 " + Math.round(hb.reflect*100) + "%");
-  if (hb.haste > 0) p.push("공속 +" + Math.round(hb.haste*100) + "%");
-  if (hb.ultPower > 1) p.push("궁극기 위력 +" + Math.round((hb.ultPower-1)*100) + "%");
+  if (hb.atkMul > 1.001) p.push(t("btAllAtk", { n: Math.round((hb.atkMul - 1) * 100) }));
+  if (hb.hpMul > 1.001) p.push(t("btAllHp", { n: Math.round((hb.hpMul - 1) * 100) }));
+  for (const ty in (hb.typeAtk || {})) if (hb.typeAtk[ty] > 0) p.push(t("btTypeAtk", { name: uName(ty), n: Math.round(hb.typeAtk[ty] * 100) }));
+  for (const ty in (hb.typeHp || {})) if (hb.typeHp[ty] > 0) p.push(t("btTypeHp", { name: uName(ty), n: Math.round(hb.typeHp[ty] * 100) }));
+  if (hb.regen > 0) p.push(t("btRegen", { n: hb.regen.toFixed(1) }));
+  if (hb.aiBonus > 0) p.push(t("btAiBonus", { n: hb.aiBonus }));
+  if (hb.crit > 0) p.push(t("btCrit", { n: Math.round(hb.crit) }));
+  if (hb.pierce > 0) p.push(t("btPierce", { n: Math.round(hb.pierce) }));
+  if (hb.pierce < 0) p.push(t("btDmgRed", { n: Math.round(-hb.pierce) }));
+  if (hb.reflect > 0) p.push(t("btReflect", { n: Math.round(hb.reflect*100) }));
+  if (hb.haste > 0) p.push(t("btHaste", { n: Math.round(hb.haste*100) }));
+  if (hb.ultPower > 1) p.push(t("btUltPower", { n: Math.round((hb.ultPower-1)*100) }));
   return p.join(" · ") || "—";
 }
 
@@ -1032,29 +1032,29 @@ function squadSynergy() {                               // 진영/아키타입 �
     if (f === "Executor") {
       const m = n >= 4 ? 0.20 : n >= 3 ? 0.12 : n >= 2 ? 0.06 : 0;
       spd *= (1 - m);
-      if (m > 0) bonuses.push(`${FAC_ICON[f]} ${f} ×${n} 공속+${Math.round(m*100)}%`);
+      if (m > 0) bonuses.push(t("synExecutor", { ic: FAC_ICON[f], f: f, n: n, m: Math.round(m*100) }));
     } else if (f === "Strategist") {
       const m = n >= 4 ? 0.25 : n >= 3 ? 0.16 : n >= 2 ? 0.08 : 0;
       crit += m * 100;
-      if (m > 0) bonuses.push(`${FAC_ICON[f]} ${f} ×${n} 치명+${Math.round(m*100)}%`);
+      if (m > 0) bonuses.push(t("synStrategist", { ic: FAC_ICON[f], f: f, n: n, m: Math.round(m*100) }));
     } else if (f === "Swarm") {
       const m = n >= 4 ? 0.30 : n >= 3 ? 0.18 : n >= 2 ? 0.08 : 0;
       atk += m;
-      if (m > 0) bonuses.push(`${FAC_ICON[f]} ${f} ×${n} 공격+${Math.round(m*100)}%`);
+      if (m > 0) bonuses.push(t("synSwarm", { ic: FAC_ICON[f], f: f, n: n, m: Math.round(m*100) }));
     } else if (f === "Guardian") {
       const m = n >= 4 ? 0.33 : n >= 3 ? 0.20 : n >= 2 ? 0.10 : 0;
       hp += m;
-      if (n >= 3) { shieldAdd = 2; bonuses.push(`${FAC_ICON[f]} ${f} ×${n} 체력+${Math.round(m*100)}% +시작실드`); }
-      else if (m > 0) bonuses.push(`${FAC_ICON[f]} ${f} ×${n} 체력+${Math.round(m*100)}%`);
+      if (n >= 3) { shieldAdd = 2; bonuses.push(t("synGuardianShield", { ic: FAC_ICON[f], f: f, n: n, m: Math.round(m*100) })); }
+      else if (m > 0) bonuses.push(t("synGuardian", { ic: FAC_ICON[f], f: f, n: n, m: Math.round(m*100) }));
     } else if (f === "Intel") {
       const m = n >= 4 ? 0.50 : n >= 3 ? 0.30 : n >= 2 ? 0.15 : 0;
       critDmgMul = 1 + m;
-      if (m > 0) bonuses.push(`${FAC_ICON[f]} ${f} ×${n} 치명피해+${Math.round(m*100)}%`);
+      if (m > 0) bonuses.push(t("synIntel", { ic: FAC_ICON[f], f: f, n: n, m: Math.round(m*100) }));
     }
   }
   const archs = new Set(sq.map((u) => u.arch)).size;
-  if (archs >= 5) { atk += 0.12; hp += 0.12; bonuses.push("🔀 다양성 ×" + archs + " 전군+12%"); }
-  else if (archs >= 3) { atk += 0.08; hp += 0.08; bonuses.push("🔀 다양성 ×" + archs + " 전군+8%"); }
+  if (archs >= 5) { atk += 0.12; hp += 0.12; bonuses.push(t("synDiversity", { n: archs, m: 12 })); }
+  else if (archs >= 3) { atk += 0.08; hp += 0.08; bonuses.push(t("synDiversity", { n: archs, m: 8 })); }
 
   // 🌟 레어도 스킬 시스템 (보수적 밸런스) — SR=정밀(패시브), SSR=지휘(패시브)+개전 일격(액티브)
   const srCount = sq.filter((u) => u.rarity === "SR").length;
@@ -1062,17 +1062,17 @@ function squadSynergy() {                               // 진영/아키타입 �
   if (srCount > 0) {                                   // ✦ SR 패시브 「정밀」: 치명 +1.5%/체, 최대 +9%
     const c = Math.min(9, srCount * 1.5);
     crit += c;
-    bonuses.push("✦ SR 정밀 ×" + srCount + " 치명+" + c.toFixed(0) + "%");
+    bonuses.push(t("synSrPrecision", { n: srCount, c: c.toFixed(0) }));
   }
   let openShield = 0, openBuffMul = 0, openBuffT = 0;  // 🌟 SSR 액티브 「개전 일격」 (1회성, 전투 시작)
   if (ssrCount > 0) {                                  // 🌟 SSR 패시브 「지휘」: 공·체 +2%/체, 최대 +10%
     const m = Math.min(0.10, ssrCount * 0.02);
     atk += m; hp += m;
-    bonuses.push("🌟 SSR 지휘 ×" + ssrCount + " 공·체+" + Math.round(m * 100) + "%");
+    bonuses.push(t("synSsrCommand", { n: ssrCount, m: Math.round(m * 100) }));
     openShield = 2 + Math.min(2, (ssrCount - 1) * 0.5);          // 개전 실드 2~4초(피해 절반)
     openBuffMul = 0.20 + Math.min(0.15, (ssrCount - 1) * 0.04);  // 개전 공격 버스트 +20~35%
     openBuffT = 3;
-    bonuses.push("⚡ SSR 개전 가속 — 시작 " + openBuffT + "초 공격+" + Math.round(openBuffMul * 100) + "%·실드");
+    bonuses.push(t("synSsrOpen", { t: openBuffT, m: Math.round(openBuffMul * 100) }));
   }
   // §21 Human Core: Effervescent Host Weave (Durkheim group effervescence + fusion surge in 3+ Founding or 4+ faction; secular sacred "we" heat from real proxy signals)
   const founders = sq.filter(u => ["SSR","UR","EX"].includes(u.rarity)).length;
@@ -1096,7 +1096,7 @@ function squadSynergy() {                               // 진영/아키타입 �
     }
   }
   // 📋 도감 수집 보상 — 영구 전군 공·체 배율 (컬렉션 = 영구 파워)
-  if (typeof collectionBonus === "function") { const cb = collectionBonus(); atk *= cb.atk; hp *= cb.hp; if (cb.atk > 1) bonuses.push("📋 수집 +" + Math.round((cb.atk - 1) * 100) + "% 영구"); }
+  if (typeof collectionBonus === "function") { const cb = collectionBonus(); atk *= cb.atk; hp *= cb.hp; if (cb.atk > 1) bonuses.push(t("synCollect", { n: Math.round((cb.atk - 1) * 100) })); }
   return { atk, hp, crit, spd, shieldAdd, critDmgMul, bonuses, archs, count: sq.length, founders, openShield, openBuffMul, openBuffT };
 }
 
@@ -1137,14 +1137,14 @@ function renderSynergyTable() {
     el._divCard = dc;
   }
   // update existing cards (fast)
-  const FAC_FX = { Strategist:{l:"치명",v:[8,16,25]}, Executor:{l:"공속",v:[6,12,20]}, Swarm:{l:"공",v:[8,18,30]}, Guardian:{l:"체",v:[10,20,33],x:" +실드"}, Intel:{l:"치명피해",v:[15,30,50]} };
+  const FAC_FX = { Strategist:{l:"fxCrit",v:[8,16,25]}, Executor:{l:"fxSpd",v:[6,12,20]}, Swarm:{l:"fxAtk",v:[8,18,30]}, Guardian:{l:"fxHp",v:[10,20,33],x:"fxShieldSuffix"}, Intel:{l:"fxCritDmg",v:[15,30,50]} };
   for (const f in el._synCards) {
     const c = el._synCards[f]; if (!c) continue;
-    const n = fac[f] || 0; const on = n >= 2; const fx = FAC_FX[f] || FAC_FX.Swarm; let bonus = "", nxt;
-    if (n >= 4) { bonus = fx.l+"+"+fx.v[2]+"%"+(fx.x||""); nxt = "★ MAX"; }
-    else if (n >= 3) { bonus = fx.l+"+"+fx.v[1]+"%"+(fx.x||""); nxt = "1명 더 → "+fx.l+"+"+fx.v[2]+"%"; }
-    else if (n >= 2) { bonus = fx.l+"+"+fx.v[0]+"%"; nxt = "1명 더 → "+fx.l+"+"+fx.v[1]+"%"; }
-    else { nxt = (2 - n) + "명 더 → "+fx.l+"+"+fx.v[0]+"%"; }
+    const n = fac[f] || 0; const on = n >= 2; const fx = FAC_FX[f] || FAC_FX.Swarm; const lbl = t(fx.l); const sfx = fx.x ? t(fx.x) : ""; let bonus = "", nxt;
+    if (n >= 4) { bonus = lbl+"+"+fx.v[2]+"%"+sfx; nxt = t("synMax"); }
+    else if (n >= 3) { bonus = lbl+"+"+fx.v[1]+"%"+sfx; nxt = t("synOneMore", { label: lbl, v: fx.v[2] }); }
+    else if (n >= 2) { bonus = lbl+"+"+fx.v[0]+"%"; nxt = t("synOneMore", { label: lbl, v: fx.v[1] }); }
+    else { nxt = t("synNeedMore", { k: (2 - n), label: lbl, v: fx.v[0] }); }
     c._nm.textContent = `${f} ×${n}`;
     c._b.textContent = on ? `⚔️ ${bonus}` : '';
     c._b.style.display = on ? '' : 'none';
@@ -1153,9 +1153,9 @@ function renderSynergyTable() {
     c.classList.toggle('off', !on);
   }
   const archs = new Set(sq.map((u) => u.arch)).size; const dOn = archs >= 3; let dB = "", dNx;
-  if (archs >= 5) { dB = "전군+12%"; dNx = "★ MAX"; }
-  else if (archs >= 3) { dB = "전군+8%"; dNx = (5 - archs) + "종 더 → +12%"; }
-  else { dNx = (3 - archs) + "종 더 → +10%"; }
+  if (archs >= 5) { dB = t("divAllN", { n: 12 }); dNx = t("synMax"); }
+  else if (archs >= 3) { dB = t("divAllN", { n: 8 }); dNx = t("divNeed", { k: (5 - archs), n: 12 }); }
+  else { dNx = t("divNeed", { k: (3 - archs), n: 10 }); }
   const dc = el._divCard;
   dc._nm.textContent = t("diversity") + ` ${archs}종`;
   dc._b.textContent = dOn ? `🛡️ ${dB}` : '';
@@ -1178,7 +1178,7 @@ function updateBattleCombo() {
   if (syn && Array.isArray(syn.bonuses) && syn.bonuses.length) {
     parts.push(...syn.bonuses);
   }
-  if (sq.length > 0) parts.push(`편성 ${sq.length}체`);
+  if (sq.length > 0) parts.push(t("comboDeployed", { n: sq.length }));
   el.innerHTML = parts.length
     ? parts.map(p => `<span style="background:#1a2a14;padding:1px 4px;border-radius:3px;margin:0 2px 1px 0;display:inline-block;">${p}</span>`).join('')
     : '';
@@ -5109,11 +5109,11 @@ function openCharPanel(id) {
   if (head) head.innerHTML = `<div class="cp-art" style="border-color:${u.color}">${artHTML(u, "cpgly", "cpim", true)}</div>`
     + `<div class="cp-meta"><div class="cp-nm" style="color:${u.color}">${u.name}</div>`
     + `<div class="cp-ti">${u.title || u.arch} · ${u.rarity} · 🏷️${u.faction}</div>`
-    + `<div class="cp-st">⚔️ 전력 <b>${charEffPower(id)}</b> · Lv${lv}${cEnh(id) ? " +" + cEnh(id) : ""}${cStar(id) ? " ★" + cStar(id) : ""}${cAwak(id) ? " ✦" + cAwak(id) : ""} · 💪${gcs.str} ❤️${gcs.int} 👟${gcs.agi} 🍀${gcs.luk}</div>`
-    + `<button id="cp-lvup">⬆️ 레벨업 Lv${lv + 1} · 💰${charLvCost(id)}</button>`
-    + `<div style="margin-top:3px;font-size:10px;display:flex;gap:2px;align-items:center;">일괄 <input id="cp-lv-num" type="number" value="${maxB||1}" min="1" max="${maxB||1}" style="width:32px">`
-    + `<button id="cp-lv-batch" style="padding:0 4px;font-size:9px">실행</button>`
-    + `<button id="cp-lv-max" style="padding:0 4px;font-size:9px">전부</button></div>`
+    + `<div class="cp-st">⚔️ ${t("cpPower")} <b>${charEffPower(id)}</b> · Lv${lv}${cEnh(id) ? " +" + cEnh(id) : ""}${cStar(id) ? " ★" + cStar(id) : ""}${cAwak(id) ? " ✦" + cAwak(id) : ""} · 💪${gcs.str} ❤️${gcs.int} 👟${gcs.agi} 🍀${gcs.luk}</div>`
+    + `<button id="cp-lvup">${t("cpLevelUp", { n: lv + 1, cost: charLvCost(id) })}</button>`
+    + `<div style="margin-top:3px;font-size:10px;display:flex;gap:2px;align-items:center;">${t("cpBatch")} <input id="cp-lv-num" type="number" value="${maxB||1}" min="1" max="${maxB||1}" style="width:32px">`
+    + `<button id="cp-lv-batch" style="padding:0 4px;font-size:9px">${t("cpRun")}</button>`
+    + `<button id="cp-lv-max" style="padding:0 4px;font-size:9px">${t("cpAll")}</button></div>`
     + raritySkillHTML(u) + `</div>`;
   on("cp-lvup", "click", () => charLevelUp(id));
   const numEl = $("cp-lv-num");
@@ -5127,9 +5127,9 @@ function openCharPanel(id) {
     const dup = (META.dupes && META.dupes[id]) || 0, fuseNeed = st + 1, canFuse = st < 5 && dup >= fuseNeed;   // 합성: 중복 N장 → ★승급
     gw.innerHTML =
       `<button id="cp-enh">⚙️ ${t("dEnhance")} +${e} · ${cEnhRate(id)}% · 💰${cEnhCost(id)}</button>`
-      + (canFuse ? `<button id="cp-fuse" class="cp-purple">✨ 합성 ★${st}→★${st + 1} (중복 ${fuseNeed}장)</button>` : (dup ? `<span class="cp-gdim">✨ 합성 중복 ${dup}/${fuseNeed}</span>` : ""))
-      + (canAsc ? `<button id="cp-asc" class="cp-gold">⭐ ${t("dCombo")} 💰5k+💎50</button>` : `<span class="cp-gdim">⭐ +10강 시 ${t("dCombo")}</span>`)
-      + (canAwk ? `<button id="cp-awk" class="cp-purple">✦ 각성 🔮${cAwakCost(id)}</button>` : (st >= 3 && aw >= AWAK_MAX ? `<span class="cp-gdim">✦${aw} MAX</span>` : st < 3 ? `<span class="cp-gdim">✦ ★3↑ 각성</span>` : ""))
+      + (canFuse ? `<button id="cp-fuse" class="cp-purple">${t("cpFuse", { s: st, s2: st + 1, need: fuseNeed })}</button>` : (dup ? `<span class="cp-gdim">${t("cpFuseDim", { dup: dup, need: fuseNeed })}</span>` : ""))
+      + (canAsc ? `<button id="cp-asc" class="cp-gold">⭐ ${t("dCombo")} 💰5k+💎50</button>` : `<span class="cp-gdim">${t("cpAscLock", { combo: t("dCombo") })}</span>`)
+      + (canAwk ? `<button id="cp-awk" class="cp-purple">${t("cpAwaken", { cost: cAwakCost(id) })}</button>` : (st >= 3 && aw >= AWAK_MAX ? `<span class="cp-gdim">✦${aw} MAX</span>` : st < 3 ? `<span class="cp-gdim">${t("cpAwakLock")}</span>` : ""))
       + (st ? `<span class="cp-badge">★${st}</span>` : "") + (aw ? `<span class="cp-badge pur">✦${aw}</span>` : "");
     on("cp-enh", "click", () => charEnhance(id));
     on("cp-fuse", "click", () => fuseChar(id));
@@ -5148,7 +5148,7 @@ function openCharPanel(id) {
         const nm = `${g.rarity}${e?"+"+e:""}${ss?" ★"+ss:""}${aa?" ✦"+aa:""}`;
         return `<div class="cp-slot on${sel}" data-pick="${s}" style="border-color:${g.color}"><div class="slot-art">${gearArt(g)}</div><div class="slot-nm" style="color:${g.color}">${nm}</div><div class="slot-x" data-slot="${s}">✕</div></div>`;
       }
-      return `<div class="cp-slot${sel}" data-pick="${s}"><div class="slot-art">${SLOT_ICON[s]}</div><div class="slot-nm ddim">미착용</div></div>`;
+      return `<div class="cp-slot${sel}" data-pick="${s}"><div class="slot-art">${SLOT_ICON[s]}</div><div class="slot-nm ddim">${t("cpUnequipped")}</div></div>`;
     }).join("");
     gbox.querySelectorAll(".cp-slot").forEach((el) => el.onclick = (ev) => {
       if (ev.target.closest(".slot-x")) return;           // ✕는 해제
@@ -5160,20 +5160,20 @@ function openCharPanel(id) {
   const inv = $("cp-inv"), lbl = $("cp-inv-label");
   if (inv) {
     if (!cpSlotFilter) {
-      if (lbl) lbl.textContent = "🎒 위 슬롯을 탭해 장비를 장착하세요";
-      inv.innerHTML = `<div class="cp-pickhint">⚔️🛡️👟🍀💠 — 부위 슬롯을 탭하면 그 부위 장비가 여기 떠요</div>`;
+      if (lbl) lbl.textContent = t("cpEquipHint");
+      inv.innerHTML = `<div class="cp-pickhint">${t("cpPickHint")}</div>`;
     } else {
       const pool = META.gear.filter((g) => g.slot === cpSlotFilter).sort((a, b) => gearPowerForChar(b) - gearPowerForChar(a));
-      if (lbl) lbl.innerHTML = `${SLOT_ICON[cpSlotFilter]} <b>${(t("st_" + SLOT_MAIN[cpSlotFilter]) || cpSlotFilter)}</b> 장비 ${pool.length}개 <span id="cp-inv-all" class="cp-allbtn">✕ 닫기</span>`;
+      if (lbl) lbl.innerHTML = `${SLOT_ICON[cpSlotFilter]} <b>${(t("st_" + SLOT_MAIN[cpSlotFilter]) || cpSlotFilter)}</b> ${t("cpGearCount", { n: pool.length })} <span id="cp-inv-all" class="cp-allbtn">${t("cpCloseX")}</span>`;
       on("cp-inv-all", "click", () => { cpSlotFilter = null; openCharPanel(id); });
-      if (!pool.length) { inv.innerHTML = `<div class="ddim" style="font-size:7px;padding:2px;text-align:center">이 부위 없음 — 제작</div>`; }
+      if (!pool.length) { inv.innerHTML = `<div class="ddim" style="font-size:7px;padding:2px;text-align:center">${t("cpNoSlotGear")}</div>`; }
       else {
         inv.innerHTML = pool.slice(0, 8).map((g) => {
           const onThis = eq[g.slot] === g.id;
           const st = STAT_KEYS.filter((k) => g[k]).map((k) => `${t("st_" + k)}${gearStat(g, k)}`).join(" ");
           const e=g.enh||0; const nm = `${g.rarity}${e?"+"+e:""}`;
-          const best = !onThis && isBestForChar(g, id) ? ' <span class="best">★추천</span>' : '';
-          return `<div class="gear-card${onThis ? " on" : ""}" data-gid="${g.id}" style="border-color:${g.color}"><div class="g-art">${gearArt(g)}</div><div class="g-info"><div class="g-name"><b style="color:${g.color}">${nm}</b>${best}</div><div class="g-stats">${st}</div></div><div class="g-act">${onThis ? '<span class="act-on">✓</span>' : '<button class="g-equip">장착</button>'}</div></div>`;
+          const best = !onThis && isBestForChar(g, id) ? ' <span class="best">' + t("cpRecommend") + '</span>' : '';
+          return `<div class="gear-card${onThis ? " on" : ""}" data-gid="${g.id}" style="border-color:${g.color}"><div class="g-art">${gearArt(g)}</div><div class="g-info"><div class="g-name"><b style="color:${g.color}">${nm}</b>${best}</div><div class="g-stats">${st}</div></div><div class="g-act">${onThis ? '<span class="act-on">✓</span>' : '<button class="g-equip">' + t("cpEquip") + '</button>'}</div></div>`;
         }).join("");
         inv.querySelectorAll(".gear-card").forEach((c) => { const gid = +c.dataset.gid; c.onclick = () => { charEquip(id, gid); }; });
       }
@@ -5188,13 +5188,13 @@ function renderDeploySpecificsPreview() {
   if (!el) return;
   const specs = getDeployedUnits();
   if (specs.length === 0) {
-    el.innerHTML = "일반 군단 배치 — 투자한 정예가 곧 신화 (char 창에서 수집 유닛 편성)";
+    el.innerHTML = t("deployGeneric");
     el.style.opacity = "0.7";
     return;
   }
   el.style.opacity = "1";
   // show any specifics (SR/R included) as meaningful — "MY unit" endowment
-  el.innerHTML = `<b>⚔️ 출전 ${specs.length}</b>: ` + specs.map(u => `<span style="color:${u.color}">${u.name}</span>`).join(" · ") + ` <small style="opacity:.7">(네가 키운 정예)</small>`;
+  el.innerHTML = `<b>${t("deploySortie", { n: specs.length })}</b>: ` + specs.map(u => `<span style="color:${u.color}">${u.name}</span>`).join(" · ") + ` <small style="opacity:.7">${t("deployEliteNote")}</small>`;
 }
 // ── 캐릭터 도감 그리드 (202종: EX/UR+SSR9 god-tier + SR/R/N) ──────────────────────────────────────────
 let codexFilter = "ALL";
@@ -5283,13 +5283,13 @@ function collectionBonus() {   // 수령한 마일스톤 합산 → {atk, hp} �
 function claimCollect(n) {
   const m = COLLECT_MILESTONES.find((x) => x.n === n); if (!m) return;
   const owned = (META.owned || []).length;
-  if (owned < n) { toast(t("tColLock", { n: n }) || (n + "종 수집 필요"), "#ef4444"); return; }
+  if (owned < n) { toast(t("tColLock", { n: n }) || t("collectNeed", { n: n }), "#ef4444"); return; }
   if (!META.collectClaimed) META.collectClaimed = [];
   if (META.collectClaimed.indexOf(n) >= 0) { toast(t("collectClaimedAlready"), "#8b93a7"); return; }
   META.collectClaimed.push(n);
   META.gems = (META.gems || 0) + m.gem;
   bumpPrestige(1); saveMeta(); updateMeta(); renderCollectRewards(); if (!running) reset();
-  toast("📋 " + n + "종 수집 보상! 💎" + m.gem + " + 전군 영구 공·체 +" + Math.round(m.atk * 100) + "%", "#fbbf24");
+  toast(t("collectRewardToast", { n: n, gem: m.gem, pct: Math.round(m.atk * 100) }), "#fbbf24");
   haptic("heavy"); try { confettiBurst(); } catch (e) {}
 }
 function renderCollectRewards() {
@@ -5297,13 +5297,13 @@ function renderCollectRewards() {
   const owned = (META.owned || []).length, done = META.collectClaimed || [];
   const b = collectionBonus();
   const totBuff = Math.round((b.atk - 1) * 100);
-  el.innerHTML = '<div style="font-size:11px;color:#a3e635;margin:6px 0 3px;font-weight:700;">📋 수집 보상 · 도감 ' + owned + '/200' + (totBuff > 0 ? ' · 현재 전군 +' + totBuff + '% 영구' : '') + '</div>'
+  el.innerHTML = '<div style="font-size:11px;color:#a3e635;margin:6px 0 3px;font-weight:700;">' + t("collectHeader", { owned: owned }) + (totBuff > 0 ? t("collectCurBuff", { buff: totBuff }) : '') + '</div>'
     + '<div style="display:flex;gap:4px;flex-wrap:wrap;">' + COLLECT_MILESTONES.map((m) => {
       const claimed = done.indexOf(m.n) >= 0, ready = owned >= m.n && !claimed;
       const bg = claimed ? '#1c2638' : ready ? 'linear-gradient(135deg,#3a2c12,#1a1410)' : '#14131c';
       const bd = ready ? '#fbbf24' : claimed ? '#2b3650' : '#1c1b27';
       const ic = claimed ? '✅' : ready ? '🎁' : '🔒';
-      return '<button class="col-rw" data-n="' + m.n + '" style="flex:1;min-width:60px;font-size:10px;padding:5px 3px;border-radius:7px;background:' + bg + ';border:1px solid ' + bd + ';color:#e2e8f0;cursor:' + (ready ? 'pointer' : 'default') + ';">' + ic + ' ' + m.n + '종<br><span style="color:#fbbf24">+' + Math.round(m.atk * 100) + '%</span></button>';
+      return '<button class="col-rw" data-n="' + m.n + '" style="flex:1;min-width:60px;font-size:10px;padding:5px 3px;border-radius:7px;background:' + bg + ';border:1px solid ' + bd + ';color:#e2e8f0;cursor:' + (ready ? 'pointer' : 'default') + ';">' + ic + ' ' + t("colTypeN", { n: m.n }) + '<br><span style="color:#fbbf24">+' + Math.round(m.atk * 100) + '%</span></button>';
     }).join('') + '</div>';
   el.querySelectorAll('.col-rw').forEach((bn) => bn.onclick = () => { const n = +bn.dataset.n; if ((META.owned || []).length >= n && (META.collectClaimed || []).indexOf(n) < 0) claimCollect(n); });
 }
@@ -5401,8 +5401,8 @@ function openGearItem(id) {
   let html = `<div class="gm-head">`
     + `<div class="gm-art" style="border-color:${g.color}">${gearArt(g)}</div>`
     + `<div class="gm-meta">`
-    + `<div class="gm-nm"><b style="color:${g.color}">[${tag}]</b> ${g.name || '장비'}</div>`
-    + `<div class="gm-ti">${(t("st_" + SLOT_MAIN[g.slot]) || g.slot)}${owner ? ` · 🎽 ${owner} 착용중` : ''}</div>`
+    + `<div class="gm-nm"><b style="color:${g.color}">[${tag}]</b> ${g.name || t("gearGeneric")}</div>`
+    + `<div class="gm-ti">${(t("st_" + SLOT_MAIN[g.slot]) || g.slot)}${owner ? t("gearWornBy", { owner: owner }) : ''}</div>`
     + `<div class="gm-st">${stats}</div>`
     + (g.effect ? `<div class="gm-eff" style="font-size:11px;color:#fde047;margin-top:2px;">✨ ${g.effect.name || ''} ${g.effect.desc || g.effect.type || ''}</div>` : '')
     + `</div></div>`;
@@ -5411,15 +5411,15 @@ function openGearItem(id) {
   html += `<button id="gpop-enh" class="gpop-enh">🔨 ${t("dEnhance")} +${e} · ${rate}% · 💰${enhC}</button>`;
   if (e >= 10 && s < 30) {
     const starC = Math.round(1000 * (s + 1) * Math.pow(1.3, s));
-    html += `<button id="gpop-star" class="gpop-star">⭐ 별강화 ★${s}→★${s+1} · 💰${starC.toLocaleString("en-US")}</button>`;
+    html += `<button id="gpop-star" class="gpop-star">${t("gpopStar", { s: s, s2: s+1, cost: starC.toLocaleString("en-US") })}</button>`;
   }
   if (s >= 3 && a < 5) {
     const awkC = 50 * (a + 1);
-    html += `<button id="gpop-awk" class="gpop-awk">✦ 각성 ✦${a}→✦${a+1} · 🔮${awkC}</button>`;
+    html += `<button id="gpop-awk" class="gpop-awk">${t("gpopAwaken", { a: a, a2: a+1, cost: awkC })}</button>`;
   }
   const dupG = (g.tplId != null) && META.gear.find((x) => x.id !== id && x.tplId === g.tplId && !gearOwnerName(x.id));   // 같은 장비(미장착) 합성용
-  if (dupG && s < 30) html += `<button id="gpop-fuse" class="gpop-star">✨ 합성 ★${s}→★${s + 1} (같은 장비 소모)</button>`;
-  if (!gearOwnerName(id)) html += `<button id="gpop-scrap" class="gpop-enh" style="border-color:#fbbf24;background:linear-gradient(160deg,#3a2c1a,#1a1410)">🔨 분해 +${gearScrapGold(g)}골드</button>`;
+  if (dupG && s < 30) html += `<button id="gpop-fuse" class="gpop-star">${t("gpopFuse", { s: s, s2: s + 1 })}</button>`;
+  if (!gearOwnerName(id)) html += `<button id="gpop-scrap" class="gpop-enh" style="border-color:#fbbf24;background:linear-gradient(160deg,#3a2c1a,#1a1410)">${t("gpopScrap", { gold: gearScrapGold(g) })}</button>`;
   html += `</div>`;
   $("unit-detail").innerHTML = html;
   on("gpop-enh", "click", () => { enhanceGear(id); setTimeout(() => openGearItem(id), 50); });

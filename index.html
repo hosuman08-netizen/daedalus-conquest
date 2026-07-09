@@ -50,7 +50,7 @@
     <div id="tut-card" style="position:absolute;bottom:84px;left:50%;transform:translateX(-50%);width:88%;max-width:360px;background:#0b111f;border:1.5px solid #fbbf24;border-radius:14px;padding:16px 18px;box-shadow:0 12px 40px rgba(0,0,0,.7),0 0 24px rgba(251,191,36,.25);text-align:center;">
       <div id="tut-text" style="font-size:14px;line-height:1.65;color:#e2e8f0;white-space:pre-line;margin-bottom:12px;"></div>
       <button id="tut-next" style="width:100%;background:linear-gradient(135deg,#f5c451,#d97706);color:#1a1400;font-weight:800;font-size:15px;padding:12px;border:none;border-radius:11px;cursor:pointer;box-shadow:0 6px 18px rgba(245,196,81,.3);">다음</button>
-      <button id="tut-skip" style="margin-top:8px;background:none;border:none;color:#8b8ba7;font-size:12px;cursor:pointer;text-decoration:underline;">건너뛰기</button>
+      <button id="tut-skip" data-i18n="tutSkip" style="margin-top:8px;background:none;border:none;color:#8b8ba7;font-size:12px;cursor:pointer;text-decoration:underline;">건너뛰기</button>
       <div id="tut-dots" style="margin-top:8px;font-size:10px;color:#5a5a72;letter-spacing:2px;"></div>
     </div>
   </div>
@@ -71,9 +71,9 @@
       <span class="meta soul">🔮 <i id="soul">0</i></span>
       <span class="meta ch">📖 <i id="chapter">1</i></span>
       <span class="meta eth" style="cursor:pointer" onclick="openSettings();renderPrestige();" title="⬡ 에테르 — 환생으로 얻는 영구 화폐. 에테르 상점에서 아군 공격력·체력을 영구 복리 강화">⬡ <i id="ether">0</i></span>
-      <span class="meta" id="streak-meta" style="color:#fbbf24;font-size:11px;cursor:pointer" onclick="openEvent();" title="일일 연속. 7일 유지 시 AFK 보상 1.5배 등. 매일 클레임으로 쌓음">🔥 연속 <i id="streak-val">0</i></span>
+      <span class="meta" id="streak-meta" style="color:#fbbf24;font-size:11px;cursor:pointer" onclick="openEvent();" title="일일 연속. 7일 유지 시 AFK 보상 1.5배 등. 매일 클레임으로 쌓음"><span data-i18n="streakLabel">🔥 연속</span> <i id="streak-val">0</i></span>
       <!-- MVP: pity always visible in lobby top per final plan -->
-      <span class="meta pity">🎯 다음 SSR까지 <i id="pity-left">12</i>회 (soft 7+ · code match)</span>
+      <span class="meta pity" id="pity-meta">🎯 다음 SSR까지 12회</span>
     </div>
 
     <!-- 부활 의식 연출 오버레이 -->
@@ -144,7 +144,7 @@
     <!-- (턴제 모드 제거됨 — tb-controls 잔재 정리) -->
     <div id="reset-controls" style="margin-top:6px">
       <button id="reset" data-i18n="reset">↻ 다시</button>
-      <button id="quick-pull">🎰 뽑기 💎8</button>
+      <button id="quick-pull" data-i18n="quickPull">🎰 뽑기 💎8</button>
     </div>
     <!-- 군주 20260616 + Grok P1: 캐릭터 조합 시너지 표 (달성=골드글로우, 미달=실루엣 → 도파민+수집욕) -->
     <div id="synergy-table"></div>
@@ -186,7 +186,7 @@
     <div id="page-gear" class="page hidden">
       <div class="set-title">🛡️ <span data-i18n="gTitle">장비</span></div>
       <button id="gear-craft" class="craft-big">🔨 <span data-i18n="gCraft">제작</span> · 300g</button>
-      <button id="gear-scrap-junk" class="craft-big" style="background:linear-gradient(160deg,#3a2c1a,#1a1410);border-color:#fbbf24;margin-top:6px">🔨 잡템 일괄 분해 (N/R 미장착 → 골드)</button>
+      <button id="gear-scrap-junk" data-i18n="scrapJunk" class="craft-big" style="background:linear-gradient(160deg,#3a2c1a,#1a1410);border-color:#fbbf24;margin-top:6px">🔨 잡템 일괄 분해 (N/R 미장착 → 골드)</button>
       <div class="gear-note ddim" data-i18n="gearNote">🔨 장비를 탭하면 강화 · 장착은 캐릭터 탭에서</div>
       <div class="set-sec">🎒 <span data-i18n="gOwned">보유 장비</span> <span id="gear-count" class="ddim"></span></div>
       <div id="gear-inv"></div>
@@ -243,11 +243,11 @@
     <!-- 🏆 초대 보상 사다리 -->
     <div id="ref-modal" class="hidden" style="position:fixed;inset:0;z-index:91;background:rgba(3,7,18,.88);display:none;align-items:center;justify-content:center;padding:18px;">
       <div class="odds-inner">
-        <div class="odds-title">🏆 친구 초대 보상 (최대 1만명)</div>
-        <div style="font-size:11px;color:var(--dim);text-align:center;margin:-4px 0 8px;">친구당 💎50 + 아래 누적 마일스톤 보너스</div>
+        <div class="odds-title" data-i18n="refModalTitle">🏆 친구 초대 보상 (최대 1만명)</div>
+        <div data-i18n="refModalSub" style="font-size:11px;color:var(--dim);text-align:center;margin:-4px 0 8px;">친구당 💎50 + 아래 누적 마일스톤 보너스</div>
         <div id="ref-modal-body" class="odds-body" style="max-height:46vh;overflow-y:auto;"></div>
-        <button id="ref-modal-claim" class="gbig" style="margin-top:8px;background:linear-gradient(135deg,#f5c451,#d97706);border-color:#f5c451;color:#1a1400;font-weight:800;">🎁 받을 수 있는 보상 받기</button>
-        <button id="ref-modal-close" class="ghost" style="margin-top:6px;">닫기</button>
+        <button id="ref-modal-claim" data-i18n="refModalClaim" class="gbig" style="margin-top:8px;background:linear-gradient(135deg,#f5c451,#d97706);border-color:#f5c451;color:#1a1400;font-weight:800;">🎁 받을 수 있는 보상 받기</button>
+        <button id="ref-modal-close" data-i18n="closeBtn" class="ghost" style="margin-top:6px;">닫기</button>
       </div>
     </div>
 
@@ -313,8 +313,8 @@
       <div class="set-sec">📊 <span data-i18n="statsTitle">내 군단 통계</span></div>
       <div id="game-stats"></div>
       <div style="display:flex;gap:6px;margin-top:8px;">
-        <button id="share-profile" class="gbig" style="flex:1;background:linear-gradient(135deg,#2aabee,#1a8cd8);border-color:#2aabee;color:#fff;font-weight:800;">📤 전과 자랑하기</button>
-        <button id="invite-friend" class="gbig" style="flex:1;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-color:#8b5cf6;color:#fff;font-weight:800;">👥 친구 초대</button>
+        <button id="share-profile" data-i18n="shareBrag" class="gbig" style="flex:1;background:linear-gradient(135deg,#2aabee,#1a8cd8);border-color:#2aabee;color:#fff;font-weight:800;">📤 전과 자랑하기</button>
+        <button id="invite-friend" data-i18n="inviteFriendBtn" class="gbig" style="flex:1;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-color:#8b5cf6;color:#fff;font-weight:800;">👥 친구 초대</button>
       </div>
       <div id="ref-status" style="font-size:12px;color:var(--dim);margin-top:7px;text-align:center;cursor:pointer;"></div>
       <button id="ref-claim" class="gbig" style="display:none;margin-top:6px;background:linear-gradient(135deg,#f5c451,#d97706);border-color:#f5c451;color:#1a1400;font-weight:800;">🎁 친구 초대 보상 받기</button>
