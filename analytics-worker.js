@@ -31,7 +31,8 @@ const ALLOWED = new Set([
   //   shop_view=상점열람 / checkout_open=buyPack클릭(구매의도) / invoice_paid·invoice_cancelled=openInvoice 콜백 결과
   //   first_core_loop·first_gacha=신규 1회성(activation) — daily_return·invite_converted 슬롯은 기존 라인에 이미 존재
   "shop_view", "checkout_open", "invoice_paid", "invoice_cancelled",
-  "first_core_loop", "first_gacha", "free_ticket_used", "share_card_generated", "share_card_sent"
+  "first_core_loop", "first_gacha", "free_ticket_used", "share_card_generated", "share_card_sent",
+  "raid_attack", "raid_win", "shield_buy", "revenge_start"
 ]);
 const dayKey = (ts) => new Date(ts).toISOString().slice(0, 10);   // YYYY-MM-DD (UTC 일관 — game.js와 동일)
 
