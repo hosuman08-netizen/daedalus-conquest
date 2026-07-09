@@ -414,6 +414,28 @@ function loadPortrait(id) {   // 편성된 캐릭 일러스트 lazy 로드 (전 
   ssrPortraits[id] = img;
 }
 
+// 🎨 아키타입 대표 실아트 — id 없는 제네릭 아군 잡병(및 로드 대기중 편성유닛)도 glyph 블롭 대신 진짜 캐릭터 아트로.
+// 각 아키타입당 실존 art/u<id>.png 1개를 대표로 재사용(생성 없음, 캐시로 중복로드 방지). 로드 실패/미존재 시 glyph 폴백.
+const ARCH_ART = { drone: 10, marksman: 11, guardian: 12, bruiser: 13, commander: 14, titan: 8 };   // 10=비행드론 11=스나이퍼 12=실드가디언 13=중장브루저 14=지휘관 8=Anvil해머타이탄
+let archPortraits = {};
+function preloadArchPortraits() {
+  const NUKKI_IDS = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  Object.values(ARCH_ART).forEach((id) => {
+    if (archPortraits[id]) return;
+    const img = new Image();
+    img.src = NUKKI_IDS.has(id) ? `art/u${id}-nukki.png` : `art/u${id}.png`;
+    img.onload = () => { try { draw(); } catch (e) {} };   // 로드되면 전투 재렌더
+    archPortraits[id] = img;   // placeholder until load
+  });
+}
+preloadArchPortraits();
+function archPortraitFor(u) {   // 유닛 아키타입 → 대표 실아트 이미지(로드 완료된 것만, 아니면 null → glyph 폴백)
+  const id = ARCH_ART[u.t || u.arch];
+  if (!id) return null;
+  const img = archPortraits[id];
+  return (img && img.complete && img.naturalWidth > 0) ? img : null;
+}
+
 // Enemy visuals: hostile boss PNGs for real variety (보스 레이드 맛 UP).
 // Bosses use dedicated art/enemy/boss-*.png + final-titan etc. (drawBoss에서 PNG + variant overlay).
 // Non-boss elites use limited PNGs, rest rich synthetic.
@@ -2569,6 +2591,17 @@ function draw() {
       }
       // For enemy PNG: clean, no extra circles/lines/rims/spikes (user request for NPC enemies to look proper without unnecessary effects)
     } else {
+      // 🎨 아키타입 대표 실아트 메달리온 — id 없는 제네릭 아군(및 아직 초상 로드 안 된 편성유닛)은 glyph 대신 진짜 캐릭터 아트.
+      const archImg = (u.side === "p" && !u.boss) ? archPortraitFor(u) : null;
+      if (archImg) {
+        const clipR = u.r * 1.12, sz = u.r * 2.5;
+        ctx.save();
+        ctx.beginPath(); ctx.arc(u.x, u.y, clipR, 0, 7); ctx.clip();
+        ctx.drawImage(archImg, u.x - sz / 2, u.y - sz * 0.42, sz, sz);   // jpeg 불투명이라도 원형 클립으로 배경 감춰짐 — OK
+        ctx.restore();
+        ctx.strokeStyle = "rgba(125,177,255,0.85)"; ctx.lineWidth = 2;   // 강철 블루 림(제네릭 아군 — SSR 편성유닛 금빛 림과 구분)
+        ctx.beginPath(); ctx.arc(u.x, u.y, clipR + 0.5, 0, 7); ctx.stroke();
+      } else {
       // 폴리시(최소): 아군 잡병도 덜 흐릿하게 — 배킹 디스크 + 청색 림 + 글자 그림자(대비)
       if (u.side === "p") {
         const br = u.r + 2.5;
@@ -2657,6 +2690,7 @@ function draw() {
             if (inv >= 3) { ctx.fillStyle=`rgba(163,230,53,0.18)`; ctx.beginPath(); ctx.arc(u.x,u.y,u.r*1.28,0,7); ctx.fill(); }
           }
         }
+      }
       }
     }
     if (["SSR","UR","EX"].includes(u.rarity) && u.name) {
