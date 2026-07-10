@@ -2956,7 +2956,10 @@ function finish(p, e) {
       const founders = getFounderCount();
       const protected = founders >= 3 && META.streak > 0 && Math.random() < 0.15; // ethical: 3+ Founders = 1 miss safe chance (no full reset abuse)
       if (!protected) META.streak = (META.streak || 0) + 1;
-      reward = bonus(50 + META.chapter * 22 + Math.min(80, (META.streak - 1) * 10));  // early boost for ch18 reach (치명적 P0)
+      reward = bonus(50 + META.chapter * 22 + Math.min(80, (META.streak - 1) * 10));
+      // Daily first-win x2: one honest reason to return every day (D1/D7 habit anchor). Once per day.
+      var _fwDay = today(); window._fwBonus = (META.lastWinDay !== _fwDay);
+      if (window._fwBonus) { META.lastWinDay = _fwDay; reward *= 2; }  // early boost for ch18 reach (치명적 P0)
       // ascGoldMul 복리 제거됨
       if (META.chapter < 999) META.chapter += 1; if (META.chapter > (META.maxChapter || 0)) META.maxChapter = META.chapter;
       META.chStuck = 0;   // 🧗 진행 성공 → 막힘 카운터 리셋
@@ -2976,7 +2979,7 @@ function finish(p, e) {
       const nb = chapterBiome(META.chapter);
       if (META._biomeId !== nb.id) { META._biomeId = nb.id; setTimeout(() => toast(t("newBattlefield", { name: t(nb.name) }), nb.accent), 900); if (typeof buildBgCache === "function") buildBgCache(); }
       title = t("rChapter");
-      extra = `<div class="rwd">${t("rwGold", { n: reward })}` + (META.streak > 1 ? t("rwStreak", { n: META.streak }) : "") + `</div><div class="rwd2">${t("rwChapter", { n: META.chapter })}</div>`;
+      extra = `<div class="rwd">${t("rwGold", { n: reward })}` + (window._fwBonus ? ' <b style="color:#f5c451">🌅 x2</b>' : "") + (META.streak > 1 ? t("rwStreak", { n: META.streak }) : "") + `</div><div class="rwd2">${t("rwChapter", { n: META.chapter })}</div>`;
       if (protected) extra += '<div class="rwd2" style="color:#67e8f9">🛡️ Founders protect streak</div>';
       checkMilestones();                                 // 🏆 챕터 해금/보상
       updateModeTabs(); // 탭 라벨 chX 즉시 갱신 (오버레이 떠 있는 동안에도 "캠페인 ch2" 보이게)
