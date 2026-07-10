@@ -3421,7 +3421,9 @@ const RANK_API = "";   // 빈값 = 로컬 폴백(내 값만).
 const RAID_ENERGY_MAX = 5, SHIELD_MAX = 3, SHIELD_COST = 40;
 function myPowerNow() { return Math.max(1, Math.round((getDeployedUnits().length ? squadPower() : legionPower()) * ascPowerMul())); }
 function raidDailyReset() { const td = today(); if (META.raidDay !== td) { META.raidDay = td; META.raidEnergy = RAID_ENERGY_MAX; saveMeta(); } if (META.raidEnergy == null) { META.raidEnergy = RAID_ENERGY_MAX; } if (META.shields == null) META.shields = 1; }
-function raidTargetName(tg) { if (!tg) return t("raidUnknownLegion"); if (tg.isAI) return (tg.code || (["Echo","Rift","Sentinel"][(tg._i||0)%3])) + " · " + t("raidAiSuffix"); return (tg.name && String(tg.name).slice(0,24)) || t("raidUnknownLegion"); }
+// 🔒 원격/유저 문자열 HTML 이스케이프 (저장형 XSS 차단 — 리더보드·습격 상대명 등 다른 유저에게 서빙되는 값)
+function escapeHtml(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function raidTargetName(tg) { if (!tg) return t("raidUnknownLegion"); if (tg.isAI) return escapeHtml(tg.code || (["Echo","Rift","Sentinel"][(tg._i||0)%3])) + " · " + t("raidAiSuffix"); return escapeHtml((tg.name && String(tg.name).slice(0,24)) || t("raidUnknownLegion")); }
 function localAiTargets(power) { const codes = ["Echo","Rift","Sentinel"]; return [0,1,2].map(i => { const p = Math.max(100, Math.round(power * (0.85 + i*0.12))); return { id: "ai_"+i, code: codes[i], _i: i, isAI: true, power: p, gold: Math.round(p*12) }; }); }
 async function fetchRaidTargets(power) {
   if (RAID_API && getTGUserId() !== "guest") {
@@ -3558,7 +3560,7 @@ function renderLeaderboard() {
   const draw = (top, myRank, endsInSec) => {
     if (ends) { const upd = () => { const s = Math.max(0, endsInSec - Math.floor((Date.now()-_lbT0)/1000)); const h = Math.floor(s/3600), m = Math.floor((s%3600)/60); ends.textContent = "⏳ " + t("lbEndsIn", { h: h, m: m }); }; if (_lbTimer) clearInterval(_lbTimer); _lbT0 = Date.now(); upd(); _lbTimer = setInterval(upd, 30000); }
     const mine = myRank > 0 ? t("lbMyRank", { n: myRank }) : t("lbUnranked");
-    list.innerHTML = '<div style="text-align:center;font-weight:800;color:#a3e635;margin-bottom:4px;">' + mine + '</div>' + (top.length ? top.map((x,i)=>'<div style="display:flex;justify-content:space-between;padding:6px 10px;border-radius:7px;background:'+(i<3?"#1c1633":"#0f1420")+';"><span>'+(["🥇","🥈","🥉"][i]||("#"+(i+1)))+' '+((x.name||t("raidUnknownLegion")).slice(0,18))+'</span><span style="color:#fde047;font-weight:700;">'+fmtNum(x.v||0)+'</span></div>').join("") : '<div class="ddim" style="text-align:center;padding:14px;">'+t("lbUnranked")+'</div>');
+    list.innerHTML = '<div style="text-align:center;font-weight:800;color:#a3e635;margin-bottom:4px;">' + mine + '</div>' + (top.length ? top.map((x,i)=>'<div style="display:flex;justify-content:space-between;padding:6px 10px;border-radius:7px;background:'+(i<3?"#1c1633":"#0f1420")+';"><span>'+(["🥇","🥈","🥉"][i]||("#"+(i+1)))+' '+escapeHtml((x.name||t("raidUnknownLegion")).slice(0,18))+'</span><span style="color:#fde047;font-weight:700;">'+fmtNum(x.v||0)+'</span></div>').join("") : '<div class="ddim" style="text-align:center;padding:14px;">'+t("lbUnranked")+'</div>');
   };
   if (RANK_API && getTGUserId() !== "guest") {
     fetch(RANK_API + "/leaderboard?metric=" + _lbMetric + "&uid=" + encodeURIComponent(getTGUserId())).then(r=>r.json()).then(d => { _lbT0 = Date.now(); draw((d&&d.top)||[], (d&&d.myRank)||0, (d&&d.endsInSec)||0); }).catch(() => localLb(draw));
@@ -5158,19 +5160,19 @@ function loadPayRates() {
   fetch(PAY_BACKEND + "/rates").then(r=>r.json()).then(d => { window.LEGION_PAY_RATES = d; /* use for UI labels */ }).catch(()=>{});
 }
 // 🔒 결제 완료 → pay-worker /verify(서버 영수증) 확인 후 grant. 텔레그램→워커 직통 영수증이라 위조 불가.
-// webhook 도착 지연 대비 폴링(최대 8회/~12s). 영수증은 1회 소비(멱등=중복지급 차단).
-// 타임아웃 시: 결제자 보호 위해 지급하되 purchase_unverified 감사로그(webhook 실패 추적). 자가치트는 무해(자기 세이브).
+// webhook 도착 지연 대비 폴링(최대 20회/~75s, 후반 5s 간격). 영수증은 1회 소비(멱등=중복지급 차단).
+// 타임아웃 시: 절대 미검증 지급 안 함(자금 구멍 차단). purchase_pending 로그 + '확인중' 표시. 웹훅 늦게 와도 영수증 KV 24h 보존이라 재검증으로 복구.
 function verifyThenGrant(id, uid, tries) {
   tries = tries || 0;
   if (typeof PAY_BACKEND === "undefined" || !PAY_BACKEND) { grantPackWithBonus(id); toast(t("payOk"), "#a3e635"); haptic("heavy"); return; }
   fetch(PAY_BACKEND + "/verify?item=" + encodeURIComponent(id) + "&uid=" + encodeURIComponent(uid))
     .then((r) => r.json())
     .then((v) => {
-      if (v && v.ok) { grantPackWithBonus(id); toast(t("payOk"), "#a3e635"); haptic("heavy"); }       // ✅ 서버 영수증 확인
-      else if (tries < 7) { if (tries === 0) toast(t("payVerifying"), "#fbbf24"); setTimeout(() => verifyThenGrant(id, uid, tries + 1), 1500); }
-      else { grantPackWithBonus(id); logEvent("purchase_unverified", { item: id }); toast(t("payOk"), "#a3e635"); haptic("heavy"); }  // 타임아웃: 결제자 보호 지급 + 감사
+      if (v && v.ok) { grantPackWithBonus(id); toast(t("payOk"), "#a3e635"); haptic("heavy"); }       // ✅ 서버 영수증 확인된 경우에만 지급
+      else if (tries < 20) { if (tries === 0) toast(t("payVerifying"), "#fbbf24"); setTimeout(() => verifyThenGrant(id, uid, tries + 1), tries < 7 ? 1500 : 5000); }
+      else { logEvent("purchase_pending", { item: id }); toast(t("payVerifying"), "#fbbf24"); }  // 🔒 미검증 지급 금지(자금 구멍 차단) — 웹훅 지연은 재폴링으로 복구, 영수증 KV 24h 보존
     })
-    .catch(() => { if (tries < 7) setTimeout(() => verifyThenGrant(id, uid, tries + 1), 1500); else { grantPackWithBonus(id); logEvent("purchase_unverified", { item: id }); toast(t("payOk"), "#a3e635"); } });
+    .catch(() => { if (tries < 20) setTimeout(() => verifyThenGrant(id, uid, tries + 1), tries < 7 ? 1500 : 5000); else { logEvent("purchase_pending", { item: id }); toast(t("payVerifying"), "#fbbf24"); } });  // 🔒 네트워크 실패도 미검증 지급 금지
 }
 // 🎉 첫 결제 2배 — 결제 전환율 직타. 첫 구매 시 골드/젬 델타를 2배(1회성).
 function grantPackWithBonus(id) {
