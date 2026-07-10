@@ -1686,6 +1686,14 @@ function updateMeta() {
       const imminent = remain > 0 && remain <= 3;
       pbar.classList.toggle("pity-imminent", imminent);
       if (pbl && imminent) pbl.textContent = "🎯 " + remain + " to SSR";
+      // Context offer (do-now): once per session, at the intent peak, nudge the final pulls. Honest (real pity value).
+      if (imminent && window._pityNudgeAt !== remain) {
+        window._pityNudgeAt = remain;
+        if (!window._pityNudgeShown) {
+          window._pityNudgeShown = true;
+          try { toast("🎯 SSR guaranteed in " + remain + " — so close, finish it!", "#f5c451"); } catch(e){}
+        }
+      }
     }
   }
   // sacred-host: 유저가 바로 이해할 수 있게 한국어로만. 미스터리 영어 금지.
