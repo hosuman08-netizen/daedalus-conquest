@@ -9,8 +9,13 @@ for f in game.js i18n.js units.js gear.js lore.js; do
   [ -f "$f" ] || continue
   if node -c "$f" 2>/dev/null; then echo "  ✅ $f"; else echo "  ❌ $f 문법오류"; fail=1; fi
 done
+echo "── 1b) 크로스파일 충돌(로드순서 concat — CRIT_DMG류 전역 중복 잡기)"
+xftmp="/tmp/verify-xfcheck-$$.js"; cat i18n.js units.js gear.js lore.js game.js > "$xftmp" 2>/dev/null
+if node -c "$xftmp" 2>/tmp/xferr; then echo "  ✅ 전역 const/함수 충돌 없음"; else echo "  ❌ 크로스파일 충돌"; grep -E 'SyntaxError|already been declared|redeclar' /tmp/xferr | head -1; fail=1; fi
+rm -f "$xftmp"
 echo "── 2) 런타임 크래시 게이트"
-if node test/runtime-check.js 2>&1 | grep -q '🟢'; then echo "  ✅ 런타임 클린"; else echo "  ❌ 런타임 오류"; node test/runtime-check.js 2>&1 | grep -E '❌|🔴' | head; fail=1; fi
+rcout="$(node test/runtime-check.js 2>&1)"; rccode=$?
+if [ "$rccode" = 0 ]; then echo "  ✅ 런타임 클린"; else echo "  ❌ 런타임 오류(exit $rccode)"; echo "$rcout" | grep -E '❌|🔴|LOAD ERROR|THREW' | head; fail=1; fi
 echo "── 3) 수치 증감 감사"
 audit=$(node test/value-audit.js 2>&1)
 if echo "$audit" | grep -qE '🔴|❌'; then echo "  ⚠️ 일부 액션 점검 필요:"; echo "$audit" | grep -E '🔴|❌' | head; else echo "  ✅ 모든 수치 액션 정상"; fi

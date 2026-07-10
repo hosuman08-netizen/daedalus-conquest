@@ -26,7 +26,7 @@ const ALLOWED = new Set([
   "age_confirmed", "age_blocked",
   // Trinity P0 activation + funnel — game.js 실제 emit과 일치 (2026-07-02 Morpheus)
   "core_loop_complete", "tutorial_start", "tutorial_done",
-  "stuck_upsell", "first_purchase_2x", "purchase_unverified",
+  "stuck_upsell", "first_purchase_2x", "purchase_unverified", "purchase_pending",
   // Oracle(CDO) 2026-07-01: 결제 퍼널 관측 + 활성화 1회성 + North Star 교집합 배선
   //   shop_view=상점열람 / checkout_open=buyPack클릭(구매의도) / invoice_paid·invoice_cancelled=openInvoice 콜백 결과
   //   first_core_loop·first_gacha=신규 1회성(activation) — daily_return·invite_converted 슬롯은 기존 라인에 이미 존재

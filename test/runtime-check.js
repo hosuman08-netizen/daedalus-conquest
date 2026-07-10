@@ -55,8 +55,12 @@ const T = `(function(){
   tryFn('maybeSortie', ()=>{ META.sortieDay=''; maybeSortie(); });
   globalThis.__R = R;
 })();`;
-try { vm.runInContext(T, sb, {filename:'test'}); } catch(e){ console.log('TEST BLOCK THREW', e.message); }
+var testThrew=false;
+try { vm.runInContext(T, sb, {filename:'test'}); } catch(e){ console.log('TEST BLOCK THREW', e.message); testThrew=true; }
 console.log('\n════ in-context 런타임 ════');
 (sb.__R||[]).forEach(function(l){ console.log('  '+l); });
 const bad=(sb.__R||[]).filter(function(l){return l[0]==='❌'}).length;
-console.log(bad===0 ? '\n🟢 가챠·합성·강화·연출 전부 런타임 클린' : '\n🔴 '+bad+'건 오류');
+const emptyR=!(sb.__R||[]).length;   // 테스트가 하나도 안 돌았으면 로드실패 의심 (false GREEN 방지)
+const ok=(fail===0 && bad===0 && !testThrew && !emptyR);   // 로드에러 fail까지 반영 (Tank 지적: game.js 로드실패해도 🟢 나오던 버그)
+console.log(ok ? '\n🟢 가챠·합성·강화·연출 전부 런타임 클린' : '\n🔴 검증 실패 — 로드에러 '+fail+' · 런타임 '+bad+(testThrew?' · 테스트블록 throw':'')+(emptyR?' · 테스트 미실행(로드실패)':''));
+process.exit(ok ? 0 : 1);
