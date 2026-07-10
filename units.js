@@ -45,9 +45,10 @@ const FACTION_ACCENT = { Strategist: "🧠", Executor: "⚙️", Swarm: "🐜", 
 const PREFIX_LEN = 40;   // ROSTER_I18N.prefix 길이 (N 유닛 접두어 순환)
 const NOUN_LEN = 6;      // ROSTER_I18N.noun[arch] 길이
 // 등급별 스탯 배율 (SSR이 가장 강함)
-const RARITY_MUL = { N: 1.0, R: 1.25, SR: 1.6, SSR: 2.2 }; // N reserved for future compat (currently unused)
-const RARITY_COUNT = { R: 56, SR: 55, SSR: 9, N: 80 };  // 200종 (9SSR god-tier + 55SR + 56R + 80N 무과금주력). N=가챠 60% 실드랍. SSR 희소 유지(군주 지령).
-const RARITY_COLOR = { N: "#9ca3af", R: "#60a5fa", SR: "#c084fc", SSR: "#fbbf24" }; // N for future
+// 등급 배율: 전 등급(N/R/SR/SSR) buildRoster에서 실사용. SSR=3.2 = buildRoster 오버라이드값과 일치(등급역전 0, 수학자 P0).
+const RARITY_MUL = { N: 1.0, R: 1.25, SR: 1.6, SSR: 3.2 };
+const RARITY_COUNT = { R: 56, SR: 55, SSR: 9, N: 80 };  // 200종 (9SSR god-tier + 55SR + 56R + 80N 무과금주력). N=가챠 55% 실드랍. SSR 희소 유지(군주 지령).
+const RARITY_COLOR = { N: "#9ca3af", R: "#60a5fa", SR: "#c084fc", SSR: "#fbbf24" };
 
 // Faction for synergy (Strategist/Executor/Swarm/Guardian/Intel)
 const FACTIONS = ["Strategist", "Executor", "Swarm", "Guardian", "Intel"];

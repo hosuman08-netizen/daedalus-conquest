@@ -4,11 +4,12 @@ const SLOTS = ["weapon", "armor", "acc", "relic", "core"];
 const SLOT_ICON = { weapon: "⚔️", armor: "🛡️", acc: "👟", relic: "🍀", core: "💠" };
 const SLOT_MAIN = { weapon: "str", armor: "int", acc: "agi", relic: "luk", core: "mix" };
 const STAT_KEYS = ["str", "int", "agi", "luk"];
+// 키명 'key' — game.js RARITY(가챠) 및 units.js와 동일 관례로 통일(레어도 단일 진실원 정합).
 const GEAR_RARITY = [
-  { k: "N", p: 0.55, base: 6, color: "#9ca3af" },
-  { k: "R", p: 0.30, base: 12, color: "#60a5fa" },
-  { k: "SR", p: 0.12, base: 22, color: "#c084fc" },
-  { k: "SSR", p: 0.03, base: 40, color: "#fbbf24" }, // Sovereign 지정: N55% R30% SR12% SSR3% (장비 동일)
+  { key: "N", p: 0.55, base: 6, color: "#9ca3af" },
+  { key: "R", p: 0.30, base: 12, color: "#60a5fa" },
+  { key: "SR", p: 0.12, base: 22, color: "#c084fc" },
+  { key: "SSR", p: 0.03, base: 40, color: "#fbbf24" }, // Sovereign 지정: N55% R30% SR12% SSR3% (장비 동일)
 ];
 function rollGearRarity() { let r = Math.random(), a = 0; for (const x of GEAR_RARITY) { a += x.p; if (r <= a) return x; } return GEAR_RARITY[0]; }
 
@@ -44,7 +45,7 @@ function assignSetToTpl(tpl, idx) {
 function buildGearRoster() {
   const roster = []; let id = 0, pi = 0;
   ["SSR", "SR", "R", "N"].forEach((rk) => {
-    const rar = GEAR_RARITY.find((x) => x.k === rk), base = rar.base;
+    const rar = GEAR_RARITY.find((x) => x.key === rk), base = rar.base;
     SLOTS.forEach((slot, si) => {
       for (let i = 0; i < 6; i++) {
         const tpl = { id: ++id, slot: slot, rarity: rk, color: rar.color, str: 0, int: 0, agi: 0, luk: 0 };
@@ -67,7 +68,7 @@ var GEAR_ROSTER = buildGearRoster(); // 재빌드 (set 포함) — var for class
 
 // makeGear 시 set 상속
 function makeGear(forceRar) {
-  const rk = forceRar || rollGearRarity().k;
+  const rk = forceRar || rollGearRarity().key;
   const pool = GEAR_ROSTER.filter((t) => t.rarity === rk);
   const tpl = pool[(Math.random() * pool.length) | 0];
   const inst = { id: -1, tplId: tpl.id, slot: tpl.slot, rarity: tpl.rarity, color: tpl.color, name: tpl.name, str: tpl.str, int: tpl.int, agi: tpl.agi, luk: tpl.luk, enh: 0, star: 0, awak: 0 };
@@ -86,6 +87,13 @@ const GEAR_PASSIVE = {
 };
 // SSR 장비 1개의 패시브 반환(없으면 null). 슬롯별 1종 고정 = 특성 일치.
 function getGearPassive(g) { return (g && g.rarity === "SSR") ? (GEAR_PASSIVE[g.slot] || null) : null; }
+
+// ── ⚔️ 치명 단일 진실원 (rank26/27) ─────────────────────────────────────────
+// 운(luk)→치명확률(%). base 10 + luk·0.4, 캡 45%. game.js squad·개별캐릭 두 경로가
+// 이 한 식만 호출하도록 통일 예정(현재 game.js:1245는 base0/캡40, 1268은 base10/캡45로 갈림 → game.js 담당 반영 필요).
+function gearCrit(luk) { return Math.min(45, 10 + (luk || 0) * 0.4); }
+// 치명타 데미지 배율 단일 상수. game.js:1930 코드(2.0)·balance-sim이 이 값을 참조(주석 1.6은 스테일 → game.js 담당 정정 필요).
+const CRIT_DMG = 2.0;
 
 // ⚠️ 회귀 복구(모피어스): gear-overhaul 미커밋 편집서 gearStat 삭제됨 → game.js가 호출하는데 미정의=장착 시 크래시.
 // HEAD 원본 그대로 재삽입(라이브 동작 보존). 30성 곡선/효과 변경은 Trinity가 별도 적용.
@@ -156,4 +164,6 @@ if (typeof window !== "undefined") {
   window.getSetBonuses = getSetBonuses;
   window.getGearSetBonusesForEquip = getGearSetBonusesForEquip;
   window.getActiveSetNames = getActiveSetNames;
+  window.gearCrit = gearCrit;
+  window.CRIT_DMG = CRIT_DMG;
 }

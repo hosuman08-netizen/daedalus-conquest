@@ -22,11 +22,13 @@ const counters = (a, b) => COUNTER[a] && COUNTER[a].indexOf(b) >= 0;
 
 // ── ① 가성비 ──
 function efficiency() {
-  console.log("① 유닛 가성비 (전투력 = √(DPS×EHP)×사거리가중)");
+  console.log("① 유닛 가성비 (전투력 = hp×0.5 + DPS×3, game.js legionPower base 동일)");
   console.log("   유닛       DPS    EHP   전투력  가격  가성비(/100g)");
   const rows = [];
   for (const k of ARCHES) {
-    const s = SPEC[k], d = dps(s), pow = Math.sqrt(d * s.hp) * (1 + s.range / 200);
+    // game.js:1218 legionPower base = (hp*0.5 + dps*3) * mul * (1+lv*0.12) * invest.
+    // sim은 base 아키타입 비교이므로 mul=1·lv0·invest1 → pow = hp*0.5 + dps*3 (sqrt/사거리가중 제거: game.js 실제식엔 없음).
+    const s = SPEC[k], d = dps(s), pow = s.hp * 0.5 + d * 3;
     const eff = PRICE[k] ? pow / PRICE[k] * 100 : 0;
     rows.push({ k, d, hp: s.hp, pow, price: PRICE[k], eff });
   }
@@ -70,12 +72,13 @@ function matchupMatrix() {
 // ── ③ 장비 스탯 가치 (1포인트당 효과) ──
 function gearStatValue() {
   console.log("\n③ 장비 스탯 1포인트당 가치 (어느 스탯이 과/약한가)");
-  // game.js: 힘+0.4%atk, 지능+0.4%hp, 민첩-0.35%atkCd(공속), 운+0.4%치명(×2.0)
+  // game.js: 힘+0.4%atk, 지능+0.4%hp, 민첩-0.35%atkCd(공속), 운+0.4%치명(gearCrit式) ×CRIT_DMG(=2.0)
+  const CRIT_DMG = 2.0;                       // gear.js 단일 상수와 동일
   const v = {
     "힘(STR→공격)": 0.004,
     "지능(INT→체력)": 0.004,
     "민첩(AGI→공속)": 0.0035 * 1.0,          // 공속은 atkCd 감소 → dps 증가 ≈ 0.35%/pt
-    "운(LUK→치명)": 0.004 * 1.0,             // 0.4%/pt 치명확률 × (2.0-1)배율 ≈ 0.4%dps/pt
+    "운(LUK→치명)": 0.004 * (CRIT_DMG - 1),  // 0.4%/pt 치명확률 × (CRIT_DMG-1) 추가딜 ≈ 0.4%dps/pt
   };
   for (const k in v) console.log("   " + k.padEnd(16) + " ≈ " + (v[k] * 100).toFixed(2) + "% 전투력/pt");
   const arr = Object.values(v), mx = Math.max(...arr), mn = Math.min(...arr);
@@ -89,4 +92,7 @@ matchupMatrix();
 gearStatValue();
 console.log("\n→ ⚠️ 표시된 항목을 game.js/gear.js에서 조정 후 재실행해 균형 확인.");
 
-// 2026-06-16 Morpheus Balance (신경 많이써야돼 per Sovereign): SPEC/price/eff from game sync. Avg eff ~40 (drone43 marks45 guard34 bruis45 cmd34) all within ±30% (no hard flag). Matchups CTR1.5 fair. Gear 1pt ~0.4% value balanced. Ranger volley post-prior: multi9 +k*1.1 spectacle (cd12, dopamine) but not OP (foes slice limited, team buffs other ults). No stat tweak this pass (reversible, fun daily loop preserved). Gear invest curve (enh/star via gear.js) + heroScale 0.5/lvl fair for habit. Re-run node after any. Evidence: handoff synth.
+// 2026-07-10 공식 동기화(밸런스팀): efficiency() pow를 game.js legionPower base(hp*0.5+dps*3)로 교체 — 이전 √(DPS×EHP)×사거리가중은 game.js에 없던 근사라 '검증됨'이 거짓이었음(제거).
+//   ⚠️ 절대 가성비 수치는 반드시 `node balance-sim.js` 라이브 출력에서 읽을 것(이 주석에 하드코딩 금지 — 스테일 방지). ±30% 밴드 플래그로 OP/쓰레기만 판정.
+//   Gear 1pt 가치: 힘/지능/공속 ~0.4%, 운=0.4%×(CRIT_DMG-1). CRIT_DMG는 gear.js 단일 상수(2.0) 참조.
+//   Matchups CTR1.5. 조정은 game.js 실제 상수 변경 후 재실행으로만 확인(reversible).

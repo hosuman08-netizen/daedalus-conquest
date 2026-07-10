@@ -1,7 +1,9 @@
 :root {
   --bg: #0b0714; --panel: #1a1330; --blue: #6366f1; --red: #ef4444;
-  --gold: #f5c451; --crimson: #a855f7; --text: #ece8ef; --dim: #9a8fb5;
+  --gold: #fbbf24; --gold-deep: #d97706; --gold-lite: #fde047;
+  --text: #ece8ef; --dim: #9a8fb5;
   --purple: #a855f7; --purple2: #7c3aed;
+  --line: #2c2442;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body {
@@ -38,22 +40,22 @@ html, body {
   background: transparent; color: var(--dim); border: none; font-size: 15px; transition: all .12s cubic-bezier(0.23,1,0.32,1); }
 .navtab span { font-size: 9px; white-space: nowrap; }
 .navtab.sel { color: var(--gold); position: relative; }
-.navtab.sel::after { content:""; position:absolute; bottom:2px; left:50%; transform:translateX(-50%); width:16px; height:2px; background:linear-gradient(to right, #f5c451, #fde047); border-radius:1px; }
+.navtab.sel::after { content:""; position:absolute; bottom:2px; left:50%; transform:translateX(-50%); width:16px; height:2px; background:linear-gradient(to right, var(--gold), var(--gold-lite)); border-radius:1px; }
 header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 4px; }
-#tower-floor { margin-left: auto; margin-right: 10px; font-size: 13px; font-weight: 800; letter-spacing: .5px; color: #fde047; background: linear-gradient(135deg, rgba(168,85,247,.25), rgba(124,58,237,.25)); border: 1px solid #a855f7; border-radius: 999px; padding: 3px 11px; text-shadow: 0 0 8px rgba(253,224,71,.5); box-shadow: 0 0 12px rgba(168,85,247,.35); }
+#tower-floor { margin-left: auto; margin-right: 10px; font-size: 13px; font-weight: 800; letter-spacing: .5px; color: var(--gold-lite); background: linear-gradient(135deg, rgba(168,85,247,.25), rgba(124,58,237,.25)); border: 1px solid #a855f7; border-radius: 999px; padding: 3px 11px; text-shadow: 0 0 8px rgba(253,224,71,.5); box-shadow: 0 0 12px rgba(168,85,247,.35); }
 h1 { font-size: 17px; font-weight: 800; margin: 2px 0; letter-spacing: .8px; }
-h1::first-letter { color: var(--crimson); }
+h1::first-letter { color: var(--purple); }
 .meta.gem i { color: #67e8f9; }
 #event-btn, #shop-btn { flex: none; padding: 8px 10px; font-size: 14px; background: #241539; color: var(--text); border: none; border-radius: 9px; }
 #shop-btn { background: linear-gradient(135deg, #7f1d1d, #b91c1c); }
 
 /* 엘리트 결사 영웅 랭크 (흑·적 모티브) */
 .hbtn { position: relative; }
-.hbtn .rk { position: absolute; top: 1px; right: 3px; font-size: 11px; font-weight: 900; font-style: normal; color: var(--crimson); text-shadow: 0 0 3px #000; } /* readable rank badges */
-.hbtn.sel { border-color: var(--crimson); background: #2a1418; transform: scale(1.1); box-shadow: 0 0 0 2px #fbbf24, 0 0 10px #fbbf2488; transition: transform .08s, box-shadow .08s; will-change: transform, box-shadow; } /* lower scale for perf; will-change hints GPU */ 
-.hbtn.sel .rk { color: #fde047; } 
+.hbtn .rk { position: absolute; top: 1px; right: 3px; font-size: 11px; font-weight: 900; font-style: normal; color: var(--purple); text-shadow: 0 0 3px #000; } /* readable rank badges */
+.hbtn.sel { border-color: var(--purple); background: #2a1418; transform: scale(1.1); box-shadow: 0 0 0 2px var(--gold), 0 0 10px #fbbf2488; transition: transform .08s, box-shadow .08s; will-change: transform, box-shadow; } /* lower scale for perf; will-change hints GPU */ 
+.hbtn.sel .rk { color: var(--gold-lite); } 
 /* hero bar premium sel per subagent: scale + gold rim + pulse for "MY POWER" identity */
-.hcode { color: var(--crimson); font-weight: 900; font-size: 12px; padding: 1px 5px; border: 1px solid #7f1d1d; border-radius: 5px; }
+.hcode { color: var(--purple); font-weight: 900; font-size: 12px; padding: 1px 5px; border: 1px solid var(--purple2); border-radius: 5px; }
 /* 2026-06-16 Morpheus UI polish (heroicon bar critical): .him for god-pose icons (64-128 fit), premium sel scale/glow + per tint bleed. Clean one-view micro: tighter hero row, ult prominent. Reversible. */
 .hbtn .him { width: 22px; height: 22px; object-fit: contain; border-radius: 3px; vertical-align: middle; margin-right: 1px; border: 1px solid rgba(255,255,255,0.2); background: #05040c; } /* consistent nukki */
 .hbtn.sel .him { box-shadow: 0 0 8px currentColor; }
@@ -68,23 +70,23 @@ h1::first-letter { color: var(--crimson); }
 .attcell.box { background: #221826; } .attcell.box .ar { font-size: 16px; }
 .attcell.done { opacity: .4; }
 .attcell.today { border-color: var(--gold); background: #2a2212; }
-#attend-claim { width: 100%; padding: 12px; font-size: 15px; font-weight: 800; border-radius: 10px; background: linear-gradient(135deg, #f5c451, #d97706); color: #1a1400; }
-#attend-claim:disabled { background: #2c2442; color: var(--dim); }
+#attend-claim { width: 100%; padding: 12px; font-size: 15px; font-weight: 800; border-radius: 10px; background: linear-gradient(135deg, var(--gold), var(--gold-deep)); color: #1a1400; }
+#attend-claim:disabled { background: var(--line); color: var(--dim); }
 .play-hint { font-size: 11px; color: var(--dim); margin: -2px 0 6px; }
 #tg-profile { display: flex; align-items: center; gap: 12px; background: #1d1535; border-radius: 11px; padding: 12px; margin-bottom: 4px; }
 .prof-img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; object-position: center top; flex: 0 0 48px; }
-.prof-ph { display: flex; align-items: center; justify-content: center; font-size: 24px; background: #2c2442; }
+.prof-ph { display: flex; align-items: center; justify-content: center; font-size: 24px; background: var(--line); }
 .prof-meta { min-width: 0; }
 .prof-name { font-size: 15px; font-weight: 800; }
 .prof-name .prem { color: var(--gold); }
-.prof-title { font-size: 12.5px; font-weight: 800; color: #fbbf24; margin: 2px 0 1px; text-shadow: 0 0 6px rgba(251,191,36,.3); }
+.prof-title { font-size: 12.5px; font-weight: 800; color: var(--gold); margin: 2px 0 1px; text-shadow: 0 0 6px rgba(251,191,36,.3); }
 .prof-vip { font-size: 10px; font-weight: 900; color: #fff; background: linear-gradient(135deg,#a855f7,#7c3aed); padding: 1px 7px; border-radius: 6px; vertical-align: middle; }
-.prof-vip.ultra { background: linear-gradient(135deg,#fbbf24,#f59e0b); color: #1a1330; }
+.prof-vip.ultra { background: linear-gradient(135deg,var(--gold),var(--gold-deep)); color: #1a1330; }
 .prof-uid { font-size: 12px; color: var(--gold); }
 .prof-uid.ddim { color: var(--dim); }
 .prof-guest { font-size: 12px; color: var(--dim); padding: 4px 2px; }
 .dai { font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 6px; margin-left: 4px; white-space: nowrap; }
-.dai.ai1 { background: #2c2442; color: #8b93a7; }
+.dai.ai1 { background: var(--line); color: #8b93a7; }
 .dai.ai2 { background: #1e2e3a; color: #67c2f5; }
 .dai.ai3 { background: #2e2410; color: var(--gold); }
 .dai em { font-style: normal; opacity: .8; font-size: 10px; } /* bumped */
@@ -93,7 +95,7 @@ h1::first-letter { color: var(--crimson); }
 .meta.soul i { color: #c084fc; }
 .meta.coh { color: #67e8f9; font-size: 12px; } .meta.coh i { color: #a5f3fc; }
 /* MVP pity display - prominent in metabar for transparency */
-.meta.pity { font-size: 11px; font-weight: 700; color: #fbbf24; background: #2a1f0f; padding: 2px 6px; border-radius: 4px; border: 1px solid #664e1f; }
+.meta.pity { font-size: 11px; font-weight: 700; color: var(--gold); background: #2a1f0f; padding: 2px 6px; border-radius: 4px; border: 1px solid #664e1f; }
 #ritual-orb { font-size:10px; }
 .soulhint { font-size: 11.5px; line-height: 1.5; color: #c4b5fd; background: linear-gradient(160deg, #241a3a, #16101f); border: 1px solid #3a2c5a; border-radius: 10px; padding: 10px 12px; }
 #dash-power.pop { animation: powerPop .45s ease; display: inline-block; }
@@ -103,8 +105,8 @@ h1::first-letter { color: var(--crimson); }
 .playrow.done { opacity: .45; }
 .playrow .pm { font-size: 12px; font-weight: 800; color: var(--gold); min-width: 42px; }
 .playrow .pr { flex: 1; font-size: 13px; font-weight: 700; }
-.playrow .pclaim { padding: 6px 12px; font-size: 12px; font-weight: 800; border-radius: 8px; background: linear-gradient(135deg, #f5c451, #d97706); color: #1a1400; }
-.playrow .pclaim:disabled { background: #2c2442; color: var(--dim); }
+.playrow .pclaim { padding: 6px 12px; font-size: 12px; font-weight: 800; border-radius: 8px; background: linear-gradient(135deg, var(--gold), var(--gold-deep)); color: #1a1400; }
+.playrow .pclaim:disabled { background: var(--line); color: var(--dim); }
 
 /* 상점 뽑기 버튼 + 시즌 */
 #shop-gacha { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 6px; }
@@ -172,7 +174,7 @@ h1::first-letter { color: var(--crimson); }
 .cxc.rSSR:not(.lock) { box-shadow: 0 0 0 1.5px rgba(251,191,36,0.38); }
 .cxc:not(.lock):hover { transform: scale(1.015); }
 .cxc:not(.lock):active { transform: scale(0.94); box-shadow: 0 0 0 2px #fbbf24cc; }
-.cxc.rSSR:not(.lock):active { box-shadow: 0 0 0 2.5px #fbbf24, 0 0 16px #fbbf2488; }
+.cxc.rSSR:not(.lock):active { box-shadow: 0 0 0 2.5px var(--gold), 0 0 16px #fbbf2488; }
 .cxc.rSSR:not(.lock) { box-shadow: 0 0 0 1.5px rgba(251,191,36,0.42), inset 0 0 0 1px rgba(251,191,36,0.18); }
 .gxc.rSSR { box-shadow: inset 0 0 0 1px rgba(251,191,36,0.38), 0 0 0 1px rgba(251,191,36,0.18); }
 /* 등급별 프리미엄 타일 */
@@ -214,7 +216,7 @@ h1::first-letter { color: var(--crimson); }
   box-shadow: 0 0 0 1px rgba(251,191,36,0.5), 0 4px 16px rgba(0,0,0,0.25); 
 } /* softer elegant SSR rim - 부드럽게 */
 .cxc:not(.lock):hover { transform: scale(1.02); box-shadow: 0 0 0 1.5px #fbbf2488; }
-.cxc.rSSR:not(.lock):hover { box-shadow: 0 0 0 2px #fbbf24, 0 0 12px #fbbf2466; }
+.cxc.rSSR:not(.lock):hover { box-shadow: 0 0 0 2px var(--gold), 0 0 12px #fbbf2466; }
 #gdex-filter { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; }
 #gdex-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
 .gxc { aspect-ratio: 1/1.02; background: #16101f; border: none; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 3px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05); transition: transform .06s, box-shadow .1s; }
@@ -230,7 +232,7 @@ h1::first-letter { color: var(--crimson); }
 .gxc .gxi.gear-codex-art img { width: 92%; height: 92%; max-width: 52px; max-height: 52px; font-size: 20px; object-fit: contain; filter: contrast(1.18) saturate(1.28) brightness(1.06); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 2px 8px rgba(0,0,0,0.6), 0 0 6px rgba(251,191,36,0.12); } /* fill container + border for tight comfortable gear icon nukki */
 .gxc .gxi.gear-codex-art .gear-synth .gear-r { font-size: 8px; }
 /* Rarity visual escalation in codex (고급일수록 강하게) */
-.gxc .gxi.gear-codex-art .gear-synth.rSSR { filter: contrast(1.3) saturate(1.5) brightness(1.15) drop-shadow(0 0 8px #fbbf24); }
+.gxc .gxi.gear-codex-art .gear-synth.rSSR { filter: contrast(1.3) saturate(1.5) brightness(1.15) drop-shadow(0 0 8px var(--gold)); }
 .gxc .gxi.gear-codex-art .gear-synth.rSR { filter: contrast(1.25) saturate(1.4) brightness(1.1) drop-shadow(0 0 5px #c084fc); }
 .gxc .gxi.gear-codex-art .gear-synth.rR { filter: contrast(1.2) saturate(1.2) brightness(1.05); }
 #unit-pop { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 18; padding: 6px; }
@@ -243,7 +245,7 @@ h1::first-letter { color: var(--crimson); }
 .gm-head { display: flex; gap: 10px; align-items: center; margin-bottom: 11px; }
 .gm-art { position: relative; width: 56px; height: 56px; flex: 0 0 56px; border: 2px solid; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #05040c; box-shadow: inset 0 0 14px rgba(0,0,0,0.9), 0 0 0 1px rgba(0,0,0,0.5); }
 .gm-art .gear-synth, .gm-art .g-art, .gm-art img { width: 48px; height: 48px; object-fit: contain; border-radius: 5px; filter: contrast(1.15) saturate(1.2); }
-.gm-art .gear-synth.rSSR { filter: contrast(1.3) saturate(1.5) brightness(1.15) drop-shadow(0 0 6px #fbbf24); }
+.gm-art .gear-synth.rSSR { filter: contrast(1.3) saturate(1.5) brightness(1.15) drop-shadow(0 0 6px var(--gold)); }
 .gm-art .gear-synth.rSR { filter: contrast(1.25) saturate(1.4) brightness(1.1) drop-shadow(0 0 4px #c084fc); }
 .gm-art .gear-synth .gear-r { font-size: 8px; }
 /* Gear codex detail preview (unit-glyph 재활용 시 큰 일러스트) */
@@ -295,7 +297,7 @@ h1::first-letter { color: var(--crimson); }
 #unit-card.rSSR #unit-glyph img.ucim, #unit-card.rSSR #unit-glyph .ucim { background: transparent; }
 #unit-glyph .ucgly { line-height: 1; }
 /* Elegant premium SSR gold rim — border now directly on frame for "must own" shine. */
-#unit-card.rSSR #unit-glyph img.ucim, #unit-card.rSSR #unit-glyph .ucim, #char-panel-card.rSSR #unit-glyph img, #char-panel-card.rSSR #unit-glyph .ucim { border-color: #fbbf24; box-shadow: inset 0 0 22px rgba(0,0,0,0.92), 0 0 0 1px rgba(0,0,0,0.6), 0 0 0 2px rgba(251,191,36,0.55); } 
+#unit-card.rSSR #unit-glyph img.ucim, #unit-card.rSSR #unit-glyph .ucim, #char-panel-card.rSSR #unit-glyph img, #char-panel-card.rSSR #unit-glyph .ucim { border-color: var(--gold); box-shadow: inset 0 0 22px rgba(0,0,0,0.92), 0 0 0 1px rgba(0,0,0,0.6), 0 0 0 2px rgba(251,191,36,0.55); } 
 #unit-card img,
 #unit-card .gear-art,
 #unit-card .g-art,
@@ -322,12 +324,12 @@ h1::first-letter { color: var(--crimson); }
 /* 📊 캐릭터 수집·전과 진행 띠 (빈 공간 채움) */
 #char-progress { margin: 0 0 10px; }
 .cprog-bar { height: 6px; border-radius: 4px; background: #1c1730; overflow: hidden; margin-bottom: 6px; }
-.cprog-fill { height: 100%; background: linear-gradient(90deg, #c084fc, #fbbf24); border-radius: 4px; transition: width .4s ease; box-shadow: 0 0 8px rgba(251,191,36,.4); }
+.cprog-fill { height: 100%; background: linear-gradient(90deg, #c084fc, var(--gold)); border-radius: 4px; transition: width .4s ease; box-shadow: 0 0 8px rgba(251,191,36,.4); }
 .cprog-row { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 11.5px; color: var(--dim); }
 .cprog-row b { color: #e2e8f0; font-weight: 800; }
-.cprog-row i { color: #fbbf24; font-style: normal; font-weight: 700; }
+.cprog-row i { color: var(--gold); font-style: normal; font-weight: 700; }
 .dpower b { color: var(--gold); }
-.protectbtn { width: auto; padding: 6px 12px; font-size: 12px; background: #1d1535; color: var(--dim); border: 1px solid #2c2442; border-radius: 8px; margin-bottom: 8px; }
+.protectbtn { width: auto; padding: 6px 12px; font-size: 12px; background: #1d1535; color: var(--dim); border: 1px solid var(--line); border-radius: 8px; margin-bottom: 8px; }
 .protectbtn.on { color: #67e8f9; border-color: #67e8f9; }
 #dash-list { display: flex; flex-direction: column; gap: 6px; }
 .dcard { display: flex; align-items: center; gap: 8px; background: #1d1535; border-radius: 10px; padding: 8px 10px; }
@@ -408,7 +410,7 @@ h1::first-letter { color: var(--crimson); }
 /* 장비 */
 /* #gear-craft override 제거 — craft-big(width:100%) 그대로 써서 분해버튼과 폭 통일(빈 오른칸 채움) */
 #gear-slots { display: flex; gap: 6px; margin: 4px 0 8px; }
-.gslot { flex: 1; aspect-ratio: 1.35/1; background: #0f0a18; border: 1.5px dashed #2c2442; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 16px; overflow:hidden; transition: transform .05s; }
+.gslot { flex: 1; aspect-ratio: 1.35/1; background: #0f0a18; border: 1.5px dashed var(--line); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 16px; overflow:hidden; transition: transform .05s; }
 .gslot.on { border-style: solid; border-color: #5a4a6a; background: #1d1535; }
 .gslot:active { transform: scale(0.96); }
 .gslot .gmain { font-size: 8px; font-weight: 800; margin-top: 0; }
@@ -428,10 +430,10 @@ h1::first-letter { color: var(--crimson); }
 #dash-heroes .hrow { color: var(--dim); }
 #dash-heroes b { color: var(--text); }
 #shop-list { display: flex; flex-direction: column; gap: 7px; margin: 8px 0; }
-.packcard { position: relative; width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 12px 13px; background: #1d1535; border-radius: 10px; border: 1px solid #2c2142; gap: 8px; }
+.packcard { position: relative; width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 12px 13px; background: #1d1535; border-radius: 10px; border: 1px solid var(--line); gap: 8px; }
 .packcard .pwhat { font-size: 14px; font-weight: 700; line-height: 1.25; flex: 1; }
 .packcard .pprice { font-size: 13px; font-weight: 800; color: var(--gold); flex-shrink: 0; white-space: nowrap; }
-.packcard .ptag { position: absolute; top: -6px; left: 10px; font-size: 8px; font-weight: 900; background: var(--crimson); color: #fff; padding: 1px 5px; border-radius: 4px; }
+.packcard .ptag { position: absolute; top: -6px; left: 10px; font-size: 8px; font-weight: 900; background: var(--purple); color: #fff; padding: 1px 5px; border-radius: 4px; }
 .packcard.vip { border-color: var(--gold); background: linear-gradient(135deg, #241a10, #1d1535); }
 .packcard.grow { border-color: #6d28d9; background: linear-gradient(135deg, #1e1626, #1d1535); }
 .packcard.active { border-color: #34d399; }
@@ -474,7 +476,7 @@ h1::first-letter { color: var(--crimson); }
 @keyframes metaPop { 0% { transform: scale(1.45); color: #fff; } 65% { transform: scale(0.92); } 100% { transform: scale(1); } }
 .meta.gold i { color: var(--gold); } .meta.ch i { color: #93c5fd; }
 #gacha-btn { flex: none; padding: 8px 12px; font-size: 13px; font-weight: 800;
-  background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #2a1a00; border: none; border-radius: 9px; }
+  background: linear-gradient(135deg, var(--gold), var(--gold-deep)); color: #2a1a00; border: none; border-radius: 9px; }
 #gacha-btn:active, #starter-btn:active { transform: scale(.96); }
 #starter-btn { flex: none; padding: 8px 12px; font-size: 13px; font-weight: 800;
   background: linear-gradient(135deg, #f472b6, #a855f7); color: #fff; border: none; border-radius: 9px; }
@@ -484,7 +486,7 @@ h1::first-letter { color: var(--crimson); }
 #settings { position: fixed; inset: 0; background: #000c; display: flex; align-items: flex-start; justify-content: center; z-index: 14; overflow-y: auto; padding: max(14px, env(safe-area-inset-top)) 0 calc(20px + env(safe-area-inset-bottom)); }
 #settings.hidden { display: none; }
 #settings-card { background: var(--panel); padding: 22px 22px; border-radius: 16px; width: 300px; max-width: 88vw; }   /* 오버레이가 스크롤하므로 카드 height 제약 불필요 */
-.set-title { font-size: 19px; font-weight: 800; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #2c2142; }
+.set-title { font-size: 19px; font-weight: 800; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
 .set-sec { font-size: 13.5px; font-weight: 700; color: #cbbfe0; margin: 16px 0 8px; padding-left: 9px; border-left: 3px solid var(--purple); }
 #lang-list { display: flex; flex-wrap: wrap; gap: 6px; }
 .langbtn { flex: 0 0 auto; padding: 8px 12px; font-size: 13px; border-radius: 8px; background: #232838; color: var(--text); border: 1.5px solid transparent; }
@@ -493,7 +495,7 @@ h1::first-letter { color: var(--crimson); }
 .toggle { flex: none; width: 56px; padding: 7px 0; font-size: 13px; font-weight: 800; border-radius: 8px; background: #65a30d; color: #fff; }
 .toggle.off { background: #3a3f4d; color: var(--dim); }
 .coderow { display: flex; gap: 6px; margin: 6px 0 4px; }
-#code-input { flex: 1; padding: 9px 10px; border-radius: 8px; border: 1px solid #2c2442; background: #0f0a18; color: var(--text); font-size: 14px; text-transform: uppercase; }
+#code-input { flex: 1; padding: 9px 10px; border-radius: 8px; border: 1px solid var(--line); background: #0f0a18; color: var(--text); font-size: 14px; text-transform: uppercase; }
 #code-btn { flex: none; width: auto; padding: 9px 14px; background: var(--gold); color: #1a1400; border-radius: 8px; font-size: 13px; font-weight: 800; }
 .danger { width: 100%; margin-top: 12px; padding: 14px 12px; background: #3a1414; color: #f87171; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; transition: transform .05s, background .1s; }
 .danger:active { transform: scale(0.97); background: #4a1a1a; }
@@ -503,10 +505,10 @@ h1::first-letter { color: var(--crimson); }
 
 /* A11y + Viral Reinforcement: god-VFX pattern fallback (colorblind/haptic alt/low contrast safe) + high contrast "멋지게" preserved (bold outline, stripes/dots not hue only) + Dominion profile card export style */
 .high-contrast { --text:#fff; --dim:#e2e8f0; --bg:#000; filter: contrast(1.25) brightness(1.1); }
-.high-contrast .cxc.rSSR, .high-contrast .gxc.rSSR { box-shadow: inset 0 0 0 3px #fff, 0 0 0 2px #fbbf24 !important; }
+.high-contrast .cxc.rSSR, .high-contrast .gxc.rSSR { box-shadow: inset 0 0 0 3px #fff, 0 0 0 2px var(--gold) !important; }
 .vfx-fallback .cxc.rSSR .cxgly, .vfx-fallback .gxc.rSSR .gxr, .vfx-fallback canvas { filter: none !important; background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.15) 0 4px, transparent 4px 10px); border: 3px solid #fff !important; outline: 2px solid #000; }
-.vfx-fallback .god-vfx { background: repeating-linear-gradient(135deg, #fbbf24 0 6px, #000 6px 12px); color:#fff; text-shadow: 0 0 0 #000, 1px 1px 0 #000; } /* pattern fallback "멋지게" preserved */
-.dominion-card { background: linear-gradient(160deg,#1a1330,#0b0714); border: 3px solid #fbbf24; border-radius:12px; padding:14px; text-align:center; font-weight:800; color:#fbbf24; box-shadow:0 0 18px rgba(245,196,81,.3); margin:8px 0; }
+.vfx-fallback .god-vfx { background: repeating-linear-gradient(135deg, var(--gold) 0 6px, #000 6px 12px); color:#fff; text-shadow: 0 0 0 #000, 1px 1px 0 #000; } /* pattern fallback "멋지게" preserved */
+.dominion-card { background: linear-gradient(160deg,#1a1330,#0b0714); border: 3px solid var(--gold); border-radius:12px; padding:14px; text-align:center; font-weight:800; color:var(--gold); box-shadow:0 0 18px rgba(245,196,81,.3); margin:8px 0; }
 .dominion-card .legion-quote { font-size:11px; color:#a3e635; margin-top:4px; border-top:1px dashed #473a63; padding-top:4px; }
 .share-toast { font-size:12px; }
 
@@ -519,7 +521,7 @@ h1::first-letter { color: var(--crimson); }
   text-align: center; max-width: 320px; border: 1.5px solid #a855f7; animation: pop .3s ease-out; }
 .sp-badge { font-size: 21px; font-weight: 900; color: #f0abfc; margin-bottom: 14px; }
 .sp-perks { text-align: left; font-size: 14px; line-height: 2; margin-bottom: 14px; }
-.sp-perks b { color: #fbbf24; }
+.sp-perks b { color: var(--gold); }
 .sp-price { font-size: 15px; color: var(--dim); margin-bottom: 14px; }
 .sp-price b { font-size: 19px; color: #fff; }
 #starter-buy { width: 100%; padding: 14px; font-size: 16px; font-weight: 800; border-radius: 11px;
@@ -536,7 +538,7 @@ h1::first-letter { color: var(--crimson); }
 #odds-modal .odds-body { font-size:12.5px; }
 #odds-modal .odds-row { display:flex; justify-content:space-between; border-bottom:1px solid #1c2638; padding:3px 0; }
 #odds-modal .o-n { color:#9ca3af; font-weight:600; } #odds-modal .o-r { color:#60a5fa; font-weight:600; }
-#odds-modal .o-sr { color:#c084fc; font-weight:600; } #odds-modal .o-ssr { color:#fbbf24; font-weight:600; }
+#odds-modal .o-sr { color:#c084fc; font-weight:600; } #odds-modal .o-ssr { color:var(--gold); font-weight:600; }
 #odds-modal .o-ur { color:#e879f9; font-weight:600; } #odds-modal .o-ex { color:#f472b6; font-weight:600; }
 #odds-modal .ghost { margin-top:12px; width:100%; }
 
@@ -545,7 +547,7 @@ h1::first-letter { color: var(--crimson); }
 #ref-modal .odds-title { font-weight:800; font-size:15px; margin-bottom:6px; text-align:center; }
 #ref-modal .rm-row { display:flex; justify-content:space-between; align-items:center; gap:8px; border-bottom:1px solid #1c2638; padding:6px 4px; font-size:12.5px; }
 #ref-modal .rm-n { font-weight:700; white-space:nowrap; }
-#ref-modal .rm-rw { color:#fbbf24; text-align:right; }
+#ref-modal .rm-rw { color:var(--gold); text-align:right; }
 #ref-modal .rm-done { opacity:.5; }
 #ref-modal .rm-done .rm-rw { color:#6b7280; text-decoration:line-through; }
 #ref-modal .rm-ready { background:rgba(163,230,53,.10); border-radius:7px; box-shadow:0 0 0 1px rgba(163,230,53,.35) inset; }
@@ -565,8 +567,7 @@ h1::first-letter { color: var(--crimson); }
 .modetab.locked { opacity: .5; position: relative; }
 .modetab.locked::after { content: "🔒"; font-size: 9px; margin-left: 3px; }
 .modetab.teaser {
-  border-color: #fbbf24;
-  animation: teaser-pulse 2s infinite ease-in-out;
+  border-color: var(--gold);
   opacity: 0.85;
 }
 /* 간지 아이콘 스타일 — 고급스러운 glow, 크기 */
@@ -604,7 +605,7 @@ h1::first-letter { color: var(--crimson); }
 .hbtn .him { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; object-position:center center; z-index:1; opacity:.82; background: #05040c; } /* consistent nukki */
 .hbtn:active { transform: scale(0.88); }
 .hbtn.sel {
-  border-color: #fbbf24; transform: scale(1.1); z-index:8;  /* 2026-06-16 Sovereign 복구: 과한 82px 형광 후광 제거 → 은은하고 보기 쉬운 선택 강조 */
+  border-color: var(--gold); transform: scale(1.1); z-index:8;  /* 2026-06-16 Sovereign 복구: 과한 82px 형광 후광 제거 → 은은하고 보기 쉬운 선택 강조 */
   box-shadow: 0 0 14px #fbbf2466, 0 6px 14px rgba(0,0,0,0.9), inset 0 0 9px rgba(255,255,255,0.1);
   filter: saturate(1.12) brightness(1.04);
   animation: hselpop .16s ease-out;
@@ -617,10 +618,10 @@ h1::first-letter { color: var(--crimson); }
 .hbtn[data-h="ranger"] { color:#a3e635; } .hbtn[data-h="ranger"].sel { background: linear-gradient(160deg,#24331f,#181f15); box-shadow:0 0 15px #a3e63588, inset 0 0 8px #a3e63544; border-color:#bef264; }
 .hbtn[data-h="mech"] { color:#94a3b8; } .hbtn[data-h="mech"].sel { background: linear-gradient(160deg,#252b38,#171c28); box-shadow:0 0 15px #94a3b888, inset 0 0 8px #94a3b844; border-color:#cbd5e1; }
 .hbtn[data-h="engineer"] { color:#f0abfc; } .hbtn[data-h="engineer"].sel { background: linear-gradient(160deg,#2e2438,#1f1828); box-shadow:0 0 15px #f0abfc88, inset 0 0 8px #f0abfc44; border-color:#e879f9; }
-.hbtn[data-h="dragoon"] { color:#fbbf24; } .hbtn[data-h="dragoon"].sel { background: linear-gradient(160deg,#352b18,#221f12); box-shadow:0 0 15px #fbbf2488, inset 0 0 8px #fbbf2444; border-color:#fde047; }
+.hbtn[data-h="dragoon"] { color:var(--gold); } .hbtn[data-h="dragoon"].sel { background: linear-gradient(160deg,#352b18,#221f12); box-shadow:0 0 15px #fbbf2488, inset 0 0 8px #fbbf2444; border-color:var(--gold-lite); }
 .hbtn .rk { position:absolute; top:1px; right:2px; font-size:6.5px; font-weight:900; color:#f87171; background:#1a1400; padding:0 3px; border-radius:2px; z-index:4; border:1px solid #3a2a00; display:none !important; } /* 궁극기/히어로 바 디자인 방해 이모지·랭크 완전 숨김 */
 #hero-info { margin-top:3px; font-size:10.5px; padding:0 3px; }
-#hero-info b { font-size:11.5px; color:#fbbf24; text-shadow:0 1px 2px #000; }
+#hero-info b { font-size:11.5px; color:var(--gold); text-shadow:0 1px 2px #000; }
 #hero-desc { color:#a3a3c2; margin-top:0; font-size:10px; } /* v2 ULT polish: 가독성 ↑ */
 #hero-up { flex:none; width:auto; padding:2px 6px; font-size:9px; background:linear-gradient(135deg,#65a30d,#4a7c0a); color:#f0fdf4; border-radius:4px; margin-left:4px; border:1px solid #3a5c08; }
 
@@ -644,19 +645,19 @@ h1::first-letter { color: var(--crimson); }
   opacity:1;
   background:linear-gradient(150deg,#2a1810 0%,#1a1208 60%,#120a04 100%);
   color:#ffe9b0;
-  border:2px solid var(--hcolor, #fbbf24);
-  box-shadow:0 0 22px -2px var(--hcolor, #fbbf24)cc, inset 0 0 10px rgba(255,210,120,0.12);
+  border:2px solid var(--hcolor, var(--gold));
+  box-shadow:0 0 22px -2px var(--hcolor, var(--gold))cc, inset 0 0 10px rgba(255,210,120,0.12);
   animation:ultsparkle 1.3s infinite ease-in-out;
   text-shadow:0 0 10px rgba(255,220,140,0.5);
   font-size:14.5px;
   will-change: color, text-shadow, border-color; /* GPU hint for sparkle, remove heavy box-shadow anim cost */
 }
 #ult.ready.hero-tinted { 
-  border-color: var(--hcolor, #fbbf24); 
+  border-color: var(--hcolor, var(--gold)); 
   /* keep the ready shadow/glow, only tint the border */
 }
 @keyframes ultsparkle { 
-  0%,100% { color:#ffe9b0; text-shadow:0 0 10px rgba(255,220,140,0.5); border-color: var(--hcolor, #fbbf24); } 
+  0%,100% { color:#ffe9b0; text-shadow:0 0 10px rgba(255,220,140,0.5); border-color: var(--hcolor, var(--gold)); } 
   50% { color:#fff; text-shadow:0 0 16px rgba(255,255,255,0.8); border-color: #fff; } 
 } /* cheaper: animate text/color instead of box-shadow (avoids expensive shadow repaints on mobile) */
 #ult:disabled { opacity:.35; }
@@ -690,8 +691,8 @@ button { flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: none
 /* P0 fix (SENSE): global button{flex:1} was stretching the age-gate CTA into a half-screen block. Age gate is a flex-column overlay — its button must size to content. */
 #age-gate button, #age-gate #age-yes { flex: 0 0 auto; align-self: center; width: auto; max-width: 340px; }
 button:active { transform: scale(0.975); filter: brightness(0.95); box-shadow: 0 1px 4px rgba(0,0,0,0.4); }
-#start { background: linear-gradient(135deg, #f5c451, #d4a017); color: #1a1400; box-shadow: 0 3px 12px rgba(245,196,81,0.3); }
-#auto.on { background: linear-gradient(135deg, #65a30d, #4a7c0a); color: #f0fdf4; animation: pulse 1.2s infinite; }
+#start { background: linear-gradient(135deg, var(--gold), var(--gold-deep)); color: #1a1400; box-shadow: 0 3px 12px rgba(245,196,81,0.3); }
+#auto.on { background: linear-gradient(135deg, #65a30d, #4a7c0a); color: #f0fdf4; }
 @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 #65a30d88; } 50% { box-shadow: 0 0 0 4px #65a30d22; } }
 #controls button:active { transform: scale(.97); }
 
@@ -750,7 +751,7 @@ button:active { transform: scale(0.975); filter: brightness(0.95); box-shadow: 0
 /* ⚔️ 편성(스쿼드) 시스템 */
 .syn-chip { display: inline-block; font-size: 10.5px; font-weight: 700; color: #a3e635; background: #1c2a14; border: 1px solid #3a5a1e; border-radius: 6px; padding: 2px 7px; margin: 0 4px 4px 0; }
 #squad-slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
-.sq-slot { position: relative; aspect-ratio: 1/1.18; background: #16101f; border: 1.5px solid #2c2142; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; overflow: hidden; padding: 1px; }
+.sq-slot { position: relative; aspect-ratio: 1/1.18; background: #16101f; border: 1.5px solid var(--line); border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; overflow: hidden; padding: 1px; }
 .sq-slot.filled { background: #1d1535; }
 .sq-slot .sq-art { position: relative; width: 100%; aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; font-size: 24px; overflow: hidden; border-radius: 7px; }
 .sq-slot .sqim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; border-radius: 6px; border: none; box-shadow: none; background: #05040c; } /* nukki squad: contain + center clean dark */
@@ -790,66 +791,16 @@ button:active { transform: scale(0.975); filter: brightness(0.95); box-shadow: 0
 .cp-nm { font-size: 10px; font-weight: 800; line-height: 1.0; }
 .cp-ti { font-size: 6.5px; color: var(--dim); margin: 0; line-height: 1.0; }
 .cp-st { font-size: 6.5px; color: #c4b5fd; margin-bottom: 0; line-height: 1.0; }
-#cp-lvup { padding: 1px 3px; font-size: 7px; font-weight: 600; border-radius: 3px; background: linear-gradient(135deg, #f5c451, #d97706); color: #1a1400; margin-top: 0; }
+#cp-lvup { padding: 1px 3px; font-size: 7px; font-weight: 600; border-radius: 3px; background: linear-gradient(135deg, var(--gold), var(--gold-deep)); color: #1a1400; margin-top: 0; }
 #cp-lv-num { font-size: 9px; width: 28px; padding: 0; text-align: center; }
 #cp-gear { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; margin-bottom: 1px; }
-.cp-slot { flex: 1; aspect-ratio: 0.92/1; background: #16101f; border: 1px dashed #2c2142; border-radius: 3px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; gap: 1px; padding: 1px; min-height: 34px; } /* bumped for tap/read, still compact */
+.cp-slot { flex: 1; aspect-ratio: 0.92/1; background: #16101f; border: 1px dashed var(--line); border-radius: 3px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; gap: 1px; padding: 1px; min-height: 34px; } /* bumped for tap/read, still compact */
 
-/* Ultra-tiny 2-col grid: max ~5-6 items at true one-glance (no body scroll primary). Scoped. 15px rows. Sovereign tight for "한번에 한창에". */
-#char-panel-card #cp-inv {
-  display: grid !important;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1px;
-  max-height: 56px;
-  overflow-y: auto;
-}
-#char-panel-card .gear-card {
-  display: flex;
-  align-items: center;
-  padding: 0 1px;
-  border-radius: 2px;
-  font-size: 5.5px;
-  min-height: 15px;
-  gap: 1px;
-}
-#char-panel-card .g-art {
-  width: 11px;
-  height: 11px;
-  flex: 0 0 11px;
-}
-#char-panel-card .g-info {
-  flex: 1;
-  min-width: 0;
-  font-size: 5.5px;
-  line-height: 1.0;
-}
-#char-panel-card .g-name {
-  font-size: 6.5px;
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-#char-panel-card .g-stats {
-  font-size: 5px;
-}
-#char-panel-card .g-act {
-  flex: 0 0 26px;
-  text-align: right;
-}
-#char-panel-card .g-act button {
-  font-size: 6px;
-  padding: 0 1px;
-  height: 11px;
-  min-width: 22px;
-}
-#char-panel-card .act-on {
-  font-size: 5px;
-}
+/* (removed dead ultra-compressed 5px char-panel gear block — fully superseded by the enlarged spec at "캐릭 상세창 확대" below; #cp-inv redefined at L864, sizing by !important enlarge block) */
 
 /* Extra: make "착용중" pop nicely in the grid for quick scan */
 #char-panel-card .gear-card.on {
-  box-shadow: 0 0 0 1.5px #fbbf24, inset 0 0 5px rgba(251,191,36,0.18);
+  box-shadow: 0 0 0 1.5px var(--gold), inset 0 0 5px rgba(251,191,36,0.18);
   background: rgba(251,191,36,0.06);
 }
 
@@ -877,8 +828,8 @@ button:active { transform: scale(0.975); filter: brightness(0.95); box-shadow: 0
 
 /* 장비 창 개선 — scannable cards, premium (toy 느낌 제거) */
 #char-panel-card #cp-gear { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; margin-bottom: 2px; }
-#char-panel-card .cp-slot { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #16101f; border: 1px solid #2c2142; border-radius: 4px; padding: 1px 2px; font-size: 8px; min-height: 34px; transition: transform .05s; }
-#char-panel-card .cp-slot.on { border-color: #fbbf24; background: #1d1535; }
+#char-panel-card .cp-slot { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #16101f; border: 1px solid var(--line); border-radius: 4px; padding: 1px 2px; font-size: 8px; min-height: 34px; transition: transform .05s; }
+#char-panel-card .cp-slot.on { border-color: var(--gold); background: #1d1535; }
 #char-panel-card .cp-slot:active { transform: scale(0.95); }
 #char-panel-card .cp-slot .slot-vis { font-size: 14px; line-height: 1; } /* final hero icon size in slots */
 #char-panel-card .cp-slot .slot-info { text-align: center; margin-top: 0; }
@@ -915,7 +866,7 @@ img, .cxim, .ucim, .cpim, .sqim, .him { opacity: 0.98; } /* subtle base for load
 .gear-synth { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative;
   border: 1.5px solid; border-radius: 7px; box-shadow: 0 5px 14px rgba(0,0,0,0.82), inset 0 2.5px 0 rgba(255,255,255,0.28), inset 0 -5px 8px rgba(0,0,0,0.68);
 } /* ULTIMATE "간지" : stronger premium depth, Warframe/Destiny inspired volumetric. */
-.gear-synth.rSSR { background: linear-gradient(145deg, #3a2a1a 0%, #5a4630 38%, #2f2418 100%); border-color: #fbbf24; box-shadow: 0 0 16px rgba(251,191,36,0.4), inset 0 0 12px rgba(251,191,36,0.25); }
+.gear-synth.rSSR { background: linear-gradient(145deg, #3a2a1a 0%, #5a4630 38%, #2f2418 100%); border-color: var(--gold); box-shadow: 0 0 16px rgba(251,191,36,0.4), inset 0 0 12px rgba(251,191,36,0.25); }
 .gear-synth.rSR { background: linear-gradient(145deg, #2a1a3a 0%, #46305a 38%, #1f1628 100%); border-color: #c084fc; box-shadow: 0 0 12px rgba(192,132,252,0.35); }
 .gear-synth.rR { background: linear-gradient(145deg, #1a2a3a 0%, #30465a 38%, #14202e 100%); border-color: #60a5fa; }
 .gear-synth.rN { background: linear-gradient(145deg, #2a2f42 0%, #1a1f2e 100%); border-color: #9ca3af; }
@@ -924,16 +875,16 @@ img, .cxim, .ucim, .cpim, .sqim, .him { opacity: 0.98; } /* subtle base for load
 .gear-synth .gear-vein, .gear-synth .gear-vein2 { position:absolute; background: linear-gradient(transparent, rgba(255,255,255,0.4), transparent); pointer-events:none; }
 .gear-synth .gear-vein { width: 145%; height: 2.2px; top: 34%; left: -22%; transform: rotate(-14deg); box-shadow: 0 0 5px currentColor; opacity: .55; }
 .gear-synth .gear-vein2 { width: 115%; height: 1.6px; top: 57%; left: -6%; transform: rotate(17deg); opacity: .38; }
-.gear-synth.rSSR .gear-vein, .gear-synth.rSSR .gear-vein2 { color:#fbbf24; }
+.gear-synth.rSSR .gear-vein, .gear-synth.rSSR .gear-vein2 { color:var(--gold); }
 .gear-synth.rSR .gear-vein, .gear-synth.rSR .gear-vein2 { color:#c084fc; }
-.gear-synth .gear-shard, .gear-synth .gear-shard2 { position:absolute; width:4.5px; height:4.5px; background:rgba(255,255,255,.95); border-radius:50%; box-shadow:0 0 4px #fff; pointer-events:none; animation:gearShardFloat 2.6s ease-in-out infinite alternate; }
+.gear-synth .gear-shard, .gear-synth .gear-shard2 { position:absolute; width:4.5px; height:4.5px; background:rgba(255,255,255,.95); border-radius:50%; box-shadow:0 0 4px #fff; pointer-events:none; }
 .gear-synth .gear-shard { top:21%; right:17%; }
 .gear-synth .gear-shard2 { top:61%; left:20%; animation-delay:1.05s; }
 @keyframes gearShardFloat { 0%{transform:translateY(0) scale(1);} 100%{transform:translateY(-3.5px) scale(.68);} }
 
 /* Synth UPGRADE: 고급일수록 극적으로 간지 차이. SSR은 압도적 프리미엄, SR은 확실한 업그레이드. */
 .gear-synth.rN { background: linear-gradient(145deg, #252a38 0%, #151a24 100%); border-color: #7a818f; box-shadow: 0 3px 10px rgba(0,0,0,0.88), inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -4px 7px rgba(0,0,0,0.75); }
-.gear-synth .gear-shard3 { position:absolute; width:3.2px; height:3.2px; background:rgba(255,255,255,.8); border-radius:50%; box-shadow:0 0 3px #fff; pointer-events:none; top:42%; left:52%; animation:gearShardFloat 1.9s ease-in-out infinite alternate 0.6s; }
+.gear-synth .gear-shard3 { position:absolute; width:3.2px; height:3.2px; background:rgba(255,255,255,.8); border-radius:50%; box-shadow:0 0 3px #fff; pointer-events:none; top:42%; left:52%; }
 .gear-synth .gear-filigree, .gear-synth .gear-filigree2 { position:absolute; pointer-events:none; }
 .gear-synth .gear-filigree2 { inset:4px; border:1px solid rgba(251,191,36,0.45); border-radius:3px; opacity:0.6; } /* etched inner filigree for SSR */
 .gear-synth.rN .gear-vein, .gear-synth.rN .gear-vein2 { color:#9ca3af; opacity:.42; }
@@ -944,7 +895,7 @@ img, .cxim, .ucim, .cpim, .sqim, .him { opacity: 0.98; } /* subtle base for load
 .gxc .gxi.gear-codex-art .g-art, .gxc .gxi.gear-codex-art img { box-shadow: 0 3px 12px rgba(0,0,0,0.72), 0 0 14px rgba(245,196,81,0.25); } /* fill + border for tight hug */
 .gear-art, .slot-art { filter: contrast(1.28) saturate(1.35) brightness(1.08); box-shadow: inset 0 0 18px rgba(0,0,0,0.82), 0 5px 12px rgba(0,0,0,0.7), 0 0 9px rgba(255,255,255,0.18); border-color:#4a5065; }
 
-.legend-toggle { display:block; margin: 10px auto 0; padding: 4px 12px; font-size: 11px; color: var(--dim); background: transparent; border: 1px solid #2c2142; border-radius: 8px; }
+.legend-toggle { display:block; margin: 10px auto 0; padding: 4px 12px; font-size: 11px; color: var(--dim); background: transparent; border: 1px solid var(--line); border-radius: 8px; }
 #legend.hidden { display: none; }
 
 #page-gear .gear-note { font-size: 11px; margin-bottom: 8px; }
@@ -954,7 +905,7 @@ img, .cxim, .ucim, .cpim, .sqim, .him { opacity: 0.98; } /* subtle base for load
 #cp-grow { display: flex; flex-wrap: wrap; gap: 2px; align-items: center; margin-bottom: 3px; }
 #cp-grow button { padding: 2px 5px; font-size: 8px; font-weight: 700; border-radius: 3px; background: linear-gradient(135deg, #2a2348, #171130); color: var(--text); border: 1px solid #473a63; }
 #cp-grow #cp-enh { background: linear-gradient(135deg, #3a2f5e, #241b3a); }
-#cp-grow .cp-gold { background: linear-gradient(135deg, #f5c451, #d97706) !important; color: #1a1400 !important; }
+#cp-grow .cp-gold { background: linear-gradient(135deg, var(--gold), var(--gold-deep)) !important; color: #1a1400 !important; }
 #cp-grow .cp-purple { background: linear-gradient(135deg, #a855f7, #6d28d9) !important; color: #fff !important; }
 #cp-grow .cp-gdim { font-size: 7px; color: var(--dim); }
 #cp-grow .cp-badge { font-size: 8px; font-weight: 700; color: var(--gold); background: #2a2212; padding: 1px 3px; border-radius: 3px; }
@@ -963,27 +914,27 @@ img, .cxim, .ucim, .cpim, .sqim, .him { opacity: 0.98; } /* subtle base for load
 .hbtn { overflow: hidden; }
 .hbtn .him { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center top; z-index: 1; }
 .hbtn .rk { z-index: 2; }
-.hbtn.sel .him { outline: 2px solid var(--crimson); outline-offset: -2px; box-shadow: 0 0 10px currentColor; } /* 2026-06-16 polish: hero bar sel pop stronger with icon glow (new heroicons 7 endowment pop). Reversible. */
+.hbtn.sel .him { outline: 2px solid var(--purple); outline-offset: -2px; box-shadow: 0 0 10px currentColor; } /* 2026-06-16 polish: hero bar sel pop stronger with icon glow (new heroicons 7 endowment pop). Reversible. */
 
 .gitem { cursor: pointer; transition: transform .08s; }
 .gitem:active { transform: scale(.985); }
 .gitem .gi-up { font-size: 12px; font-weight: 800; color: var(--gold); white-space: nowrap; padding-left: 8px; }
 
-.gpop-enh { margin-top: 12px; padding: 10px 20px; font-size: 14px; font-weight: 800; border-radius: 10px; background: linear-gradient(135deg, #f5c451, #d97706); color: #1a1400; border: none; }
+.gpop-enh { margin-top: 12px; padding: 10px 20px; font-size: 14px; font-weight: 800; border-radius: 10px; background: linear-gradient(135deg, var(--gold), var(--gold-deep)); color: #1a1400; border: none; }
 .gi-up { color: var(--dim); font-size: 16px; font-weight: 700; padding-left: 8px; }
 
 /* 장비 탭 통합 UI */
-.craft-big { width: 100%; padding: 13px; font-size: 15px; font-weight: 800; border-radius: 11px; background: linear-gradient(135deg, #f5c451, #d97706); color: #1a1400; border: none; margin-bottom: 6px; }
+.craft-big { width: 100%; padding: 13px; font-size: 15px; font-weight: 800; border-radius: 11px; background: linear-gradient(135deg, var(--gold), var(--gold-deep)); color: #1a1400; border: none; margin-bottom: 6px; }
 .craft-big:active { transform: scale(.985); }
 #gear-inv { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 10px; }
 .ginv-tile { position: relative; aspect-ratio: 1/1.05; background: #16101f; border: 1.5px solid; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer; overflow: hidden; transition: transform .06s, box-shadow .1s; }
-.ginv-tile:active { transform: scale(.92); box-shadow: 0 0 0 2px #fbbf24; }
+.ginv-tile:active { transform: scale(.92); box-shadow: 0 0 0 2px var(--gold); }
 .ginv-tile .gt-art { width: 82%; aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; font-size: 22px; } /* generous fill for comfortable viewing, art prominent in tile */
 .ginv-tile .gt-art .g-art { width: 100%; height: 100%; object-fit: contain; filter: contrast(1.18) saturate(1.28) brightness(1.08); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 0 8px rgba(251,191,36,0.18); } /* premium aura + thin border on art for tight frame hug */
 .ginv-tile .gt-rr { font-size: 8px; font-weight: 900; }
 .ginv-tile .gt-eq { position: absolute; top: 1px; right: 2px; font-size: 9px; }
 .ginv-tile.rSSR { box-shadow: inset 0 0 12px rgba(245,196,81,0.22); }
-.ginv-tile.rSSR:active { box-shadow: 0 0 0 2px #fbbf24, inset 0 0 14px rgba(245,196,81,0.3); }
+.ginv-tile.rSSR:active { box-shadow: 0 0 0 2px var(--gold), inset 0 0 14px rgba(245,196,81,0.3); }
 #gdex-wrap.hidden { display: none; }
 
 /* 캐릭 장비카드 이미지 강제 축소 — char-panel only tiny for glance fit */
@@ -1001,7 +952,7 @@ img, .cxim, .ucim, .cpim, .sqim, .him { opacity: 0.98; } /* subtle base for load
 /* 🔄 환생 발견성 배너 (배틀화면) */
 #asc-prompt { margin: 4px 0 6px; padding: 9px 12px; border-radius: 10px; font-size: 12.5px; color: #e9d5ff; cursor: pointer;
   background: linear-gradient(135deg, rgba(168,85,247,.22), rgba(6,182,212,.18)); border: 1px solid rgba(192,132,252,.4);
-  animation: ascPulse 2.4s ease-in-out infinite; }
+  animation: ascPulse 2.4s ease-in-out; }
 #asc-prompt b { color: #f0abfc; }
 .asc-prompt-cta { float: right; color: #67e8f9; font-weight: 800; }
 @keyframes ascPulse { 0%,100% { box-shadow: 0 0 0 rgba(192,132,252,0); } 50% { box-shadow: 0 0 14px rgba(192,132,252,.45); } }
@@ -1033,10 +984,10 @@ img, .cxim, .ucim, .cpim, .sqim, .him { opacity: 0.98; } /* subtle base for load
 /* 2026-06-16 Dopamine retention & subtle monetization polishes (user POV specialist, Sovereign directive: 유저 입장 도파민 중독 과금 알게모르게 합법 revenue pipeline). 
    2-4 ONLY subtle SAFE: carried visual enhance, gacha SSR pulse/tease, tomorrow power hook stronger. NO balance nums. Legal/ethical (transparent pity/FOMO, no dark). Reversible comments. 
    Why: carried "MY POWER" ownership + SSR peak hit + daily ritual tomorrow-anticipation = habit loop → retention ↑ sessions → natural gacha/heroLv/gear spend pipeline. */
-.carried-pop { animation: carriedBreathe 2.4s ease-in-out infinite; font-weight:700; }
+.carried-pop { font-weight:700; }
 @keyframes carriedBreathe { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.88; transform:scale(1.012); } }
 #gacha-rank.ssr-tease { animation: ssrTease 2.6s cubic-bezier(0.4,0,0.2,1) infinite; }
-@keyframes ssrTease { 0%,100%{ transform:scale(1); text-shadow:0 0 6px currentColor; } 50%{ transform:scale(1.025); text-shadow:0 0 18px currentColor, 0 0 32px #fbbf24; } }
+@keyframes ssrTease { 0%,100%{ transform:scale(1); text-shadow:0 0 6px currentColor; } 50%{ transform:scale(1.025); text-shadow:0 0 18px currentColor, 0 0 32px var(--gold); } }
 
 /* ════════ 캐릭 상세창 확대 — 눈 편하게 (Sovereign 2026-06-16 "너무 작아서 눈아파") ════════ */
 /* 맨 끝 블록 = 캐스케이드 우선. 폰트·슬롯·아바타 전반 1.5~1.8x 확대, 패널 넓힘. */
@@ -1073,29 +1024,29 @@ img, .cxim, .ucim, .cpim, .sqim, .him { opacity: 0.98; } /* subtle base for load
 #char-panel-card #cp-close { font-size: 14px !important; padding: 9px 0 !important; margin-top: 8px !important; border-radius: 8px !important; }
 
 /* ════════ 가챠 확률 가시화 + 천장 진행바 (P0 — 법규·신뢰, 코드값 일치) ════════ */
-#gacha-rates { margin: 5px 0 12px; padding: 9px 11px; background: #16101f; border: 1px solid #2c2142; border-radius: 11px; }
+#gacha-rates { margin: 5px 0 12px; padding: 9px 11px; background: #16101f; border: 1px solid var(--line); border-radius: 11px; }
 .gr-rates { display: flex; justify-content: space-between; gap: 4px; font-size: 13px; font-weight: 800; margin-bottom: 8px; }
-.gr-rates .gr-n { color: #9ca3af; } .gr-rates .gr-r { color: #60a5fa; } .gr-rates .gr-sr { color: #c084fc; } .gr-rates .gr-ssr { color: #fbbf24; }
+.gr-rates .gr-n { color: #9ca3af; } .gr-rates .gr-r { color: #60a5fa; } .gr-rates .gr-sr { color: #c084fc; } .gr-rates .gr-ssr { color: var(--gold); }
 #pity-bar { position: relative; height: 16px; background: #0f0a18; border: 1px solid #3a2f5e; border-radius: 8px; overflow: hidden; }
-#pity-fill { position: absolute; top: 0; bottom: 0; left: 0; width: 0%; background: linear-gradient(90deg, #a855f7, #fbbf24); border-radius: 8px; transition: width .3s ease; }
+#pity-fill { position: absolute; top: 0; bottom: 0; left: 0; width: 0%; background: linear-gradient(90deg, #a855f7, var(--gold)); border-radius: 8px; transition: width .3s ease; }
 #pity-bar-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: #fff; text-shadow: 0 1px 2px #000; z-index: 2; }
 .gr-note { font-size: 10px; color: #a3a3c2; text-align: center; margin-top: 6px; line-height: 1.45; }
 /* 🎁 첫구매 2배 뱃지 */
-.ptag.pdbl { background: linear-gradient(135deg, #f5c451, #d97706) !important; color: #1a1400 !important; font-weight: 900 !important; }
+.ptag.pdbl { background: linear-gradient(135deg, var(--gold), var(--gold-deep)) !important; color: #1a1400 !important; font-weight: 900 !important; }
 
 /* 군주 20260616 + Grok P1: 군단 시너지 조합표 (달성=골드글로우 펄스, 미달=실루엣) */
 #synergy-table { margin-top: 8px; contain: layout paint; } /* contain for perf with dynamic cards */
-.syn-h { font-size: 11px; font-weight: 800; color: #fbbf24; letter-spacing: 1px; margin-bottom: 4px; text-align: center; }
+.syn-h { font-size: 11px; font-weight: 800; color: var(--gold); letter-spacing: 1px; margin-bottom: 4px; text-align: center; }
 .syn-grid { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; contain: layout paint; } /* contain helps perf */
 .syn-card { display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 80px; padding: 6px 8px; border-radius: 8px; background: #14121c; border: 1px solid #2a2536; font-size: 10px; transition: background .15s, border-color .15s, box-shadow .15s; contain: content; } /* limited transition + contain for perf */
-.syn-card.on { background: linear-gradient(160deg, #3a2c12, #1a1330); border-color: #fbbf24; box-shadow: 0 0 10px -2px #fbbf2499; }
+.syn-card.on { background: linear-gradient(160deg, #3a2c12, #1a1330); border-color: var(--gold); box-shadow: 0 0 10px -2px #fbbf2499; }
 .syn-card.off { opacity: .5; filter: grayscale(0.65); }
 .syn-ic { font-size: 16px; line-height: 1; }
 .syn-nm { font-weight: 700; color: #ddd; }
 .syn-card.off .syn-nm { color: #8a8a8a; }
-.syn-b { color: #fde047; font-weight: 800; }
+.syn-b { color: var(--gold-lite); font-weight: 800; }
 .syn-nx { font-size: 8.5px; color: #9ca3af; }
-.syn-card.on .syn-nx { color: #fbbf24; }
+.syn-card.on .syn-nx { color: var(--gold); }
 @keyframes synpulse { 0%,100% { box-shadow: 0 0 8px -2px #fbbf2466; } 50% { box-shadow: 0 0 16px -1px #fbbf24bb; } }
 
 /* 군주 20260617: 캐릭터 서사(lore) — 상세 팝업 하단, 흥미 유발(도파민) */
@@ -1112,7 +1063,7 @@ img, .cxim, .ucim, .cpim, .sqim, .him { opacity: 0.98; } /* subtle base for load
   60%  { background: radial-gradient(circle at 50% 45%, rgba(255,232,150,0.55) 0%, rgba(2,1,6,0.92) 55%); }
   100% { background: rgba(0,0,0,0); }
 }
-#rebirth-text { font-weight: 900; letter-spacing: 5px; text-align: center; color: #fde047; text-shadow: 0 0 28px #fbbf24, 0 0 60px #f59e0b; }
+#rebirth-text { font-weight: 900; letter-spacing: 5px; text-align: center; color: var(--gold-lite); text-shadow: 0 0 28px var(--gold), 0 0 60px var(--gold-deep); }
 #rebirth-veil.play #rebirth-text { animation: rebirthText 2.6s ease-in-out forwards; }
 @keyframes rebirthText {
   0%,28% { opacity: 0; transform: scale(0.6); font-size: 14px; }
@@ -1144,27 +1095,27 @@ img, .cxim, .ucim, .cpim, .sqim, .him { opacity: 0.98; } /* subtle base for load
 
 /* 🗺️ 세계 정복 지도 (정복지가 내 색으로 물든다) */
 #conquest-map { margin: 4px 0 8px; }
-.cq-title { font-size: 12px; font-weight: 800; color: #fbbf24; letter-spacing: .5px; margin-bottom: 5px; }
+.cq-title { font-size: 12px; font-weight: 800; color: var(--gold); letter-spacing: .5px; margin-bottom: 5px; }
 .cq-strip { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; padding-bottom: 4px; }  /* 보상 10개 줄바꿈 — 가로스크롤 제거 */
 .cq-next { font-size: 10px; font-weight: 700; color: #67e8f9; margin-left: 4px; }
 .cq-node { flex: 0 0 auto; width: 38px; height: 44px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-size: 9px; border: 1px solid #2a2536; background: #14121c; transition: all .2s; }
 .cq-node .cq-ic { font-size: 15px; line-height: 1; }
 .cq-node .cq-n { color: #9ca3af; font-weight: 700; }
-.cq-node.won { background: linear-gradient(160deg, #3a2c12, #1a1330); border-color: #fbbf24; box-shadow: 0 0 8px -2px #fbbf2466; }
-.cq-node.won .cq-n { color: #fde047; }
-.cq-node.here { border-color: #67e8f9; box-shadow: 0 0 10px -1px #67e8f988; animation: cqPulse 1.2s infinite ease-in-out; }
+.cq-node.won { background: linear-gradient(160deg, #3a2c12, #1a1330); border-color: var(--gold); box-shadow: 0 0 8px -2px #fbbf2466; }
+.cq-node.won .cq-n { color: var(--gold-lite); }
+.cq-node.here { border-color: #67e8f9; box-shadow: 0 0 10px -1px #67e8f988; }
 .cq-node.here .cq-n { color: #67e8f9; }
 .cq-node.lock { opacity: .4; }
 @keyframes cqPulse { 0%,100% { box-shadow: 0 0 6px -2px #67e8f966; } 50% { box-shadow: 0 0 12px -1px #67e8f9bb; } }
 /* 🎁 정복 보상 상자 노드 */
 .cq-node.rwd .cq-ic { font-size: 17px; }
-.cq-node.rwd.ready { border-color: #fbbf24; background: linear-gradient(160deg, #4a3410, #2a1d08); cursor: pointer; animation: cqChest .9s infinite ease-in-out; }
-.cq-node.rwd.ready .cq-n { color: #fde047; }
+.cq-node.rwd.ready { border-color: var(--gold); background: linear-gradient(160deg, #4a3410, #2a1d08); cursor: pointer; animation: cqChest .9s infinite ease-in-out; }
+.cq-node.rwd.ready .cq-n { color: var(--gold-lite); }
 .cq-node.rwd.done { border-color: #3f6212; background: linear-gradient(160deg, #1a240f, #11160a); opacity: .8; }
 .cq-node.rwd.done .cq-n { color: #84cc16; }
 .cq-node.rwd.lock { border-color: #3a3550; opacity: .55; }
 @keyframes cqChest { 0%,100% { box-shadow: 0 0 8px -2px #fbbf2488; transform: translateY(0); } 50% { box-shadow: 0 0 16px 0 #fbbf24cc; transform: translateY(-2px); } }
-.cq-badge { font-size: 10px; font-weight: 800; color: #fde047; background: #4a3410; border: 1px solid #fbbf24; border-radius: 6px; padding: 1px 6px; margin-left: 4px; animation: cqChest .9s infinite ease-in-out; }
+.cq-badge { font-size: 10px; font-weight: 800; color: var(--gold-lite); background: #4a3410; border: 1px solid var(--gold); border-radius: 6px; padding: 1px 6px; margin-left: 4px; }
 
 /* 🎰 가챠 결과 목록 (10연 10개 다 + 단차 신규/중복) */
 #gacha-list { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin: 10px 0 4px; max-height: 40vh; overflow-y: auto; }
@@ -1183,5 +1134,5 @@ img, .cxim, .ucim, .cpim, .sqim, .him { opacity: 0.98; } /* subtle base for load
 .gstat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .gstat { background: #14121c; border: 1px solid #2a2536; border-radius: 8px; padding: 8px 4px; text-align: center; display: flex; flex-direction: column; gap: 2px; }
 .gstat .gs-ic { font-size: 17px; line-height: 1; }
-.gstat .gs-v { color: #fde047; font-size: 14px; font-weight: 800; }
+.gstat .gs-v { color: var(--gold-lite); font-size: 14px; font-weight: 800; }
 .gstat .gs-l { color: #9ca3af; font-size: 9.5px; }
