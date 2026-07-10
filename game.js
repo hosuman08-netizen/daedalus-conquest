@@ -1680,6 +1680,13 @@ function updateMeta() {
     // 가챠 천장 진행바(상점) — 코드값과 100% 일치 (n/12)
     const pf = $("pity-fill"); if (pf) pf.style.width = Math.min(100, (p / 12) * 100) + "%";
     const pbl = $("pity-bar-label"); if (pbl) pbl.textContent = Math.min(p, 12) + "/12";
+    // Goal-gradient: as pity nears the guarantee (≤3 left), the bar glows — honest urgency, uses the real code value.
+    const pbar = $("pity-bar");
+    if (pbar) {
+      const imminent = remain > 0 && remain <= 3;
+      pbar.classList.toggle("pity-imminent", imminent);
+      if (pbl && imminent) pbl.textContent = "🎯 " + remain + " to SSR";
+    }
   }
   // sacred-host: 유저가 바로 이해할 수 있게 한국어로만. 미스터리 영어 금지.
   const sh = $("sacred-host"); if (sh) {
