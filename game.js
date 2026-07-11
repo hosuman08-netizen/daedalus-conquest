@@ -6704,11 +6704,32 @@ function _guildWeek(){ const d=new Date(); const y=d.getFullYear(); const o=new 
 function ensureGuild(){
   META.guild = META.guild || {};
   const g = META.guild;
+  if (!Array.isArray(g.cheers)) g.cheers = [];   // 🎺 길드 응원 피드(프리셋 이모트만·자유입력X)
   if (g.name && g.week !== _guildWeek()){ // weekly reset
     g.week = _guildWeek(); g.contrib = 0; g.goalCur = 0; g.goalClaimed = false;
     g.members = (g.members||[]).map(m=>({ name:m.name, contrib: 3 + Math.floor(Math.random()*22) }));
   }
   return g;
+}
+// 🎺 길드 응원(이모트) — 프리셋 8종만(자유입력 없음 = 모더레이션·욕설 회피). 로컬 전용·되돌림 가능.
+const GUILD_EMOTES = [
+  { e:"⚔️", k:"emoCharge" }, { e:"🔥", k:"emoFire" }, { e:"🛡️", k:"emoHold" }, { e:"💪", k:"emoStrong" },
+  { e:"🎉", k:"emoGG" }, { e:"👑", k:"emoGlory" }, { e:"🙏", k:"emoThanks" }, { e:"😤", k:"emoRally" },
+];
+function _guildSeedCheers(g){   // 피드가 비면 AI 클랜원 앰비언트 응원 2~3개 시드(이미 'AI clanmates' 공개됨=정직)
+  if ((g.cheers && g.cheers.length) || !(g.members && g.members.length)) return;
+  const pool = g.members.slice().sort(()=>Math.random()-0.5).slice(0, 2 + (Math.random()<0.5?1:0));
+  pool.forEach((m,i)=>{ const em = GUILD_EMOTES[(Math.random()*GUILD_EMOTES.length)|0]; g.cheers.push({ name:m.name, e:em.e, k:em.k, t: Date.now() - (i+1)*90000, npc:true }); });
+}
+function guildCheer(idx){
+  const g = ensureGuild(); if (!g.name) return;
+  const em = GUILD_EMOTES[idx]; if (!em) return;
+  g.cheers = g.cheers || [];
+  g.cheers.push({ name:(META.name||"You"), e:em.e, k:em.k, t: Date.now(), me:true });
+  if (g.cheers.length > 14) g.cheers = g.cheers.slice(-14);   // 롤링 캡
+  saveMeta();
+  try { haptic("light"); } catch(e){}
+  guildOpen();   // 갱신 리렌더
 }
 function guildContrib(n){
   const g = ensureGuild(); if (!g.name) return;
@@ -6776,11 +6797,32 @@ function guildOpen(){
         + '<span style="width:26px;text-align:right;font-size:11px;color:#9aa3c0;">'+r.contrib+'</span></div>';
     });
     inner += '</div><div style="font-size:10px;color:#5a5a72;margin-top:8px;text-align:center;">Legionnaires shown are AI clanmates until real players join. Counts are real.</div>';
+    // 🎺 응원(이모트) 바 — 프리셋만, 자유입력 없음(모더레이션 회피)
+    _guildSeedCheers(g);
+    inner += '<div style="font-size:12px;font-weight:700;margin:14px 0 6px;">'+t("guildCheerTitle")+'</div>';
+    inner += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">';
+    GUILD_EMOTES.forEach((em,i)=>{
+      inner += '<button class="guild-emote" data-i="'+i+'" title="'+t(em.k)+'" style="flex:1 0 20%;min-width:52px;background:#12172a;border:1px solid #2a3350;border-radius:10px;padding:8px 4px;font-size:20px;cursor:pointer;line-height:1;">'+em.e+'</button>';
+    });
+    inner += '</div>';
+    // 응원 피드 (최신순)
+    const feed = (g.cheers||[]).slice(-8).reverse();
+    if (feed.length){
+      inner += '<div style="background:#12172a;border:1px solid #2a3350;border-radius:12px;padding:8px 10px;">';
+      feed.forEach(c=>{
+        inner += '<div style="display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px;">'
+          + '<span style="font-size:16px;">'+c.e+'</span>'
+          + '<span style="flex:0 0 78px;color:'+(c.me?"#f5c451":"#cbd5e1")+';font-weight:'+(c.me?"800":"500")+';">'+c.name+'</span>'
+          + '<span style="flex:1;color:#9aa3c0;">'+t(c.k||"emoCharge")+'</span></div>';
+      });
+      inner += '</div>';
+    }
   }
   inner += '</div>';
   ov.innerHTML = inner;
   document.body.appendChild(ov);
   const x=document.getElementById("guild-x"); if(x) x.onclick=()=>ov.remove();
   const cb=document.getElementById("guild-create"); if(cb) cb.onclick=()=>{ const v=document.getElementById("guild-name-in"); createGuild(v?v.value:""); };
+  ov.querySelectorAll(".guild-emote").forEach(b=>{ b.onclick=()=>guildCheer(Number(b.dataset.i)); });
   ov.addEventListener("click",e=>{ if(e.target===ov) ov.remove(); });
 }
