@@ -4129,7 +4129,7 @@ function defeatCoachActions() {
   const cap = Math.min(owned.length, DEPLOY_MAX);
   // 1) 편성 미완 → 원탭 추천 편성
   if (owned.length && deployedN < cap) {
-    acts.push({ ic: "⚔️", txt: "출전 편성이 비었어요 — 최강 " + cap + "명 자동 배치", btn: "원탭 추천 편성", fn: () => { autoDeploy(); } });
+    acts.push({ ic: "⚔️", txt: t("actEmptyTxt", { n: cap }), btn: t("actEmptyBtn"), fn: () => { autoDeploy(); } });
   }
   // 2) 미장착 장비 → 장착하면 전력↑
   const eqSet = new Set();
@@ -4137,22 +4137,22 @@ function defeatCoachActions() {
   for (const cid in cg) { const e = cg[cid] || {}; for (const s in e) { if (e[s]) eqSet.add(e[s]); } }
   const unEq = (Array.isArray(META.gear) ? META.gear : []).filter((g) => g && !eqSet.has(g.id)).length;
   if (unEq > 0) {
-    acts.push({ ic: "🛡️", txt: "미장착 장비 " + unEq + "개 — 장착만 해도 전력이 올라요", btn: "장비 장착하러", fn: () => { try { showPage("gear"); renderGear(); renderGearCodex(); } catch (e) {} } });
+    acts.push({ ic: "🛡️", txt: t("actGearTxt", { n: unEq }), btn: t("actGearBtn"), fn: () => { try { showPage("gear"); renderGear(); renderGearCodex(); } catch (e) {} } });
   }
   // 3) 골드로 지금 레벨업 가능한 캐릭 수
   const gold = META.gold || 0;
   let lvUpN = 0;
   owned.forEach((u) => { try { if (charLvCost(u.id) <= gold) lvUpN++; } catch (e) {} });
   if (lvUpN > 0) {
-    acts.push({ ic: "⬆️", txt: "보유 골드로 " + lvUpN + "명 즉시 레벨업 가능", btn: "캐릭 강화하러", fn: () => { try { openDash(); } catch (e) {} } });
+    acts.push({ ic: "⬆️", txt: t("actLvlTxt", { n: lvUpN }), btn: t("actLvlBtn"), fn: () => { try { openDash(); } catch (e) {} } });
   }
   // 4) 오늘 무료 소환 미사용
   if (META.freeTicketDay !== today()) {
-    acts.push({ ic: "🎁", txt: "오늘의 무료 소환을 아직 안 썼어요", btn: "무료 소환 받으러", fn: () => { try { openEvent(); } catch (e) {} } });
+    acts.push({ ic: "🎁", txt: t("actFreeTxt"), btn: t("actFreeBtn"), fn: () => { try { openEvent(); } catch (e) {} } });
   }
   // 5) 환생 가능(ch18+) → 영구 강화
   if ((META.maxChapter || META.chapter || 0) >= ASCEND_GATE) {
-    acts.push({ ic: "🔄", txt: "환생하면 영구 전력(에테르)을 얻어 벽을 넘어요", btn: "환생 보러가기", fn: () => { try { openSettings(); } catch (e) {} } });
+    acts.push({ ic: "🔄", txt: t("actRebirthTxt"), btn: t("actRebirthBtn"), fn: () => { try { openSettings(); } catch (e) {} } });
   }
   return acts;
 }
@@ -4172,10 +4172,10 @@ function showDefeatCoach() {
   ).join("");
   el.innerHTML = '<div style="max-width:340px;width:100%;background:#0b111f;border:1.5px solid #38bdf8;border-radius:14px;padding:20px;color:#e2e8f0;box-shadow:0 12px 44px rgba(0,0,0,.7),0 0 24px rgba(56,189,248,.18);">'
     + '<div style="font-size:30px;text-align:center;margin-bottom:2px;">🧭</div>'
-    + '<div style="font-size:17px;font-weight:800;color:#7dd3fc;text-align:center;margin-bottom:4px;">벽에 막혔나요? 무료로 지금 강해지기</div>'
-    + '<div style="font-size:11px;color:#8b93a7;text-align:center;margin-bottom:14px;">과금 없이 아래만 해도 전력이 올라요</div>'
+    + '<div style="font-size:17px;font-weight:800;color:#7dd3fc;text-align:center;margin-bottom:4px;">' + t("dcTitle") + '</div>'
+    + '<div style="font-size:11px;color:#8b93a7;text-align:center;margin-bottom:14px;">' + t("dcSub") + '</div>'
     + rows
-    + '<button id="dc-close" style="width:100%;margin-top:6px;background:none;border:1px solid #2a3550;color:#8b93a7;border-radius:8px;padding:9px;font-size:12px;cursor:pointer;">닫기</button>'
+    + '<button id="dc-close" style="width:100%;margin-top:6px;background:none;border:1px solid #2a3550;color:#8b93a7;border-radius:8px;padding:9px;font-size:12px;cursor:pointer;">' + t("dcClose") + '</button>'
     + '</div>';
   document.body.appendChild(el);
   el.querySelectorAll(".dc-go").forEach((b) => {
@@ -5503,7 +5503,7 @@ function renderCharProgress() {
 // ⚡ 원탭 추천 편성 — 보유 캐릭 중 유효전력 상위 DEPLOY_MAX명 자동 배치 (초반 "뭘 껴야?" 이탈 제거)
 function autoDeploy() {
   const owned = (typeof ROSTER !== "undefined" ? ROSTER.filter((u) => (META.owned || []).includes(u.id)) : []);
-  if (!owned.length) { toast("가챠로 캐릭터를 먼저 모으세요.", "#ef4444"); return; }
+  if (!owned.length) { toast(t("toastNeedChars"), "#ef4444"); return; }
   // 유효전력(레벨·강화·승급·각성·장비 반영) 내림차순 → 상위 DEPLOY_MAX
   const ranked = owned.slice().sort((a, b) => charEffPower(b.id) - charEffPower(a.id));
   META.deployed = ranked.slice(0, DEPLOY_MAX).map((u) => u.id);
@@ -5511,7 +5511,7 @@ function autoDeploy() {
   renderSquad();
   try { updateBattleCombo(); } catch (e) {}
   try { logEvent("auto_deploy", { n: META.deployed.length }); } catch (e) {}
-  toast("⚡ 최강 " + META.deployed.length + "명 자동 편성 완료", "#38bdf8");
+  toast(t("toastAutoDeploy", { n: META.deployed.length }), "#38bdf8");
   haptic("medium");
 }
 // ── 편성 UI (출전 슬롯 + 보유 풀 + 시너지) ─────────────────────────────────────
@@ -5553,7 +5553,7 @@ function renderSquad() {
   pool.innerHTML = "";
   const owned = (typeof ROSTER !== "undefined" ? ROSTER.filter((u) => (META.owned || []).includes(u.id)) : []);
   const depSet = new Set(META.deployed || []);
-  if (!owned.length) { pool.innerHTML = `<div class="ddim" style="font-size:12px;padding:4px">가챠로 캐릭터를 모아 편성하세요.</div>`; return; }
+  if (!owned.length) { pool.innerHTML = `<div class="ddim" style="font-size:12px;padding:4px">${t("poolEmpty")}</div>`; return; }
   owned.forEach((u) => {
     const isDep = depSet.has(u.id);
     const el = document.createElement("div");
