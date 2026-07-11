@@ -17,6 +17,11 @@ function aiTarget(power, i) {
   return { id: "ai_" + i, name: names[i % 3], power: p, isAI: true, gold: Math.round(p * 12) };
 }
 
+// 🔒 서버측 이름 정화(저장형 XSS defense-in-depth) — HTML위험문자·제어문자 제거, 24자컷. 클라 escapeHtml과 이중방어.
+function sanitizeName(s) {
+  return String(s == null ? "군단" : s).replace(/[<>&"'`\\]/g, "").replace(/[\x00-\x1f\x7f]/g, "").trim().slice(0, 24) || "군단";
+}
+
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
@@ -29,7 +34,7 @@ export default {
       if (P === "/raid/snapshot" && req.method === "POST") {
         if (!uid || !env.RAID) return json({ ok: false }, 400);
         const b = await req.json().catch(() => ({}));
-        const snap = { uid, power: Number(b.power) || 0, name: (b.name || "군단").slice(0, 24), t: Date.now() };
+        const snap = { uid, power: Number(b.power) || 0, name: sanitizeName(b.name), t: Date.now() };
         await env.RAID.put("raid:snap:" + uid, JSON.stringify(snap), { expirationTtl: 30 * 86400 });
         return json({ ok: true });
       }
@@ -82,7 +87,7 @@ export default {
         const metric = ["power", "carried", "tower"].includes(b.metric) ? b.metric : "power";
         const key = "rank:" + wk() + ":" + metric;
         const board = JSON.parse((await env.RANK.get(key)) || "[]");
-        const me = { uid, name: (b.name || "군단").slice(0, 24), v: Number(b.value) || 0 };
+        const me = { uid, name: sanitizeName(b.name), v: Number(b.value) || 0 };
         const idx = board.findIndex((x) => x.uid === uid);
         if (idx >= 0) board[idx] = me; else board.push(me);
         board.sort((a, c) => c.v - a.v);
