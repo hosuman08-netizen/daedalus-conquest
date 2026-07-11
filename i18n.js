@@ -270,6 +270,13 @@ Object.assign(I18N.ja, { seasonXp: "今週のシーズンXP: {n}", seasonFree: "
 Object.assign(I18N.zh, { seasonXp: "本周赛季XP: {n}", seasonFree: "免费", seasonPrem: "高级", seasonPremOff: "(需通行证)", seasonClaim: "领取", seasonReward: "赛季奖励! {r}", seasonClaimed: "已领取", seasonLocked: "需{n} XP", seasonPremReq: "高级轨道需要有效通行证" });
 Object.assign(I18N.hi, { seasonXp: "इस सप्ताह सीज़न XP: {n}", seasonFree: "मुफ्त", seasonPrem: "प्रीमियम", seasonPremOff: "(पास चाहिए)", seasonClaim: "लें", seasonReward: "सीज़न इनाम! {r}", seasonClaimed: "पहले ही लिया", seasonLocked: "{n} XP चाहिए", seasonPremReq: "प्रीमियम ट्रैक के लिए सक्रिय पास चाहिए" });
 Object.assign(I18N.ru, { seasonXp: "Сезонный XP за неделю: {n}", seasonFree: "Бесплатно", seasonPrem: "Премиум", seasonPremOff: "(нужен пропуск)", seasonClaim: "Забрать", seasonReward: "Награда сезона! {r}", seasonClaimed: "Уже получено", seasonLocked: "Нужно {n} XP", seasonPremReq: "Премиум-трек требует активный пропуск" });
+// 🎁 전리품 상자(War Chest)
+Object.assign(I18N.ko, { warTitle: "전리품 상자 (7일 연속 접속)", warHint: "매일 접속해 상자를 여세요! 이어갈수록 커지고, 하루 결석하면 1일차로 리셋됩니다.", warClaim: "{d}일차 상자 열기", warDone: "오늘 완료 · 내일 또!", warReward: "{d}일차 상자! {r}" });
+Object.assign(I18N.en, { warTitle: "War Chest (7-day login)", warHint: "Log in daily to open the chest! Bigger each day; miss a day and it resets to day 1.", warClaim: "Open day {d} chest", warDone: "Done today · back tomorrow!", warReward: "Day {d} chest! {r}" });
+Object.assign(I18N.ja, { warTitle: "戦利品の箱 (7日連続ログイン)", warHint: "毎日ログインして箱を開けよう! 続けるほど大きく、1日休むと1日目にリセット。", warClaim: "{d}日目の箱を開く", warDone: "本日完了 · 明日また!", warReward: "{d}日目の箱! {r}" });
+Object.assign(I18N.zh, { warTitle: "战利品宝箱 (连续登录7天)", warHint: "每天登录开宝箱! 越连续越大，缺席一天则重置为第1天。", warClaim: "打开第{d}天宝箱", warDone: "今日完成 · 明天再来!", warReward: "第{d}天宝箱! {r}" });
+Object.assign(I18N.hi, { warTitle: "युद्ध संदूक (7-दिन लॉगिन)", warHint: "रोज़ लॉगिन कर संदूक खोलें! हर दिन बड़ा; एक दिन चूके तो दिन 1 पर रीसेट।", warClaim: "दिन {d} संदूक खोलें", warDone: "आज पूर्ण · कल फिर!", warReward: "दिन {d} संदूक! {r}" });
+Object.assign(I18N.ru, { warTitle: "Трофейный сундук (7 дней входа)", warHint: "Заходите каждый день, чтобы открыть сундук! Чем дольше, тем больше; пропуск дня — сброс на 1-й день.", warClaim: "Открыть сундук дня {d}", warDone: "Готово сегодня · завтра снова!", warReward: "Сундук дня {d}! {r}" });
 Object.assign(I18N.ko, { navBattle: "전투", navChar: "캐릭터", navCodex: "도감", navShop: "상점", navEvent: "이벤트", navSet: "설정" });
 Object.assign(I18N.en, { navBattle: "Battle", navChar: "Units", navCodex: "Codex", navShop: "Shop", navEvent: "Events", navSet: "Settings" });
 Object.assign(I18N.ja, { navBattle: "戦闘", navChar: "ユニット", navCodex: "図鑑", navShop: "ショップ", navEvent: "イベント", navSet: "設定" });

@@ -650,6 +650,7 @@ function loadMeta() {
                 soul: 0, awak: { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 },
                 pass: { monthly: "", weekly: "" }, passClaim: { monthly: "", weekly: "" },
                 season: { week: "", xp: 0, free: [], prem: [] }, // 🏆 시즌 배틀패스: 주간 XP·클레임한 티어(무료/프리미엄)
+                warchest: { day: 0, last: "" }, // 🎁 전리품 상자: 연속 접속 7일 사다리(하루 1회 클레임, 결석 시 리셋)
                 milestones: [], cqClaimed: [],   // 🗺️ 정복 연대기 보상 트랙(탭해서 상자 클레임)
                 prestige: 0, // cohesion "numbers go up" on claims
                 ether: 0, asc: { might: 0, bulwark: 0, momentum: 0 }, ascCount: 0, // 🔄 환생 루프: 에테르(영구화폐)+복리노드(공세/불굴/쇄도)
@@ -760,6 +761,9 @@ function loadMeta() {
       if (!Array.isArray(merged.season.free)) merged.season.free = [];
       if (!Array.isArray(merged.season.prem)) merged.season.prem = [];
       if (typeof merged.season.week !== "string") merged.season.week = "";
+      if (typeof merged.warchest !== "object" || !merged.warchest) merged.warchest = { day: 0, last: "" };
+      if (typeof merged.warchest.day !== "number") merged.warchest.day = 0;
+      if (typeof merged.warchest.last !== "string") merged.warchest.last = "";
       // Hard security caps - prevent infinite resource hacks even if tamper bypasses checksum
       if (merged.gold > 10000000000 || merged.gold < 0) merged.gold = 550;
       if (merged.gems > 10000000 || merged.gems < 0) merged.gems = 50;
@@ -4952,7 +4956,7 @@ function renderFreeSummon() {
 }
 // 🔋 F2 AFK 저장고 안내 (중립 — confirmshame 없음. 자리 비운 만큼 자동 적립, 8h 상한)
 function renderAfkVault() { const el = $("afk-vault"); if (el) el.textContent = t("vaultInfo"); }
-function openEvent() { renderAttend(); renderPlay(); renderSeason(); renderFreeSummon(); renderAfkVault(); showPage("event");
+function openEvent() { renderAttend(); renderPlay(); renderSeason(); renderWarChest(); renderFreeSummon(); renderAfkVault(); showPage("event");
   const orb = $("ritual-orb"); if (orb) orb.style.display = (getLegionSignal() > 1.6 || META.ritualWin===today()) ? "" : "none";
   const vg = $("vanguard-ritual"); if (vg) {
     // Sovereign: 유저가 바로 아는 한국어 benefit 중심으로만. 미스터리 금지.
@@ -4974,7 +4978,7 @@ function openEvent() { renderAttend(); renderPlay(); renderSeason(); renderFreeS
   if (evPage) {
     evPage.querySelectorAll(':scope > *').forEach(el => {
       const txt = (el.textContent || '').toLowerCase();
-      if (el.id && ['attend-grid','play-list','season-list','vanguard-ritual','attend-fomo','play-fomo','play-now'].indexOf(el.id) >= 0) return;
+      if (el.id && ['attend-grid','play-list','season-list','warchest-list','vanguard-ritual','attend-fomo','play-fomo','play-now'].indexOf(el.id) >= 0) return;
       if (txt.includes('부적') || txt.includes('ssr+') || txt.includes('강화 +') || (el.style.border && el.style.border.includes('gold'))) {
         el.style.display = 'none';
       }
@@ -5521,6 +5525,56 @@ function renderSeason() {
     + '<div class="stier stier-head"><div class="stier-num">#</div><div class="stier-cell">' + t("seasonFree") + '</div><div class="stier-cell stier-prem">⭐ ' + t("seasonPrem") + (prem ? '' : ' <span class="ddim">' + t("seasonPremOff") + '</span>') + '</div></div>'
     + rows
     + '</div>';
+}
+// 🎁 전리품 상자(War Chest) — 연속 접속 7일 사다리. 하루 1회 클레임, 다음날 이어가면 상승, 결석 시 1일차로 리셋(손실회피).
+// attend 30일과 독립된 자체 상태(META.warchest) · 확률 아닌 결정적 고정 보상 · SFW.
+const WAR_CHEST = [
+  { gold: 100 },              // 1일
+  { gem: 20 },                // 2일
+  { gold: 300 },              // 3일
+  { gem: 40 },                // 4일
+  { gold: 600 },              // 5일
+  { gem: 60 },                // 6일
+  { gem: 100, unit: "SR" },   // 7일 (피날레)
+];
+// 오늘 클레임하면 도달할 rung(1..7). 어제 클레임했으면 이어서(+1, 7 다음은 1로 순환), 아니면 1로 리셋.
+function warChestNextDay() {
+  const w = META.warchest || (META.warchest = { day: 0, last: "" });
+  if (w.last === today()) return w.day;                 // 이미 오늘 받음
+  if (w.last === dayPlus(-1) && w.day >= 1) return (w.day % WAR_CHEST.length) + 1;   // 연속 → 다음 rung(7→1 순환)
+  return 1;                                              // 첫날 또는 결석 리셋
+}
+function renderWarChest() {
+  const box = $("warchest-list"); if (!box) return;
+  const w = META.warchest || (META.warchest = { day: 0, last: "" });
+  const claimedToday = w.last === today();
+  const next = warChestNextDay();                        // 오늘 받을(또는 받은) rung
+  let cells = "";
+  WAR_CHEST.forEach((r, i) => {
+    const rung = i + 1;
+    const isNext = rung === next;
+    const done = claimedToday ? rung <= next : rung < next;   // 이미 받은 칸 표시
+    cells += '<div class="wcell' + (done ? ' done' : '') + (isNext && !claimedToday ? ' now' : '') + '">'
+      + '<div class="wd">' + rung + '</div>'
+      + '<div class="wr">' + seasonRewardLabel(r) + '</div></div>';
+  });
+  const btn = claimedToday
+    ? '<button class="wc-btn" disabled>' + t("warDone") + '</button>'
+    : '<button class="wc-btn" onclick="claimWarChest()">' + t("warClaim", { d: next }) + '</button>';
+  box.innerHTML = '<div class="warwrap"><div class="wgrid">' + cells + '</div>' + btn + '</div>';
+}
+function claimWarChest() {
+  const w = META.warchest || (META.warchest = { day: 0, last: "" });
+  if (w.last === today()) { toast(t("warDone"), "#8b93a7"); return; }
+  const next = warChestNextDay();
+  const rw = WAR_CHEST[next - 1]; if (!rw) return;
+  const got = grantSeasonReward(rw);                     // 시즌과 동일한 지급 헬퍼 재사용
+  w.day = next; w.last = today();
+  saveMeta(); updateMeta(); renderWarChest();
+  try { haptic("medium"); } catch (e) {}
+  try { SFX.claim(); } catch (e) {}
+  toast(t("warReward", { d: next, r: got }), "#fbbf24");
+  try { confettiBurst(); } catch (e) {}
 }
 on("sg-char1", "click", gacha);
 on("quick-pull", "click", gacha);   // 🎰 전투 하단 빠른 뽑기 — 보상 젬 즉석 소비(한손 도파민·수익 루프)

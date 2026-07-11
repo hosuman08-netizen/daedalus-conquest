@@ -1172,3 +1172,14 @@ img, .cxim, .ucim, .cpim, .sqim, .him { opacity: 0.98; } /* subtle base for load
 .sclaim.sclaim-p { background:linear-gradient(135deg,#f5c451,#e0932b); color:#2a1e00; }
 .sdone { color:#22c55e; font-weight:800; font-size:12px; }
 .slock { color:#6b6485; font-size:10.5px; white-space:nowrap; }
+
+/* 🎁 전리품 상자(War Chest) 사다리 */
+.warwrap { background:#1d1535; border-radius:10px; padding:12px; border:1px solid #473a63; }
+.wgrid { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-bottom:10px; }
+.wcell { background:#0f0b1e; border:1px solid #2c2447; border-radius:8px; padding:6px 2px; text-align:center; }
+.wcell.done { opacity:.5; border-color:#22c55e; }
+.wcell.now { border-color:#f5c451; box-shadow:0 0 8px 0 rgba(245,196,81,.45); }
+.wcell .wd { font-size:10px; color:#9a8fc0; font-weight:700; }
+.wcell .wr { font-size:11px; color:#e9deff; margin-top:2px; white-space:nowrap; }
+.wc-btn { width:100%; padding:9px; font-size:13px; font-weight:800; border:none; border-radius:8px; background:linear-gradient(135deg,#f5c451,#e0932b); color:#2a1e00; cursor:pointer; }
+.wc-btn:disabled { background:#2c2447; color:#6b6485; cursor:default; }
