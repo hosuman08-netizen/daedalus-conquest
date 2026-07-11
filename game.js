@@ -4334,6 +4334,12 @@ function checkIdle() {
     setTimeout(() => toast(`🌙 ${t("tIdle", { t: tm, n: gold })} +${varBonus} ${flavor}`, "#fbbf24"), 900);
     // Forecast popup flavor (lean toast + prestige pop)
     if (sig > 1.8) setTimeout(() => toast(t("legionSignalStrong"), "#a3e635"), 1600);
+    // ⚠️ 8h 캡 넘침 경고(손실회피 재접속 훅): 실제로 상한 초과분이 낭비됐을 때만 표기 = prominent/정직
+    if (elapsed > 3600 * 8) {
+      const oh = elapsed - 3600 * 8, ohh = Math.floor(oh / 3600), ohm = Math.floor((oh % 3600) / 60);
+      const otm = ohh ? ohh + "h " + ohm + "m" : ohm + "m";
+      setTimeout(() => toast(t("vaultOverflow", { t: otm }), "#f59e0b"), 2300);
+    }
   }
 }
 
