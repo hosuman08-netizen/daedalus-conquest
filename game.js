@@ -649,6 +649,7 @@ function loadMeta() {
                 play: { day: "", sec: 0, claimed: [] },
                 soul: 0, awak: { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 },
                 pass: { monthly: "", weekly: "" }, passClaim: { monthly: "", weekly: "" },
+                season: { week: "", xp: 0, free: [], prem: [] }, // 🏆 시즌 배틀패스: 주간 XP·클레임한 티어(무료/프리미엄)
                 milestones: [], cqClaimed: [],   // 🗺️ 정복 연대기 보상 트랙(탭해서 상자 클레임)
                 prestige: 0, // cohesion "numbers go up" on claims
                 ether: 0, asc: { might: 0, bulwark: 0, momentum: 0 }, ascCount: 0, // 🔄 환생 루프: 에테르(영구화폐)+복리노드(공세/불굴/쇄도)
@@ -754,6 +755,11 @@ function loadMeta() {
       if (typeof merged.charStar !== "object" || !merged.charStar) merged.charStar = {};
       if (typeof merged.charAwak !== "object" || !merged.charAwak) merged.charAwak = {};
       if (typeof merged.bossClears !== "number") merged.bossClears = 0;
+      if (typeof merged.season !== "object" || !merged.season) merged.season = { week: "", xp: 0, free: [], prem: [] };
+      if (typeof merged.season.xp !== "number") merged.season.xp = 0;
+      if (!Array.isArray(merged.season.free)) merged.season.free = [];
+      if (!Array.isArray(merged.season.prem)) merged.season.prem = [];
+      if (typeof merged.season.week !== "string") merged.season.week = "";
       // Hard security caps - prevent infinite resource hacks even if tamper bypasses checksum
       if (merged.gold > 10000000000 || merged.gold < 0) merged.gold = 550;
       if (merged.gems > 10000000 || merged.gems < 0) merged.gems = 50;
@@ -3003,6 +3009,8 @@ function finish(p, e) {
     }
     saveMeta();
   }
+  // 🏆 시즌 배틀패스 XP — 전투 참여로 적립 (승리 넉넉, 패배도 소량 → 무과금 진행 보장)
+  try { addSeasonXP(win ? 10 : 3); } catch (e) {}
 
   // manual play timestamp for synergy boost (MVP plan)
   META.lastManual = nowMs(); saveMeta();
@@ -5401,9 +5409,118 @@ function gearGacha(count) {
   saveMeta(); updateMeta(); renderGear();
   showGacha({ key: best.rarity, color: best.color }, "🔨 " + t("gTitle") + " ×" + count, results);
 }
+// 🏆 시즌 배틀패스 — 주간 XP 트랙(무료 + 프리미엄) · 매주 자동 리셋 · 클라 단독
+// 프리미엄 트랙은 실제 구매한 패스(passActive)가 활성일 때만 클레임 가능 (진짜 혜택 · 가짜수치 없음)
+const SEASON_TIERS = [
+  { xp: 50,   free: { gold: 300 },  prem: { gem: 40 } },
+  { xp: 120,  free: { gem: 20 },    prem: { gold: 800 } },
+  { xp: 220,  free: { gold: 600 },  prem: { gem: 60 } },
+  { xp: 350,  free: { gem: 30 },    prem: { gold: 1500 } },
+  { xp: 520,  free: { gold: 1000 }, prem: { gem: 100 } },
+  { xp: 750,  free: { gem: 40 },    prem: { gear: "SR" } },
+  { xp: 1050, free: { gold: 1500 }, prem: { gem: 150 } },
+  { xp: 1500, free: { gem: 60 },    prem: { unit: "SSR", gem: 100 } },
+];
+// 주간 키(ISO 목요일 기준) — 매주 한 번만 값이 바뀌면 되므로 안정적
+function seasonWeekKey(d) {
+  try {
+    const dt = d ? new Date(d) : new Date();
+    const day = new Date(Date.UTC(dt.getFullYear(), dt.getMonth(), dt.getDate()));
+    const dayNum = (day.getUTCDay() + 6) % 7;         // 월=0
+    day.setUTCDate(day.getUTCDate() - dayNum + 3);    // 그 주의 목요일
+    const firstThu = new Date(Date.UTC(day.getUTCFullYear(), 0, 4));
+    const wk = 1 + Math.round(((day - firstThu) / 86400000 - 3 + ((firstThu.getUTCDay() + 6) % 7)) / 7);
+    return day.getUTCFullYear() + "-W" + (wk < 10 ? "0" + wk : wk);
+  } catch (e) { return "wk"; }
+}
+// 시즌 상태 정규화 + 주간 리셋(새 주면 XP·클레임 초기화). 항상 유효한 season 객체 반환.
+function seasonSync() {
+  if (typeof META === "undefined" || !META) return { week: "", xp: 0, free: [], prem: [] };
+  if (!META.season || typeof META.season !== "object") META.season = { week: "", xp: 0, free: [], prem: [] };
+  const s = META.season;
+  if (typeof s.xp !== "number") s.xp = 0;
+  if (!Array.isArray(s.free)) s.free = [];
+  if (!Array.isArray(s.prem)) s.prem = [];
+  const wk = seasonWeekKey();
+  if (s.week !== wk) { s.week = wk; s.xp = 0; s.free = []; s.prem = []; }   // 주간 리셋(손실회피 + 재접속 동기)
+  return s;
+}
+// 프리미엄 트랙 자격 = 활성 월간/주간 패스 보유
+function seasonPremium() { try { return passActive("monthly") || passActive("weekly"); } catch (e) { return false; } }
+// 전투 참여로 시즌 XP 적립 (승리 넉넉 / 패배 소량 → 무과금도 진행 보장)
+function addSeasonXP(n) {
+  const s = seasonSync();
+  if (n && n > 0) s.xp = (s.xp || 0) + n;
+  try { saveMeta(); } catch (e) {}
+  try { const pe = $("page-event"); if (pe && !pe.classList.contains("hidden")) renderSeason(); } catch (e) {}
+}
+// 보상 표시 문자열(변경 없음)
+function seasonRewardLabel(rw) {
+  if (!rw) return "-";
+  const p = [];
+  if (rw.gold) p.push("💰" + (rw.gold >= 1000 ? Math.floor(rw.gold / 1000) + "k" : rw.gold));
+  if (rw.gem) p.push("💎" + rw.gem);
+  if (rw.gear) p.push("⚔️" + rw.gear);
+  if (rw.unit) p.push("🏆" + rw.unit);
+  return p.join(" ");
+}
+// 보상 지급(META 변경) + 지급 문자열 반환
+function grantSeasonReward(rw) {
+  const p = [];
+  if (rw.gold) { META.gold = (META.gold || 0) + rw.gold; p.push("💰" + rw.gold); }
+  if (rw.gem)  { META.gems = (META.gems || 0) + rw.gem; p.push("💎" + rw.gem); }
+  if (rw.gear && typeof newGear === "function") { if (!META.gear) META.gear = []; META.gear.push(newGear(rw.gear)); p.push("⚔️" + rw.gear); }
+  if (rw.unit && typeof grantUnit === "function") { grantUnit(rw.unit); p.push("🏆" + rw.unit); }
+  return p.join(" ");
+}
+function claimSeasonTier(idx, track) {
+  const s = seasonSync();
+  const tier = SEASON_TIERS[idx];
+  if (!tier) return;
+  const arr = track === "prem" ? s.prem : s.free;
+  if (arr.indexOf(idx) >= 0) { toast(t("seasonClaimed"), "#8b93a7"); return; }
+  if ((s.xp || 0) < tier.xp) { toast(t("seasonLocked", { n: tier.xp }), "#8b93a7"); return; }
+  if (track === "prem" && !seasonPremium()) { toast(t("seasonPremReq"), "#f59e0b"); return; }
+  const rw = tier[track]; if (!rw) return;
+  const got = grantSeasonReward(rw);
+  arr.push(idx);
+  saveMeta(); updateMeta(); renderSeason();
+  try { haptic("medium"); } catch (e) {}
+  try { SFX.claim(); } catch (e) {}
+  toast(t("seasonReward", { r: got }), "#fbbf24");
+  try { confettiBurst(); } catch (e) {}
+}
 function renderSeason() {
   const box = $("season-list"); if (!box) return;
-  box.innerHTML = `<div class="seasoncard"><div class="sc-name">🏆 ${t("seasonSoon")}</div><div class="ddim">${t("seasonHint")}</div></div>`;
+  const s = seasonSync();
+  const prem = seasonPremium();
+  const xp = s.xp || 0;
+  const maxXp = SEASON_TIERS[SEASON_TIERS.length - 1].xp;
+  const pct = Math.min(100, Math.round(xp / maxXp * 100));
+  let rows = "";
+  SEASON_TIERS.forEach((tier, i) => {
+    const reached = xp >= tier.xp;
+    const fClaimed = s.free.indexOf(i) >= 0;
+    const pClaimed = s.prem.indexOf(i) >= 0;
+    const fBtn = fClaimed ? '<span class="sdone">✓</span>'
+      : reached ? '<button class="sclaim" onclick="claimSeasonTier(' + i + ",'free')\">" + t("seasonClaim") + '</button>'
+      : '<span class="slock">🔒' + tier.xp + '</span>';
+    const pBtn = pClaimed ? '<span class="sdone">✓</span>'
+      : !prem ? '<span class="slock">⭐</span>'
+      : reached ? '<button class="sclaim sclaim-p" onclick="claimSeasonTier(' + i + ",'prem')\">" + t("seasonClaim") + '</button>'
+      : '<span class="slock">🔒' + tier.xp + '</span>';
+    rows += '<div class="stier' + (reached ? ' rc' : '') + '">'
+      + '<div class="stier-num">' + (i + 1) + '</div>'
+      + '<div class="stier-cell"><span class="sr">' + seasonRewardLabel(tier.free) + '</span>' + fBtn + '</div>'
+      + '<div class="stier-cell stier-prem"><span class="sr">' + seasonRewardLabel(tier.prem) + '</span>' + pBtn + '</div>'
+      + '</div>';
+  });
+  box.innerHTML = '<div class="seasonwrap">'
+    + '<div class="season-xp">🏆 ' + t("seasonXp", { n: xp }) + '</div>'
+    + '<div class="season-bar"><div class="season-fill" style="width:' + pct + '%"></div></div>'
+    + '<div class="stier stier-head"><div class="stier-num">#</div><div class="stier-cell">' + t("seasonFree") + '</div><div class="stier-cell stier-prem">⭐ ' + t("seasonPrem") + (prem ? '' : ' <span class="ddim">' + t("seasonPremOff") + '</span>') + '</div></div>'
+    + rows
+    + '</div>';
 }
 on("sg-char1", "click", gacha);
 on("quick-pull", "click", gacha);   // 🎰 전투 하단 빠른 뽑기 — 보상 젬 즉석 소비(한손 도파민·수익 루프)
