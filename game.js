@@ -5432,9 +5432,25 @@ function renderCharProgress() {
     '</div>';
 }
 
+// ⚡ 원탭 추천 편성 — 보유 캐릭 중 유효전력 상위 DEPLOY_MAX명 자동 배치 (초반 "뭘 껴야?" 이탈 제거)
+function autoDeploy() {
+  const owned = (typeof ROSTER !== "undefined" ? ROSTER.filter((u) => (META.owned || []).includes(u.id)) : []);
+  if (!owned.length) { toast("가챠로 캐릭터를 먼저 모으세요.", "#ef4444"); return; }
+  // 유효전력(레벨·강화·승급·각성·장비 반영) 내림차순 → 상위 DEPLOY_MAX
+  const ranked = owned.slice().sort((a, b) => charEffPower(b.id) - charEffPower(a.id));
+  META.deployed = ranked.slice(0, DEPLOY_MAX).map((u) => u.id);
+  saveMeta();
+  renderSquad();
+  try { updateBattleCombo(); } catch (e) {}
+  try { logEvent("auto_deploy", { n: META.deployed.length }); } catch (e) {}
+  toast("⚡ 최강 " + META.deployed.length + "명 자동 편성 완료", "#38bdf8");
+  haptic("medium");
+}
 // ── 편성 UI (출전 슬롯 + 보유 풀 + 시너지) ─────────────────────────────────────
 function renderSquad() {
   const slots = $("squad-slots"); if (!slots) return;
+  const autoBtn = $("squad-auto");
+  if (autoBtn && !autoBtn._wired) { autoBtn._wired = true; autoBtn.onclick = autoDeploy; }
   const sq = getDeployedUnits();
   const squadInfo = $("squad-info");
   if (squadInfo) {
