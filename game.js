@@ -661,6 +661,7 @@ function loadMeta() {
                 charEnh: {}, charStar: {}, charAwak: {}, // 캐릭별 강화/승급/각성
                 loginStreak: 0, // daily login streak for bonus
                 dailyBattles: 0, dailyPulls: 0, dailyUlts: 0, dailyTower: 0, dailyMissionsClaimed: false, // daily cycle missions for habit loop
+                patron: { claimed: [] }, starsSpent: 0, starsMonth: { ym: "", spent: 0 }, // 🏅 후원자 사다리: 누적 Stars(코스메틱 로열티) + 월 지출캡 공개
                 bossClears: 0 }; // 하이브리드 보스 보상: 누적 복리 (클리어 수에 따라 미래 보상 증가)
   if (!def.owned) def.owned = [];
   try {
@@ -756,6 +757,10 @@ function loadMeta() {
       if (typeof merged.charStar !== "object" || !merged.charStar) merged.charStar = {};
       if (typeof merged.charAwak !== "object" || !merged.charAwak) merged.charAwak = {};
       if (typeof merged.bossClears !== "number") merged.bossClears = 0;
+      if (typeof merged.patron !== "object" || !merged.patron) merged.patron = { claimed: [] };
+      if (!Array.isArray(merged.patron.claimed)) merged.patron.claimed = [];
+      if (typeof merged.starsSpent !== "number") merged.starsSpent = 0;
+      if (typeof merged.starsMonth !== "object" || !merged.starsMonth) merged.starsMonth = { ym: "", spent: 0 };
       if (typeof merged.season !== "object" || !merged.season) merged.season = { week: "", xp: 0, free: [], prem: [] };
       if (typeof merged.season.xp !== "number") merged.season.xp = 0;
       if (!Array.isArray(merged.season.free)) merged.season.free = [];
@@ -5220,6 +5225,17 @@ function renderShop() {
     fp.textContent = t("firstPay2x");
     box.appendChild(fp);
   }
+  // 🏅 후원자 사다리 진입 버튼 (누적 지출 코스메틱 로열티 + 월 지출캡 공개)
+  try {
+    const pl = document.createElement("button");
+    pl.type = "button";
+    const _at = (typeof patronActiveTitle === "function") ? patronActiveTitle() : null;
+    pl.style.cssText = "width:100%;box-sizing:border-box;display:flex;justify-content:space-between;align-items:center;gap:8px;background:#12172a;border:1px solid " + (_at ? _at.frame : "#33406a") + ";border-radius:11px;padding:9px 12px;margin-bottom:8px;color:#e2e8f0;font-size:12px;cursor:pointer;";
+    pl.innerHTML = '<span style="font-weight:800;color:#f5c451;">' + t("patronBtn") + '</span>'
+      + '<span style="color:' + (_at ? _at.frame : "#9aa3c0") + ';font-weight:700;">' + (_at ? _at.icon + " " + _at.title : "⭐ " + (META.starsSpent || 0).toLocaleString("en-US")) + ' ›</span>';
+    pl.addEventListener("click", () => { try { patronLadderOpen(); } catch (e) {} });
+    box.appendChild(pl);
+  } catch (e) {}
   SHOP.forEach((p) => {
     if (p.founder && (META.founder || !founderActive())) return;   // 🏅 창단팩: 이미 소유 or 7일 만료 시 숨김
     const owned = (p.starter && META.starter) || (p.vip && META.vip) || (p.ultra && META.ultra) || (p.founder && META.founder);
@@ -5276,6 +5292,96 @@ function loadPayRates() {
   if (!PAY_BACKEND) return;
   fetch(PAY_BACKEND + "/rates").then(r=>r.json()).then(d => { window.LEGION_PAY_RATES = d; /* use for UI labels */ }).catch(()=>{});
 }
+// ── 🏅 후원자 사다리 (Patron Ladder) ───────────────────────────────────────────
+// 누적 Stars 지출 → 순수 코스메틱 타이틀만 지급(전투력 0 = pay-to-win 아님, 합법 클린).
+// 월 지출캡은 책임소비 공개(disclosure): 청구가 아니라 스스로 세우는 상한을 눈에 띄게 표시.
+// 표시 임계값=코드 임계값 100% 일치. 되돌림 가능(로컬 META만).
+const PATRON_TIERS = [
+  { s: 500,   title: "Bronze Patron",      icon: "🥉", frame: "#cd7f32" },
+  { s: 2000,  title: "Silver Patron",      icon: "🥈", frame: "#cbd5e1" },
+  { s: 5000,  title: "Gold Patron",        icon: "🥇", frame: "#f5c451" },
+  { s: 12000, title: "Platinum Patron",    icon: "💠", frame: "#67e8f9" },
+  { s: 30000, title: "Daedalus Sovereign", icon: "👑", frame: "#c084fc" },
+];
+const PATRON_MONTH_CAP = 100000;   // ⭐ 스스로 정하는 월 상한(책임소비 공개용). 결제를 막지 않음 — 안내만.
+function _patronYM() { return today().slice(0, 7); }
+function addPatronSpend(stars) {
+  stars = Number(stars) || 0;
+  if (stars <= 0) return;
+  META.patron = META.patron || { claimed: [] };
+  if (!Array.isArray(META.patron.claimed)) META.patron.claimed = [];
+  META.starsSpent = (META.starsSpent || 0) + stars;
+  if (!META.starsMonth || META.starsMonth.ym !== _patronYM()) META.starsMonth = { ym: _patronYM(), spent: 0 };
+  META.starsMonth.spent += stars;
+  saveMeta();
+  try {
+    const reached = PATRON_TIERS.filter((tr) => (META.starsSpent || 0) >= tr.s && META.patron.claimed.indexOf(tr.s) < 0);
+    if (reached.length) setTimeout(() => { toast("🏅 " + reached[reached.length - 1].icon + " " + t("patronUnlocked"), "#fbbf24"); try { haptic("light"); } catch (e) {} }, 900);
+  } catch (e) {}
+}
+function patronActiveTitle() {
+  const c = (META.patron && META.patron.claimed) || [];
+  let best = null; PATRON_TIERS.forEach((tr) => { if (c.indexOf(tr.s) >= 0) best = tr; });
+  return best;   // 활성 타이틀 = 클레임한 최고 티어(없으면 null)
+}
+function claimPatronTier(s) {
+  const tr = PATRON_TIERS.find((x) => x.s === s); if (!tr) return;
+  if ((META.starsSpent || 0) < tr.s) return;   // 미달이면 무시(코드=표시 일치)
+  META.patron = META.patron || { claimed: [] };
+  if (META.patron.claimed.indexOf(s) >= 0) return;
+  META.patron.claimed.push(s);
+  saveMeta();
+  toast(tr.icon + " " + tr.title + " — " + t("patronClaimed"), tr.frame);
+  try { haptic("heavy"); confettiBurst(); } catch (e) {}
+  patronLadderOpen();   // 갱신 리렌더
+}
+function patronLadderOpen() {
+  const spent = META.starsSpent || 0;
+  const monthSpent = (META.starsMonth && META.starsMonth.ym === _patronYM()) ? (META.starsMonth.spent || 0) : 0;
+  const active = patronActiveTitle();
+  const next = PATRON_TIERS.find((tr) => spent < tr.s);
+  let ov = document.getElementById("patron-modal"); if (ov) ov.remove();
+  ov = document.createElement("div"); ov.id = "patron-modal";
+  ov.style.cssText = "position:fixed;inset:0;z-index:60;background:rgba(3,5,12,.94);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:max(16px,env(safe-area-inset-top)) 12px calc(24px + env(safe-area-inset-bottom));";
+  let inner = '<div style="width:100%;max-width:440px;color:#e2e8f0;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div style="font-size:19px;font-weight:900;color:#f5c451;">🏅 ' + t("patronTitle") + '</div><button id="patron-x" style="background:#1c2233;color:#8b8ba7;border:none;font-size:20px;border-radius:8px;padding:2px 10px;cursor:pointer;">✕</button></div>';
+  // 활성 타이틀 + 누적
+  inner += '<div style="background:#12172a;border:1px solid ' + (active ? active.frame : "#2a3350") + ';border-radius:14px;padding:14px;margin-bottom:10px;text-align:center;">'
+    + (active ? '<div style="font-size:16px;font-weight:900;color:' + active.frame + ';">' + active.icon + ' ' + active.title + '</div>' : '<div style="font-size:13px;color:#9aa3c0;">' + t("patronNoTitle") + '</div>')
+    + '<div style="font-size:12px;color:#9aa3c0;margin-top:6px;">' + t("patronTotal") + ' <b style="color:#f5c451;">⭐ ' + spent.toLocaleString("en-US") + '</b></div>'
+    + (next ? '<div style="font-size:11px;color:#7a7a96;margin-top:2px;">' + t("patronNext", { n: (next.s - spent).toLocaleString("en-US"), t: next.title }) + '</div>' : '<div style="font-size:11px;color:#a3e635;margin-top:2px;">' + t("patronMax") + '</div>')
+    + '</div>';
+  // 티어 사다리
+  inner += '<div style="background:#12172a;border:1px solid #2a3350;border-radius:12px;padding:8px 10px;margin-bottom:10px;">';
+  PATRON_TIERS.forEach((tr) => {
+    const reached = spent >= tr.s;
+    const claimed = ((META.patron && META.patron.claimed) || []).indexOf(tr.s) >= 0;
+    const canClaim = reached && !claimed;
+    inner += '<div style="display:flex;align-items:center;gap:8px;margin:6px 0;opacity:' + (reached ? "1" : "0.5") + ';">'
+      + '<span style="font-size:18px;">' + tr.icon + '</span>'
+      + '<span style="flex:1;font-size:12px;"><b style="color:' + tr.frame + ';">' + tr.title + '</b><br><span style="color:#7a7a96;">⭐ ' + tr.s.toLocaleString("en-US") + '</span></span>'
+      + (claimed ? '<span style="font-size:12px;color:#a3e635;font-weight:800;">✓</span>'
+        : canClaim ? '<button class="patron-claim" data-s="' + tr.s + '" style="background:linear-gradient(135deg,#f5c451,#d97706);color:#1a1400;border:none;border-radius:9px;padding:6px 12px;font-weight:800;font-size:12px;cursor:pointer;">' + t("patronClaimBtn") + '</button>'
+        : '<span style="font-size:11px;color:#5a5a72;">🔒</span>')
+      + '</div>';
+  });
+  inner += '</div>';
+  // 월 지출캡 공개(책임소비)
+  const capPct = Math.min(100, Math.round(monthSpent / PATRON_MONTH_CAP * 100));
+  const warn = capPct >= 80;
+  inner += '<div style="background:#0e1424;border:1px solid ' + (warn ? "#7f1d1d" : "#2a3350") + ';border-radius:12px;padding:10px 12px;">'
+    + '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;"><b style="color:' + (warn ? "#fca5a5" : "#9aa3c0") + ';">' + t("patronCapLabel") + '</b><span style="color:#9aa3c0;">⭐ ' + monthSpent.toLocaleString("en-US") + ' / ' + PATRON_MONTH_CAP.toLocaleString("en-US") + '</span></div>'
+    + '<div style="height:8px;background:#0b1020;border-radius:5px;overflow:hidden;"><div style="height:100%;width:' + capPct + '%;background:' + (warn ? "#ef4444" : "#4a5578") + ';"></div></div>'
+    + '<div style="font-size:10px;color:#5a5a72;margin-top:6px;line-height:1.5;">' + t("patronCapNote") + '</div>'
+    + '</div>';
+  inner += '<div style="font-size:10px;color:#5a5a72;margin-top:8px;text-align:center;">' + t("patronCosmeticNote") + '</div>';
+  inner += '</div>';
+  ov.innerHTML = inner;
+  document.body.appendChild(ov);
+  const x = document.getElementById("patron-x"); if (x) x.onclick = () => ov.remove();
+  ov.querySelectorAll(".patron-claim").forEach((b) => { b.onclick = () => claimPatronTier(Number(b.dataset.s)); });
+  ov.addEventListener("click", (e) => { if (e.target === ov) ov.remove(); });
+}
 // 🔒 결제 완료 → pay-worker /verify(서버 영수증) 확인 후 grant. 텔레그램→워커 직통 영수증이라 위조 불가.
 // webhook 도착 지연 대비 폴링(최대 20회/~75s, 후반 5s 간격). 영수증은 1회 소비(멱등=중복지급 차단).
 // 타임아웃 시: 절대 미검증 지급 안 함(자금 구멍 차단). purchase_pending 로그 + '확인중' 표시. 웹훅 늦게 와도 영수증 KV 24h 보존이라 재검증으로 복구.
@@ -5308,6 +5414,7 @@ function grantPackWithBonus(id) {
 function grantPack(id) {
   const p = SHOP.find((x) => x.id === id); if (!p) return;
   logEvent("purchase", { item: id, stars: (typeof STARS !== "undefined" && STARS[id]) || 0 });   // 📊 계측 (지급=결제완료 시점)
+  try { addPatronSpend((typeof STARS !== "undefined" && STARS[id]) || 0); } catch (e) {}   // 🏅 후원자 사다리: 누적 Stars 적립(검증된 결제만)
   if (p.founder) {                                     // 🏅 창단멤버 한정팩: 💎1500 + SSR유닛 + SSR장비 + 영구 창단뱃지 + 영구 골드+25%
     META.founder = true; META.gems = (META.gems || 0) + 1500;
     const u = grantUnit("SSR"); const g = newGear("SSR"); if (!META.gear) META.gear = []; META.gear.push(g);
