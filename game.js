@@ -2998,7 +2998,8 @@ function finish(p, e) {
     if (m === "campaign") {
       META.streak = 0;
       META.chStuck = (META.chStuck || 0) + 1;   // 🧗 막힘 감지 (같은 진행에서 연속 패배)
-      if (META.chStuck >= 3 && (META.chStuck - 3) % 2 === 0) setTimeout(() => { try { showStuckHelp(); } catch (e) {} }, 1600);   // 3패부터 격패 업셀(스팸 방지: 격번)
+      if (META.chStuck === 2) setTimeout(() => { try { showDefeatCoach(); } catch (e) {} }, 1600);   // 🧭 2패: 무료 성장 코칭 먼저 (첫벽 리텐션)
+      else if (META.chStuck >= 3 && (META.chStuck - 3) % 2 === 0) setTimeout(() => { try { showStuckHelp(); } catch (e) {} }, 1600);   // 3패부터 격패 업셀(스팸 방지: 격번)
     }
     saveMeta();
   }
@@ -4116,6 +4117,73 @@ function showStuckHelp() {
   const free = $("stuck-free"); if (free) free.onclick = () => { el.style.display = "none"; };
   el.onclick = (e) => { if (e.target === el) el.style.display = "none"; };
   try { logEvent("stuck_upsell", { ch: ch, losses: stuck }); } catch (e) {}
+  haptic("light");
+}
+
+// 🧭 패배 코칭 카드 — 연패 시 "무료로 지금 강해지는 법" 구체 제안 (첫벽 리텐션, 결제 없음)
+// 실제 상태를 읽어 실행 가능한 무료 성장 액션만 노출 (가짜 수치 없음).
+function defeatCoachActions() {
+  const acts = [];
+  const owned = (typeof ROSTER !== "undefined" ? ROSTER.filter((u) => (META.owned || []).includes(u.id)) : []);
+  const deployedN = (META.deployed || []).length;
+  const cap = Math.min(owned.length, DEPLOY_MAX);
+  // 1) 편성 미완 → 원탭 추천 편성
+  if (owned.length && deployedN < cap) {
+    acts.push({ ic: "⚔️", txt: "출전 편성이 비었어요 — 최강 " + cap + "명 자동 배치", btn: "원탭 추천 편성", fn: () => { autoDeploy(); } });
+  }
+  // 2) 미장착 장비 → 장착하면 전력↑
+  const eqSet = new Set();
+  const cg = META.charGear || {};
+  for (const cid in cg) { const e = cg[cid] || {}; for (const s in e) { if (e[s]) eqSet.add(e[s]); } }
+  const unEq = (Array.isArray(META.gear) ? META.gear : []).filter((g) => g && !eqSet.has(g.id)).length;
+  if (unEq > 0) {
+    acts.push({ ic: "🛡️", txt: "미장착 장비 " + unEq + "개 — 장착만 해도 전력이 올라요", btn: "장비 장착하러", fn: () => { try { showPage("gear"); renderGear(); renderGearCodex(); } catch (e) {} } });
+  }
+  // 3) 골드로 지금 레벨업 가능한 캐릭 수
+  const gold = META.gold || 0;
+  let lvUpN = 0;
+  owned.forEach((u) => { try { if (charLvCost(u.id) <= gold) lvUpN++; } catch (e) {} });
+  if (lvUpN > 0) {
+    acts.push({ ic: "⬆️", txt: "보유 골드로 " + lvUpN + "명 즉시 레벨업 가능", btn: "캐릭 강화하러", fn: () => { try { openDash(); } catch (e) {} } });
+  }
+  // 4) 오늘 무료 소환 미사용
+  if (META.freeTicketDay !== today()) {
+    acts.push({ ic: "🎁", txt: "오늘의 무료 소환을 아직 안 썼어요", btn: "무료 소환 받으러", fn: () => { try { openEvent(); } catch (e) {} } });
+  }
+  // 5) 환생 가능(ch18+) → 영구 강화
+  if ((META.maxChapter || META.chapter || 0) >= ASCEND_GATE) {
+    acts.push({ ic: "🔄", txt: "환생하면 영구 전력(에테르)을 얻어 벽을 넘어요", btn: "환생 보러가기", fn: () => { try { openSettings(); } catch (e) {} } });
+  }
+  return acts;
+}
+function showDefeatCoach() {
+  const acts = defeatCoachActions().slice(0, 3);
+  if (!acts.length) return;   // 제안할 무료 액션이 없으면 노출 안 함(스팸 방지)
+  const old = document.getElementById("defeat-coach"); if (old) old.remove();
+  const el = document.createElement("div");
+  el.id = "defeat-coach";
+  el.style.cssText = "position:fixed;inset:0;z-index:96;background:rgba(3,7,18,.86);display:flex;align-items:center;justify-content:center;padding:22px;";
+  let rows = acts.map((a, i) =>
+    '<div style="display:flex;align-items:center;gap:10px;background:#0e1626;border:1px solid #24304a;border-radius:10px;padding:10px;margin-bottom:8px;text-align:left;">'
+    + '<div style="font-size:22px;flex:0 0 auto;">' + a.ic + '</div>'
+    + '<div style="flex:1;font-size:12.5px;color:#dbe4f0;line-height:1.4;">' + a.txt + '</div>'
+    + '<button class="dc-go" data-i="' + i + '" style="flex:0 0 auto;background:linear-gradient(160deg,#123047,#0b1b2c);border:1px solid #38bdf8;color:#bae6fd;border-radius:8px;padding:7px 10px;font-size:11px;font-weight:800;white-space:nowrap;cursor:pointer;">' + a.btn + '</button>'
+    + '</div>'
+  ).join("");
+  el.innerHTML = '<div style="max-width:340px;width:100%;background:#0b111f;border:1.5px solid #38bdf8;border-radius:14px;padding:20px;color:#e2e8f0;box-shadow:0 12px 44px rgba(0,0,0,.7),0 0 24px rgba(56,189,248,.18);">'
+    + '<div style="font-size:30px;text-align:center;margin-bottom:2px;">🧭</div>'
+    + '<div style="font-size:17px;font-weight:800;color:#7dd3fc;text-align:center;margin-bottom:4px;">벽에 막혔나요? 무료로 지금 강해지기</div>'
+    + '<div style="font-size:11px;color:#8b93a7;text-align:center;margin-bottom:14px;">과금 없이 아래만 해도 전력이 올라요</div>'
+    + rows
+    + '<button id="dc-close" style="width:100%;margin-top:6px;background:none;border:1px solid #2a3550;color:#8b93a7;border-radius:8px;padding:9px;font-size:12px;cursor:pointer;">닫기</button>'
+    + '</div>';
+  document.body.appendChild(el);
+  el.querySelectorAll(".dc-go").forEach((b) => {
+    b.onclick = () => { const i = +b.dataset.i; el.remove(); try { acts[i].fn(); } catch (e) {} haptic("medium"); };
+  });
+  const cl = el.querySelector("#dc-close"); if (cl) cl.onclick = () => el.remove();
+  el.onclick = (e) => { if (e.target === el) el.remove(); };
+  try { logEvent("defeat_coach", { ch: META.chapter || 1, n: acts.length }); } catch (e) {}
   haptic("light");
 }
 // ── 스타터팩 (⭐50 첫 결제 상품) ─────────────────────────────────────────────
