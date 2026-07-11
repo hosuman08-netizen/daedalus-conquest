@@ -927,6 +927,10 @@ img, .cxim, .ucim, .cpim, .sqim, .him { opacity: 0.98; } /* subtle base for load
 .craft-big { width: 100%; padding: 13px; font-size: 15px; font-weight: 800; border-radius: 11px; background: linear-gradient(135deg, var(--gold), var(--gold-deep)); color: #1a1400; border: none; margin-bottom: 6px; }
 .craft-big:active { transform: scale(.985); }
 #gear-inv { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 10px; }
+/* 빈상태 placeholder가 그리드 첫 셀(1/N 폭)에 갇혀 단어별로 줄바꿈되던 짜침 수정 → 전체 폭 스팬 + 중앙정렬 */
+#gear-inv > .ddim, #squad-pool > .ddim, #codex-grid > .ddim, #gdex-grid > .ddim {
+  grid-column: 1 / -1; text-align: center; padding: 18px 12px; line-height: 1.6;
+}
 .ginv-tile { position: relative; aspect-ratio: 1/1.05; background: #16101f; border: 1.5px solid; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer; overflow: hidden; transition: transform .06s, box-shadow .1s; }
 .ginv-tile:active { transform: scale(.92); box-shadow: 0 0 0 2px var(--gold); }
 .ginv-tile .gt-art { width: 82%; aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; font-size: 22px; } /* generous fill for comfortable viewing, art prominent in tile */
