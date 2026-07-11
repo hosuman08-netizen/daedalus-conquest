@@ -1755,7 +1755,7 @@ function renderMsHint() {
 function updateModeTabs() {
   document.querySelectorAll(".modetab").forEach((b) => {
     b.classList.toggle("sel", b.dataset.m === META.mode);
-    const locked = !modeUnlocked(b.dataset.m) || b.dataset.m === "mystery";   // 🗡️ arena=습격(Raid) 활성 — 잠금 해제
+    const locked = !modeUnlocked(b.dataset.m) && b.dataset.m !== "mystery";   // 🏰 mystery=Legion Clans(길드) 활성
     b.classList.toggle("locked", locked);
   });
   // Sovereign: 캠페인 탭에 현재 챕터 번호 동적 표시 — "2챕터가 안넘어가" 혼란 방지. 유저가 "이 버튼이 챕터 진행용"임을 즉시 인지.
@@ -1797,9 +1797,8 @@ function setMode(m) {
     return;   // META.mode 오염 방지 (습격은 별도 오버레이)
   }
   if (m === "mystery") {
-    // Sovereign: 아레나 옆 ??? 티저 (중립 호기심, FOMO·압박 금지)
-    toast(t("tMystery"), "#fbbf24");
-    // optional: openEvent() or bump prestige curiosity
+    // 🏰 Legion Clans (guild) — 사회적 락인 리텐션
+    try { guildOpen(); } catch(e){}
     return;
   }
   if (!modeUnlocked(m)) { toast(t("msLocked", { n: MODE_UNLOCK[m] }), "#a855f7"); return; }
@@ -2994,6 +2993,7 @@ function finish(p, e) {
     }
     // 복리 배당 제거됨 (소액 표시만 UI에)
     META.gold += reward; bumpPrestige(2); saveMeta(); updateMeta();
+    try { guildContrib(1); } catch(e){}   // 🏰 길드 주간 기여
   } else {
     if (m === "campaign") {
       META.streak = 0;
@@ -6332,3 +6332,91 @@ try {
   pingActive();   // 🔔 재참여 알림용 활동 핑(비활성 판정 정확)
   try { raidDailyReset(); checkRevenge(); raidSnapshot(); } catch (e) {}   // 🗡️ 습격: 에너지 리셋 + 복수큐 + 방어 스냅샷
 } catch (e) {}
+
+/* ============================================================
+   LEGION CLANS (Guild MVP-1) — social lock-in retention (deep-dive #1 lever)
+   사회적 락인: 개인 이탈을 동료 압박으로. 실카운트만, 강요X 보너스O, NPC=정직라벨.
+   ============================================================ */
+const GUILD_NPC_NAMES = ["Kael","Riven","Auron","Sable","Dyre","Vesk","Talon","Nyx","Orin","Cael","Bram","Zeph","Lyra","Fenn","Roan","Isolde"];
+function _guildWeek(){ const d=new Date(); const y=d.getFullYear(); const o=new Date(y,0,1); const w=Math.ceil((((d-o)/86400000)+o.getDay()+1)/7); return y+"-W"+w; }
+function ensureGuild(){
+  META.guild = META.guild || {};
+  const g = META.guild;
+  if (g.name && g.week !== _guildWeek()){ // weekly reset
+    g.week = _guildWeek(); g.contrib = 0; g.goalCur = 0; g.goalClaimed = false;
+    g.members = (g.members||[]).map(m=>({ name:m.name, contrib: 3 + Math.floor(Math.random()*22) }));
+  }
+  return g;
+}
+function guildContrib(n){
+  const g = ensureGuild(); if (!g.name) return;
+  n = n||1; g.contrib = (g.contrib||0) + n; g.goalCur = (g.goalCur||0) + n;
+  const target = guildGoalTarget();
+  if (!g.goalClaimed && g.goalCur >= target){
+    g.goalClaimed = true;
+    const rw = 300 + META.chapter*40; META.gold += rw; saveMeta();
+    try { toast("🏰 Legion goal reached! +"+rw+" gold to every member", "#f5c451"); } catch(e){}
+  }
+  saveMeta();
+}
+function guildGoalTarget(){ const g=META.guild||{}; return 60 + (g.members?g.members.length:0)*8; }
+function _guildBonus(){ const rw = 400 + (META.chapter||1)*30; META.gold += rw; META.gems = (META.gems||0)+80; saveMeta(); updateMeta&&updateMeta(); return rw; }
+function createGuild(name){
+  const g = ensureGuild();
+  g.name = (String(name||"").trim().slice(0,22)) || "Iron Legion";
+  g.founded = today(); g.week = _guildWeek(); g.contrib = 0; g.goalCur = 0; g.goalClaimed = false;
+  // fill with fictional AI legionnaires (honest label) so small servers still feel alive
+  const pool = [...GUILD_NPC_NAMES].sort(()=>Math.random()-0.5).slice(0,9);
+  g.members = pool.map(nm=>({ name:nm, contrib: 5 + Math.floor(Math.random()*30) }));
+  const rw = _guildBonus();
+  saveMeta();
+  try { toast("🏰 "+g.name+" founded! Welcome bonus +"+rw+"g +80💎", "#a3e635"); } catch(e){}
+  guildOpen();
+}
+function guildOpen(){
+  const g = ensureGuild();
+  let ov = document.getElementById("guild-modal");
+  if (ov) ov.remove();
+  ov = document.createElement("div");
+  ov.id = "guild-modal";
+  ov.style.cssText = "position:fixed;inset:0;z-index:60;background:rgba(3,5,12,.94);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:max(16px,env(safe-area-inset-top)) 12px calc(24px + env(safe-area-inset-bottom));";
+  let inner = '<div style="width:100%;max-width:440px;color:#e2e8f0;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div style="font-size:19px;font-weight:900;color:#f5c451;">🏰 '+(t&&t("navChar")?"Legion":"Legion")+' Clans</div><button id="guild-x" style="background:#1c2233;color:#8b8ba7;border:none;font-size:20px;border-radius:8px;padding:2px 10px;cursor:pointer;">✕</button></div>';
+  if (!g.name){
+    inner += '<div style="background:#12172a;border:1px solid #2a3350;border-radius:14px;padding:16px;">'
+      + '<div style="font-size:14px;font-weight:700;margin-bottom:6px;">Found your Legion</div>'
+      + '<div style="font-size:12px;color:#9aa3c0;line-height:1.6;margin-bottom:12px;">A clan fights together. Weekly goals, shared gold, a leaderboard among your own. <b style="color:#a3e635;">Join bonus: +gold +80💎.</b></div>'
+      + '<input id="guild-name-in" maxlength="22" placeholder="Legion name" style="width:100%;box-sizing:border-box;padding:11px;border-radius:10px;border:1px solid #33406a;background:#0b1020;color:#fff;font-size:14px;margin-bottom:10px;">'
+      + '<button id="guild-create" style="width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#f5c451,#d97706);color:#1a1400;font-weight:800;font-size:15px;cursor:pointer;">Found Legion →</button>'
+      + '</div>';
+  } else {
+    const target = guildGoalTarget(); const cur = g.goalCur||0; const pct = Math.min(100, Math.round(cur/target*100));
+    const roster = [{ name:(META.name||"You"), contrib:(g.contrib||0), me:true }].concat(g.members||[]).sort((a,b)=>b.contrib-a.contrib);
+    const maxc = Math.max(1, ...roster.map(r=>r.contrib));
+    inner += '<div style="font-size:15px;font-weight:800;color:#fff;margin-bottom:2px;">'+g.name+'</div>'
+      + '<div style="font-size:11px;color:#7a7a96;margin-bottom:12px;">Founded '+(g.founded||"")+' · '+(roster.length)+' legionnaires</div>';
+    // collective goal thermometer
+    inner += '<div style="background:#12172a;border:1px solid #2a3350;border-radius:12px;padding:12px;margin-bottom:12px;">'
+      + '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;"><b>🎯 Weekly Legion goal</b><span style="color:#f5c451;">'+cur+' / '+target+'</span></div>'
+      + '<div style="height:10px;background:#0b1020;border-radius:6px;overflow:hidden;"><div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,#f5c451,#ff9e3d);"></div></div>'
+      + (g.goalClaimed?'<div style="font-size:11px;color:#a3e635;margin-top:6px;">✓ Goal reached — reward paid to all</div>':'<div style="font-size:11px;color:#9aa3c0;margin-top:6px;">Win battles to fill it — everyone gets gold.</div>')
+      + '</div>';
+    // contribution leaderboard (real counts)
+    inner += '<div style="font-size:12px;font-weight:700;margin-bottom:6px;">This week\'s contribution</div><div style="background:#12172a;border:1px solid #2a3350;border-radius:12px;padding:8px 10px;">';
+    roster.slice(0,10).forEach((r,i)=>{
+      const w = Math.round(r.contrib/maxc*100);
+      inner += '<div style="display:flex;align-items:center;gap:8px;margin:5px 0;">'
+        + '<span style="width:16px;font-size:11px;color:#7a7a96;">'+(i+1)+'</span>'
+        + '<span style="flex:0 0 78px;font-size:12px;color:'+(r.me?"#f5c451":"#cbd5e1")+';font-weight:'+(r.me?"800":"500")+';">'+r.name+(r.me?"":"")+'</span>'
+        + '<span style="flex:1;height:7px;background:#0b1020;border-radius:4px;overflow:hidden;"><span style="display:block;height:100%;width:'+w+'%;background:'+(r.me?"#f5c451":"#4a5578")+';"></span></span>'
+        + '<span style="width:26px;text-align:right;font-size:11px;color:#9aa3c0;">'+r.contrib+'</span></div>';
+    });
+    inner += '</div><div style="font-size:10px;color:#5a5a72;margin-top:8px;text-align:center;">Legionnaires shown are AI clanmates until real players join. Counts are real.</div>';
+  }
+  inner += '</div>';
+  ov.innerHTML = inner;
+  document.body.appendChild(ov);
+  const x=document.getElementById("guild-x"); if(x) x.onclick=()=>ov.remove();
+  const cb=document.getElementById("guild-create"); if(cb) cb.onclick=()=>{ const v=document.getElementById("guild-name-in"); createGuild(v?v.value:""); };
+  ov.addEventListener("click",e=>{ if(e.target===ov) ov.remove(); });
+}
