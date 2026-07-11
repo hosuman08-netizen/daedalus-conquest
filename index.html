@@ -59,7 +59,7 @@
     <div id="tut-ring" style="position:absolute;border:3px solid #fbbf24;border-radius:12px;box-shadow:0 0 0 9999px rgba(3,7,18,.82),0 0 22px #fbbf24,inset 0 0 14px rgba(251,191,36,.4);pointer-events:none;display:none;transition:all .25s ease;"></div>
     <div id="tut-card" style="position:absolute;bottom:84px;left:50%;transform:translateX(-50%);width:88%;max-width:360px;background:#0b111f;border:1.5px solid #fbbf24;border-radius:14px;padding:16px 18px;box-shadow:0 12px 40px rgba(0,0,0,.7),0 0 24px rgba(251,191,36,.25);text-align:center;">
       <div id="tut-text" style="font-size:14px;line-height:1.65;color:#e2e8f0;white-space:pre-line;margin-bottom:12px;"></div>
-      <button id="tut-next" style="width:100%;background:linear-gradient(135deg,var(--gold,#fbbf24),var(--gold-deep,#d97706));color:#1a1400;font-weight:800;font-size:15px;padding:12px;border:none;border-radius:11px;cursor:pointer;box-shadow:0 6px 18px rgba(245,196,81,.3);">다음</button>
+      <button id="tut-next" data-i18n="tutNext" style="width:100%;background:linear-gradient(135deg,var(--gold,#fbbf24),var(--gold-deep,#d97706));color:#1a1400;font-weight:800;font-size:15px;padding:12px;border:none;border-radius:11px;cursor:pointer;box-shadow:0 6px 18px rgba(245,196,81,.3);">다음</button>
       <button id="tut-skip" data-i18n="tutSkip" style="margin-top:8px;background:none;border:none;color:#8b8ba7;font-size:12px;cursor:pointer;text-decoration:underline;">건너뛰기</button>
       <div id="tut-dots" style="margin-top:8px;font-size:10px;color:#5a5a72;letter-spacing:2px;"></div>
     </div>
@@ -96,7 +96,7 @@
       <button class="modetab" data-m="tower" data-i18n="mode.tower"><span class="mode-icon">🚀</span> 무한탑</button>
       <button class="modetab" data-m="boss" data-i18n="mode.boss"><span class="mode-icon">🐉</span> 보스</button>
       <button class="modetab" data-m="arena" data-i18n="mode.arena"><span class="mode-icon">🗡️</span> 습격</button>
-      <button class="modetab" data-m="mystery" title="Legion Clans"><span class="mode-icon">🏰</span> 군단</button>
+      <button class="modetab" data-m="mystery" data-i18n="mode.mystery" title="Legion Clans"><span class="mode-icon">🏰</span> 군단</button>
     </div>
     <div id="ms-hint" class="ms-hint"></div>
     <!-- 🔄 환생 발견성: ch18+ 도달 시 노출 (PRD §6 "환생 가능 · 예상 에테르 N") -->
@@ -184,7 +184,7 @@
 
       <!-- ⚔️ 출전 편성 (수집 캐릭터가 곧 부대) -->
       <div class="set-sec">⚔️ <span data-i18n="sqTitle">출전 편성</span> <span id="squad-info" class="ddim"></span></div>
-      <button id="squad-auto" class="gbig" style="margin-bottom:8px;background:linear-gradient(160deg,#123047,#0b1b2c);border-color:#38bdf8;color:#bae6fd;font-weight:800;">⚡ 원탭 추천 편성 <small style="color:#7dd3fc;">(가장 강한 캐릭 자동 배치)</small></button>
+      <button id="squad-auto" data-i18n="squadAutoBtn" class="gbig" style="margin-bottom:8px;background:linear-gradient(160deg,#123047,#0b1b2c);border-color:#38bdf8;color:#bae6fd;font-weight:800;">⚡ 원탭 추천 편성 <small style="color:#7dd3fc;">(가장 강한 캐릭 자동 배치)</small></button>
       <div id="squad-syn"></div>
       <div id="squad-slots"></div>
       <div class="squad-pool-label" data-i18n="sqPool">📋 보유 캐릭터 — 탭해서 편성/해제</div>
@@ -300,12 +300,12 @@
       <div class="set-sec">🎰 <span data-i18n="shopGacha">뽑기</span></div>
       <div id="featured-banner"></div>
       <div id="shop-gacha">
-        <button class="gbig" id="sg-char1">🎰 <span data-i18n="navChar">캐릭터</span> · 💎8</button>
-        <button class="gbig" id="sg-char10">💎 <span data-i18n="navChar">캐릭터</span> 10연 · 💎80</button>
-        <button class="gbig" id="sg-gold1">🪙 <span data-i18n="navChar">캐릭터</span> · 200골드 <small>(N/R/SR)</small></button>
-        <button class="gbig" id="sg-gold10">🪙 <span data-i18n="navChar">캐릭터</span> 10연 · 1,800골드 <small>(SR↑ 1보장)</small></button>
-        <button class="gbig" id="sg-gear1">🔨 <span data-i18n="gTitle">장비</span> · 💎8</button>
-        <button class="gbig" id="sg-gear10">🔨 <span data-i18n="gTitle">장비</span> 10연 · 💎72</button>
+        <button class="gbig" id="sg-char1" data-i18n="sgChar1">🎰 캐릭터 · 💎8</button>
+        <button class="gbig" id="sg-char10" data-i18n="sgChar10">💎 캐릭터 10연 · 💎80</button>
+        <button class="gbig" id="sg-gold1" data-i18n="sgGold1">🪙 캐릭터 · 200골드 (N/R/SR)</button>
+        <button class="gbig" id="sg-gold10" data-i18n="sgGold10">🪙 캐릭터 10연 · 1,800골드 (SR↑ 1보장)</button>
+        <button class="gbig" id="sg-gear1" data-i18n="sgGear1">🔨 장비 · 💎8</button>
+        <button class="gbig" id="sg-gear10" data-i18n="sgGear10">🔨 장비 10연 · 💎72</button>
       </div>
       <div id="gacha-rates" class="notranslate" translate="no" style="font-weight:700;border:1px solid #fbbf24;padding:4px;border-radius:6px;background:rgba(251,191,36,0.08);">
         <div class="gr-rates" style="font-size:11px;"><span class="gr-n">N 55%</span><span class="gr-r">R 30%</span><span class="gr-sr">SR 12%</span><span class="gr-ssr">SSR 3%</span></div>
@@ -330,8 +330,8 @@
         <button id="invite-friend" data-i18n="inviteFriendBtn" class="gbig" style="flex:1;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-color:#8b5cf6;color:#fff;font-weight:800;">👥 친구 초대</button>
       </div>
       <div id="ref-status" style="font-size:12px;color:var(--dim);margin-top:7px;text-align:center;cursor:pointer;"></div>
-      <button id="ref-claim" class="gbig" style="display:none;margin-top:6px;background:linear-gradient(135deg,var(--gold,#fbbf24),var(--gold-deep,#d97706));border-color:var(--gold,#fbbf24);color:#1a1400;font-weight:800;">🎁 친구 초대 보상 받기</button>
-      <div style="font-size:10.5px;color:#67e8f9;margin-top:4px;text-align:center;cursor:pointer;" onclick="if(typeof openRefModal==='function')openRefModal()">🏆 탭하면 1만명까지 전체 보상표 ▸</div>
+      <button id="ref-claim" data-i18n="refClaimBtn" class="gbig" style="display:none;margin-top:6px;background:linear-gradient(135deg,var(--gold,#fbbf24),var(--gold-deep,#d97706));border-color:var(--gold,#fbbf24);color:#1a1400;font-weight:800;">🎁 친구 초대 보상 받기</button>
+      <div data-i18n="refTableBtn" style="font-size:10.5px;color:#67e8f9;margin-top:4px;text-align:center;cursor:pointer;" onclick="if(typeof openRefModal==='function')openRefModal()">🏆 탭하면 1만명까지 전체 보상표 ▸</div>
       <div class="set-sec">🌐 <span data-i18n="setLang">언어</span></div>
       <div id="lang-list"></div>
       <div class="set-row"><span>🔊 <span data-i18n="setSound">사운드</span></span><button id="set-sound" class="toggle">ON</button></div>

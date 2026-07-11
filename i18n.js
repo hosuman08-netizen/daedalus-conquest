@@ -1078,6 +1078,103 @@ Object.assign(I18N.ja, { inviteBtn: "リンクを共有", ascNow: "現在", payD
 Object.assign(I18N.zh, { inviteBtn: "分享链接", ascNow: "当前", payDemoNote: "🧪 演示模式(真实Telegram Stars支付需部署Worker后接入)" });
 Object.assign(I18N.hi, { inviteBtn: "लिंक साझा करें", ascNow: "अभी", payDemoNote: "🧪 डेमो मोड (असली Telegram Stars भुगतान Worker डिप्लॉय के बाद)" });
 Object.assign(I18N.ru, { inviteBtn: "Поделиться ссылкой", ascNow: "Сейчас", payDemoNote: "🧪 Демо-режим (реальная оплата Telegram Stars — после деплоя Worker)" });
+// 🌐 언어 혼용 정리 (2026-07-11) — 하드코딩 한글이던 상점/편성/코칭/추천 UI 6언어화. 코드값과 표시 100% 일치 유지.
+Object.assign(I18N.ko, {
+  "mode.mystery": "🏰 군단",
+  squadAutoBtn: '⚡ 원탭 추천 편성 <small style="color:#7dd3fc;">(가장 강한 캐릭 자동 배치)</small>',
+  sgChar1: "🎰 캐릭터 · 💎8", sgChar10: "💎 캐릭터 10연 · 💎80",
+  sgGold1: "🪙 캐릭터 · 200골드 (N/R/SR)", sgGold10: "🪙 캐릭터 10연 · 1,800골드 (SR↑ 1보장)",
+  sgGear1: "🔨 장비 · 💎8", sgGear10: "🔨 장비 10연 · 💎72",
+  refClaimBtn: "🎁 친구 초대 보상 받기", refTableBtn: "🏆 탭하면 1만명까지 전체 보상표 ▸",
+  dcTitle: "벽에 막혔나요? 무료로 지금 강해지기", dcSub: "과금 없이 아래만 해도 전력이 올라요", dcClose: "닫기",
+  actEmptyTxt: "출전 편성이 비었어요 — 최강 {n}명 자동 배치", actEmptyBtn: "원탭 추천 편성",
+  actGearTxt: "미장착 장비 {n}개 — 장착만 해도 전력이 올라요", actGearBtn: "장비 장착하러",
+  actLvlTxt: "보유 골드로 {n}명 즉시 레벨업 가능", actLvlBtn: "캐릭 강화하러",
+  actFreeTxt: "오늘의 무료 소환을 아직 안 썼어요", actFreeBtn: "무료 소환 받으러",
+  actRebirthTxt: "환생하면 영구 전력(에테르)을 얻어 벽을 넘어요", actRebirthBtn: "환생 보러가기",
+  toastNeedChars: "가챠로 캐릭터를 먼저 모으세요.", toastAutoDeploy: "⚡ 최강 {n}명 자동 편성 완료",
+  poolEmpty: "가챠로 캐릭터를 모아 편성하세요.",
+});
+Object.assign(I18N.en, {
+  "mode.mystery": "🏰 Clans",
+  squadAutoBtn: '⚡ One-tap Best Squad <small style="color:#7dd3fc;">(auto-place strongest)</small>',
+  sgChar1: "🎰 Character · 💎8", sgChar10: "💎 Character ×10 · 💎80",
+  sgGold1: "🪙 Character · 200 gold (N/R/SR)", sgGold10: "🪙 Character ×10 · 1,800 gold (SR+ 1 guaranteed)",
+  sgGear1: "🔨 Gear · 💎8", sgGear10: "🔨 Gear ×10 · 💎72",
+  refClaimBtn: "🎁 Claim Invite Rewards", refTableBtn: "🏆 Tap for the full reward table up to 10,000 ▸",
+  dcTitle: "Hit a wall? Get stronger now — free", dcSub: "No spending needed — just do the below to power up", dcClose: "Close",
+  actEmptyTxt: "Your squad is empty — auto-deploy your {n} strongest", actEmptyBtn: "One-tap Squad",
+  actGearTxt: "{n} unequipped gear — equip to boost power", actGearBtn: "Equip gear",
+  actLvlTxt: "Level up {n} units right now with your gold", actLvlBtn: "Upgrade units",
+  actFreeTxt: "You haven't used today's free summon", actFreeBtn: "Get free summon",
+  actRebirthTxt: "Rebirth for permanent power (Ether) to break the wall", actRebirthBtn: "View Rebirth",
+  toastNeedChars: "Collect characters from gacha first.", toastAutoDeploy: "⚡ Auto-deployed your {n} strongest",
+  poolEmpty: "Collect characters from gacha to build your squad.",
+});
+Object.assign(I18N.ja, {
+  "mode.mystery": "🏰 軍団",
+  squadAutoBtn: '⚡ ワンタップ推奨編成 <small style="color:#7dd3fc;">(最強キャラ自動配置)</small>',
+  sgChar1: "🎰 キャラ · 💎8", sgChar10: "💎 キャラ10連 · 💎80",
+  sgGold1: "🪙 キャラ · 200ゴールド (N/R/SR)", sgGold10: "🪙 キャラ10連 · 1,800ゴールド (SR↑1確定)",
+  sgGear1: "🔨 装備 · 💎8", sgGear10: "🔨 装備10連 · 💎72",
+  refClaimBtn: "🎁 招待報酬を受け取る", refTableBtn: "🏆 タップで1万人までの全報酬表 ▸",
+  dcTitle: "壁にぶつかった? 無料で今すぐ強くなる", dcSub: "課金なしでも下記だけで戦力アップ", dcClose: "閉じる",
+  actEmptyTxt: "編成が空です — 最強{n}体を自動配置", actEmptyBtn: "ワンタップ編成",
+  actGearTxt: "未装備の装備{n}個 — 装備するだけで戦力UP", actGearBtn: "装備しに行く",
+  actLvlTxt: "所持ゴールドで{n}体を今すぐレベルアップ可能", actLvlBtn: "キャラ強化へ",
+  actFreeTxt: "本日の無料召喚がまだです", actFreeBtn: "無料召喚を受け取る",
+  actRebirthTxt: "転生で永久戦力(エーテル)を得て壁を越える", actRebirthBtn: "転生を見る",
+  toastNeedChars: "まずガチャでキャラを集めよう。", toastAutoDeploy: "⚡ 最強{n}体を自動編成完了",
+  poolEmpty: "ガチャでキャラを集めて編成しよう。",
+});
+Object.assign(I18N.zh, {
+  "mode.mystery": "🏰 军团",
+  squadAutoBtn: '⚡ 一键推荐编队 <small style="color:#7dd3fc;">(自动上阵最强)</small>',
+  sgChar1: "🎰 角色 · 💎8", sgChar10: "💎 角色十连 · 💎80",
+  sgGold1: "🪙 角色 · 200金币 (N/R/SR)", sgGold10: "🪙 角色十连 · 1,800金币 (SR↑保底1)",
+  sgGear1: "🔨 装备 · 💎8", sgGear10: "🔨 装备十连 · 💎72",
+  refClaimBtn: "🎁 领取邀请奖励", refTableBtn: "🏆 点击查看至1万人全部奖励表 ▸",
+  dcTitle: "遇到瓶颈? 免费立即变强", dcSub: "无需付费 只做下面几步战力就提升", dcClose: "关闭",
+  actEmptyTxt: "编队为空 — 自动上阵最强{n}名", actEmptyBtn: "一键编队",
+  actGearTxt: "{n}件未装备装备 — 装备即可提升战力", actGearBtn: "去装备",
+  actLvlTxt: "用现有金币可立即升级{n}名", actLvlBtn: "去强化角色",
+  actFreeTxt: "今天的免费召唤还没用", actFreeBtn: "领取免费召唤",
+  actRebirthTxt: "转生获得永久战力(以太)突破瓶颈", actRebirthBtn: "查看转生",
+  toastNeedChars: "请先用抽卡收集角色。", toastAutoDeploy: "⚡ 已自动编队最强{n}名",
+  poolEmpty: "用抽卡收集角色来编队吧。",
+});
+Object.assign(I18N.hi, {
+  "mode.mystery": "🏰 दल",
+  squadAutoBtn: '⚡ वन-टैप बेस्ट टुकड़ी <small style="color:#7dd3fc;">(सबसे मजबूत ऑटो-सेट)</small>',
+  sgChar1: "🎰 किरदार · 💎8", sgChar10: "💎 किरदार ×10 · 💎80",
+  sgGold1: "🪙 किरदार · 200 गोल्ड (N/R/SR)", sgGold10: "🪙 किरदार ×10 · 1,800 गोल्ड (SR+ 1 गारंटी)",
+  sgGear1: "🔨 गियर · 💎8", sgGear10: "🔨 गियर ×10 · 💎72",
+  refClaimBtn: "🎁 आमंत्रण इनाम लें", refTableBtn: "🏆 10,000 तक पूरा इनाम टेबल देखें ▸",
+  dcTitle: "दीवार से टकराए? अभी मुफ्त में मजबूत बनें", dcSub: "बिना खर्च के नीचे दिए काम से ताकत बढ़ेगी", dcClose: "बंद करें",
+  actEmptyTxt: "आपकी टुकड़ी खाली है — {n} सबसे मजबूत ऑटो-तैनात करें", actEmptyBtn: "वन-टैप टुकड़ी",
+  actGearTxt: "{n} बिना लगे गियर — लगाकर ताकत बढ़ाएं", actGearBtn: "गियर लगाएं",
+  actLvlTxt: "अपने गोल्ड से {n} यूनिट अभी लेवल-अप करें", actLvlBtn: "यूनिट सुधारें",
+  actFreeTxt: "आपने आज का मुफ्त सम्मन नहीं लिया", actFreeBtn: "मुफ्त सम्मन लें",
+  actRebirthTxt: "दीवार तोड़ने को पुनर्जन्म से स्थायी शक्ति (ईथर) पाएं", actRebirthBtn: "पुनर्जन्म देखें",
+  toastNeedChars: "पहले गाचा से किरदार इकट्ठा करें।", toastAutoDeploy: "⚡ {n} सबसे मजबूत ऑटो-तैनात",
+  poolEmpty: "टुकड़ी बनाने को गाचा से किरदार इकट्ठा करें।",
+});
+Object.assign(I18N.ru, {
+  "mode.mystery": "🏰 Кланы",
+  squadAutoBtn: '⚡ Лучший отряд в один тап <small style="color:#7dd3fc;">(авто-расстановка сильнейших)</small>',
+  sgChar1: "🎰 Персонаж · 💎8", sgChar10: "💎 Персонаж ×10 · 💎80",
+  sgGold1: "🪙 Персонаж · 200 золота (N/R/SR)", sgGold10: "🪙 Персонаж ×10 · 1,800 золота (гарант. 1 SR+)",
+  sgGear1: "🔨 Снаряж. · 💎8", sgGear10: "🔨 Снаряж. ×10 · 💎72",
+  refClaimBtn: "🎁 Забрать награды за друзей", refTableBtn: "🏆 Полная таблица наград до 10 000 ▸",
+  dcTitle: "Уперлись в стену? Станьте сильнее бесплатно", dcSub: "Без вложений — просто сделайте следующее", dcClose: "Закрыть",
+  actEmptyTxt: "Отряд пуст — авто-расстановка {n} сильнейших", actEmptyBtn: "Отряд в один тап",
+  actGearTxt: "{n} неэкипированного снаряжения — наденьте для силы", actGearBtn: "Экипировать",
+  actLvlTxt: "Прокачайте {n} юнитов прямо сейчас за золото", actLvlBtn: "Улучшить юнитов",
+  actFreeTxt: "Вы не использовали сегодняшний бесплатный призыв", actFreeBtn: "Забрать призыв",
+  actRebirthTxt: "Перерождение даёт вечную силу (Эфир), чтобы пройти стену", actRebirthBtn: "Открыть перерождение",
+  toastNeedChars: "Сначала соберите персонажей в гаче.", toastAutoDeploy: "⚡ Авто-расстановка {n} сильнейших",
+  poolEmpty: "Соберите персонажей в гаче, чтобы собрать отряд.",
+});
 function t(key, p) {
   let s = (I18N[LANG] && I18N[LANG][key]) || (I18N.en[key]) || key;
   if (p) for (const k in p) s = s.replace("{" + k + "}", p[k]);
