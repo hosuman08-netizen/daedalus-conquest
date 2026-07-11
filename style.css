@@ -95,7 +95,7 @@ h1::first-letter { color: var(--purple); }
 .meta.soul i { color: #c084fc; }
 .meta.coh { color: #67e8f9; font-size: 12px; } .meta.coh i { color: #a5f3fc; }
 /* MVP pity display - prominent in metabar for transparency */
-.meta.pity { font-size: 11px; font-weight: 700; color: var(--gold); background: #2a1f0f; padding: 2px 6px; border-radius: 4px; border: 1px solid #664e1f; }
+.meta.pity { font-size: 11px; font-weight: 700; color: var(--gold); background: #2a1f0f; padding: 4px 10px; border-radius: 999px; border: 1px solid #664e1f; }
 #ritual-orb { font-size:10px; }
 .soulhint { font-size: 11.5px; line-height: 1.5; color: #c4b5fd; background: linear-gradient(160deg, #241a3a, #16101f); border: 1px solid #3a2c5a; border-radius: 10px; padding: 10px 12px; }
 #dash-power.pop { animation: powerPop .45s ease; display: inline-block; }
