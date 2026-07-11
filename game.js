@@ -6194,6 +6194,10 @@ try { processReferralBonus(); } catch (e) {}
 if (!META.dailyMissionsClaimed && ((META.dailyBattles||0) + (META.dailyPulls||0)) < 2) {
   setTimeout(() => toast(t("eventMissionHint"), "#a3e635"), 2500);
 }
+// 🎟️ 무료 일일 소환 습관 리마인더 — 오늘 미사용 시 접속 훅(자정 소멸 = 매일 접속 유도)
+if (META.freeTicketDay !== today()) {
+  setTimeout(() => toast(t("freeSummonRemind"), "#38bdf8"), 3400);
+}
 // 기본 FTUE (신규 첫 경험 유도 — 출시 임박 최소 가이드)
 if ((META.chapter || 1) <= 2 && ((META.pulls || 0) + (META.owned || []).length) < 5) {
   // 스타터 3인 고정 지급 (SR 전략가 + R 사수 + R 수호자)
