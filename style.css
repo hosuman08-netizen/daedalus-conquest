@@ -112,6 +112,8 @@ h1::first-letter { color: var(--purple); }
 
 /* 상점 뽑기 버튼 + 시즌 */
 #shop-gacha { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 6px; }
+/* 뽑기 버튼의 괄호 부가설명(N/R/SR·보장 등)이 본문과 같은 크기라 산만 → 작게·흐리게 낮춰 라벨 위계 확보 */
+#shop-gacha .gbig small { font-size: .82em; opacity: .72; font-weight: 600; }
 .gbig { padding: 14px 8px; font-size: 13px; font-weight: 800; border-radius: 10px; background: linear-gradient(135deg, #2a2348, #171130); color: var(--text); border: 1px solid #473a63; }
 .gbig:active { transform: scale(.97); }
 #season-list { margin-bottom: 8px; }
