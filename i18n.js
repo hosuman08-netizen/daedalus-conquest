@@ -1041,6 +1041,13 @@ Object.assign(I18N.ja, { freeSummonReady: "🎟️ 無料デイリー召喚", fr
 Object.assign(I18N.zh, { freeSummonReady: "🎟️ 免费每日召唤", freeUsed: "✓ 今日免费召唤已完成 (0点重置)", vaultInfo: "🔋 AFK金库: 离开时自动金币 · 最多存8小时" });
 Object.assign(I18N.hi, { freeSummonReady: "🎟️ मुफ़्त डेली सम्मन", freeUsed: "✓ आज का मुफ़्त सम्मन पूरा (आधी रात रीसेट)", vaultInfo: "🔋 AFK वॉल्ट: दूर रहते ऑटो गोल्ड · 8घं तक संचय" });
 Object.assign(I18N.ru, { freeSummonReady: "🎟️ Бесплатный призыв дня", freeUsed: "✓ Бесплатный призыв на сегодня использован (сброс в полночь)", vaultInfo: "🔋 AFK-хранилище: авто-золото пока вас нет · хранит до 8ч" });
+// 습관 훅: 패스 데일리 클레임 프롬프트(누적=매몰비용, 남은일=FOMO) · 무료소환 리마인더 · 저장고 넘침 경고(손실회피)
+Object.assign(I18N.ko, { passClaimPrompt: "📅 오늘의 패스 보상 💎+{n}! (누적 💎{tot} · {d}일 남음) — 매일 접속해 챙기세요", freeSummonRemind: "🎟️ 무료 소환 준비됨 — 이벤트 탭에서 오늘의 뽑기를 받으세요", vaultOverflow: "⚠️ AFK 저장고가 가득 찼었어요 ({t} 초과) — 8시간마다 접속해 골드 낭비를 막으세요" });
+Object.assign(I18N.en, { passClaimPrompt: "📅 Today's pass reward 💎+{n}! ({tot} total · {d} days left) — log in daily to claim", freeSummonRemind: "🎟️ Free summon ready — grab today's pull in the Event tab", vaultOverflow: "⚠️ Your AFK vault was full ({t} overflow) — log in every 8h so no gold is wasted" });
+Object.assign(I18N.ja, { passClaimPrompt: "📅 本日のパス報酬 💎+{n}! (累計 💎{tot} · 残り{d}日) — 毎日ログインで受取", freeSummonRemind: "🎟️ 無料召喚が可能 — イベントタブで本日のガチャを受け取ろう", vaultOverflow: "⚠️ AFK貯蔵が満杯でした ({t}超過) — 8時間ごとにログインしてゴールドの無駄を防ごう" });
+Object.assign(I18N.zh, { passClaimPrompt: "📅 今日通行证奖励 💎+{n}! (累计 💎{tot} · 剩{d}天) — 每日登录领取", freeSummonRemind: "🎟️ 免费召唤已就绪 — 在活动页领取今日抽卡", vaultOverflow: "⚠️ AFK金库已满 ({t}溢出) — 每8小时登录一次以免浪费金币" });
+Object.assign(I18N.hi, { passClaimPrompt: "📅 आज का पास इनाम 💎+{n}! (कुल 💎{tot} · {d}दिन बाकी) — रोज़ लॉगिन कर लें", freeSummonRemind: "🎟️ मुफ़्त सम्मन तैयार — इवेंट टैब में आज का पुल लें", vaultOverflow: "⚠️ आपका AFK वॉल्ट भर गया था ({t} अतिरिक्त) — हर 8घं लॉगिन करें ताकि गोल्ड बर्बाद न हो" });
+Object.assign(I18N.ru, { passClaimPrompt: "📅 Награда пропуска 💎+{n}! (всего 💎{tot} · осталось {d}д) — заходите каждый день", freeSummonRemind: "🎟️ Бесплатный призыв готов — заберите крутку дня во вкладке Событий", vaultOverflow: "⚠️ AFK-хранилище было полным ({t} переполнение) — заходите каждые 8ч, чтобы не терять золото" });
 // WAVE1 활성화/스트릭
 Object.assign(I18N.ko, { openFirstGacha: "→ 첫 소환 (SSR 확정!) 🌟", streakLadder: "🔥 {d}일 연속! 보너스 💎{gem}", firstWinBanner: "🏆 첫 승리! 내 군단이 승리를 봉인했다" });
 Object.assign(I18N.en, { openFirstGacha: "→ First summon (SSR guaranteed!) 🌟", streakLadder: "🔥 {d}-day streak! Bonus 💎{gem}", firstWinBanner: "🏆 First victory! Your legion sealed the win" });

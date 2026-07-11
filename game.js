@@ -5091,11 +5091,24 @@ const SHOP = [
 // (rank36: 죽은 스텁 initAgentSwarm 제거 — 프로덕션 콘솔 'Echoes 2040' 노출 제거. 로드맵은 ROADMAP.md로.)
 function dayPlus(n) { try { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); } catch (e) { return ""; } }
 function passActive(kind) { return META.pass[kind] && today() <= META.pass[kind]; }
-function checkPasses() {                                // 활성 패스 = 매일 💎 자동 수령
+// 남은 일수(오늘 포함): 만료 ISO 날짜 - 오늘. 표시=코드 일치(prominent, 정직).
+function passDaysLeft(kind) {
+  try { if (!META.pass[kind]) return 0;
+    const ms = new Date(META.pass[kind] + "T00:00:00").getTime() - new Date(today() + "T00:00:00").getTime();
+    return Math.max(0, Math.floor(ms / 86400000) + 1);
+  } catch (e) { return 0; }
+}
+function checkPasses() {                                // 활성 패스 = 매일 💎 자동 수령 + 습관/매몰비용 프롬프트
   let got = 0;
   if (passActive("monthly") && META.passClaim.monthly !== today()) { META.gems = (META.gems || 0) + 100; META.passClaim.monthly = today(); got += 100; }
   if (passActive("weekly") && META.passClaim.weekly !== today()) { META.gems = (META.gems || 0) + 100; META.passClaim.weekly = today(); got += 100; }   // 매일 50→100 (주간 가성비 1.5→2.9배)
-  if (got) { saveMeta(); updateMeta(); toast("📅 " + t("passDaily", { n: got }), "#fbbf24"); }
+  if (got) {
+    META.passTotalGems = (META.passTotalGems || 0) + got;   // 누적 수령 💎 (매몰비용 프레이밍)
+    const dleft = Math.max(passDaysLeft("monthly"), passDaysLeft("weekly"));   // 남은 최장 패스 일수 (FOMO)
+    saveMeta(); updateMeta();
+    // 가치 프레이밍: 오늘 지급 + 누적(sunk cost) + 남은일(scarcity) → "매일 접속해 챙기라"
+    toast(t("passClaimPrompt", { n: got, tot: META.passTotalGems, d: dleft }), "#fbbf24");
+  }
 }
 function openShop() { loadPayRates(); renderShop(); showPage("shop"); }
 function renderShop() {
