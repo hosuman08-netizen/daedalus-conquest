@@ -69,8 +69,8 @@ export default {
         if (type === "first_gacha" && !u.fg) u.fg = day;
         // 복귀 스트릭(daily_return.d.streak 최대치 보존) — 리텐션 훅 강도
         if (type === "daily_return") { const s = (b.d && +b.d.streak) || 0; if (s > (u.streak || 0)) u.streak = s; }
-        // 획득채널 최초 1회 고정(install.d.channel) — CMO 채널 ROI 슬라이싱
-        if (type === "install" && !u.ch) u.ch = String((b.d && b.d.channel) || "direct").slice(0, 20);
+        // 획득채널 최초 1회 고정(첫 비어있지 않은 값 승리 — install 유실돼도 session_start로 채움). CMO 채널 ROI 슬라이싱
+        if (!u.ch && b.d && b.d.channel) u.ch = String(b.d.channel).slice(0, 20);
         await env.EVENTS.put(uk, JSON.stringify(u), { expirationTtl: 45 * 86400 });   // D30 코호트 성숙 대비 45일
         // 채널별 install 일별 집계. 키: chan:YYYY-MM-DD:channel
         if (type === "install") {
@@ -78,6 +78,13 @@ export default {
           const chk = "chan:" + day + ":" + ch;
           const chcur = parseInt((await env.EVENTS.get(chk)) || "0", 10);
           await env.EVENTS.put(chk, String(chcur + 1), { expirationTtl: 60 * 86400 });
+        }
+        // 채널별 세션 일별 집계(코호트 성숙 전 채널 초기반응 읽기). 키: chans:YYYY-MM-DD:channel
+        if (type === "session_start" && b.d && b.d.channel) {
+          const chs = String(b.d.channel).slice(0, 20);
+          const sk = "chans:" + day + ":" + chs;
+          const scur = parseInt((await env.EVENTS.get(sk)) || "0", 10);
+          await env.EVENTS.put(sk, String(scur + 1), { expirationTtl: 60 * 86400 });
         }
         // ch18 reach 특수: ascend 시 fromCh>=18 데이터 반영 (d.fromCh)
         if (type === "ascend" && b.d && (b.d.fromCh || 0) >= 18) {
@@ -102,6 +109,22 @@ export default {
       }
     }
 
+    // 🏛️ 창립 판테온 100 — 진짜 서버 하드캡(101번째 실제로 닫힘 = 합법 희소성). GET /founder?uid=X
+    if (req.method === "GET" && url.pathname === "/founder") {
+      if (!env.EVENTS) return json({ ok: false, reason: "kv-not-set" });
+      const fuid = String(url.searchParams.get("uid") || "").slice(0, 40);
+      if (!fuid) return json({ ok: false, reason: "no-uid" });
+      const FCAP = 100;
+      const fk = "fdr:u:" + fuid;
+      const ex = await env.EVENTS.get(fk);
+      if (ex) return json({ ok: true, founder: true, num: parseInt(ex, 10), cap: FCAP });
+      const fcount = parseInt((await env.EVENTS.get("fdr:count")) || "0", 10);
+      if (fcount >= FCAP) return json({ ok: true, founder: false, cap: FCAP, full: true });
+      const slot = fcount + 1;
+      await env.EVENTS.put("fdr:count", String(slot));
+      await env.EVENTS.put(fk, String(slot));   // 영구(TTL 없음 — 창립 기록). KV 비원자성: 콜드스타트 저동시성엔 무해.
+      return json({ ok: true, founder: true, num: slot, cap: FCAP, "new": true });
+    }
     // ② 집계 조회 — 오라클(CDO) 대시보드용. GET /stats?day=YYYY-MM-DD
     if (req.method === "GET" && url.pathname === "/stats") {
       if (!env.EVENTS) return json({ ok: false, reason: "kv-not-set" });
@@ -138,6 +161,12 @@ export default {
       try {
         const cr = await env.EVENTS.list({ prefix: "chan:" + day + ":", limit: 100 });
         for (const k of cr.keys) { const ch = k.name.split(":").slice(2).join(":"); out.channels[ch] = parseInt((await env.EVENTS.get(k.name)) || "0", 10); }
+      } catch (e) {}
+      // ── 채널별 세션 슬라이싱 (코호트 성숙 전 채널 초기반응) — chans:day:* 스캔 ──
+      out.channels_sessions = {};
+      try {
+        const sr = await env.EVENTS.list({ prefix: "chans:" + day + ":", limit: 100 });
+        for (const k of sr.keys) { const ch = k.name.split(":").slice(2).join(":"); out.channels_sessions[ch] = parseInt((await env.EVENTS.get(k.name)) || "0", 10); }
       } catch (e) {}
       // ── North Star proxy: D7 Engaged-Payer (전체 유저 스캔, rolling span≥7 ∧ eng ∧ pay) ──
       //  정직: 일별 코호트 아닌 누적 rolling 근사(성숙도 미보정). 정밀 코호트는 /cohort 확장 예정.
