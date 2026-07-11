@@ -6355,11 +6355,13 @@ function guildContrib(n){
   if (!g.goalClaimed && g.goalCur >= target){
     g.goalClaimed = true;
     const rw = 300 + META.chapter*40; META.gold += rw; saveMeta();
-    try { toast("🏰 Legion goal reached! +"+rw+" gold to every member", "#f5c451"); } catch(e){}
+    try { toast(guildBoss().e+" "+guildBoss().n+" defeated! +"+rw+" gold to every legionnaire", "#f5c451"); } catch(e){}
   }
   saveMeta();
 }
 function guildGoalTarget(){ const g=META.guild||{}; return 60 + (g.members?g.members.length:0)*8; }
+const GUILD_BOSSES = [{n:"Ashen Colossus",e:"\ud83d\udc79"},{n:"Void Serpent",e:"\ud83d\udc09"},{n:"Iron Tyrant",e:"\u2699\ufe0f"},{n:"Storm Wraith",e:"\ud83d\udc7b"},{n:"Blood Titan",e:"\ud83d\udc80"},{n:"Frost Warden",e:"\u2744\ufe0f"}];
+function guildBoss(){ const w=_guildWeek(); let h=0; for(let i=0;i<w.length;i++)h=(h*31+w.charCodeAt(i))>>>0; return GUILD_BOSSES[h%GUILD_BOSSES.length]; }
 function _guildBonus(){ const rw = 400 + (META.chapter||1)*30; META.gold += rw; META.gems = (META.gems||0)+80; saveMeta(); updateMeta&&updateMeta(); return rw; }
 function createGuild(name){
   const g = ensureGuild();
@@ -6397,9 +6399,9 @@ function guildOpen(){
       + '<div style="font-size:11px;color:#7a7a96;margin-bottom:12px;">Founded '+(g.founded||"")+' · '+(roster.length)+' legionnaires</div>';
     // collective goal thermometer
     inner += '<div style="background:#12172a;border:1px solid #2a3350;border-radius:12px;padding:12px;margin-bottom:12px;">'
-      + '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;"><b>🎯 Weekly Legion goal</b><span style="color:#f5c451;">'+cur+' / '+target+'</span></div>'
-      + '<div style="height:10px;background:#0b1020;border-radius:6px;overflow:hidden;"><div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,#f5c451,#ff9e3d);"></div></div>'
-      + (g.goalClaimed?'<div style="font-size:11px;color:#a3e635;margin-top:6px;">✓ Goal reached — reward paid to all</div>':'<div style="font-size:11px;color:#9aa3c0;margin-top:6px;">Win battles to fill it — everyone gets gold.</div>')
+      + '<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:6px;"><b>'+guildBoss().e+' Weekly Legion Boss — '+guildBoss().n+'</b><span style="color:#f5c451;">'+Math.max(0,target-cur)+' HP left</span></div>'
+      + '<div style="height:12px;background:#2a0d0d;border-radius:6px;overflow:hidden;border:1px solid #5a1e1e;"><div style="height:100%;width:'+(100-pct)+'%;background:linear-gradient(90deg,#ff4d4d,#c0392b);float:right;"></div></div>'
+      + (g.goalClaimed?'<div style="font-size:11px;color:#a3e635;margin-top:6px;">\u2620\ufe0f Boss defeated — reward paid to every legionnaire</div>':'<div style="font-size:11px;color:#9aa3c0;margin-top:6px;">Win battles to strike the boss together — the kill rewards all.</div>')
       + '</div>';
     // contribution leaderboard (real counts)
     inner += '<div style="font-size:12px;font-weight:700;margin-bottom:6px;">This week\'s contribution</div><div style="background:#12172a;border:1px solid #2a3350;border-radius:12px;padding:8px 10px;">';
