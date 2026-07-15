@@ -4041,13 +4041,16 @@ function showGacha(rar, msg, results) {
   if (listEl) listEl.innerHTML = (results && results.length)
     ? results.map((r) => `<div class="gres r${r.rarity}" style="border-color:${rarColor(r.rarity)}"><b style="color:${rarColor(r.rarity)}">${r.rarity}</b><span class="gres-nm">${r.name}</span>${r.dupe ? '<span class="gres-dup">' + t("dupeBadge") + '</span>' : (r.isNew ? '<span class="gres-new">NEW</span>' : '')}</div>`).join("")
     : "";
-  g.classList.remove("hidden");
   if (["SSR","UR","EX"].includes(rar.key)) {
+    // ⭐ 고등급: 강림 연출(#rebirth-veil, z60)이 카드(z10) 위를 덮어 텍스트가 겹쳐 보이던 문제 →
+    //    연출을 먼저 재생하고, 절정이 지난 뒤 카드를 띄워 겹침 제거(순차 연출). 되돌림 가능.
     SFX.ssr();
     haptic("heavy");
     try { confettiBurst(); } catch(e){}
     try { ssrSpectacle(); } catch(e){}   // ⭐ 고등급 강림 (UR/EX 포함)
+    setTimeout(() => { try { g.classList.remove("hidden"); } catch (e) {} }, 1750);   // 강림 연출(~1.9s) 끝난 뒤 카드 노출 → 텍스트 겹침 제거
   } else {
+    g.classList.remove("hidden");
     SFX.gacha();
     haptic("light");
   }
