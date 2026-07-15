@@ -48,7 +48,7 @@
 
 ### 10000h Future Tech Integration (Morpheus COO + Trinity CPO + full Legion 2026-06-29)
 **Sovereign**: finish 10000h search + full participation (Morpheus/Trinity/grunts). Apply canon to p1/p2.
-- p1: Agent swarms (multi-NPC commander/scout/executor orchestration in auto-battle + sim). RWA yields (expand rwa_yield/sf10000 agentic compound + fictional verifiable). Physical sims (embodied momentum/collision proxy in canvas + sim). Failure loops as fun (prestige from defeat data → mutate buffs, near-miss karma, variable ratio loss → win ramp). 
+- p1: Agent swarms (multi-NPC commander/scout/executor orchestration in auto-battle + sim). RWA yields (expand rwa_yield/sf10000 agentic compound + fictional verifiable). Physical sims (embodied momentum/collision proxy in canvas + sim). Failure loops as fun (prestige from defeat data → mutate buffs, near-miss karma, variable ratio loss → win ramp). + p6 DNA cross: Lung Surprise + Ache-Breath 창발 grafted into Echo lore (voice breath as living pity/near-miss). p3 full advanced with artistic voice mode, mutations, sfumato, FOMO drops. 2 births.
 - p2 (my-pantheon): AI agent UGC generators + future-tech Echo lore (quantum swarm / RWA avatar / physical titan gods). Real challenges (hallucination/alignment/scalability) as story quests. Festival UGC with agent stories.
 - 미꾸라지: Fictional "Echoes of 2040" shield + prominent exact rates everywhere (UI/banner/pre). No kompu. Reversible. Age gate. Internal refs only.
 - Ship-craft: Edit game.js/sim for stubs. Dispatch grunts. Update SPEC/roadmap. Test verify.

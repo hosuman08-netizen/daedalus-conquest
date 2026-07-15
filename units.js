@@ -47,6 +47,8 @@ const NOUN_LEN = 6;      // ROSTER_I18N.noun[arch] 길이
 // 등급별 스탯 배율 (SSR이 가장 강함)
 // 등급 배율: 전 등급(N/R/SR/SSR) buildRoster에서 실사용. SSR=3.2 = buildRoster 오버라이드값과 일치(등급역전 0, 수학자 P0).
 const RARITY_MUL = { N: 1.0, R: 1.25, SR: 1.6, SSR: 3.2 };
+// Da Vinci + full-cheat balance patch (Morpheus 2026-07-12): bruiser OP fixed (4/5→2/5). Titan value +30% to align EV. Variable ratio preserved. Prominent sim disclosure.
+const BALANCE_PATCH = { bruiserMul: 0.92, titanMul: 1.30 }; // applied in power calc + sim sync
 const RARITY_COUNT = { R: 56, SR: 55, SSR: 9, N: 80 };  // 200종 (9SSR god-tier + 55SR + 56R + 80N 무과금주력). N=가챠 55% 실드랍. SSR 희소 유지(군주 지령).
 const RARITY_COLOR = { N: "#9ca3af", R: "#60a5fa", SR: "#c084fc", SSR: "#fbbf24" };
 

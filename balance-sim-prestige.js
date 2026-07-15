@@ -117,3 +117,19 @@ printRun("실상수·진입ch15", { ...CFG, entry: 15 });
 printRun("실상수·진입ch20", { ...CFG, entry: 20 });
 
 console.log("\n→ 판정: 루프2~6 전진이 stall 없이 +면 무한 루프 성립. 전진폭은 game.js 선형 상수의 실제 결과이므로 라이브 출력에서 읽을 것(주석 하드코딩 금지).");
+
+// p6 Lung Surprise Eye + Ache-Breath meter cross into prestige sim (p1 full advance)
+let _p6 = { breath: 0.5, wound: 0.35, lastSurprise: 0 };
+function simSurprise(ache) {
+  const expected = (_p6.wound||0.35)*0.008*(0.6+0.4);
+  const delta = Math.abs((_p6.breath||0.5)%1 - (_p6._p||0.5));
+  _p6._p = _p6.breath||0.5;
+  const s = Math.min(1, Math.abs(delta - expected) * 1.618);
+  _p6.lastSurprise = s;
+  if (s>0.05) _p6.breath = ((_p6.breath||0.5) + s*0.003*(0.8+_p6.wound)) % 6.28;
+  if (ache>0.2) _p6.wound = Math.max(_p6.wound, ache);
+  return s;
+}
+const baseSur = simSurprise(0.4);
+const highAcheSur = simSurprise(0.72);
+console.log(`[p6 cross] Prestige Surprise Meter: base ache→${(baseSur*100).toFixed(0)}% | high ache re-observe→${(highAcheSur*100).toFixed(0)}% (Breath Echo feeds ether variance)`);

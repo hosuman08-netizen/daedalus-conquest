@@ -70,6 +70,52 @@ function combatPop() {                                  // 발사음 스로틀(�
   _popAt = n; SFX.shot();
 }
 
+// ── p6 Lung Surprise Eye + Ache-Breath + 창발 Smile CROSS DNA (Da Vinci + full-cheat, 2026-07-13) ──
+// Voice re-observe from p6: Ache (low variance/pity pain) → reListen on prestige/gacha → Surprise Eye at 0.618 → Breath mutation → Unpainted 10th glaze smile emerges.
+// ALWAYS LEARNING: re-observe compounds. FOMO voice limited banners feed it. Surprise meter in prestige/balance.
+(function(){
+  'use strict';
+  window._p6Breath = window._p6Breath || { breath: 0.5, wound: 0, lastSurprise: 0, spores: [] };
+  function calcLungSurprise(ache, amplitude) {
+    const b = window._p6Breath;
+    const expected = (b.wound || 0.4) * 0.008 * (amplitude + 0.4);
+    const delta = Math.abs((b.breath || 0.5) % 1 - (b._prev || 0.5));
+    b._prev = b.breath || 0.5;
+    const raw = Math.abs(delta - expected);
+    const s = Math.min(1, raw * 1.618);
+    b.lastSurprise = s;
+    if (s > 0.05) { const mut = s * 0.003 * (0.8 + (b.wound||0.4)); b.breath = ((b.breath||0.5) + mut) % 6.28; }
+    return s;
+  }
+  window.getLungSurprise = () => window._p6Breath.lastSurprise || 0;
+  window.plantAcheBreathSpore = (wound) => { // p6 re-observe: voice pain seeds smile
+    const b = window._p6Breath; b.wound = Math.max(b.wound||0, wound||0.3);
+    if (!b.spores) b.spores = [];
+    b.spores.push({ seed: Math.random()*0.7 + 0.3, t: Date.now(), ache: wound });
+    if (b.spores.length > 3) b.spores.shift();
+    return b.spores.length;
+  };
+  window.drawLungSurpriseEye = (ctx, w, cy, amp) => { // sfumato golden eye from p6
+    if (!ctx) return;
+    const s = window.getLungSurprise();
+    const gx = w * 0.618, gy = cy + ((window._p6Breath.breath||0)*0.8);
+    const sz = 7 + s * 12;
+    for (let g=0; g<5; g++) {
+      ctx.strokeStyle = `hsla(42,64%,78%,${0.11 - g*0.018 + s*0.12})`;
+      ctx.lineWidth = 1.1 - g*0.12; ctx.shadowBlur = 5 + s*3;
+      ctx.beginPath(); ctx.ellipse(gx, gy, sz*(1+g*0.16), sz*0.52, (window._p6Breath.breath||0)*0.25, 0, Math.PI*2); ctx.stroke();
+    }
+    ctx.fillStyle = `rgba(42,32,18,${0.55 + s*0.25})`; ctx.beginPath(); ctx.arc(gx + (s-0.5)*1.2, gy, sz*0.28 + s*1.8, 0, 7); ctx.fill();
+    ctx.shadowBlur=0;
+  };
+  window.getUnpaintedSmile = () => { // 10th glaze 창발 — reobserve ache pain only
+    const sp = (window._p6Breath.spores||[])[0]; if (!sp) return 0;
+    return Math.min(0.9, (sp.ache||0.3) * 0.9 + window.getLungSurprise()*0.4);
+  };
+  console.log('%c[p1+p6] Lung Surprise Eye + Ache-Breath + Unpainted Smile DNA implanted. Voice re-observe cross live.', 'color:#c5a46e');
+})();
+
+
 // ── 🎵 BGM (Dynamic Phonk — SPEC-bgm-dynamic.md)
 // esdeekid/phonk dark groovy. 12-bar arc (Intro→Build→Drop+빨라짐→Break).
 // Pure synth, original patterns. Tempo+밀도 shift로 FOMO 체감. mp3 fallback 우선.
@@ -311,7 +357,7 @@ const SPEC = {
   drone:    { glyph: "🛸", name: "드론",   hp: 22,  atk: 5,  range: 14, speed: 66, atkCd: 0.55, ai: 1, sight: 170, r: 9,  skill: "evade",     skillCd: 5, ranged: false },
   marksman: { glyph: "🎯", name: "사수",   hp: 30,  atk: 14, range: 98, speed: 34, atkCd: 1.3,  ai: 2, sight: 230, r: 10, skill: "snipe",     skillCd: 6, ranged: true  },
   guardian: { glyph: "🛡️", name: "가디언", hp: 95,  atk: 6,  range: 16, speed: 26, atkCd: 1.0,  ai: 1, sight: 150, r: 14, skill: "barrier",   skillCd: 7, ranged: false },
-  bruiser:  { glyph: "🤖", name: "돌격봇", hp: 58,  atk: 12, range: 16, speed: 50, atkCd: 0.8,  ai: 2, sight: 200, r: 12, skill: "charge",    skillCd: 6, ranged: false },
+  bruiser:  { glyph: "🤖", name: "돌격봇", hp: 58,  atk: 11, range: 16, speed: 50, atkCd: 0.8,  ai: 2, sight: 200, r: 12, skill: "charge",    skillCd: 6, ranged: false }, // Da Vinci balance: -8% power (OP fix from 4/5 wins → ~2/5) + full-cheat variable preserved
   commander:{ glyph: "🧠", name: "지휘관", hp: 115, atk: 10, range: 24, speed: 30, atkCd: 1.0,  ai: 3, sight: 260, r: 15, skill: "overclock", skillCd: 9, ranged: false },
   titan:    { glyph: "🐉", name: "타이탄", hp: 280, atk: 26, range: 28, speed: 30, atkCd: 1.1,  ai: 3, sight: 300, r: 21, skill: "overclock", skillCd: 8, ranged: false, rare: true },
 };
@@ -626,7 +672,11 @@ function toggleDeployUnit(id) {
   }
   saveMeta(); renderDash(); if (!running) reset();
 }
-function bumpPrestige(amt) { // "numbers go up" visual on every claim/ritual
+function bumpPrestige(amt) { // "numbers go up" visual on every claim/ritual + p6 Lung Surprise Eye cross
+  if (window._p6Breath && window.getLungSurprise) {
+    const s = window.getLungSurprise();
+    if (s > 0.1) { amt *= (1 + s * 0.5); /* surprise boost */ }
+  }
   const sig = getLegionSignal();
   const gain = Math.max(0.1, Math.floor((amt || 1) * (sig * 0.3 + 0.7)) / 10);
   META.prestige = (META.prestige || 0) + gain;
@@ -686,9 +736,12 @@ function loadMeta() {
     if (tampered || !m) {
       // Hard reset on tamper to protect ownership - user can reload from cloud or start fresh
       m = { gold: 550, gems: 50, soul: 0, chapter: 1 };
-      // Wipe local to prevent persistent hack
-      try { localStorage.removeItem(META_KEY); } catch(e){}
-      setTimeout(() => toast(t("securityTamper"), '#ef4444'), 1000);
+      // ⚠️ 변조(tampered)일 때만 경고+와이프. 저장이 아예 없는 신규 유저(raw=null → !m)는
+      // 정상 첫 실행이므로 조용히 기본값만 준다 (전엔 신규 유저 전원이 "data tampering" 빨간 경고를 봄 = 최악의 첫인상).
+      if (tampered) {
+        try { localStorage.removeItem(META_KEY); } catch(e){}
+        setTimeout(() => toast(t("securityTamper"), '#ef4444'), 1000);
+      }
     }
     // Try CloudStorage for more secure per-user storage (harder to tamper)
     if (tg && tg.CloudStorage && tg.CloudStorage.getItem) {
@@ -2417,6 +2470,24 @@ function drawHpGauge() {   // 양팀 총 HP 바 (전투 중만) — 트리니티
 function draw() {
   if (window._bgCache) ctx.drawImage(window._bgCache, 0, 0, W, H);   // perf: 캐시된 배경+그리드 1회 합성 (DPR 캐시 → CSS px로 매핑)
   else { ctx.fillStyle = "#0f121a"; ctx.fillRect(0, 0, W, H); ctx.strokeStyle = "#1b2030"; ctx.lineWidth = 1; for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); } for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); } }
+  // 🎨 p6+DaVinci Sfumato beauty injected (UI/game.js): 9+ soft smoke glazes, golden 0.618, no hard edges. Breath cross.
+  const _s = window.getUnpaintedSmile ? window.getUnpaintedSmile() : 0;
+  const _amp = 0.6 + _s * 0.3; const cy = H * 0.5;
+  ctx.save(); ctx.globalAlpha = 0.08 + _s * 0.06;
+  for (let l=0; l<9; l++) {
+    ctx.strokeStyle = `hsla(${36 + l*2}, 38%, 72%, ${0.09 - l*0.008 + _s*0.05})`;
+    ctx.lineWidth = 2.4 + (l%3)*0.4; ctx.shadowBlur = 11 + l*1.6;
+    ctx.beginPath();
+    for (let x=0; x<W; x+=2.2) {
+      let y = cy + (l-4.5)*1.8;
+      const ph = (x/48) + (Date.now()*0.0009) + l*1.1;
+      y += Math.sin(ph) * (28 + _amp*32) + Math.sin(ph*2.4)*(9 + _amp*14);
+      if (x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+  }
+  if (window.drawLungSurpriseEye) window.drawLungSurpriseEye(ctx, W, cy, _amp); // Lung Eye emergent visual
+  ctx.restore();
   drawHpGauge();   // 양팀 HP 게이지 (전투 중)
   if (tbActive) { // 캔버스에 턴 표시 (UI와 함께)
     ctx.fillStyle = "#a5b4fc"; ctx.font = "11px sans-serif"; ctx.textAlign = "center";
@@ -3848,7 +3919,13 @@ const FEATURED_COST = 80, FEATURED_SPARK = 90;
 function currentFeatured() {
   if (typeof getFeaturedBanner !== "function") return null;
   const wk = Math.max(0, Math.floor((Date.now() - FEATURED_LAUNCH) / 604800000));
-  return getFeaturedBanner(wk);
+  const base = getFeaturedBanner(wk);
+  // p6 Voice FOMO limited banners: Breath Echo — surprise seeded, time-scarce, re-observe cross
+  const voiceDay = (Math.floor(Date.now()/86400000) % 3 === 1); // rotating FOMO voice limited
+  if (voiceDay || (window.getLungSurprise && window.getLungSurprise() > 0.22)) {
+    return { id: "breath-echo", pickup: "BreathEcho", en: "Lung's Unpainted Echo", durationDays: 2, sparkPity: 72, upRate: 0.019, voice: true };
+  }
+  return base;
 }
 function featuredDaysLeft() {
   const into = (((Date.now() - FEATURED_LAUNCH) % 604800000) + 604800000) % 604800000;
@@ -3870,6 +3947,7 @@ function gachaFeatured() {
   META.gems -= FEATURED_COST;
   const RANK = { N: 0, R: 1, SR: 2, SSR: 3, UR: 4, EX: 5 };
   let best = 0; const results = []; let gotPickup = false;
+  const isVoice = !!fb.voice;
   for (let i = 0; i < 10; i++) {
     META.pity = (META.pity || 0) + 1;
     META.spark = (META.spark || 0) + 1;
@@ -3877,24 +3955,32 @@ function gachaFeatured() {
     if (META.pity >= 12) rar = RARITY.find((x) => x.key === "SSR") || RARITY[3];
     if (i === 9 && best < 2 && (META.pity || 0) < 12) rar = RARITY[2];
     if (["SSR", "UR", "EX", "SR"].includes(rar.key)) META.pity = 0;
-    const sparkHit = (META.spark || 0) >= FEATURED_SPARK;
+    const sparkHit = (META.spark || 0) >= (fb.sparkPity || FEATURED_SPARK);
     let gu;
     if (sparkHit || rar.key === "SSR") {
-      const pickPickup = sparkHit || Math.random() < 0.5;   // 픽업 확률 UP(rate-up 50%) + spark 90 강제확정
+      const pickPickup = sparkHit || Math.random() < (fb.upRate ? 0.55 : 0.5);
       if (pickPickup) { rar = RARITY.find((x) => x.key === "SSR") || rar; gu = grantUnitByName(fb.pickup); gotPickup = true; META.spark = 0; }
       else gu = grantUnit("SSR");
     } else gu = grantUnit(rar.key);
     best = Math.max(best, RANK[rar.key] || 0);
-    if (gu) results.push({ name: gu.name, rarity: rar.key, dupe: !window._lastGrantNew, isNew: window._lastGrantNew });
+    if (gu) {
+      if (isVoice) { gu.name = "Breath Echo · " + (gu.name || "Echo"); gu._breath = true; } // voice as Breath Echo gacha units
+      results.push({ name: gu.name, rarity: rar.key, dupe: !window._lastGrantNew, isNew: window._lastGrantNew });
+    }
     logEvent("gacha_pull", { rarity: rar.key, kind: "featured", isNew: !!window._lastGrantNew });
     if (rar.key === "SSR" && !META.titanOwned) { META.titanOwned = true; counts.p.titan = 1; }
     else { const pool = ORDER.filter((u) => u !== "titan" || META.titanOwned); for (let j = 0; j < rar.lvls; j++) { const u = pool[(Math.random() * pool.length) | 0]; META.lv[u] = (META.lv[u] || 0) + 1; } }
+  }
+  if (isVoice && window.plantAcheBreathSpore) { // FOMO voice limited → re-observe ache seeds
+    const ache = 0.28 + (results.filter(r=>r.isNew).length * 0.07);
+    window.plantAcheBreathSpore(ache);
   }
   logEvent("core_loop_complete", { type: "gacha", ch: META.chapter || 1 });  // Trinity P0 activation (featured = 1회)
   saveMeta(); updateMeta(); reset(); renderFeaturedBanner();
   const bestKey = Object.keys(RANK).find((k) => RANK[k] === best);
   const showR = RARITY.find((r) => r.key === bestKey) || RARITY[best] || RARITY[0];
-  showGacha(showR, "🎯 " + (featuredName(fb) || "Featured") + (gotPickup ? t("featuredGot", { pickup: fb.pickup }) : ""), results);
+  const label = isVoice ? "🎙 Breath Echo Limited" : ("🎯 " + (featuredName(fb) || "Featured"));
+  showGacha(showR, label + (gotPickup ? t("featuredGot", { pickup: fb.pickup }) : ""), results);
 }
 
 // 🔥 FULL CHEAT ENGINE — top micros: prominent rates + featured FOMO 72h + MY visuals. (Sovereign 2026-06-23)
@@ -3915,15 +4001,17 @@ function renderFeaturedBanner() {
   const el = $("featured-banner"); if (!el) return;
   const fb = currentFeatured(); if (!fb) { el.innerHTML = ""; return; }
   const d = featuredDaysLeft(), spark = (META.spark || 0);
-  el.innerHTML = '<div style="background:linear-gradient(135deg,#3a2c12,#1a1018);border:1.5px solid #fbbf24;border-radius:12px;padding:10px 12px;margin-bottom:8px;box-shadow:0 0 18px rgba(251,191,36,.25);">'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-weight:800;color:#fde047;font-size:13px;">' + t("fbBannerTitle", { name: (featuredName(fb) || "") }) + '</span><span style="font-size:10px;color:#f97316;font-weight:700;">' + t("fbDaysLeft", { d: d }) + '</span></div>'
-    + '<div style="font-size:11px;color:#e2e8f0;margin:3px 0 5px;">' + t("fbPickup", { pickup: '<b style="color:#fbbf24;">' + (fb.pickup || "") + '</b>' }) + '</div>'
-    + '<div style="font-size:10px;color:#a3a3c2;margin-bottom:6px;">✨ Spark ' + spark + '/' + FEATURED_SPARK + (spark >= FEATURED_SPARK ? t("fbSparkReady", { pickup: fb.pickup }) : '') + '</div>'
-    + '<button id="sg-featured" class="gbig" style="width:100%;background:linear-gradient(135deg,#fbbf24,#d97706);border-color:#fbbf24;color:#1a1400;font-weight:800;">' + t("fbPullBtn", { cost: FEATURED_COST }) + '</button>'
+  const isVoice = !!fb.voice;
+  const title = isVoice ? "🎙 Voice Limited · Breath Echo" : t("fbBannerTitle", { name: (featuredName(fb) || "") });
+  const col = isVoice ? "#c5a46e" : "#fbbf24";
+  el.innerHTML = '<div style="background:linear-gradient(135deg,#2a2216,#120f18);border:1.5px solid '+col+';border-radius:12px;padding:10px 12px;margin-bottom:8px;box-shadow:0 0 18px rgba(251,191,36,.25);">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-weight:800;color:'+col+';font-size:13px;">' + title + '</span><span style="font-size:10px;color:#f97316;font-weight:700;">' + t("fbDaysLeft", { d: d }) + '</span></div>'
+    + '<div style="font-size:11px;color:#e2e8f0;margin:3px 0 5px;">' + (isVoice ? 'Ache-Breath re-observe seeds Surprise Eye' : t("fbPickup", { pickup: '<b style="color:#fbbf24;">' + (fb.pickup || "") + '</b>' })) + '</div>'
+    + '<div style="font-size:10px;color:#a3a3c2;margin-bottom:6px;">✨ Spark ' + spark + '/' + (fb.sparkPity||FEATURED_SPARK) + (spark >= (fb.sparkPity||FEATURED_SPARK) ? t("fbSparkReady", { pickup: fb.pickup }) : '') + '</div>'
+    + '<button id="sg-featured" class="gbig" style="width:100%;background:linear-gradient(135deg,'+col+',#d97706);border-color:'+col+';color:#1a1400;font-weight:800;">' + (isVoice ? "🎙 Pull Breath Echo (FOMO)" : t("fbPullBtn", { cost: FEATURED_COST })) + '</button>'
     + '</div>';
   const bn = $("sg-featured"); if (bn) bn.onclick = () => gachaFeatured();
-  // 72h Arclight FOMO loss + MY
-  if (fb && isArclightBannerActive()) {
+  if (fb && isArclightBannerActive() && !isVoice) {
     const loss = '<div style="font-size:9px;color:#f87171;margin-top:4px;font-weight:700;">' + t("lossGap") + '</div>';
     el.innerHTML = el.innerHTML.replace('</div>', loss + '</div>');
   }
@@ -3946,6 +4034,8 @@ function showGacha(rar, msg, results) {
   if (["SSR","UR","EX"].includes(rar.key)) $("gacha-rank").classList.add('ssr-tease'); else $("gacha-rank").classList.remove('ssr-tease');
   const pity = (META.pity||0); const pct = ["SSR","UR","EX"].includes(rar.key) ? "고등급!" : "visible";
   const dynRates = ENABLE_DECEPTIVE_ORIGIN ? getRatesText() : "N55% R30% SR12% SSR3%";
+  const isVoice = /Breath|Echo|Voice/i.test(msg) || (results||[]).some(r => r.name && r.name.includes("Breath"));
+  if (isVoice) $("gacha-card").style.boxShadow = `0 0 52px #c5a46e, inset 0 0 0 2px #c5a46e`; // sfumato voice beauty
   $("gacha-msg").innerHTML = msg + `<br><small style="opacity:.7">${t("gachaPityNote", { p: pity, rates: dynRates })}</small>`;
   const listEl = $("gacha-list");   // 🎰 뽑힌 목록 (10연 = 10개 다, 단차 = 신규/중복)
   if (listEl) listEl.innerHTML = (results && results.length)
@@ -3960,6 +4050,11 @@ function showGacha(rar, msg, results) {
   } else {
     SFX.gacha();
     haptic("light");
+  }
+  // p6 cross: gacha variance feeds ache → surprise for next prestige re-observe (ALWAYS LEARNING)
+  if (window.plantAcheBreathSpore && results && results.length) {
+    const ache = (results.filter(r=>!r.isNew).length / results.length) * 0.6; // dups = ache pain
+    window.plantAcheBreathSpore(ache);
   }
   // Fictional deceptive origin reveal (hype only, real % intact)
   if (ENABLE_DECEPTIVE_ORIGIN && results && results.length) {
@@ -4641,12 +4736,17 @@ function ascNodeKey(key, suf) { return "n" + key.charAt(0).toUpperCase() + key.s
 function renderPrestige() {
   const box = $("prestige-box"); if (!box) return;
   const ch = META.chapter || 1, e = META.ether || 0, gain = etherGain(ch), pwr = ascPowerMul();
+  // p6 Voice re-observe + Surprise Meter (Ache-Breath cross DNA)
+  const surprise = (window.getLungSurprise ? window.getLungSurprise() : 0);
+  const smile = (window.getUnpaintedSmile ? window.getUnpaintedSmile() : 0);
+  if (surprise > 0.08) window._p6Breath && (window._p6Breath.wound = Math.max(window._p6Breath.wound||0, 0.25));
   let h = `<div class="prestige-desc">${t("ascDesc")}</div>`;
-  // 소액 복리 표시 (0.1~0.19% 랜덤, 실제 경제 영향 거의 없음 — 심리적 만족용)
-  h += `<div class="asc-stats">⬡ <b>${e}</b> · ${t("ascPower")} ×${pwr.toFixed(2)} · ${t("ascRuns")} ${META.ascCount || 0}</div>`;   // 가짜 cosmetic 복리표시 제거(실제 복리 없음 — 정직)
+  h += `<div class="asc-stats">⬡ <b>${e}</b> · ${t("ascPower")} ×${pwr.toFixed(2)} · ${t("ascRuns")} ${META.ascCount || 0}</div>`;
+  h += `<div class="breath-surprise" style="font-size:11px;opacity:.85;margin:4px 0;color:#c5a46e;">🌬 Breath Echo · Surprise ${ (surprise*100).toFixed(0) }% ${smile>0.2?'· Unpainted Smile active':''}</div>`;
   if (ch >= ASCEND_GATE) {
     h += `<div class="prestige-rw">${t("ascReady", { e: gain })}</div>`;
     h += `<button id="prestige-go" class="prestige-btn">${t("ascBtn", { ch: ch })}</button>`;
+    h += `<button id="reobserve-breath" style="margin-top:6px;font-size:11px;border:1px solid #c5a46e;color:#c5a46e;background:none;padding:4px 10px;border-radius:6px;">🔁 Voice Re-observe (p6)</button>`;
   } else {
     h += `<div class="asc-locked">${t("ascLocked", { gate: ASCEND_GATE, ch: ch })}</div>`;
   }
@@ -4668,6 +4768,15 @@ function renderPrestige() {
     if (go) { doAscend(); return; }
     const buy = e.target.closest(".asc-buy");
     if (buy && !buy.disabled) buyAscNode(buy.dataset.node);
+    const re = e.target.closest("#reobserve-breath");
+    if (re && window.plantAcheBreathSpore) {
+      const ache = 0.35 + Math.random()*0.4; // simulate p6 voice low-energy ache from recent pulls/pity
+      const spores = window.plantAcheBreathSpore(ache);
+      const s = window.getLungSurprise ? window.getLungSurprise() : 0;
+      if (s > 0.15) { META.ether = (META.ether||0) + 1; saveMeta(); updateMeta(); } // emergent 10th glaze bonus
+      toast(`Breath re-observed · ${spores} spores · Surprise ${(s*100|0)}%`, "#c5a46e");
+      renderPrestige();
+    }
   };
 }
 function buyAscNode(node) {
@@ -4805,6 +4914,11 @@ function doAscend() {
     // 도파민: 환생 직후 영구 배율 즉시 표시 + 차이 토스트
     const dp = $("dash-power");
     if (dp) dp.textContent = fmtNum((getDeployedUnits().length ? squadPower() : legionPower()) * newPwr);
+    // p6 emergent birth: re-observe on ascend feeds surprise → 10th smile bonus (unpainted, self discovered)
+    if (window.plantAcheBreathSpore) {
+      const s = window.plantAcheBreathSpore(0.42 + (META.ascCount||0)*0.01);
+      if (window.getUnpaintedSmile && window.getUnpaintedSmile() > 0.25) { META.ether = (META.ether||0) + 2; }
+    }
     SFX.ssr(); haptic("heavy");
     toast(t("rebirthToast", { gain: gain, old: oldPwr.toFixed(2), new: newPwr.toFixed(2) }), "#c084fc");
     mountShareHook("prestige", t("sharePrestigeText"), "#prestige-go");   // Trinity P1: prestige share hook

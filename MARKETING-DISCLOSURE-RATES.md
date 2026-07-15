@@ -1,15 +1,15 @@
 # 미꾸라지 Disclosure Pack — Arclight Limited Banner
-**Exact from code (game.js rollRarity + RARITY)**
+**Exact from code (game.js rollRarity + RARITY) — 2026-07-12 bugsweep sync**
 
-**Base Probabilities (항상 표시 — code exact 2026-06-20)**:
-- N: 60%
-- R: 25%
-- SR: 13%
-- SSR: 2% (soft ramp 시작)
+**Base Probabilities (항상 표시 — code exact)**:
+- N: 55%
+- R: 30%
+- SR: 12%
+- SSR: 3% (soft ramp 시작)
 - UR/EX: 0% (출시 후 활성, 현재 잠김)
 
 **Pity System (항상 표시)**:
-- Soft pity: 7회부터 SSR 확률 +6%씩 증가 (최대 15%)
+- Soft pity: 7회부터 SSR 확률 +4%/pull 증가 (최대 15%)
 - Hard pity: 12회 보장 SSR (UR/EX는 순수 운, 별도 천장 없음)
 - 10연차: SR 1개 이상 보장
 - Pity 리셋: SR/SSR/UR/EX 획득 시
@@ -18,7 +18,7 @@
 ```
 【ARCLIGHT 한정 배너 — 확률 공개】 (Origin Rift Window)
 N 55% | R 30% | SR 12% | SSR 3%
-Soft Pity: 7회부터 SSR 확률 상승 (최대 15%)
+Soft Pity: 7회부터 SSR 확률 +4%/pull 상승 (최대 15%)
 Hard Pity: 12회 보장 SSR
 10연: SR 1개 보장
 ※ 이 배너는 Legion Chronicles 내 fictional story (기만적 기원: Rift 호출)입니다.

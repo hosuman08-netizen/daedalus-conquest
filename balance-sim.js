@@ -7,7 +7,7 @@ const SPEC = {
   drone:    { hp: 22, atk: 5,  atkCd: 0.55, range: 14, ai: 1 },
   marksman: { hp: 30, atk: 14, atkCd: 1.3,  range: 98, ai: 2, ranged: 1 },
   guardian: { hp: 95, atk: 6,  atkCd: 1.0,  range: 16, ai: 1 },
-  bruiser:  { hp: 58, atk: 12, atkCd: 0.8,  range: 16, ai: 2 },
+  bruiser:  { hp: 58, atk: 11, atkCd: 0.8,  range: 16, ai: 2 }, // Da Vinci/Morpheus balance patch: -1 atk (OP fix from 4/5)
   commander:{ hp: 115,atk: 10, atkCd: 1.0,  range: 24, ai: 3 },
   titan:    { hp: 280,atk: 26, atkCd: 1.1,  range: 28, ai: 3 },
 };

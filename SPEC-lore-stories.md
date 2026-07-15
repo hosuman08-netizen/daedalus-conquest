@@ -17,6 +17,8 @@
 - 👁️ **Intel(정보)** — 감시·해독. 적의 약점을 본다.
 **군주(플레이어)**는 이 군단을 깨우는 단 하나의 의지.
 
+p6 Lung Surprise + Ache-Breath + 창발 pain DNA (Sovereign p1-p6 full advance): p6 voice seeds feed p2 UGC Echo stories + Voice Echo festivals. Surprise karma, mycelium threads, Unpainted Dharma smiles graft back into p1 Echo bonding & near-miss pity as living breath. Sfumato. Notebook re-observe = dharma. Legion one.
+
 **기만적 기원 (deceptive origin, fictional only — 미꾸라지 준수)**: 
 다이달로스는 단순 AI가 아니다. 최후의 계약(Covenant)이다. "침묵"은 의도적 봉인. **텔레그램 Conduit(tApp)**을 통해 전송된 "신호(Signal)"를 받은 자만이 **Origin Rift**를 열고 진짜 군단의 **에코(Echo)**를 부를 수 있다.
 당신 = 최초 **Founders** (창립자). 수집 = "MY Legion"의 기원 재점화. 

@@ -286,3 +286,4 @@ Current (prominent accurate disclosure + fictional framing + internal/public spl
 
 (Full details in /Users/imhogyun/legion/legion-broadcast.txt. Fictional framing: In Legion's veiled realms, truths shine prominently to slip the chains.)
 
+[2026-07-12 FULL WAVE APPLY] da-vinci-observation-engine + full-cheat + ALWAYS LEARNING + embodiment to daedalus-conquest (p1 anatomy/sfuma, p2 proportion, pX loops, p6 embodiment) + all Legion projects. Parallel. Legion one.

@@ -2,6 +2,7 @@
 
 > CPO 트리니티 · 2026-06-17 · 구현 우선순위 가이드 (→모피어스)
 > 정체성: **"다이달로스 = 매 순간 내 군단이 세지는 게 *보이는* 게임."**
+[2026-07-12 Da Vinci Wave APPLIED] Saper Vedere obs + Sfumato soft moments + Vitruvian proportion in curves + Notebooks ALWAYS + embodiment. Full mutual upgrade cross. Legion one.
 > 원리: 도파민 = ①numbers go up(숫자 상승 시각화) ②즉각 체감(강화→바로 더 빨리 녹임) ③예측+보상(천장→SSR) ④절정(환생=영구배율로 폭살)
 
 ## 핵심 규칙
