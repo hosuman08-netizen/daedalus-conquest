@@ -32,7 +32,9 @@ const ALLOWED = new Set([
   //   first_core_loop·first_gacha=신규 1회성(activation) — daily_return·invite_converted 슬롯은 기존 라인에 이미 존재
   "shop_view", "checkout_open", "invoice_paid", "invoice_cancelled",
   "first_core_loop", "first_gacha", "free_ticket_used", "share_card_generated", "share_card_sent",
-  "raid_attack", "raid_win", "shield_buy", "revenge_start"
+  "raid_attack", "raid_win", "shield_buy", "revenge_start",
+  // 리텐션 신설(2026-07-16 Morpheus) — game.js emit과 계약 일치. 누락 시 라이브 폐기됨
+  "auto_deploy", "defeat_coach"
 ]);
 const dayKey = (ts) => new Date(ts).toISOString().slice(0, 10);   // YYYY-MM-DD (UTC 일관 — game.js와 동일)
 
@@ -168,15 +170,17 @@ export default {
         const sr = await env.EVENTS.list({ prefix: "chans:" + day + ":", limit: 100 });
         for (const k of sr.keys) { const ch = k.name.split(":").slice(2).join(":"); out.channels_sessions[ch] = parseInt((await env.EVENTS.get(k.name)) || "0", 10); }
       } catch (e) {}
-      // ── North Star proxy: D7 Engaged-Payer (전체 유저 스캔, rolling span≥7 ∧ eng ∧ pay) ──
-      //  정직: 일별 코호트 아닌 누적 rolling 근사(성숙도 미보정). 정밀 코호트는 /cohort 확장 예정.
-      try {
-        const us = await listUsers(env);
-        const dn = (d) => Date.parse(d + "T00:00:00Z") / 86400000;
-        let ep = 0, engN = 0, payN = 0;
-        for (const uu of us) { if (uu.eng) engN++; if (uu.pay) payN++; if (uu.eng && uu.pay && (dn(uu.last || uu.first) - dn(uu.first)) >= 7) ep++; }
-        out.d7_engaged_payer = ep; out.engaged_total = engN; out.payer_total = payN;
-      } catch (e) { out.d7_engaged_payer = 0; }
+      // ── North Star proxy: D7 Engaged-Payer (전체 유저 스캔) — ⚠️무거움(서브리퀘스트 한도). ?full=1일 때만.
+      //  기본 /stats는 카운터만(데일리 digest·스모크용 = 빠르고 안정). 정밀은 /stats?full=1 또는 /cohort.
+      if (url.searchParams.get("full") === "1") {
+        try {
+          const us = await listUsers(env);
+          const dn = (d) => Date.parse(d + "T00:00:00Z") / 86400000;
+          let ep = 0, engN = 0, payN = 0;
+          for (const uu of us) { if (uu.eng) engN++; if (uu.pay) payN++; if (uu.eng && uu.pay && (dn(uu.last || uu.first) - dn(uu.first)) >= 7) ep++; }
+          out.d7_engaged_payer = ep; out.engaged_total = engN; out.payer_total = payN;
+        } catch (e) { out.d7_engaged_payer = 0; }
+      }
       // Phase2 impact note: post-rollout use /cohort + p2 first-date filter for D7/conv/virality lift (hype vs sustain)
       return json({ ok: true, day, counts: out });
     }
