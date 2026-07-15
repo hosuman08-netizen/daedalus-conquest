@@ -6885,9 +6885,10 @@ function guildOpen(){
   let inner = '<div style="width:100%;max-width:440px;color:#e2e8f0;">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div style="font-size:19px;font-weight:900;color:#f5c451;">🏰 '+(t&&t("navChar")?"Legion":"Legion")+' Clans</div><button id="guild-x" style="background:#1c2233;color:#8b8ba7;border:none;font-size:20px;border-radius:8px;padding:2px 10px;cursor:pointer;">✕</button></div>';
   if (!g.name){
+    const joinGold = 400 + (META.chapter||1)*30;   // _guildBonus()와 동일 공식 — 표시=지급 100% 일치
     inner += '<div style="background:#12172a;border:1px solid #2a3350;border-radius:14px;padding:16px;">'
       + '<div style="font-size:14px;font-weight:700;margin-bottom:6px;">Found your Legion</div>'
-      + '<div style="font-size:12px;color:#9aa3c0;line-height:1.6;margin-bottom:12px;">A clan fights together. Weekly goals, shared gold, a leaderboard among your own. <b style="color:#a3e635;">Join bonus: +gold +80💎.</b></div>'
+      + '<div style="font-size:12px;color:#9aa3c0;line-height:1.6;margin-bottom:12px;">A clan fights together. Weekly goals, shared gold, a leaderboard among your own. <b style="color:#a3e635;">Join bonus: 💰'+joinGold+' +80💎</b></div>'
       + '<input id="guild-name-in" maxlength="22" placeholder="Legion name" style="width:100%;box-sizing:border-box;padding:11px;border-radius:10px;border:1px solid #33406a;background:#0b1020;color:#fff;font-size:14px;margin-bottom:10px;">'
       + '<button id="guild-create" style="width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#f5c451,#d97706);color:#1a1400;font-weight:800;font-size:15px;cursor:pointer;">Found Legion →</button>'
       + '</div>';
