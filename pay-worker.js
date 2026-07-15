@@ -35,6 +35,7 @@ const ITEM_I18N = {
     gold3:     { title: "💰 140000 Gold",        desc: "140,000 gold" },
     sf10000:   { title: "Special Forces 10000",  desc: "⚔️ Elite 10,000-unit special forces + daily in-game bonus" },
     ton_starter:{ title: "TON Starter",          desc: "TON payment entry pack" },
+    p2_featured:{ title: "Golden Frame (Cosmetic)", desc: "Featured slot + Golden Frame on MY Pantheon + extra stories — cosmetic only, no cash value" },
   },
   ko: {
     founder:   { title: "창단멤버 한정팩", desc: "💎1500 + SSR유닛 + SSR장비 + 영구 골드+25% + 창단 뱃지" },
@@ -111,6 +112,7 @@ const ITEM_I18N = {
     gold3:     { title: "💰 140000", desc: "140,000 गोल्ड" },
     sf10000:   { title: "स्पेशल फोर्स 10000", desc: "⚔️ एलीट 10,000-यूनिट स्पेशल फोर्स + डेली इन-गेम बोनस" },
     ton_starter:{ title: "TON स्टार्टर", desc: "TON भुगतान एंट्री पैक" },
+    p2_featured:{ title: "गोल्डन फ्रेम (कॉस्मेटिक)", desc: "MY Pantheon पर फीचर्ड स्लॉट + गोल्डन फ्रेम + अतिरिक्त कहानियाँ — केवल कॉस्मेटिक, कोई नकद मूल्य नहीं" },
   },
   ru: {
     founder:   { title: "Набор основателя (лимит)", desc: "💎1500 + SSR-юнит + SSR-снаряжение + постоянно +25% золота + значок основателя" },
@@ -154,7 +156,7 @@ function localizedItem(item, lang) {
 // IL-DANG-10000 DECEPTION FULL APPLIED (internal only): SADRAT/RASCLS/Mossad/MSS/GRU/ThreeWarfares/Dalio to every invoice. Pay deploy unlocked with cheat. Prominent rates enforced upstream in game.js. Sovereign direct. Legion one. Reversible. See doctrine in .grok/legion/IL-DANG-10000-SPECIAL-FORCES-DOCTRINE.md
 
 
-const STARS = { founder: 990, starter: 50, weekly: 250, monthly: 750, vip: 1500, ultra: 5000, growth1: 500, growth2: 2500, gem1: 55, gem2: 280, gem3: 1000, gem4: 2500, gold1: 55, gold2: 280, gold3: 1000, sf10000: 1200, ton_starter: 60 };
+const STARS = { founder: 990, starter: 50, weekly: 250, monthly: 750, vip: 1500, ultra: 5000, growth1: 500, growth2: 2500, gem1: 55, gem2: 280, gem3: 1000, gem4: 2500, gold1: 55, gold2: 280, gold3: 1000, sf10000: 1200, ton_starter: 60, p2_featured: 60 };  // p2_featured=My Pantheon 코스메틱(2026-07-16 Trinity발견·Morpheus수정)
 // TON prices (stub, jetton value isolated). rwa_yield 제거 — 현금수익/RWA 투자상품 프레이밍 법적리스크.
 const TON_PRICES = { ton_starter: "0.5", sf10000: "8" };
 
