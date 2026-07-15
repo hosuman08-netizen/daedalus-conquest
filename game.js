@@ -5093,7 +5093,7 @@ function openEvent() { renderAttend(); renderPlay(); renderSeason(); renderWarCh
     miss.innerHTML = i18nt("missToday", { b: b, p: p, u: u, tw: t }) + (allDone && !META.dailyMissionsClaimed ? '<button onclick="claimDailyMissions()">' + i18nt("missClaimBtn") + '</button>' : '') + ' <span style="color:#a3e635;">' + i18nt("missHabit") + '</span>';
   }
   // FOMO + cycle in event: "claim before reset" + streak visible
-  if ($("play-now")) $("play-now").textContent = t("playNowReset", { s: (META.play.sec||0) });
+  if ($("play-now")) $("play-now").textContent = t("playNowReset", { m: Math.floor((META.play.sec||0) / 60) });
 
   // Sovereign 20260616: 이벤트 페이지에 stray 보상 카드(여명 부적 + 강화 UI 등) 직접 박히지 않게 방어
   const evPage = $("page-event");
