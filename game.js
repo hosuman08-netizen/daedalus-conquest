@@ -5527,6 +5527,20 @@ function renderDailyMissions() {
 
 
 function openShop() { loadPayRates(); renderShop(); showPage("shop"); try { gemsTowardGacha(); } catch (e) {}
+  // GG: low-gem comeback path (Hamster-style progress pressure, honest)
+  try {
+    if (!window._ggComeback && (META.gems||0) < 8 && (META.gems||0) >= 0) {
+      window._ggComeback = 1;
+      setTimeout(function(){
+        try {
+          var need = 8 - (META.gems||0);
+          if (need > 0 && need <= 8) toast("🎰 소환까지 젬 "+need+" · 전투하면 모인다", "#67e8f9");
+          logEvent("gg_comeback_toast",{gems:META.gems||0,need:need});
+        } catch(e){}
+      }, 3500);
+    }
+  } catch(e){}
+
   // 3H first-session time-to-value (industry: value in <10min)
   try {
     if (!META._ttvHint && (META.totalWins || 0) < 1) {
