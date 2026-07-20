@@ -4135,13 +4135,10 @@ function showGacha(rar, msg, results) {
   if (rar.key === "SSR") {
     setTimeout(() => toast(t("ssrForged"), "#a3e635"), 1600);
     // Trinity P0: SSR share hook (switchInline or TG share with start=ref)
-    setTimeout(() => {
-      const sh = document.createElement('button');
-      sh.textContent = t("cardBragBtn");
-      sh.style.cssText = 'margin:8px 0;padding:6px 12px;background:#22c55e;color:#fff;border:none;border-radius:6px;cursor:pointer';
-      sh.onclick = () => { try { logEvent('share_clicked', { type: 'ssr', ref: getTGUserId() }); } catch(e){} shareDominionCard('ssr'); };   // 🖼️ SSR 직후 자랑 카드
-      const list = $('gacha-list'); if (list && list.parentNode) list.parentNode.appendChild(sh);
-    }, 2200);
+    // BUGFIX: 이전엔 매 SSR마다 새 자랑 버튼을 gacha-list.parentNode에 append(가드 없음) →
+    //   innerHTML 리셋이 list 내용만 지우고 형제인 버튼은 살아남아 SSR 뽑을수록 초록 버튼이 영구 누적.
+    //   mountShareHook(id 기반 중복가드) 재사용으로 1개만 유지.
+    setTimeout(() => mountShareHook('ssr', null, '#gacha-list'), 2200);
   }
   if (isArclightBannerActive && isArclightBannerActive()) {
     setTimeout(() => toast(t("arclightFomo"), "#f97316"), 1800);
