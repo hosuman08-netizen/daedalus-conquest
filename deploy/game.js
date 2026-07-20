@@ -5498,7 +5498,7 @@ function renderDailyMissions() {
 
 
 
-function openShop() { loadPayRates(); renderShop(); showPage("shop"); try { gemsTowardGacha(); } catch (e) {}
+function openShop() { loadPayRates(); renderShop(); showPage("shop"); try { logEvent("money_pipe_shop", { gems: (META&&META.gems)||0 }); } catch(e){} try { gemsTowardGacha(); } catch (e) {}
   // GG: low-gem comeback path (Hamster-style progress pressure, honest)
   try {
     if (!window._ggComeback && (META.gems||0) < 8 && (META.gems||0) >= 0) {
