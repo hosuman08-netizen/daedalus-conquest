@@ -49,6 +49,13 @@
 ### e9 | corrupted-titan | 타락 거신 (Fallen Titan Boss)
 `fallen corrupted titan, twisted black-red form with exposed glowing core, broken horns/spikes, rage aura, massive size implied, dramatic rim, ultimate hostile Legion rival`
 
+### e11 | giant-boss / giant-titan (거대 보스 레이드 전용) — REFINED (Da Vinci + anti-square, 2026-07-16)
+`massive hostile final titan dragon-mech boss, corrupted rival AI colossus, enormous serpentine dragon body with powerful dynamic torsion contrapposto pose and S-curve neck weight shift, huge layered jagged organic black-red scales and irregular asymmetric protruding mech armor plates + fins that violently break all rectangular/boxy bounds, deep pulsing crimson energy fissures cracking through matte battle-damaged armor, glowing molten red eyes and roaring fanged maw as single clear protagonist focal point, massive spiked wings half-spread with dramatic low-angle foreshortening and perspective distortion, heavy 3D volumetric form with strong cinematic chiaroscuro, low key light carving deep shadows and metallic highlights, overwhelming menacing weight and scale, intricate plasma vents and battle damage, strong red-black rim lighting + internal core plasma glow, premium ultra high-end gacha boss splash art quality, excellent Vitruvian proportions and harmony, no flat panels, no square silhouette whatsoever, highly organic flowing contours with sharp aggressive edges extending dynamically outside frame, vertical emphasis with generous clearance below for health bar UI, exciting epic 간지, dark corrupted hostile atmosphere, original design, anime gacha boss art, original sci-fi mecha Legion enemy, high detail, dramatic rim lighting, vertical composition suitable for UI with health bar space below, no text, no UI elements, no labels, clean illustration only`
+
+**TARGET**: Generate → save as `art/enemy/giant-titan.png` (preferred, transparent nukki) OR overwrite `art/enemy/final-titan-nukki.jpg`
+**Install**: `./boss-art-replace.sh /path/to/generated giant-titan`  (or final-titan)
+**Code**: giant-titan supported in preload + portraitKey (ch>=55) + drawBoss (jagged clip + torsion + lighting). No extra edits needed.
+
 ### e10 | enemy-commander | 그림자 사령 (Shadow Strategist)
 `shadow enemy strategist, red holo-map of battlefield, hooded menacing figure, precise angular black-red armor, command presence, sci-fi hostile tactician boss`
 

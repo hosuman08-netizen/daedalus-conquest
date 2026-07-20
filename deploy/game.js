@@ -4104,6 +4104,15 @@ function showGacha(rar, msg, results) {
   try { logEvent("gacha_view", { rar: (rar && rar.key) || rar || "?", ch: META.chapter || 1 }); } catch (e) {}
   const g = $("gacha"); if (!g) return;
   if (!META._fg) { META._fg = 1; try { logEvent("first_gacha", { ch: META.chapter || 1 }); } catch (e) {} }   // 📊 첫 뽑기(activation)
+  // 3H Notcoin/Niobe: share-at-peak after first gacha
+  if (META._fg === 1 && !META._peakShareGacha) {
+    META._peakShareGacha = 1;
+    try { logEvent("peak_share_gacha", { ch: META.chapter || 1 }); } catch (e) {}
+    setTimeout(function () {
+      try { toast("📤 첫 소환 자랑하기 — 친구 초대 시 더 빨리 성장", "#a78bfa"); } catch (e) {}
+      try { if (typeof mountShareHook === "function") mountShareHook("first_gacha", null, "#gacha-list"); } catch (e) {}
+    }, 1600);
+  }
   $("gacha-rank").textContent = rar.key;
   $("gacha-rank").style.color = rar.color;
   $("gacha-card").style.boxShadow = `0 0 40px ${rar.color}, inset 0 0 0 2px ${rar.color}`;
@@ -6889,6 +6898,23 @@ try {
       META.weekChest = _wk;
       META.gems = (META.gems || 0) + 10;
       try { logEvent("week_chest", { n: 10, week: _wk, gems: META.gems || 0 }); } catch (e) {}
+  // 3H Co-Star/Duolingo: 일일 포커스 한 줄 (복귀 이유)
+  try {
+    const _df = today();
+    if (META.dailyFocusDay !== _df) {
+      META.dailyFocusDay = _df;
+      const _tips = [
+        "오늘 목표: 전투 3승 → 젬 모아 소환",
+        "오늘 목표: 일일 전선 1클리어",
+        "오늘 목표: 타워 1층 돌파",
+        "오늘 목표: 영웅 1회 강화"
+      ];
+      const _tip = _tips[(META.chapter || 1) % _tips.length];
+      setTimeout(function () { try { toast("☀️ " + _tip, "#fbbf24"); } catch (e) {} }, 1800);
+      try { logEvent("daily_focus_toast", { tip: _tip }); } catch (e) {}
+    }
+  } catch (e) {}
+
       setTimeout(function () { try { toast("📦 주간 전선 보급 💎+10", "#67e8f9"); } catch (e) {} }, 1200);
     }
   } catch (e) {}

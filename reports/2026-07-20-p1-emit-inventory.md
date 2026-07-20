@@ -1,0 +1,41 @@
+# p1 emit inventory (updated)
+
+- `age_confirmed`
+- `ascend`
+- `auto_deploy`
+- `battle_win`
+- `ch5_reached`
+- `core_loop_complete`
+- `daily_gem_bonus`
+- `daily_return`
+- `defeat_coach`
+- `first_core_loop`
+- `first_gacha`
+- `first_purchase_2x`
+- `free_ticket_used`
+- `gacha_intent`
+- `gacha_nudge`
+- `gacha_pull`
+- `gacha_view`
+- `gem_drip`
+- `growth_moment`
+- `install`
+- `purchase`
+- `purchase_pending`
+- `raid_attack`
+- `raid_win`
+- `referral_bonus_granted`
+- `revenge_start`
+- `session_start`
+- `share_card_generated`
+- `share_card_sent`
+- `share_clicked`
+- `shield_buy`
+- `shop_view`
+- `stuck_upsell`
+- `tower_floor`
+- `tutorial_done`
+- `tutorial_start`
+- `week_chest`
+
+count: 37
