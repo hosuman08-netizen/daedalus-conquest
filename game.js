@@ -497,11 +497,11 @@ function archPortraitFor(u) {   // 유닛 아키타입 → 대표 실아트 이�
 // Non-boss elites use limited PNGs, rest rich synthetic.
 let enemyPortraits = {};
 function preloadEnemyPortraits() {
-  const keys = ["titan", "final-titan", "drone", "marksman", "elite-drone", "corrupted-titan", "boss-guardian", "boss-commander", "boss-bruiser", "boss-marksman"];  // 죽은 404 키 제거(boss/guardian/bruiser/commander — 파일없음·미사용, Trinity 2026-07-09)
+  const keys = ["titan", "final-titan", "giant-titan", "drone", "marksman", "elite-drone", "corrupted-titan", "boss-guardian", "boss-commander", "boss-bruiser", "boss-marksman"];  // giant-titan for 2026-07-16 거대보스 (anti-square)
   keys.forEach(k => {
     if (enemyPortraits[k]) return;
     const img = new Image();
-    const src = (k === 'final-titan') ? 'art/enemy/final-titan-nukki.jpg' : (k === 'corrupted-titan') ? 'art/enemy/corrupted-titan-nukki.jpg' : `art/enemy/${k}.png`;
+    const src = (k === 'final-titan') ? 'art/enemy/final-titan-nukki.jpg' : (k === 'corrupted-titan') ? 'art/enemy/corrupted-titan-nukki.jpg' : (k === 'giant-titan') ? 'art/enemy/giant-titan.png' : `art/enemy/${k}.png`;
     img.src = src;
     img.onload = () => { enemyPortraits[k] = img; try { draw(); } catch (e) {} };   // 로드되면 보스 프리뷰 재렌더(첫진입 placeholder 제거)
     enemyPortraits[k] = img; // placeholder until load
@@ -1507,7 +1507,7 @@ function spawnArmy(side) {
       if (isBoss) {
         // 보스 챕터별 다양성
         if (t === "titan") {
-          portraitKey = (curLevel >= 50) ? "final-titan" : (curLevel >= 25 ? "corrupted-titan" : "titan");
+          portraitKey = (curLevel >= 55) ? "giant-titan" : (curLevel >= 50) ? "final-titan" : (curLevel >= 25 ? "corrupted-titan" : "titan");
         } else if (t === "guardian") portraitKey = "boss-guardian";
         else if (t === "commander") portraitKey = "boss-commander";
         else if (t === "bruiser") portraitKey = "boss-bruiser";
@@ -1519,7 +1519,8 @@ function spawnArmy(side) {
         eName = i18nt("enBossNamed", { name: uName(t) }) + (curLevel > 40 ? i18nt("enLegendSuffix") : "");
       } else if (t === "titan") {
         // 무한탑 등 고층에서도 고급 아트 사용 (final-titan nukki로 눈/중간 요소 깨끗)
-        if (curLevel >= 50) portraitKey = "final-titan";
+        if (curLevel >= 55) portraitKey = "giant-titan";
+        else if (curLevel >= 50) portraitKey = "final-titan";
         else if (curLevel >= 25) portraitKey = "corrupted-titan";
         else portraitKey = "titan";
         eName = curLevel < 15 ? i18nt("bnCorruptedTitan") : (curLevel < 40 ? i18nt("bnCorruptedAbyss") : i18nt("bnFinalJudge"));
@@ -2319,6 +2320,7 @@ function drawBoss(u) {
   const pk = u.portraitKey;
   const hasBossImg = pk && enemyPortraits[pk] && enemyPortraits[pk].complete && enemyPortraits[pk].naturalWidth > 0;
 
+  let szW = 0, szH = 0;  // Da Vinci hoist for clearance math + aspect (visible to HP bar)
   let glow = "#ff2a2a", body1 = "#5a1414", body2 = "#2e0a0a", body3 = "#160404", stroke = "#ff3b3b", core1 = "#fff2c0", core2 = "#ff5a2a";
   let spikeCount = 9, plateSides = 6, eyeColor = "#ff1a1a";
   let crackAlpha = 0.7 - hpr;
@@ -2354,13 +2356,60 @@ function drawBoss(u) {
     // 실제 PNG 이미지로 보스 본체 (챕터별 다양성 + 간지)
     const img = enemyPortraits[pk];
     let sz = R * 2.8;
-    if (variant === 'final' || curLevel > 35) sz *= 1.15; // high ch bigger more epic
-    ctx.shadowColor = glow; ctx.shadowBlur = (variant==='final' ? 45 : 30);
+    if (variant === 'final' || curLevel > 35) sz *= 1.15;
+    szW = sz * 1.08;
+    szH = sz * 0.93;
+    // Da Vinci: use native aspect for giant-titan (kills square/boxy from source). Vertical bias + clearance.
+    if (curLevel >= 55 || pk === 'giant-titan') {
+      const nat = (img.naturalHeight / Math.max(1, img.naturalWidth)) || 1.18;
+      szW = sz * 0.91;
+      szH = szW * nat * 1.07;  // tall organic, generous bottom space
+    }
+
+    ctx.shadowColor = glow;
+    ctx.shadowBlur = (variant==='final' ? 48 : 32);
+
     ctx.save();
-    // 🐉 보스 위엄: 원형 크롭 제거 → 전신/상반신 그대로 표시 (머리·눈알만 보이던 "동그란 눈알" 문제 해결). nukki 아트면 배경 자연스럽게.
-    ctx.drawImage(img, cx - sz/2, cy - sz * 0.5, sz, sz);
+    ctx.translate(cx, cy - szH * 0.22);           // Da Vinci: stronger lift (head high, feet clear for HP)
+    const lean = Math.sin(t / 920) * ( (curLevel>=55 || pk==='giant-titan') ? 0.042 : 0.028 );  // p6-lung torsion stronger on giant
+    ctx.rotate(lean);
+
+    // JAGGED ORGANIC CLIP — eats square edges (enhanced Da Vinci 2026-07-16)
+    ctx.beginPath();
+    const jcx = 0, jcy = -szH * 0.10, jr = szW * 0.50;
+    for (let i = 0; i < 22; i++) {  // more points = more violent organic break
+      const a = (i / 22) * Math.PI * 2;
+      const j = 1 + Math.sin(a * 2.9 + t / 620) * 0.14 + Math.sin(a * 5.8) * 0.06;
+      const px = jcx + Math.cos(a) * jr * j;
+      const py = jcy + Math.sin(a) * (jr * 0.95) * j;
+      i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+    }
+    ctx.closePath(); ctx.clip();
+
+    ctx.drawImage(img, -szW/2, -szH * 0.48, szW, szH);
     ctx.restore();
     ctx.shadowBlur = 0;
+
+    // LOW-ANGLE DRAMATIC LIGHTING PASS (sfumato + 3D carve)
+    const lg = ctx.createLinearGradient(cx - szW*0.7, cy + szH*0.25, cx + szW*0.15, cy - szH*0.65);
+    lg.addColorStop(0, 'rgba(255,90,30,0.13)');
+    lg.addColorStop(0.6, 'rgba(255,220,140,0.04)');
+    lg.addColorStop(1, 'rgba(255,255,200,0.02)');
+    ctx.fillStyle = lg;
+    ctx.fillRect(cx - szW*0.55, cy - szH*0.6, szW*1.1, szH*1.15);
+
+    // FOREGROUND JAGGED PLATES (break lower square + integrate ground)
+    ctx.fillStyle = (variant==='final' ? "#3a2a12" : "#2e0a0a");
+    for (let i=0; i<4; i++) {
+      const fa = -0.9 + i*0.45 + Math.sin(t/800 + i)*0.03;
+      const fl = R * (0.9 + i*0.15);
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(fa-0.2)*R*0.65, cy + Math.sin(fa-0.2)*R*0.6);
+      ctx.lineTo(cx + Math.cos(fa)*fl, cy + Math.sin(fa)*fl + 8);
+      ctx.lineTo(cx + Math.cos(fa+0.2)*R*0.65, cy + Math.sin(fa+0.2)*R*0.6);
+      ctx.closePath(); ctx.fill();
+    }
+
     // high tier extra aura
     if (variant === 'final' || curLevel > 40) {
       ctx.strokeStyle = `rgba(251,191,36,${0.3 + Math.sin(t/200)*0.2})`;
@@ -2414,7 +2463,12 @@ function drawBoss(u) {
   const w = R * 1.9;
   // 상단 보스(화면 위로 네임플레이트 잘림)면 본체 아래로 플립 — 왕관·이름 항상 보이게(위엄)
   const flip = (cy - R * 1.34) < 16;
-  const by = flip ? Math.min(H - 14, cy + R * 1.05) : cy - R * 1.34;
+  let by = flip ? Math.min(H - 14, cy + R * 1.05) : cy - R * 1.34;
+  // Da Vinci clearance: for giant img, force HP/name below actual drawn bottom (no overlap, generous space)
+  if (hasBossImg && (curLevel >= 55 || pk === 'giant-titan')) {
+    const imgBottom = cy - szH * 0.22 + szH * 0.52;  // approx bottom after lift+draw offset
+    by = Math.max(by, imgBottom + 22);
+  }
   // 👑 위엄 왕관 — 고티어 보스 머리 위 (변형별 색·개수)
   const crown = variant === 'final' ? "👑" : variant === 'corrupted' ? "♛" : (curLevel >= 25 ? "♛" : "");
   if (crown) {
@@ -2934,6 +2988,10 @@ function finish(p, e) {
     logEvent("battle_win", { mode: META.mode, ch: META.chapter, tower: META.tower, lvl: curLevel });   // 📊 계측
     if (!META._fcl) { META._fcl = 1; try { logEvent("first_core_loop", { ch: META.chapter || 1 }); } catch (e) {} }   // 📊 첫 코어루프 완주(activation)
     logEvent("core_loop_complete", { type: "battle", ch: META.chapter || 1 });  // Trinity P0 activation
+    // 💎 승리 젬 낙수 (2026-07-20 Morpheus): grinding 유저도 서서히 가챠(8젬) 도달. 일상한 30으로 인플레 방지.
+    //   진단: 젬 유입이 진행형 이벤트에만→막힌 구간 반복하면 젬0→가챠 물리적 불가(가챠전환 갭 근본원인).
+    { const _dd = today(); if (META.gemDripDay !== _dd) { META.gemDripDay = _dd; META.gemDripToday = 0; }
+      if ((META.gemDripToday || 0) < 30) { META.gems = (META.gems || 0) + 1; META.gemDripToday = (META.gemDripToday || 0) + 1; } }
     if (bossFight) { try { mountShareHook("boss", t("shareBossText"), "#result-modal .btn-primary, #result, #battle"); } catch (e) {} }   // Trinity P1: boss share hook
   }
   if (tbActive) { tbActive = false; showTbControls(false); $("start").textContent = t("start"); delete window._tbTactic; }
