@@ -2994,6 +2994,16 @@ function finish(p, e) {
     //   진단: 젬 유입이 진행형 이벤트에만→막힌 구간 반복하면 젬0→가챠 물리적 불가(가챠전환 갭 근본원인).
     { const _dd = today(); if (META.gemDripDay !== _dd) { META.gemDripDay = _dd; META.gemDripToday = 0; }
       if ((META.gemDripToday || 0) < 30) { META.gems = (META.gems || 0) + 1; META.gemDripToday = (META.gemDripToday || 0) + 1; window._gemDripHit = 1;
+
+    // no-rest: daily login gems once
+    try {
+      if (META.noRestDailyClaim !== _dd) {
+        META.noRestDailyClaim = _dd;
+        META.gems = (META.gems || 0) + 3;
+        try { logEvent("daily_login_gems", { n: 3, gems: META.gems || 0 }); } catch (e) {}
+        try { if (typeof toast === "function") toast("일일 +3💎", "#e8c56a"); } catch (e) {}
+      }
+    } catch (e) {}
         try { logEvent("gem_drip", { n: 1, today: META.gemDripToday, gems: META.gems || 0, ch: META.chapter || 1 }); } catch (e) {}
       } else { window._gemDripHit = 0; }
       // 💎→가챠 넛지 (전환 갭②): 젬>=8 이고 세션 1회 — 뽑을 수 있는데 안 뽑는 유저
