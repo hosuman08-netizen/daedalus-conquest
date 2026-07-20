@@ -7039,6 +7039,19 @@ try {
     logEvent("install", { ch: META.chapter || 1, ...src });
   }
   logEvent("session_start", { ch: META.chapter || 1, tower: META.tower || 1, pulls: META.pulls || 0 }); try { gemsTowardGacha(); } catch (e) {}
+  // 3H: low-gem comeback on boot (not only shop) — once/session
+  try {
+    if (!window._ggComebackBoot && (META.gems || 0) < 8) {
+      window._ggComebackBoot = 1;
+      setTimeout(function () {
+        try {
+          var need = 8 - (META.gems || 0);
+          if (need > 0 && need <= 8) toast("💎 소환까지 젬 " + need + " · 전투 승리마다 +1", "#67e8f9");
+          logEvent("gg_comeback_boot", { gems: META.gems || 0, need: need });
+        } catch (e) {}
+      }, 2200);
+    }
+  } catch (e) {}
   // LiveOps D7 soft: ISO-week free chest once (habit FOMO, not P2W)
   try {
     const _wd = new Date();
