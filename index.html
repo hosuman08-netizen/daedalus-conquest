@@ -83,7 +83,7 @@
       <span class="meta ch">📖 <i id="chapter">1</i></span>
       <span class="meta soul" id="soul-meta" style="display:none">🔮 <i id="soul">0</i></span>
       <span class="meta eth" id="eth-meta" style="display:none;cursor:pointer" onclick="openSettings();renderPrestige();" title="환생으로 얻는 영구 화폐 · 탭하면 에테르 상점">⬡ <i id="ether">0</i></span>
-      <span class="meta" id="streak-meta" style="display:none;color:#fbbf24;font-size:11px;cursor:pointer" onclick="openEvent();" title="매일 접속 연속 기록 · 탭하면 이벤트"><span data-i18n="streakLabel">🔥 연속</span> <i id="streak-val">0</i></span>
+      <span class="meta" id="streak-meta" style="display:;color:#fbbf24;font-size:11px;cursor:pointer" onclick="openEvent();" title="매일 접속 연속 기록 · 탭하면 이벤트"><span data-i18n="streakLabel">🔥 연속</span> <i id="streak-val">0</i></span>
       <!-- MVP: pity always visible in lobby top per final plan -->
       <span class="meta pity" id="pity-meta">🎯 다음 SSR까지 12회</span>
     </div>
@@ -383,7 +383,8 @@
     // game.js/style.css 불변: 순수 index.html 자족 로직. updateMeta가 <i> 텍스트를 갱신하면 옵저버가 재동기화.
     (function () {
       function num(el){ if(!el) return 0; var v=parseFloat(String(el.textContent).replace(/[^0-9.\-]/g,'')); return isNaN(v)?0:v; }
-      var PROG=[['soul','soul-meta'],['ether','eth-meta'],['streak-val','streak-meta']];
+      var PROG=[['soul','soul-meta'],['ether','eth-meta']]; /* 3H Duolingo: streak always visible */
+      var sm=document.getElementById('streak-meta'); if(sm) sm.style.display='';
       function sync(){ for(var i=0;i<PROG.length;i++){ var chip=document.getElementById(PROG[i][1]); if(!chip) continue; chip.style.display = num(document.getElementById(PROG[i][0]))>0 ? '' : 'none'; } }
       function boot(){ var bar=document.getElementById('metabar'); if(!bar) return; sync(); try { new MutationObserver(sync).observe(bar,{subtree:true,childList:true,characterData:true}); } catch(e){} }
       if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot); else boot();
