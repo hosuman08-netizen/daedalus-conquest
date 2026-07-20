@@ -5385,7 +5385,7 @@ function checkPasses() {                                // 활성 패스 = 매�
     toast(t("passClaimPrompt", { n: got, tot: META.passTotalGems, d: dleft }), "#fbbf24");
   }
 }
-function openShop() { loadPayRates(); renderShop(); showPage("shop"); }
+function openShop() { loadPayRates(); renderShop(); showPage("shop"); try { logEvent("shop_view", { ch: META.chapter || 1, gems: META.gems || 0 }); } catch (e) {} }
 function renderShop() {
   try {
   if (typeof renderFeaturedBanner === "function") renderFeaturedBanner();   // 🎯 한정 배너
