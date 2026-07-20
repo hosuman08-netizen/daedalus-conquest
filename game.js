@@ -5322,6 +5322,15 @@ function claimAttend() {
   if (boxRes) {
     setTimeout(() => showGacha({ key: boxRes.rank, color: boxRes.color }, boxRes.text), 400);
   } else toast(t("tAttend", { n: idx + 1 }) + " 🔥 streak " + META.loginStreak + " (+ " + rise + "g rising)", "#fbbf24");
+  // 3H CRO money-pipe after attend (ent track · shop is the cash hole)
+  try {
+    setTimeout(function () {
+      try {
+        toast("💎 출석 완료 — 샵에서 젬/가챠 루프 (엔터)", "#e0b552");
+        logEvent("money_pipe_shown", { app: "daedalus", where: "attend", streak: META.loginStreak || 0 });
+      } catch (e) {}
+    }, 1600);
+  } catch (e) {}
   // interlock: attend ritual → gacha pulse tease
   setTimeout(() => { if (Math.random()<0.6) toast(t("ritualDone"), "#a3e635"); }, 1200);
   // §21: Tanha Quench Mirror Insight stub (Buddhism layer — low-friction daily quench if 9 icons "thirst" met via founders in squad; insight var)
