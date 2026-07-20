@@ -3920,7 +3920,7 @@ function gacha() {
   recordManualPlay(); // for synergy
   META.dailyPulls = (META.dailyPulls || 0) + 1;
   if ((META.gems || 0) < GACHA_COST) { toast(t("tGemShort", { n: GACHA_COST }), "#ef4444"); return; }
-  META.gems -= GACHA_COST; META.pulls = (META.pulls || 0) + 1; META.pity = (META.pity || 0) + 1;
+  META.gems -= GACHA_COST; META.pulls = (META.pulls || 0) + 1; META.pity = (META.pity || 0) + 1;;
   let rar = rollRarity();
   if (META.pity >= 12) {
     const ssr = RARITY.find(x => x.key === "SSR") || RARITY[3];
@@ -5479,7 +5479,18 @@ function renderDailyMissions() {
   } catch (e) {}
 }
 
-function openShop() { loadPayRates(); renderShop(); showPage("shop"); try { gemsTowardGacha(); } catch (e) {} try { renderDailyMissions(); } catch (e) {} try { logEvent("shop_view", { ch: META.chapter || 1, gems: META.gems || 0 }); } catch (e) {}
+
+
+function openShop() { loadPayRates(); renderShop(); showPage("shop"); try { gemsTowardGacha(); } catch (e) {}
+  // 3H first-session time-to-value (industry: value in <10min)
+  try {
+    if (!META._ttvHint && (META.totalWins || 0) < 1) {
+      META._ttvHint = 1;
+      setTimeout(function () { try { toast("⚔️ 첫 전투 1회 = 오늘 성장 시작", "#67e8f9"); } catch (e) {} }, 2800);
+      try { logEvent("ttv_first_session", {}); } catch (e) {}
+    }
+  } catch (e) {}
+ try { renderDailyMissions(); } catch (e) {} try { logEvent("shop_view", { ch: META.chapter || 1, gems: META.gems || 0 }); } catch (e) {}
  try { bumpDailyMission("shop"); } catch (e) {} }
 function renderShop() {
   try {
