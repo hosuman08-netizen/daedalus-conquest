@@ -2986,6 +2986,7 @@ function finish(p, e) {
   if (win) { META.dailyBattles = (META.dailyBattles || 0) + 1; META.totalWins = (META.totalWins || 0) + 1; }   // ⚠️ TDZ 버그픽스: win 선언 뒤로 이동 (전엔 선언 전 참조→매 전투종료 ReferenceError로 finish() 전체 붕괴)
   if (win) {
     logEvent("battle_win", { mode: META.mode, ch: META.chapter, tower: META.tower, lvl: curLevel });   // 📊 계측
+    try { bumpDailyMission("battle"); } catch (e) {}
     if (!META._fcl) { META._fcl = 1; try { logEvent("first_core_loop", { ch: META.chapter || 1 }); } catch (e) {} }   // 📊 첫 코어루프 완주(activation)
     if (window.legionTrack) { try { window.legionTrack('activate'); } catch (e) {} }   // 🛰️ 통합 beacon(앱 자체 계측과 병행)
     logEvent("core_loop_complete", { type: "battle", ch: META.chapter || 1 });  // Trinity P0 activation
@@ -3046,6 +3047,7 @@ function finish(p, e) {
         // LiveOps D1: 일일 첫 클리어 젬+2 (drip 별도, 습관 트리거)
         META.gems = (META.gems || 0) + 2;
         try { logEvent("daily_gem_bonus", { n: 2, gems: META.gems || 0 }); } catch (e) {}
+        try { bumpDailyMission("daily"); } catch (e) {}
         extra += `<div class="rwd2" style="color:#67e8f9">💎 +2 일일 전선</div>`;
         // Vanguard Focus FOMO 24h ritual (carry teaser + god-VFX hook; limited, ethical)
         if (!META.vanguard || META.vanguard !== today()) { if (win || sig > 2.1) { META.vanguard = today(); setTimeout(()=>toast(t("vanguardToast1"),"#fbbf24"), 650); } }
@@ -5430,7 +5432,55 @@ function gemsTowardGacha() {
   } catch (e) {}
 }
 
-function openShop() { loadPayRates(); renderShop(); showPage("shop"); try { gemsTowardGacha(); } catch (e) {} try { logEvent("shop_view", { ch: META.chapter || 1, gems: META.gems || 0 }); } catch (e) {} }
+
+// 3H Genshin-style daily commissions (habit, not P2W)
+function dailyMissionsKey() { try { return "dm_" + today(); } catch (e) { return "dm_x"; } }
+function getDailyMissions() {
+  try {
+    const k = dailyMissionsKey();
+    let m = META.dailyMissions;
+    if (!m || m.day !== k) {
+      m = { day: k, battle: 0, daily: 0, shop: 0, claimed: 0 };
+      META.dailyMissions = m;
+    }
+    return m;
+  } catch (e) { return { battle: 0, daily: 0, shop: 0, claimed: 0 }; }
+}
+function bumpDailyMission(kind) {
+  try {
+    const m = getDailyMissions();
+    if (kind === "battle" && m.battle < 3) m.battle++;
+    if (kind === "daily" && m.daily < 1) m.daily = 1;
+    if (kind === "shop" && m.shop < 1) m.shop = 1;
+    META.dailyMissions = m;
+    // claim once when all done
+    if (!m.claimed && m.battle >= 3 && m.daily >= 1 && m.shop >= 1) {
+      m.claimed = 1;
+      META.gems = (META.gems || 0) + 5;
+      try { logEvent("daily_missions_claim", { gems: 5 }); } catch (e) {}
+      setTimeout(function () { try { toast("📋 일일 임무 완료 💎+5", "#a3e635"); } catch (e) {} }, 600);
+    }
+    renderDailyMissions();
+  } catch (e) {}
+}
+function renderDailyMissions() {
+  try {
+    const m = getDailyMissions();
+    let el = document.getElementById("daily-missions-3h");
+    if (!el) {
+      const host = document.getElementById("metabar") || document.body;
+      el = document.createElement("div");
+      el.id = "daily-missions-3h";
+      el.style.cssText = "font-size:10px;color:#c4b5fd;padding:2px 8px;opacity:.9;text-align:center";
+      host.parentNode ? host.parentNode.insertBefore(el, host.nextSibling) : host.appendChild(el);
+    }
+    const done = (m.claimed ? "✓" : "·");
+    el.textContent = "📋 일일 " + done + " 전투" + (m.battle||0) + "/3 · 전선" + (m.daily||0) + "/1 · 상점" + (m.shop||0) + "/1" + (m.claimed ? " · 보상받음" : "");
+  } catch (e) {}
+}
+
+function openShop() { loadPayRates(); renderShop(); showPage("shop"); try { gemsTowardGacha(); } catch (e) {} try { renderDailyMissions(); } catch (e) {} try { logEvent("shop_view", { ch: META.chapter || 1, gems: META.gems || 0 }); } catch (e) {}
+ try { bumpDailyMission("shop"); } catch (e) {} }
 function renderShop() {
   try {
   if (typeof renderFeaturedBanner === "function") renderFeaturedBanner();   // 🎯 한정 배너
