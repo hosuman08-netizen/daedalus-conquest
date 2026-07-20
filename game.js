@@ -501,7 +501,7 @@ function preloadEnemyPortraits() {
   keys.forEach(k => {
     if (enemyPortraits[k]) return;
     const img = new Image();
-    const src = (k === 'final-titan') ? 'art/enemy/final-titan-nukki.jpg' : (k === 'corrupted-titan') ? 'art/enemy/corrupted-titan-nukki.jpg' : (k === 'giant-titan') ? 'art/enemy/giant-titan.png' : `art/enemy/${k}.png`;
+    const src = (k === 'final-titan') ? 'art/enemy/final-titan-nukki.jpg' : (k === 'corrupted-titan') ? 'art/enemy/corrupted-titan-nukki.jpg' : (k === 'giant-titan') ? 'art/enemy/final-titan-nukki.jpg' : `art/enemy/${k}.png`;   // giant-titan.png 미커밋(404) → 존재하는 final-titan 대형 보스 아트로 폴백(레벨55+ 실이미지 + 콘솔 404 제거). 전용 아트 커밋 시 되돌리기.
     img.src = src;
     img.onload = () => { enemyPortraits[k] = img; try { draw(); } catch (e) {} };   // 로드되면 보스 프리뷰 재렌더(첫진입 placeholder 제거)
     enemyPortraits[k] = img; // placeholder until load
