@@ -4217,6 +4217,13 @@ function checkDaily() {
   if (META.lastDaily !== today) {
     META.lastDaily = today;
     try { logEvent("daily_return", { streak: META.loginStreak || 0, ch: META.chapter || 1 }); } catch (e) {}   // 📊 리텐션(신규일 복귀) 계측
+    // 3H Duolingo loss-aversion: soft miss line (no dark guilt spam)
+    try {
+      if ((META.loginStreak || 0) === 0 && META.attend && META.attend.last) {
+        setTimeout(function () { try { toast("🔥 연속 기록이 비어 있어요 — 오늘 출석하면 다시 쌓입니다", "#fbbf24"); } catch (e) {} }, 2200);
+        try { logEvent("streak_break_nudge", {}); } catch (e) {}
+      }
+    } catch (e) {}
     // loss aversion: reset loginStreak only on miss (attend.last != yesterday). Duolingo style.
     const yest = dayPlus(-1);
     if ((META.loginStreak || 0) > 0 && META.attend && META.attend.last !== yest) META.loginStreak = 0;
