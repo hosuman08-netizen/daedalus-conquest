@@ -3004,6 +3004,20 @@ function finish(p, e) {
       }
     }
     if (bossFight) { try { mountShareHook("boss", t("shareBossText"), "#result-modal .btn-primary, #result, #battle"); } catch (e) {} }   // Trinity P1: boss share hook
+    else {
+      // 3H: non-boss win share-at-peak — first win of day + every 5th lifetime win (Notcoin emotion peak)
+      try {
+        const _wd = today();
+        const milestone = (META.totalWins || 0) > 0 && ((META.totalWins || 0) % 5 === 0);
+        if (META._shareWinDay !== _wd || milestone) {
+          META._shareWinDay = _wd;
+          setTimeout(function () {
+            try { mountShareHook("battle_win", null, "#result-modal .btn-primary, #result, #battle"); } catch (e) {}
+            try { logEvent("peak_share_battle", { wins: META.totalWins || 0, ch: META.chapter || 1, milestone: !!milestone }); } catch (e) {}
+          }, 700);
+        }
+      } catch (e) {}
+    }
   }
   if (tbActive) { tbActive = false; showTbControls(false); $("start").textContent = t("start"); delete window._tbTactic; }
   const m = META.mode;
