@@ -2991,7 +2991,7 @@ function finish(p, e) {
     // 💎 승리 젬 낙수 (2026-07-20 Morpheus): grinding 유저도 서서히 가챠(8젬) 도달. 일상한 30으로 인플레 방지.
     //   진단: 젬 유입이 진행형 이벤트에만→막힌 구간 반복하면 젬0→가챠 물리적 불가(가챠전환 갭 근본원인).
     { const _dd = today(); if (META.gemDripDay !== _dd) { META.gemDripDay = _dd; META.gemDripToday = 0; }
-      if ((META.gemDripToday || 0) < 30) { META.gems = (META.gems || 0) + 1; META.gemDripToday = (META.gemDripToday || 0) + 1; } }
+      if ((META.gemDripToday || 0) < 30) { META.gems = (META.gems || 0) + 1; META.gemDripToday = (META.gemDripToday || 0) + 1; window._gemDripHit = 1; } else { window._gemDripHit = 0; } }
     if (bossFight) { try { mountShareHook("boss", t("shareBossText"), "#result-modal .btn-primary, #result, #battle"); } catch (e) {} }   // Trinity P1: boss share hook
   }
   if (tbActive) { tbActive = false; showTbControls(false); $("start").textContent = t("start"); delete window._tbTactic; }
@@ -3135,6 +3135,8 @@ function finish(p, e) {
       checkMilestones();                                 // 🏆 챕터 해금/보상
       updateModeTabs(); // 탭 라벨 chX 즉시 갱신 (오버레이 떠 있는 동안에도 "캠페인 ch2" 보이게)
     }
+    // 💎 젬 낙수 가시화 (2026-07-20 Morpheus): 조용하면 심리루프 안 닫힘 → 쌓이는 걸 보여줘 가챠 동기 유발.
+    if (window._gemDripHit) extra += `<div class="rwd2" style="color:#67e8f9">💎 +1 <span style="opacity:.7">(오늘 ${META.gemDripToday||0}/30 · 보유 ${(META.gems||0).toLocaleString("en-US")})</span></div>`;
     // 복리 배당 제거됨 (소액 표시만 UI에)
     META.gold += reward; bumpPrestige(2); saveMeta(); updateMeta();
     try { guildContrib(1); } catch(e){}   // 🏰 길드 주간 기여
