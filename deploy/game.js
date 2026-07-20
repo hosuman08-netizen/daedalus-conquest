@@ -4254,8 +4254,22 @@ function checkDaily() {
       }
     } catch (e) {}
     // loss aversion: reset loginStreak only on miss (attend.last != yesterday). Duolingo style.
+    // 3H: weekly freeze once — 1 missed day keeps streak if ≥3 (guilt-free return).
     const yest = dayPlus(-1);
-    if ((META.loginStreak || 0) > 0 && META.attend && META.attend.last !== yest) META.loginStreak = 0;
+    const y2 = dayPlus(-2);
+    if ((META.loginStreak || 0) > 0 && META.attend && META.attend.last !== yest) {
+      const missedOne = META.attend.last === y2;
+      const st = META.loginStreak || 0;
+      const todayK = today;
+      const shieldReady = !META.streakShieldAt || ((new Date(todayK) - new Date(META.streakShieldAt)) / 86400000) >= 7;
+      if (missedOne && st >= 3 && shieldReady) {
+        META.streakShieldAt = todayK;
+        try { setTimeout(function () { toast("🛡️ 연속 보호막 · " + st + "일 유지", "#67e8f9"); }, 1800); } catch (e) {}
+        try { logEvent("streak_freeze", { count: st }); } catch (e) {}
+      } else {
+        META.loginStreak = 0;
+      }
+    }
     const sig = getLegionSignal();
     const winOpen = (sig > 2.0);
     META.ritualWin = winOpen ? today : "";

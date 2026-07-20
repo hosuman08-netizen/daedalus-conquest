@@ -34,3 +34,13 @@ date "+%Y%m%d-%H%M%S"   # 타임스탬프 (Date.now 대신 셸로)
 - **P0는 🚨 + "복붙용 정확 패치"**(old→new)로 모피어스가 1분이면 적용하게.
 - pay-worker.js 등 트리니티가 직접 고친 게 있으면 "✅ 트리니티 완료, pull 후 작업" 명시(충돌 방지).
 - 발행 후 군주에게 "모피어스 창에서 확인해줘" 안내(비동기 묻힘 방지).
+
+
+---
+## [2026-07-21 Legion Upgrade Wave]
+- **Dual track:** finance transparent / ent FOMO — never mix.
+- **Pipe first:** cash pipe before compound capital.
+- **Loop:** GOAL→DOER→CHECKER (loop-engineering skill).
+- **CRO gate:** cro-growth-gate before seed/deploy.
+- Cross: money-pipe-first · dual-track-finance-ent · legion-full-learning curriculum.
+

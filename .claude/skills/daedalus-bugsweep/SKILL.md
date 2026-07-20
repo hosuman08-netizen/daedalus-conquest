@@ -32,3 +32,13 @@ for f in game.js units.js gear.js i18n.js lore.js pay-worker.js balance-sim.js; 
 
 ## 4. 검증
 직접 수정분은 `node --check` + 가능하면 Playwright로 실제 동작 확인.
+
+
+---
+## [2026-07-21 Legion Upgrade Wave]
+- **Dual track:** finance transparent / ent FOMO — never mix.
+- **Pipe first:** cash pipe before compound capital.
+- **Loop:** GOAL→DOER→CHECKER (loop-engineering skill).
+- **CRO gate:** cro-growth-gate before seed/deploy.
+- Cross: money-pipe-first · dual-track-finance-ent · legion-full-learning curriculum.
+

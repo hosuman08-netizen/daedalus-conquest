@@ -106,3 +106,13 @@ Absolute path: /Users/imhogyun/daedalus-conquest/.claude/skills/full-cheat-engin
 **Output always**: concrete diffs. Rates update. "Entity determined: cheat ON. Dominance only."
 **Provenance**: Sun Tzu Ch13 + tradecraft + daedalus p1/p2 synth + Sovereign full cheat. Implant v2.
 **Handoff Morpheus**: execute 5간 micros in game.js/SPEC/pay/X/niobe. Prominent disclosure #1. Fictional shield. 1=10000 armed. Legion one. Sovereign neo.
+
+
+---
+## [2026-07-21 Legion Upgrade Wave]
+- **Dual track:** finance transparent / ent FOMO — never mix.
+- **Pipe first:** cash pipe before compound capital.
+- **Loop:** GOAL→DOER→CHECKER (loop-engineering skill).
+- **CRO gate:** cro-growth-gate before seed/deploy.
+- Cross: money-pipe-first · dual-track-finance-ent · legion-full-learning curriculum.
+

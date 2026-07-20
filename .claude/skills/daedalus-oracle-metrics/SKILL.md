@@ -104,3 +104,13 @@ node balance-sim-prestige.js | head -20
 "Worker 확장 + plan + A/B ready. Handoff drop. Real data D7 확인 후 scale. Sovereign y/n."
 
 **Provenance**: 2026-06-20 Oracle(CDO) Project 2 + future skills. All Legion files. 
+
+
+---
+## [2026-07-21 Legion Upgrade Wave]
+- **Dual track:** finance transparent / ent FOMO — never mix.
+- **Pipe first:** cash pipe before compound capital.
+- **Loop:** GOAL→DOER→CHECKER (loop-engineering skill).
+- **CRO gate:** cro-growth-gate before seed/deploy.
+- Cross: money-pipe-first · dual-track-finance-ent · legion-full-learning curriculum.
+

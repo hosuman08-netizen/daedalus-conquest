@@ -1,0 +1,2 @@
+
+<!-- LEARNED 2026-07-21 FULL WAVE -->

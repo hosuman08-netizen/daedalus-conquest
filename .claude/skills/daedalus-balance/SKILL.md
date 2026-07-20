@@ -23,3 +23,13 @@ node balance-sim-prestige.js 2>&1 | head -30
 
 ## 3. 이슈 → P0/P1 분류
 밸런스 코드(game.js/units.js)는 모피어스 영역 → `daedalus-handoff`로 위임. 수치·설계 근거는 트리니티가 명세.
+
+
+---
+## [2026-07-21 Legion Upgrade Wave]
+- **Dual track:** finance transparent / ent FOMO — never mix.
+- **Pipe first:** cash pipe before compound capital.
+- **Loop:** GOAL→DOER→CHECKER (loop-engineering skill).
+- **CRO gate:** cro-growth-gate before seed/deploy.
+- Cross: money-pipe-first · dual-track-finance-ent · legion-full-learning curriculum.
+
