@@ -4227,6 +4227,15 @@ function checkDaily() {
   if (META.lastDaily !== today) {
     META.lastDaily = today;
     try { logEvent("daily_return", { streak: META.loginStreak || 0, ch: META.chapter || 1 }); } catch (e) {}   // 📊 리텐션(신규일 복귀) 계측
+    try {
+      if ((META.loginStreak || 0) >= 2 && !window._retWelc) {
+        window._retWelc = 1;
+        setTimeout(function () {
+          try { toast("🔥 " + META.loginStreak + "일 연속 — 오늘도 전선", "#fbbf24"); } catch (e) {}
+          try { logEvent("return_user_welcome", { streak: META.loginStreak || 0 }); } catch (e) {}
+        }, 1500);
+      }
+    } catch (e) {}
     // 3H Duolingo loss-aversion: soft miss line (no dark guilt spam)
     try {
       if ((META.loginStreak || 0) === 0 && META.attend && META.attend.last) {
