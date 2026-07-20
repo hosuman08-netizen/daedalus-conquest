@@ -2992,7 +2992,16 @@ function finish(p, e) {
     // 💎 승리 젬 낙수 (2026-07-20 Morpheus): grinding 유저도 서서히 가챠(8젬) 도달. 일상한 30으로 인플레 방지.
     //   진단: 젬 유입이 진행형 이벤트에만→막힌 구간 반복하면 젬0→가챠 물리적 불가(가챠전환 갭 근본원인).
     { const _dd = today(); if (META.gemDripDay !== _dd) { META.gemDripDay = _dd; META.gemDripToday = 0; }
-      if ((META.gemDripToday || 0) < 30) { META.gems = (META.gems || 0) + 1; META.gemDripToday = (META.gemDripToday || 0) + 1; window._gemDripHit = 1; } else { window._gemDripHit = 0; } }
+      if ((META.gemDripToday || 0) < 30) { META.gems = (META.gems || 0) + 1; META.gemDripToday = (META.gemDripToday || 0) + 1; window._gemDripHit = 1;
+        try { logEvent("gem_drip", { n: 1, today: META.gemDripToday, gems: META.gems || 0, ch: META.chapter || 1 }); } catch (e) {}
+      } else { window._gemDripHit = 0; }
+      // 💎→가챠 넛지 (전환 갭②): 젬>=8 이고 세션 1회 — 뽑을 수 있는데 안 뽑는 유저
+      if ((META.gems || 0) >= 8 && !window._gachaNudgeSess) {
+        window._gachaNudgeSess = 1;
+        try { setTimeout(function(){ toast("💎"+(META.gems||0)+" 모였다 — 새 영웅 소환할 때!", "#67e8f9"); }, 900); } catch(e){}
+        try { logEvent("gacha_nudge", { gems: META.gems || 0, ch: META.chapter || 1 }); } catch(e){}
+      }
+    }
     if (bossFight) { try { mountShareHook("boss", t("shareBossText"), "#result-modal .btn-primary, #result, #battle"); } catch (e) {} }   // Trinity P1: boss share hook
   }
   if (tbActive) { tbActive = false; showTbControls(false); $("start").textContent = t("start"); delete window._tbTactic; }
