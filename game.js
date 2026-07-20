@@ -4133,7 +4133,7 @@ function showGacha(rar, msg, results) {
     setTimeout(() => toast(t("dalioWindow", { p: pity }), "#fbbf24"), 1400);
   }
   if (rar.key === "SSR") {
-    setTimeout(() => toast("⚔️ Forged into MY Legion. Historical timing seized. Variable paid off. Collection gap closed.", "#a3e635"), 1600);
+    setTimeout(() => toast(t("ssrForged"), "#a3e635"), 1600);
     // Trinity P0: SSR share hook (switchInline or TG share with start=ref)
     setTimeout(() => {
       const sh = document.createElement('button');
