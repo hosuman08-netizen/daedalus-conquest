@@ -3017,6 +3017,7 @@ function finish(p, e) {
       if (META.tower > (META.towerBest || 0)) META.towerBest = META.tower;
       const cleared = META.tower;                       // 방금 깬 층
       META.tower += 1;
+      try { logEvent("tower_floor", { floor: META.tower - 1, best: META.towerBest || 0 }); } catch (e) {} // LiveOps D2
       title = t("rTower", { n: cleared });
       extra = `<div class="rwd">${t("rwGold", { n: reward })}</div><div class="rwd2">${t("rwTowerNext", { n: META.tower, b: META.towerBest })}</div>`;
       // 🎁 5층 마일스톤 보상 (조작방지: towerBest 갱신분만 = 첫 도달 시에만 지급)
@@ -4100,6 +4101,7 @@ function applyMYVisuals(u) {
 }
 function rarColor(k) { const r = RARITY.find((x) => x.key === k); return r ? r.color : "#9ca3af"; }
 function showGacha(rar, msg, results) {
+  try { logEvent("gacha_view", { rar: (rar && rar.key) || rar || "?", ch: META.chapter || 1 }); } catch (e) {}
   const g = $("gacha"); if (!g) return;
   if (!META._fg) { META._fg = 1; try { logEvent("first_gacha", { ch: META.chapter || 1 }); } catch (e) {} }   // 📊 첫 뽑기(activation)
   $("gacha-rank").textContent = rar.key;
@@ -5872,7 +5874,7 @@ function claimWarChest() {
   try { confettiBurst(); } catch (e) {}
 }
 on("sg-char1", "click", gacha);
-on("quick-pull", "click", gacha);   // 🎰 전투 하단 빠른 뽑기 — 보상 젬 즉석 소비(한손 도파민·수익 루프)
+on("quick-pull", "click", () => { try { logEvent("gacha_intent", { src: "quick", gems: META.gems || 0, ch: META.chapter || 1 }); } catch (e) {} gacha(); });   // 🎰 빠른 뽑기 + 퍼널 계측
 on("sg-char10", "click", gacha10);
 on("sg-gear1", "click", () => gearGacha(1));
 on("sg-gear10", "click", () => gearGacha(10));
