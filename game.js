@@ -5407,7 +5407,30 @@ function checkPasses() {                                // 활성 패스 = 매�
     toast(t("passClaimPrompt", { n: got, tot: META.passTotalGems, d: dleft }), "#fbbf24");
   }
 }
-function openShop() { loadPayRates(); renderShop(); showPage("shop"); try { logEvent("shop_view", { ch: META.chapter || 1, gems: META.gems || 0 }); } catch (e) {} }
+
+// 3H Hamster/Notcoin progress chrome: gems toward next pull
+function gemsTowardGacha() {
+  try {
+    const need = (typeof GACHA_COST === "number" ? GACHA_COST : 8);
+    const g = META.gems || 0;
+    const pct = Math.min(100, Math.floor((g / need) * 100));
+    let el = document.getElementById("gem-gacha-prog");
+    if (!el) {
+      const bar = document.getElementById("metabar");
+      if (!bar) return;
+      el = document.createElement("span");
+      el.id = "gem-gacha-prog";
+      el.className = "meta";
+      el.style.cssText = "color:#67e8f9;font-size:11px;cursor:pointer";
+      el.onclick = function () { try { openShop(); } catch (e) {} };
+      bar.appendChild(el);
+    }
+    el.textContent = "🎰 " + g + "/" + need + " (" + pct + "%)";
+    el.title = "다음 소환까지 젬";
+  } catch (e) {}
+}
+
+function openShop() { loadPayRates(); renderShop(); showPage("shop"); try { gemsTowardGacha(); } catch (e) {} try { logEvent("shop_view", { ch: META.chapter || 1, gems: META.gems || 0 }); } catch (e) {} }
 function renderShop() {
   try {
   if (typeof renderFeaturedBanner === "function") renderFeaturedBanner();   // 🎯 한정 배너
@@ -6895,7 +6918,7 @@ try {
     } catch(e){}
     logEvent("install", { ch: META.chapter || 1, ...src });
   }
-  logEvent("session_start", { ch: META.chapter || 1, tower: META.tower || 1, pulls: META.pulls || 0 });
+  logEvent("session_start", { ch: META.chapter || 1, tower: META.tower || 1, pulls: META.pulls || 0 }); try { gemsTowardGacha(); } catch (e) {}
   // LiveOps D7 soft: ISO-week free chest once (habit FOMO, not P2W)
   try {
     const _wd = new Date();
