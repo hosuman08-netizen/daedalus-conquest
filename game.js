@@ -2987,6 +2987,7 @@ function finish(p, e) {
   if (win) {
     logEvent("battle_win", { mode: META.mode, ch: META.chapter, tower: META.tower, lvl: curLevel });   // 📊 계측
     if (!META._fcl) { META._fcl = 1; try { logEvent("first_core_loop", { ch: META.chapter || 1 }); } catch (e) {} }   // 📊 첫 코어루프 완주(activation)
+    if (window.legionTrack) { try { window.legionTrack('activate'); } catch (e) {} }   // 🛰️ 통합 beacon(앱 자체 계측과 병행)
     logEvent("core_loop_complete", { type: "battle", ch: META.chapter || 1 });  // Trinity P0 activation
     // 💎 승리 젬 낙수 (2026-07-20 Morpheus): grinding 유저도 서서히 가챠(8젬) 도달. 일상한 30으로 인플레 방지.
     //   진단: 젬 유입이 진행형 이벤트에만→막힌 구간 반복하면 젬0→가챠 물리적 불가(가챠전환 갭 근본원인).
@@ -4155,7 +4156,7 @@ function mountShareHook(kind, shareText, mountSelector) {
     sh.id = id;
     sh.textContent = t("cardBragBtn");
     sh.style.cssText = "margin:8px 0;padding:6px 12px;background:#22c55e;color:#fff;border:none;border-radius:6px;cursor:pointer";
-    sh.onclick = () => { try { logEvent("share_clicked", { type: kind, ref: uid }); } catch (e) {} shareDominionCard(kind); };   // 🖼️ SSR/보스/환생 공통 자랑 카드
+    sh.onclick = () => { try { logEvent("share_clicked", { type: kind, ref: uid }); } catch (e) {} if (window.legionTrack) { try { window.legionTrack('share'); } catch (e) {} } shareDominionCard(kind); };   // 🖼️ SSR/보스/환생 공통 자랑 카드 + 🛰️ beacon
     const mount = document.querySelector(mountSelector);
     if (mount && mount.parentNode) mount.parentNode.appendChild(sh);
     else if (mount) mount.appendChild(sh);
