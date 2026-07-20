@@ -4166,6 +4166,14 @@ function showGacha(rar, msg, results) {
     //   innerHTML 리셋이 list 내용만 지우고 형제인 버튼은 살아남아 SSR 뽑을수록 초록 버튼이 영구 누적.
     //   mountShareHook(id 기반 중복가드) 재사용으로 1개만 유지.
     setTimeout(() => mountShareHook('ssr', null, '#gacha-list'), 2200);
+    // 3H deepen: any SSR-class result gets share-at-peak chrome
+    try {
+      logEvent("peak_share_any_ssr", { ch: META.chapter || 1 });
+      setTimeout(function () {
+        try { toast("📤 전설 뽑았다 — 지금 공유가 가장 빛남", "#fbbf24"); } catch (e) {}
+      }, 900);
+    } catch (e) {}
+
   }
   if (isArclightBannerActive && isArclightBannerActive()) {
     setTimeout(() => toast(t("arclightFomo"), "#f97316"), 1800);
