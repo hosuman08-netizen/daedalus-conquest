@@ -3258,7 +3258,21 @@ function finish(p, e) {
       sh.onclick = () => { shareDominion(); };
       $overlayMsg.parentNode.appendChild(sh);
     }
-  } else SFX.lose(); 
+  } else {
+    SFX.lose();
+    // 3H: defeat recovery CTA — empty-state energy (retry / gacha power-up), 1/session
+    try {
+      if (!window._loseRecoverToast) {
+        window._loseRecoverToast = 1;
+        setTimeout(function () {
+          try {
+            toast("⚡ 다시 도전 · 영웅 소환으로 전력 보강?", "#f87171");
+            logEvent("lose_recover_cta", { ch: META.chapter || 1, gems: META.gems || 0 });
+          } catch (e) {}
+        }, 900);
+      }
+    } catch (e) {}
+  }
   // expand haptic to key events
   if (win) { try { tg && tg.HapticFeedback.impactOccurred("heavy"); } catch(e){} }
   // (rank18: 무조건 medium 2연타 삭제 — 승리는 위 notification('success')+heavy, 패배는 notification('error')로 단일화.
