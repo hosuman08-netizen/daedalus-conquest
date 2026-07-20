@@ -6878,6 +6878,18 @@ try {
     logEvent("install", { ch: META.chapter || 1, ...src });
   }
   logEvent("session_start", { ch: META.chapter || 1, tower: META.tower || 1, pulls: META.pulls || 0 });
+  // LiveOps D7 soft: ISO-week free chest once (habit FOMO, not P2W)
+  try {
+    const _wd = new Date();
+    const _onejan = new Date(_wd.getFullYear(), 0, 1);
+    const _wk = _wd.getFullYear() + "-W" + String(Math.ceil((((_wd - _onejan) / 86400000) + _onejan.getDay() + 1) / 7)).padStart(2, "0");
+    if (META.weekChest !== _wk) {
+      META.weekChest = _wk;
+      META.gems = (META.gems || 0) + 10;
+      try { logEvent("week_chest", { n: 10, week: _wk, gems: META.gems || 0 }); } catch (e) {}
+      setTimeout(function () { try { toast("📦 주간 전선 보급 💎+10", "#67e8f9"); } catch (e) {} }, 1200);
+    }
+  } catch (e) {}
   try { initAnonId(); } catch (e) {}   // 📊 sha256(tg.user.id) 해시 anonId 준비(비동기, 이후 이벤트에 반영)
   pingActive();   // 🔔 재참여 알림용 활동 핑(비활성 판정 정확)
   try { raidDailyReset(); checkRevenge(); raidSnapshot(); } catch (e) {}   // 🗡️ 습격: 에너지 리셋 + 복수큐 + 방어 스냅샷
