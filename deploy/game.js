@@ -3042,6 +3042,10 @@ function finish(p, e) {
         const sig = getLegionSignal(); const win = (META.ritualWin === today() || sig>2.0);
         reward = bonus(200 + META.chapter * 15 + (win ? Math.floor(55*(sig-1)) : 0));
         META.dailyDone = today(); extra = `<div class="rwd">${t("rwDailyBonus", { n: reward })}</div>` + (win ? '<div class="rwd2">⚡ 군단 전술 보너스</div>' : '');
+        // LiveOps D1: 일일 첫 클리어 젬+2 (drip 별도, 습관 트리거)
+        META.gems = (META.gems || 0) + 2;
+        try { logEvent("daily_gem_bonus", { n: 2, gems: META.gems || 0 }); } catch (e) {}
+        extra += `<div class="rwd2" style="color:#67e8f9">💎 +2 일일 전선</div>`;
         // Vanguard Focus FOMO 24h ritual (carry teaser + god-VFX hook; limited, ethical)
         if (!META.vanguard || META.vanguard !== today()) { if (win || sig > 2.1) { META.vanguard = today(); setTimeout(()=>toast(t("vanguardToast1"),"#fbbf24"), 650); } }
       }
