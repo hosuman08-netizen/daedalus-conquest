@@ -3264,7 +3264,33 @@ function finish(p, e) {
       sh.onclick = () => { shareDominion(); };
       $overlayMsg.parentNode.appendChild(sh);
     }
-  } else SFX.lose(); 
+    // 2026-07-29 1H: 승리 오버레이 가챠 CTA
+    try {
+      const _need = (typeof GACHA_COST === "number" ? GACHA_COST : 8);
+      const _g = META.gems || 0;
+      const _can = _g >= _need;
+      window._winGachaN = (window._winGachaN || 0) + 1;
+      if (_can && (window._winGachaN === 1 || window._winGachaN % 3 === 0)) {
+        let gb = document.getElementById("overlay-gacha-cta");
+        if (!gb) {
+          gb = document.createElement("button");
+          gb.id = "overlay-gacha-cta";
+          gb.style.cssText = "margin-top:6px;width:100%;padding:10px;border-radius:10px;background:linear-gradient(135deg,#fbbf24,#d97706);color:#1a1400;border:none;font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 6px 18px rgba(245,196,81,.35);";
+          $overlayMsg.parentNode.appendChild(gb);
+        }
+        gb.textContent = "🎰 영웅 소환 (" + _g + "💎 ≥ " + _need + ")";
+        gb.onclick = function () {
+          try { logEvent("win_gacha_cta_click", { gems: META.gems || 0, ch: META.chapter || 1 }); } catch (e) {}
+          try { $overlay.classList.add("hidden"); } catch (e) {}
+          try { if (typeof gacha === "function") gacha(); else openShop(); } catch (e) { try { openShop(); } catch (e2) {} }
+        };
+        try { logEvent("win_gacha_cta_show", { gems: _g, ch: META.chapter || 1, n: window._winGachaN }); } catch (e) {}
+      }
+      try { gemsTowardGacha(); } catch (e) {}
+    } catch (e) {}
+  } else {
+    SFX.lose();
+  }
   // expand haptic to key events
   if (win) { try { tg && tg.HapticFeedback.impactOccurred("heavy"); } catch(e){} }
   // (rank18: 무조건 medium 2연타 삭제 — 승리는 위 notification('success')+heavy, 패배는 notification('error')로 단일화.
