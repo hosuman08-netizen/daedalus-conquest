@@ -3178,6 +3178,16 @@ function finish(p, e) {
     }
     // 💎 젬 낙수 가시화 (2026-07-20 Morpheus): 조용하면 심리루프 안 닫힘 → 쌓이는 걸 보여줘 가챠 동기 유발.
     if (window._gemDripHit) extra += `<div class="rwd2" style="color:#67e8f9">💎 +1 <span style="opacity:.7">(오늘 ${META.gemDripToday||0}/30 · 보유 ${(META.gems||0).toLocaleString("en-US")})</span></div>`;
+    // 2026-07-29 1H: 전투→가챠 전환 가시화 — 소환 가능 젬이면 오버레이에 진행도 노출 (확률 고지 유지, 강제 아님)
+    try {
+      const _need = (typeof GACHA_COST === "number" ? GACHA_COST : 8);
+      const _g = META.gems || 0;
+      if (_g >= _need) {
+        extra += `<div class="rwd2" style="color:#fbbf24">🎰 소환 가능 💎${_g}/${_need} — 영웅 뽑기 열 수 있음</div>`;
+      } else if (_g > 0) {
+        extra += `<div class="rwd2" style="color:#67e8f9;opacity:.9">🎰 다음 소환까지 💎${_g}/${_need}</div>`;
+      }
+    } catch (e) {}
     // 복리 배당 제거됨 (소액 표시만 UI에)
     META.gold += reward; bumpPrestige(2); saveMeta(); updateMeta();
     try { guildContrib(1); } catch(e){}   // 🏰 길드 주간 기여
@@ -3268,6 +3278,30 @@ function finish(p, e) {
       sh.onclick = () => { shareDominion(); };
       $overlayMsg.parentNode.appendChild(sh);
     }
+    // 2026-07-29 1H: 승리 오버레이 가챠 CTA (젬 충분 + 세션당 스로틀) — combat→gacha 구멍 메움
+    try {
+      const _need = (typeof GACHA_COST === "number" ? GACHA_COST : 8);
+      const _g = META.gems || 0;
+      const _can = _g >= _need;
+      window._winGachaN = (window._winGachaN || 0) + 1;
+      if (_can && (window._winGachaN === 1 || window._winGachaN % 3 === 0)) {
+        let gb = document.getElementById("overlay-gacha-cta");
+        if (!gb) {
+          gb = document.createElement("button");
+          gb.id = "overlay-gacha-cta";
+          gb.style.cssText = "margin-top:6px;width:100%;padding:10px;border-radius:10px;background:linear-gradient(135deg,#fbbf24,#d97706);color:#1a1400;border:none;font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 6px 18px rgba(245,196,81,.35);";
+          $overlayMsg.parentNode.appendChild(gb);
+        }
+        gb.textContent = "🎰 영웅 소환 (" + _g + "💎 ≥ " + _need + ")";
+        gb.onclick = function () {
+          try { logEvent("win_gacha_cta_click", { gems: META.gems || 0, ch: META.chapter || 1 }); } catch (e) {}
+          try { $overlay.classList.add("hidden"); } catch (e) {}
+          try { if (typeof gacha === "function") gacha(); else openShop(); } catch (e) { try { openShop(); } catch (e2) {} }
+        };
+        try { logEvent("win_gacha_cta_show", { gems: _g, ch: META.chapter || 1, n: window._winGachaN }); } catch (e) {}
+      }
+      try { gemsTowardGacha(); } catch (e) {}
+    } catch (e) {}
   } else {
     SFX.lose();
     // 3H: defeat recovery CTA — empty-state energy (retry / gacha power-up), 1/session

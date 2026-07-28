@@ -3164,6 +3164,16 @@ function finish(p, e) {
     }
     // 💎 젬 낙수 가시화 (2026-07-20 Morpheus): 조용하면 심리루프 안 닫힘 → 쌓이는 걸 보여줘 가챠 동기 유발.
     if (window._gemDripHit) extra += `<div class="rwd2" style="color:#67e8f9">💎 +1 <span style="opacity:.7">(오늘 ${META.gemDripToday||0}/30 · 보유 ${(META.gems||0).toLocaleString("en-US")})</span></div>`;
+    // 2026-07-29 1H: 전투→가챠 전환 가시화 — 소환 가능 젬이면 오버레이에 진행도 노출 (확률 고지 유지, 강제 아님)
+    try {
+      const _need = (typeof GACHA_COST === "number" ? GACHA_COST : 8);
+      const _g = META.gems || 0;
+      if (_g >= _need) {
+        extra += `<div class="rwd2" style="color:#fbbf24">🎰 소환 가능 💎${_g}/${_need} — 영웅 뽑기 열 수 있음</div>`;
+      } else if (_g > 0) {
+        extra += `<div class="rwd2" style="color:#67e8f9;opacity:.9">🎰 다음 소환까지 💎${_g}/${_need}</div>`;
+      }
+    } catch (e) {}
     // 복리 배당 제거됨 (소액 표시만 UI에)
     META.gold += reward; bumpPrestige(2); saveMeta(); updateMeta();
     try { guildContrib(1); } catch(e){}   // 🏰 길드 주간 기여
