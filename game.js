@@ -5437,7 +5437,15 @@ function logEvent(name, data) {
     if (typeof console !== "undefined") console.log("[METRIC]", name, data || {}); // debug metric (minify strips)
     // Analytics 독립 (PAY와 분리 — metrics P1 필수). /ev + {type,anonId} 스키마 일치.
     if (typeof ANALYTICS_BACKEND !== "undefined" && ANALYTICS_BACKEND) {
-      const body = JSON.stringify({ type: name, anonId: getAnonId(), ts: Date.now(), d: data || {} });
+      // 2026-07-29 1H: worker expects {app,type,anon} — missing app → all events land as "unknown" → daedalus stats=0
+      const body = JSON.stringify({
+        app: "daedalus",
+        type: name,
+        anon: getAnonId(),
+        anonId: getAnonId(),
+        ts: Date.now(),
+        d: data || {}
+      });
       const url = ANALYTICS_BACKEND + "/ev";
       if (typeof navigator !== "undefined" && navigator.sendBeacon) { navigator.sendBeacon(url, body); }
       else if (typeof fetch !== "undefined") fetch(url, { method: "POST", body: body, keepalive: true, headers: { "Content-Type": "application/json" } }).catch(() => {});
