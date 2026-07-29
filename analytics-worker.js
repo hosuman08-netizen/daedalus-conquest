@@ -34,7 +34,16 @@ const ALLOWED = new Set([
   "first_core_loop", "first_gacha", "free_ticket_used", "share_card_generated", "share_card_sent",
   "raid_attack", "raid_win", "shield_buy", "revenge_start",
   // 리텐션 신설(2026-07-16 Morpheus) — game.js emit과 계약 일치. 누락 시 라이브 폐기됨
-  "auto_deploy", "defeat_coach"
+  "auto_deploy", "defeat_coach",
+  // 2026-07-29 1H smoke: game.js logEvent 24종 워커 폐기 중이었음 — ALLOWED 계약 복구
+  "daily_focus_toast", "daily_gem_bonus", "daily_login_gems", "daily_missions_claim",
+  "gacha_intent", "gacha_nudge", "gacha_view", "gem_drip",
+  "gg_comeback_boot", "gg_comeback_toast", "lose_recover_cta",
+  "money_pipe_shop", "money_pipe_shown",
+  "peak_share_any_ssr", "peak_share_battle", "peak_share_gacha",
+  "return_user_welcome", "streak_break_nudge", "streak_freeze",
+  "tower_floor", "ttv_first_session", "week_chest",
+  "win_gacha_cta_click", "win_gacha_cta_show"
 ]);
 const dayKey = (ts) => new Date(ts).toISOString().slice(0, 10);   // YYYY-MM-DD (UTC 일관 — game.js와 동일)
 
@@ -129,6 +138,11 @@ export default {
     }
     // ② 집계 조회 — 오라클(CDO) 대시보드용. GET /stats?day=YYYY-MM-DD
     if (req.method === "GET" && url.pathname === "/stats") {
+      const ssec = env.STATS_SECRET;
+      if (ssec) {
+        const got = req.headers.get("X-Stats-Secret") || url.searchParams.get("k") || "";
+        if (got !== ssec) return json({ ok: false, reason: "stats-auth" }, 401);
+      }
       if (!env.EVENTS) return json({ ok: false, reason: "kv-not-set" });
       const day = url.searchParams.get("day") || dayKey(Date.parse(new Date().toISOString()));
       const out = {};

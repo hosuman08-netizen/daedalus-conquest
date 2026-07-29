@@ -176,6 +176,40 @@ async function tg(token, method, body) {
   return r.json();
 }
 
+/** Telegram WebApp initData HMAC verify (official). Returns user object or null. */
+async function verifyWebAppInitData(initData, botToken) {
+  if (!initData || !botToken) return null;
+  try {
+    const params = new URLSearchParams(initData);
+    const hash = params.get("hash");
+    if (!hash) return null;
+    params.delete("hash");
+    const pairs = [];
+    for (const [k, v] of params.entries()) pairs.push(k + "=" + v);
+    pairs.sort();
+    const dataCheckString = pairs.join("\n");
+    const enc = new TextEncoder();
+    const secretKey = await crypto.subtle.importKey(
+      "raw", enc.encode("WebAppData"), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+    );
+    const secret = await crypto.subtle.sign("HMAC", secretKey, enc.encode(botToken));
+    const key = await crypto.subtle.importKey(
+      "raw", secret, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+    );
+    const sig = await crypto.subtle.sign("HMAC", key, enc.encode(dataCheckString));
+    const hex = [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, "0")).join("");
+    if (hex !== hash) return null;
+    // auth_date freshness (24h)
+    const authDate = parseInt(params.get("auth_date") || "0", 10);
+    if (!authDate || Math.abs(Math.floor(Date.now() / 1000) - authDate) > 86400) return null;
+    const userRaw = params.get("user");
+    if (!userRaw) return null;
+    return JSON.parse(userRaw);
+  } catch (e) {
+    return null;
+  }
+}
+
 export default {
   async fetch(req, env) {
     const token = env.BOT_TOKEN;
@@ -192,13 +226,16 @@ export default {
       return json(r);
     }
 
-    // ① 인보이스 링크 발급 (Stars default + TON/X funnel hooks + psych). Value isolation + stealth (payload coded).
+    // ① 인보이스 링크 발급 — 🔒 Cipher P0: initData HMAC required; uid from verified user only.
     if (req.method === "GET" && url.pathname === "/invoice") {
       if (!token) return json({ error: "BOT_TOKEN not set" }, 500);
       const item = url.searchParams.get("item");
-      const uid = url.searchParams.get("uid") || "0";
       const ptype = url.searchParams.get("type") || "stars"; // stars | ton
       const lang = pickLang(url.searchParams.get("lang"));   // 🌐 유저 language_code (없으면 en 폴백)
+      const initData = url.searchParams.get("initData") || "";
+      const user = await verifyWebAppInitData(initData, token);
+      if (!user || !user.id) return json({ error: "auth required (valid Telegram initData)" }, 401);
+      const uid = String(user.id);
       const meta = localizedItem(item, lang);                // 유저 언어 title/desc
       const stars = STARS[item];
       if (!meta || !stars) return json({ error: "bad item" }, 400);
@@ -242,9 +279,12 @@ export default {
       return json({ stars: STARS, ton: TON_PRICES, disclosure: "ALL rates exact & prominent pre-pull. Fictional 'inspired by'. In-game items only — no real-money yield/investment. No kompu. Minors gate client.", psych: { vr: "variable ratio in sf10000 daily", near_miss: "pity+tease every pack", scarcity: "72h limited + countdown", identity: "MY Legion fusion + founder sigil", x_funnel: "X share → pay bonus" }, sf10000: "in-game 10000-unit special forces pack." });
     }
 
-    // 🔥 ①-e Agentic auto-yield (RWA hooks + cycle-domination timing). KV YIELD or RECEIPTS fallback.
+    // 🔥 ①-e Agentic auto-yield — 🔒 Cipher P1: initData required; no free KV write by uid guess.
     if (req.method === "GET" && url.pathname === "/yield") {
-      const uid = url.searchParams.get("uid") || "0";
+      const initData = url.searchParams.get("initData") || "";
+      const user = await verifyWebAppInitData(initData, token);
+      if (!user || !user.id) return json({ error: "auth required" }, 401);
+      const uid = String(user.id);
       const base = env.RECEIPTS ? parseInt((await env.RECEIPTS.get("yld:" + uid)) || "0", 10) : 0;
       const agentYield = Math.floor(base * 0.012 + 50); // agentic sim: RWA 1.2% + fixed ops. Stealth.
       if (env.RECEIPTS) await env.RECEIPTS.put("yld:" + uid, String(base + agentYield), { expirationTtl: 86400*7 });

@@ -3279,19 +3279,23 @@ function finish(p, e) {
       $overlayMsg.parentNode.appendChild(sh);
     }
     // 2026-07-29 1H: 승리 오버레이 가챠 CTA (젬 충분 + 세션당 스로틀) — combat→gacha 구멍 메움
+    // HARD fix: 조건 미충족 시 기존 버튼 hide (잔존 dead/stale CTA 방지)
     try {
       const _need = (typeof GACHA_COST === "number" ? GACHA_COST : 8);
       const _g = META.gems || 0;
       const _can = _g >= _need;
       window._winGachaN = (window._winGachaN || 0) + 1;
+      let gb = document.getElementById("overlay-gacha-cta");
       if (_can && (window._winGachaN === 1 || window._winGachaN % 3 === 0)) {
-        let gb = document.getElementById("overlay-gacha-cta");
         if (!gb) {
           gb = document.createElement("button");
           gb.id = "overlay-gacha-cta";
+          gb.type = "button";
           gb.style.cssText = "margin-top:6px;width:100%;padding:10px;border-radius:10px;background:linear-gradient(135deg,#fbbf24,#d97706);color:#1a1400;border:none;font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 6px 18px rgba(245,196,81,.35);";
           $overlayMsg.parentNode.appendChild(gb);
         }
+        gb.style.display = "";
+        gb.disabled = false;
         gb.textContent = "🎰 영웅 소환 (" + _g + "💎 ≥ " + _need + ")";
         gb.onclick = function () {
           try { logEvent("win_gacha_cta_click", { gems: META.gems || 0, ch: META.chapter || 1 }); } catch (e) {}
@@ -3299,11 +3303,18 @@ function finish(p, e) {
           try { if (typeof gacha === "function") gacha(); else openShop(); } catch (e) { try { openShop(); } catch (e2) {} }
         };
         try { logEvent("win_gacha_cta_show", { gems: _g, ch: META.chapter || 1, n: window._winGachaN }); } catch (e) {}
+      } else if (gb) {
+        gb.style.display = "none";
+        gb.onclick = null;
       }
       try { gemsTowardGacha(); } catch (e) {}
     } catch (e) {}
   } else {
     SFX.lose();
+    try {
+      const _gbL = document.getElementById("overlay-gacha-cta");
+      if (_gbL) { _gbL.style.display = "none"; _gbL.onclick = null; }
+    } catch (e) {}
     // 3H: defeat recovery CTA — empty-state energy (retry / gacha power-up), 1/session
     try {
       if (!window._loseRecoverToast) {
@@ -4422,7 +4433,7 @@ function showStuckHelp() {
     + '<button id="stuck-free" class="ghost" style="width:100%;font-size:12px;">무료로 더 키울게요 (환생·강화·뽑기)</button>'
     + '<div style="font-size:10px;color:#5a5a72;margin-top:10px;">💡 무과금도 환생·도감수집·일일보상으로 돌파 가능</div>';
   el.style.display = "flex";
-  const buy = $("stuck-buy"); if (buy) buy.onclick = () => { el.style.display = "none"; showPage("shop"); try { renderShop(); } catch (e) {} haptic("medium"); };
+  const buy = $("stuck-buy"); if (buy) buy.onclick = () => { el.style.display = "none"; try { openShop(); } catch (e) { try { showPage("shop"); renderShop(); } catch (e2) {} } haptic("medium"); };
   const free = $("stuck-free"); if (free) free.onclick = () => { el.style.display = "none"; };
   el.onclick = (e) => { if (e.target === el) el.style.display = "none"; };
   try { logEvent("stuck_upsell", { ch: ch, losses: stuck }); } catch (e) {}
@@ -5361,7 +5372,7 @@ function claimAttend() {
     setTimeout(function () {
       try {
         toast("💎 출석 완료 — 샵에서 젬/가챠 루프 (엔터)", "#e0b552");
-        logEvent("money_pipe_shown", { app: "daedalus", where: "attend", streak: META.loginStreak || 0 });
+        logEvent("money_pipe_shown", { app: (typeof window !== "undefined" && window.LEGION_APP) ? window.LEGION_APP : "daedalus-conquest", where: "attend", streak: META.loginStreak || 0 });
       } catch (e) {}
     }, 1600);
   } catch (e) {}
@@ -5437,9 +5448,9 @@ function logEvent(name, data) {
     if (typeof console !== "undefined") console.log("[METRIC]", name, data || {}); // debug metric (minify strips)
     // Analytics 독립 (PAY와 분리 — metrics P1 필수). /ev + {type,anonId} 스키마 일치.
     if (typeof ANALYTICS_BACKEND !== "undefined" && ANALYTICS_BACKEND) {
-      // 2026-07-29 1H: worker expects {app,type,anon} — missing app → all events land as "unknown" → daedalus stats=0
+      // 2026-07-29 1H/C2: multi worker expects {app,type,anon}; unify with window.LEGION_APP (index beacon)
       const body = JSON.stringify({
-        app: "daedalus",
+        app: (typeof window !== "undefined" && window.LEGION_APP) ? window.LEGION_APP : "daedalus-conquest",
         type: name,
         anon: getAnonId(),
         anonId: getAnonId(),
@@ -5685,10 +5696,19 @@ const ANALYTICS_BACKEND = "https://legion-analytics.hoyashi95.workers.dev";   //
 const STARS = { founder: 990, starter: 50, weekly: 250, monthly: 750, vip: 1500, ultra: 5000, growth1: 500, growth2: 2500,
                 gem1: 55, gem2: 280, gem3: 1000, gem4: 2500, gold1: 55, gold2: 280, gold3: 1000, sf10000: 1200, ton_starter: 60 };
 function founderActive() { return (typeof FEATURED_LAUNCH !== "undefined") ? (Date.now() - FEATURED_LAUNCH < 7 * 86400000) : true; }   // 출시 7일 한정창
+// CONT pay: late-bind TG (const tg is null if WebApp injects after script load / smoke mock)
+function telegramWebApp() {
+  try {
+    if (window.Telegram && window.Telegram.WebApp) return window.Telegram.WebApp;
+    if (typeof tg !== "undefined" && tg) return tg;
+  } catch (e) {}
+  return null;
+}
 function buyPack(id) {
   const p = SHOP.find((x) => x.id === id); if (!p) return;
   const stars = STARS[id] || 0;
-  if (!tg || !tg.openInvoice || !stars) {   // 텔레그램 밖 = 결제 불가 → 무료지급 차단(매출 보호). 데모는 PAY_BACKEND 미설정 시에만.
+  const _tg = telegramWebApp();
+  if (!_tg || !_tg.openInvoice || !stars) {   // 텔레그램 밖 = 결제 불가 → 무료지급 차단(매출 보호). 데모는 PAY_BACKEND 미설정 시에만.
     if (!PAY_BACKEND) { grantPackWithBonus(id); toast(t("payDemo"), "#8b93a7"); }
     else toast(t("payTgOnly"), "#fbbf24");
     return;
@@ -5696,14 +5716,27 @@ function buyPack(id) {
   payWithStars(id, stars);
 }
 function payWithStars(id, stars) {
-  let uid = 0; try { uid = ((tg.initDataUnsafe && tg.initDataUnsafe.user) || {}).id || 0; } catch (e) {}
+  const _tg = telegramWebApp();
+  let uid = 0; try { uid = ((_tg && _tg.initDataUnsafe && _tg.initDataUnsafe.user) || {}).id || 0; } catch (e) {}
+  // 2026-07-29 C2 Oracle: shop_view→purchase 중간 암흑 메움 — 의도/결과 관측 (지급 로직 불변)
+  try { logEvent("checkout_open", { item: id, stars: stars || 0 }); } catch (e) {}
+  if (!_tg || !_tg.openInvoice) { toast(t("payTgOnly"), "#fbbf24"); return; }
   toast(t("payOpening"), "#fbbf24");
   const ptype = (id === "ton_starter" || id === "sf10000") ? "ton" : "stars"; // TON for select
-  fetch(PAY_BACKEND + "/invoice?item=" + encodeURIComponent(id) + "&stars=" + stars + "&uid=" + uid + "&type=" + ptype + "&lang=" + encodeURIComponent(LANG || "en"))
+  // 🔒 Cipher P0: send signed initData so pay-worker HMAC-verifies and derives uid server-side
+  let signed = ""; try { signed = (_tg && _tg.initData) ? _tg.initData : ""; } catch (e) {}
+  if (!signed) { toast(t("payTgOnly"), "#fbbf24"); return; }
+  fetch(PAY_BACKEND + "/invoice?item=" + encodeURIComponent(id) + "&stars=" + stars + "&uid=" + uid + "&type=" + ptype + "&lang=" + encodeURIComponent(LANG || "en") + "&initData=" + encodeURIComponent(signed))
     .then((r) => r.json())
     .then((d) => {
+      if (d && d.error) throw new Error(d.error);
       if (!d || !d.link) throw new Error("no link");
-      tg.openInvoice(d.link, (status) => {
+      _tg.openInvoice(d.link, (status) => {
+        try {
+          if (status === "paid") logEvent("invoice_paid", { item: id, stars: stars || 0 });
+          else if (status === "cancelled" || status === "failed")
+            logEvent("invoice_cancelled", { item: id, stars: stars || 0, status: status });
+        } catch (e) {}
         if (status === "paid") { verifyThenGrant(id, uid); }   // 🔒 서버 영수증 확인 후 지급
         else if (status === "failed") toast(t("payFail"), "#ef4444");
         else toast(t("payCancel"), "#8b93a7");   // cancelled/pending

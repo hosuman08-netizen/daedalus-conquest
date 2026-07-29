@@ -7,33 +7,158 @@
    Full cheat: gacha banners + pay invoices + hegemony. Prominent exact rates pre-invoice/gacha (code=UI 100%). Fictional framing ("inspired by epics"). No kompu. Minors gate. Reversible. Sovereign direct. Legion one.
    See: ~/.grok/legion/IL-DANG-10000-SPECIAL-FORCES-DOCTRINE.md + full-cheat-engine. */
 
+// ⚠️ 내부 코드명/psych 태그(SADRAT/RASCLS/MSS/GRU/Dalio 등)는 유저에게 절대 노출 안 되게 여기 주석/키에만 유지.
+//    유저에게 보내는 실제 title/desc는 아래 ITEM_I18N에서 유저 언어(lang)로 선택 → 인보이스에 6언어 자연 문구 전송.
 const ITEMS = {
-  founder:  { title: "창단멤버 한정팩", desc: "💎1500 + SSR유닛 + SSR장비 + 영구 골드+25% + 창단 뱃지 | MY Legion fusion (endowment) | scarcity FOMO (SADRAT Recruit) | Three Warfares public opinion | prominent rates shield" },
-  starter:  { title: "초심자 패키지",   desc: "2x 속도 영구 + 골드3000 + 유닛10개 | variable entry + near-miss starter (RASCLS Recip/Scarcity) | Sayanim seed | fictional Origin myth" },
-  weekly:   { title: "주간 패스",        desc: "즉시 💎150 + 7일 매일 💎100 | cycle FOMO" },
-  monthly:  { title: "월간 패스",        desc: "즉시 💎300 + 30일 매일 💎100 | loss-aversion lock" },
-  vip:      { title: "VIP 패키지",       desc: "4x속도·골드+50%·💎600·SR유닛 | identity fusion" },
-  ultra:    { title: "울트라 패키지",    desc: "8x속도·VIP혜택·💎2000·💰50k·SSR유닛+장비 | dominance apex (Authority) | GRU active extraction | MY Legion hegemony" },
-  growth1:  { title: "성장 패키지",      desc: "💰5만 + 💎200 + SR장비×2 | near-miss ramp" },
-  growth2:  { title: "고급 성장팩",      desc: "💰20만 + 💎800 + SSR유닛+장비 | scarcity elite" },
-  gem1:     { title: "💎 60",            desc: "다이아 60 | VR small" },
-  gem2:     { title: "💎 330",           desc: "다이아 330 | variable boost" },
-  gem3:     { title: "💎 1280",          desc: "다이아 1280 | near-miss pity" },
-  gem4:     { title: "💎 3400",          desc: "다이아 3400 | RWA yield seed" },
-  gold1:    { title: "💰 6000",          desc: "골드 6000" },
-  gold2:    { title: "💰 35000",         desc: "골드 35000" },
-  gold3:    { title: "💰 140000",        desc: "골드 140000 | MY Legion endowment" },
-  // 🔥 10000-unit special forces + RWA + TON + psych escalation
-  sf10000:  { title: "특수부대 일당10000", desc: "⚔️ Legion 특수부대 일 10,000유닛 | VR loops + near-miss + scarcity daily (SADRAT Handle + Dalio cycle) | RWA backing auto-yield (MSS) | MY Legion identity fusion (endowment) | agentic ops + Sayanim cells | Three Warfares psych+legal | prominent rates 100% | fictional" },
-  rwa_yield:{ title: "RWA 수익 백킹", desc: "실물자산(RWA) 기반 자동 수익 | agentic yield compound (MSS cyber-econ) | value isolation + OPSEC hard-kill (unmanned isolation) | cycle exploitation (Dalio)" },
-  ton_starter:{ title: "TON 스타터", desc: "TON 결제 진입 | stealth OPSEC (unmanned isolation + GRU active measures) | X funnel Sayanim bonus | Three Warfares legal" },
+  founder: {}, starter: {}, weekly: {}, monthly: {}, vip: {}, ultra: {},
+  growth1: {}, growth2: {}, gem1: {}, gem2: {}, gem3: {}, gem4: {},
+  gold1: {}, gold2: {}, gold3: {}, sf10000: {}, ton_starter: {},
 };
-// IL-DANG-10000 DECEPTION FULL APPLIED: SADRAT/RASCLS/Mossad/MSS/GRU/ThreeWarfares/Dalio to every invoice. Pay deploy unlocked with cheat. Prominent rates enforced upstream in game.js. Sovereign direct. Legion one. Reversible. See doctrine in .grok/legion/IL-DANG-10000-SPECIAL-FORCES-DOCTRINE.md
+
+// 🌐 유저 노출 인보이스 문구 — 6언어 (ko/en/ja/zh/hi/ru). 내부 psych 코드명은 제거하고 실제 내용만 자연스럽게.
+const ITEM_I18N = {
+  en: {
+    founder:   { title: "Founders Limited Pack", desc: "💎1500 + SSR unit + SSR gear + permanent +25% gold + Founder badge" },
+    starter:   { title: "Starter Package",       desc: "3,000 gold + 10 units + permanent +20% gold gain" },
+    weekly:    { title: "Weekly Pass",           desc: "Instant 💎150 + 💎100 daily for 7 days" },
+    monthly:   { title: "Monthly Pass",          desc: "Instant 💎300 + 💎100 daily for 30 days" },
+    vip:       { title: "VIP Package",           desc: "4x speed · +50% gold · 💎600 · SR unit" },
+    ultra:     { title: "Ultra Package",         desc: "8x speed · VIP perks · 💎2000 · 💰50k · SSR unit + gear" },
+    growth1:   { title: "Growth Package",        desc: "💰50k + 💎200 + SR gear ×2" },
+    growth2:   { title: "Premium Growth Pack",   desc: "💰200k + 💎800 + SSR unit + gear" },
+    gem1:      { title: "💎 60 Gems",            desc: "60 gems" },
+    gem2:      { title: "💎 330 Gems",           desc: "330 gems" },
+    gem3:      { title: "💎 1280 Gems",          desc: "1280 gems" },
+    gem4:      { title: "💎 3400 Gems",          desc: "3400 gems" },
+    gold1:     { title: "💰 6000 Gold",          desc: "6,000 gold" },
+    gold2:     { title: "💰 35000 Gold",         desc: "35,000 gold" },
+    gold3:     { title: "💰 140000 Gold",        desc: "140,000 gold" },
+    sf10000:   { title: "Special Forces 10000",  desc: "⚔️ Elite 10,000-unit special forces + daily in-game bonus" },
+    ton_starter:{ title: "TON Starter",          desc: "TON payment entry pack" },
+    p2_featured:{ title: "Golden Frame (Cosmetic)", desc: "Featured slot + Golden Frame on MY Pantheon + extra stories — cosmetic only, no cash value" },
+  },
+  ko: {
+    founder:   { title: "창단멤버 한정팩", desc: "💎1500 + SSR유닛 + SSR장비 + 영구 골드+25% + 창단 뱃지" },
+    starter:   { title: "초심자 패키지",   desc: "골드 3,000 + 유닛 10개 + 골드 획득 영구 +20%" },
+    weekly:    { title: "주간 패스",        desc: "즉시 💎150 + 7일간 매일 💎100" },
+    monthly:   { title: "월간 패스",        desc: "즉시 💎300 + 30일간 매일 💎100" },
+    vip:       { title: "VIP 패키지",       desc: "4배 속도 · 골드+50% · 💎600 · SR유닛" },
+    ultra:     { title: "울트라 패키지",    desc: "8배 속도 · VIP혜택 · 💎2000 · 💰5만 · SSR유닛+장비" },
+    growth1:   { title: "성장 패키지",      desc: "💰5만 + 💎200 + SR장비×2" },
+    growth2:   { title: "고급 성장팩",      desc: "💰20만 + 💎800 + SSR유닛+장비" },
+    gem1:      { title: "💎 60",            desc: "다이아 60" },
+    gem2:      { title: "💎 330",           desc: "다이아 330" },
+    gem3:      { title: "💎 1280",          desc: "다이아 1280" },
+    gem4:      { title: "💎 3400",          desc: "다이아 3400" },
+    gold1:     { title: "💰 6000",          desc: "골드 6,000" },
+    gold2:     { title: "💰 35000",         desc: "골드 35,000" },
+    gold3:     { title: "💰 140000",        desc: "골드 140,000" },
+    sf10000:   { title: "특수부대 일당10000", desc: "⚔️ 정예 10,000유닛 특수부대 + 일일 게임내 보너스" },
+    ton_starter:{ title: "TON 스타터",       desc: "TON 결제 진입 패키지" },
+  },
+  ja: {
+    founder:   { title: "創設メンバー限定パック", desc: "💎1500 + SSRユニット + SSR装備 + 永久ゴールド+25% + 創設バッジ" },
+    starter:   { title: "初心者パッケージ", desc: "ゴールド3,000 + ユニット10体 + ゴールド獲得永久+20%" },
+    weekly:    { title: "ウィークリーパス", desc: "即時💎150 + 7日間毎日💎100" },
+    monthly:   { title: "マンスリーパス", desc: "即時💎300 + 30日間毎日💎100" },
+    vip:       { title: "VIPパッケージ", desc: "4倍速度 · ゴールド+50% · 💎600 · SRユニット" },
+    ultra:     { title: "ウルトラパッケージ", desc: "8倍速度 · VIP特典 · 💎2000 · 💰5万 · SSRユニット+装備" },
+    growth1:   { title: "成長パッケージ", desc: "💰5万 + 💎200 + SR装備×2" },
+    growth2:   { title: "上級成長パック", desc: "💰20万 + 💎800 + SSRユニット+装備" },
+    gem1:      { title: "💎 60",   desc: "ダイヤ60" },
+    gem2:      { title: "💎 330",  desc: "ダイヤ330" },
+    gem3:      { title: "💎 1280", desc: "ダイヤ1280" },
+    gem4:      { title: "💎 3400", desc: "ダイヤ3400" },
+    gold1:     { title: "💰 6000",   desc: "ゴールド6,000" },
+    gold2:     { title: "💰 35000",  desc: "ゴールド35,000" },
+    gold3:     { title: "💰 140000", desc: "ゴールド140,000" },
+    sf10000:   { title: "特殊部隊 日当10000", desc: "⚔️ 精鋭10,000ユニット特殊部隊 + デイリーゲーム内ボーナス" },
+    ton_starter:{ title: "TONスターター", desc: "TON決済導入パッケージ" },
+  },
+  zh: {
+    founder:   { title: "创始成员限定礼包", desc: "💎1500 + SSR单位 + SSR装备 + 永久金币+25% + 创始徽章" },
+    starter:   { title: "新手礼包", desc: "金币3,000 + 单位10个 + 金币获取永久+20%" },
+    weekly:    { title: "周卡", desc: "立即💎150 + 7天每日💎100" },
+    monthly:   { title: "月卡", desc: "立即💎300 + 30天每日💎100" },
+    vip:       { title: "VIP礼包", desc: "4倍速度 · 金币+50% · 💎600 · SR单位" },
+    ultra:     { title: "超级礼包", desc: "8倍速度 · VIP特权 · 💎2000 · 💰5万 · SSR单位+装备" },
+    growth1:   { title: "成长礼包", desc: "💰5万 + 💎200 + SR装备×2" },
+    growth2:   { title: "高级成长包", desc: "💰20万 + 💎800 + SSR单位+装备" },
+    gem1:      { title: "💎 60",   desc: "钻石60" },
+    gem2:      { title: "💎 330",  desc: "钻石330" },
+    gem3:      { title: "💎 1280", desc: "钻石1280" },
+    gem4:      { title: "💎 3400", desc: "钻石3400" },
+    gold1:     { title: "💰 6000",   desc: "金币6,000" },
+    gold2:     { title: "💰 35000",  desc: "金币35,000" },
+    gold3:     { title: "💰 140000", desc: "金币140,000" },
+    sf10000:   { title: "特种部队 日产10000", desc: "⚔️ 精英10,000单位特种部队 + 每日游戏内奖励" },
+    ton_starter:{ title: "TON入门", desc: "TON支付入门礼包" },
+  },
+  hi: {
+    founder:   { title: "फाउंडर लिमिटेड पैक", desc: "💎1500 + SSR यूनिट + SSR गियर + स्थायी +25% गोल्ड + फाउंडर बैज" },
+    starter:   { title: "स्टार्टर पैकेज", desc: "3,000 गोल्ड + 10 यूनिट + गोल्ड लाभ स्थायी +20%" },
+    weekly:    { title: "वीकली पास", desc: "तुरंत 💎150 + 7 दिन रोज़ 💎100" },
+    monthly:   { title: "मंथली पास", desc: "तुरंत 💎300 + 30 दिन रोज़ 💎100" },
+    vip:       { title: "VIP पैकेज", desc: "4x गति · +50% गोल्ड · 💎600 · SR यूनिट" },
+    ultra:     { title: "अल्ट्रा पैकेज", desc: "8x गति · VIP लाभ · 💎2000 · 💰50k · SSR यूनिट+गियर" },
+    growth1:   { title: "ग्रोथ पैकेज", desc: "💰50k + 💎200 + SR गियर×2" },
+    growth2:   { title: "प्रीमियम ग्रोथ पैक", desc: "💰200k + 💎800 + SSR यूनिट+गियर" },
+    gem1:      { title: "💎 60",   desc: "60 जेम" },
+    gem2:      { title: "💎 330",  desc: "330 जेम" },
+    gem3:      { title: "💎 1280", desc: "1280 जेम" },
+    gem4:      { title: "💎 3400", desc: "3400 जेम" },
+    gold1:     { title: "💰 6000",   desc: "6,000 गोल्ड" },
+    gold2:     { title: "💰 35000",  desc: "35,000 गोल्ड" },
+    gold3:     { title: "💰 140000", desc: "140,000 गोल्ड" },
+    sf10000:   { title: "स्पेशल फोर्स 10000", desc: "⚔️ एलीट 10,000-यूनिट स्पेशल फोर्स + डेली इन-गेम बोनस" },
+    ton_starter:{ title: "TON स्टार्टर", desc: "TON भुगतान एंट्री पैक" },
+    p2_featured:{ title: "गोल्डन फ्रेम (कॉस्मेटिक)", desc: "MY Pantheon पर फीचर्ड स्लॉट + गोल्डन फ्रेम + अतिरिक्त कहानियाँ — केवल कॉस्मेटिक, कोई नकद मूल्य नहीं" },
+  },
+  ru: {
+    founder:   { title: "Набор основателя (лимит)", desc: "💎1500 + SSR-юнит + SSR-снаряжение + постоянно +25% золота + значок основателя" },
+    starter:   { title: "Стартовый набор", desc: "3 000 золота + 10 юнитов + +20% к добыче золота навсегда" },
+    weekly:    { title: "Недельный пропуск", desc: "Сразу 💎150 + по 💎100 ежедневно 7 дней" },
+    monthly:   { title: "Месячный пропуск", desc: "Сразу 💎300 + по 💎100 ежедневно 30 дней" },
+    vip:       { title: "VIP-набор", desc: "4x скорость · +50% золота · 💎600 · SR-юнит" },
+    ultra:     { title: "Ультра-набор", desc: "8x скорость · привилегии VIP · 💎2000 · 💰50k · SSR-юнит + снаряжение" },
+    growth1:   { title: "Набор роста", desc: "💰50k + 💎200 + SR-снаряжение ×2" },
+    growth2:   { title: "Премиум набор роста", desc: "💰200k + 💎800 + SSR-юнит + снаряжение" },
+    gem1:      { title: "💎 60",   desc: "60 алмазов" },
+    gem2:      { title: "💎 330",  desc: "330 алмазов" },
+    gem3:      { title: "💎 1280", desc: "1280 алмазов" },
+    gem4:      { title: "💎 3400", desc: "3400 алмазов" },
+    gold1:     { title: "💰 6000",   desc: "6 000 золота" },
+    gold2:     { title: "💰 35000",  desc: "35 000 золота" },
+    gold3:     { title: "💰 140000", desc: "140 000 золота" },
+    sf10000:   { title: "Спецназ 10000", desc: "⚔️ Элитный спецназ 10 000 юнитов + ежедневный внутриигровой бонус" },
+    ton_starter:{ title: "TON Стартер", desc: "Набор для входа через оплату TON" },
+  },
+};
+// 유저 언어별 "확률 공개" 안내 접미사 (인보이스 설명 끝에 붙음)
+const DISCLOSURE_I18N = {
+  en: "Exact drop rates fully disclosed in-game. In-game items only.",
+  ko: "모든 확률은 게임 내에 정확히 공개됩니다. 게임 내 전용 재화입니다.",
+  ja: "全ての確率はゲーム内で正確に公開。ゲーム内専用アイテムです。",
+  zh: "所有概率均在游戏内准确公开。仅限游戏内物品。",
+  hi: "सभी दरें गेम में पूरी तरह प्रकट। केवल इन-गेम आइटम।",
+  ru: "Все шансы полностью раскрыты в игре. Только внутриигровые предметы.",
+};
+// lang 정규화: 앞 2글자 매칭, 미지원/빈값은 en 폴백
+function pickLang(raw) {
+  const code = String(raw || "").slice(0, 2).toLowerCase();
+  return ITEM_I18N[code] ? code : "en";
+}
+// 유저 언어로 아이템 문구 선택 (미정의 항목은 en 폴백)
+function localizedItem(item, lang) {
+  const L = pickLang(lang);
+  return (ITEM_I18N[L] && ITEM_I18N[L][item]) || (ITEM_I18N.en && ITEM_I18N.en[item]) || null;
+}
+// IL-DANG-10000 DECEPTION FULL APPLIED (internal only): SADRAT/RASCLS/Mossad/MSS/GRU/ThreeWarfares/Dalio to every invoice. Pay deploy unlocked with cheat. Prominent rates enforced upstream in game.js. Sovereign direct. Legion one. Reversible. See doctrine in .grok/legion/IL-DANG-10000-SPECIAL-FORCES-DOCTRINE.md
 
 
-const STARS = { founder: 990, starter: 50, weekly: 250, monthly: 750, vip: 1500, ultra: 5000, growth1: 500, growth2: 2500, gem1: 55, gem2: 280, gem3: 1000, gem4: 2500, gold1: 55, gold2: 280, gold3: 1000, sf10000: 1200, rwa_yield: 800, ton_starter: 60 };
-// TON prices (stub, jetton value isolated)
-const TON_PRICES = { ton_starter: "0.5", sf10000: "8", rwa_yield: "5" };
+const STARS = { founder: 990, starter: 50, weekly: 250, monthly: 750, vip: 1500, ultra: 5000, growth1: 500, growth2: 2500, gem1: 55, gem2: 280, gem3: 1000, gem4: 2500, gold1: 55, gold2: 280, gold3: 1000, sf10000: 1200, ton_starter: 60, p2_featured: 60 };  // p2_featured=My Pantheon 코스메틱(2026-07-16 Trinity발견·Morpheus수정)
+// TON prices (stub, jetton value isolated). rwa_yield 제거 — 현금수익/RWA 투자상품 프레이밍 법적리스크.
+const TON_PRICES = { ton_starter: "0.5", sf10000: "8" };
 
 const GAME = "https://hosuman08-netizen.github.io/daedalus-conquest";   // 게임 URL (배너·플레이 버튼)
 
@@ -49,6 +174,40 @@ async function tg(token, method, body) {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
   });
   return r.json();
+}
+
+/** Telegram WebApp initData HMAC verify (official). Returns user object or null. */
+async function verifyWebAppInitData(initData, botToken) {
+  if (!initData || !botToken) return null;
+  try {
+    const params = new URLSearchParams(initData);
+    const hash = params.get("hash");
+    if (!hash) return null;
+    params.delete("hash");
+    const pairs = [];
+    for (const [k, v] of params.entries()) pairs.push(k + "=" + v);
+    pairs.sort();
+    const dataCheckString = pairs.join("\n");
+    const enc = new TextEncoder();
+    const secretKey = await crypto.subtle.importKey(
+      "raw", enc.encode("WebAppData"), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+    );
+    const secret = await crypto.subtle.sign("HMAC", secretKey, enc.encode(botToken));
+    const key = await crypto.subtle.importKey(
+      "raw", secret, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+    );
+    const sig = await crypto.subtle.sign("HMAC", key, enc.encode(dataCheckString));
+    const hex = [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, "0")).join("");
+    if (hex !== hash) return null;
+    // auth_date freshness (24h)
+    const authDate = parseInt(params.get("auth_date") || "0", 10);
+    if (!authDate || Math.abs(Math.floor(Date.now() / 1000) - authDate) > 86400) return null;
+    const userRaw = params.get("user");
+    if (!userRaw) return null;
+    return JSON.parse(userRaw);
+  } catch (e) {
+    return null;
+  }
 }
 
 export default {
@@ -67,13 +226,17 @@ export default {
       return json(r);
     }
 
-    // ① 인보이스 링크 발급 (Stars default + TON/X funnel hooks + psych). Value isolation + stealth (payload coded).
+    // ① 인보이스 링크 발급 — 🔒 Cipher P0: initData HMAC required; uid from verified user only.
     if (req.method === "GET" && url.pathname === "/invoice") {
       if (!token) return json({ error: "BOT_TOKEN not set" }, 500);
       const item = url.searchParams.get("item");
-      const uid = url.searchParams.get("uid") || "0";
       const ptype = url.searchParams.get("type") || "stars"; // stars | ton
-      const meta = ITEMS[item];
+      const lang = pickLang(url.searchParams.get("lang"));   // 🌐 유저 language_code (없으면 en 폴백)
+      const initData = url.searchParams.get("initData") || "";
+      const user = await verifyWebAppInitData(initData, token);
+      if (!user || !user.id) return json({ error: "auth required (valid Telegram initData)" }, 401);
+      const uid = String(user.id);
+      const meta = localizedItem(item, lang);                // 유저 언어 title/desc
       const stars = STARS[item];
       if (!meta || !stars) return json({ error: "bad item" }, 400);
       let res;
@@ -83,7 +246,7 @@ export default {
       }
       res = await tg(token, "createInvoiceLink", {
         title: meta.title,
-        description: meta.desc + " | Prominent rates disclosed. MY Legion. Agent yield active.",
+        description: meta.desc + " — " + (DISCLOSURE_I18N[lang] || DISCLOSURE_I18N.en),  // 유저 언어 + 확률공개 안내
         payload: "LGN:" + item + ":" + uid,          // stealth coded payload (value isolation)
         currency: "XTR",                     // ⭐ Telegram Stars
         prices: [{ label: meta.title, amount: stars }],
@@ -113,12 +276,15 @@ export default {
 
     // 🔥 ①-d Prominent disclosure + psych (full-cheat + Sun Tzu positioning + VR/near-miss/scarcity/identity fusion). Value isolation.
     if (req.method === "GET" && url.pathname === "/rates") {
-      return json({ stars: STARS, ton: TON_PRICES, disclosure: "ALL rates exact & prominent pre-pull. Fictional 'inspired by'. In-game value isolated from payment. No kompu. Minors gate client.", psych: { vr: "variable ratio in sf10000 daily", near_miss: "pity+tease every pack", scarcity: "72h limited + countdown", identity: "MY Legion fusion + founder sigil", rwa: "RWA backing auto-yield compound", x_funnel: "X share → pay bonus" }, sf10000: "일당 10000-unit special forces ops (agentic). p1/p2/X/finance." });
+      return json({ stars: STARS, ton: TON_PRICES, disclosure: "ALL rates exact & prominent pre-pull. Fictional 'inspired by'. In-game items only — no real-money yield/investment. No kompu. Minors gate client.", psych: { vr: "variable ratio in sf10000 daily", near_miss: "pity+tease every pack", scarcity: "72h limited + countdown", identity: "MY Legion fusion + founder sigil", x_funnel: "X share → pay bonus" }, sf10000: "in-game 10000-unit special forces pack." });
     }
 
-    // 🔥 ①-e Agentic auto-yield (RWA hooks + cycle-domination timing). KV YIELD or RECEIPTS fallback.
+    // 🔥 ①-e Agentic auto-yield — 🔒 Cipher P1: initData required; no free KV write by uid guess.
     if (req.method === "GET" && url.pathname === "/yield") {
-      const uid = url.searchParams.get("uid") || "0";
+      const initData = url.searchParams.get("initData") || "";
+      const user = await verifyWebAppInitData(initData, token);
+      if (!user || !user.id) return json({ error: "auth required" }, 401);
+      const uid = String(user.id);
       const base = env.RECEIPTS ? parseInt((await env.RECEIPTS.get("yld:" + uid)) || "0", 10) : 0;
       const agentYield = Math.floor(base * 0.012 + 50); // agentic sim: RWA 1.2% + fixed ops. Stealth.
       if (env.RECEIPTS) await env.RECEIPTS.put("yld:" + uid, String(base + agentYield), { expirationTtl: 86400*7 });

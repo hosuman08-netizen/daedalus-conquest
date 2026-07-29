@@ -1,9 +1,20 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://telegram.org 'unsafe-inline'; connect-src 'self' https://*.workers.dev https://api.telegram.org; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; base-uri 'none'; object-src 'none'; frame-ancestors 'none'" />
+
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>Daedalus — AI Legion War</title>
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Daedalus — AI Legion War" />
+<meta property="og:description" content="Collect & raise 200+ AI heroes. Raid colossal bosses, conquer endless chapters. Your legion grows even while you're away." />
+<meta property="og:image" content="https://hosuman08-netizen.github.io/daedalus-conquest/art/marketing-arclight-banner.jpg" />
+<meta property="og:url" content="https://t.me/daedalus_conquest_bot" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Daedalus — AI Legion War" />
+<meta name="twitter:description" content="Collect & raise 200+ AI heroes. Conquer endless chapters. Play on Telegram." />
+<meta name="twitter:image" content="https://hosuman08-netizen.github.io/daedalus-conquest/art/marketing-arclight-banner.jpg" />
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 (function () {
@@ -293,5 +304,7 @@ var g = document.getElementById("tg-gate"); if (g) g.style.display = "flex";
 <script src="gear.js"></script>
 <script src="lore.js"></script>
 <script src="game.js"></script>
+<script>window.LEGION_APP='daedalus-conquest';window.LEGION_ANALYTICS_URL='https://legion-analytics.hoyashi95.workers.dev';</script>
+<script defer src="legion-beacon.js"></script>
 </body>
 </html>
