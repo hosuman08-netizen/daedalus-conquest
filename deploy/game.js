@@ -3672,7 +3672,8 @@ async function shareDominionCard(trigger) {
   } catch (e) { if (e && e.name === "AbortError") return; }   // 유저 취소 → 리워드 안 줌
   if (!sent) {   // 폴백: PNG 다운로드 + TG 텍스트 공유시트
     try { const a = document.createElement("a"); a.href = dataURL; a.download = "my-dominion.png"; a.click(); } catch (e) {}
-    const link = "https://t.me/daedalus_conquest_bot";
+    // Wave12 Niobe: no bare bot URL — start=ref for K/attribution (inviteFriend parity)
+    const link = "https://t.me/daedalus_conquest_bot?start=ref" + getTGUserId();
     if (typeof tg !== "undefined" && tg && tg.openTelegramLink) tg.openTelegramLink("https://t.me/share/url?url=" + encodeURIComponent(link) + "&text=" + encodeURIComponent(shareText));
   }
   try { logEvent("share_card_sent", { trigger: trigger || "manual", fallback: sent ? 0 : 1 }); } catch (e) {}
@@ -4800,7 +4801,8 @@ function shareProfile() {
   const ssr = (typeof ROSTER !== "undefined" ? ROSTER : []).filter((u) => (META.owned || []).includes(u.id) && ["SSR", "UR", "EX"].includes(u.rarity)).length;
   const coll = (META.owned || []).length;
   const text = "⚔️ Daedalus Conquest — " + getTitle() + "\n🏆 최고 ch" + ch + " · ⚡전력 " + fmtNum(power) + " · ⭐SSR " + ssr + "\n📋 도감 " + coll + "/200 · 🔄환생 " + (META.ascCount || 0) + "\n\n나랑 AI 군단 키우자 👇";
-  const url = "https://t.me/daedalus_conquest_bot";
+  // Wave12 Niobe: no bare bot URL — start=ref for K/attribution
+  const url = "https://t.me/daedalus_conquest_bot?start=ref" + getTGUserId();
   try {
     if (tg && tg.openTelegramLink) {
       tg.openTelegramLink("https://t.me/share/url?url=" + encodeURIComponent(url) + "&text=" + encodeURIComponent(text));
