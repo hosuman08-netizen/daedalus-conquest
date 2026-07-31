@@ -32,6 +32,7 @@ const ALLOWED = new Set([
   //   first_core_loop·first_gacha=신규 1회성(activation) — daily_return·invite_converted 슬롯은 기존 라인에 이미 존재
   "shop_view", "checkout_open", "invoice_paid", "invoice_cancelled",
   "first_core_loop", "first_gacha", "free_ticket_used", "share_card_generated", "share_card_sent",
+  "d1_hook_shown", "d1_hook_cta",
   "raid_attack", "raid_win", "shield_buy", "revenge_start",
   // 리텐션 신설(2026-07-16 Morpheus) — game.js emit과 계약 일치. 누락 시 라이브 폐기됨
   "auto_deploy", "defeat_coach",
