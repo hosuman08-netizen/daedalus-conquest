@@ -3243,21 +3243,14 @@ function finish(p, e) {
     carried = `<div class="rwd2" style="color:#fbbf24;font-size:12px;">${fwin.replace('{carried}', getCarriedFeedback().match(/(\d+)%/)?.[1]||'42')}</div>`;
     if (!META._firstWinCelebrated) { META._firstWinCelebrated = true; try { confettiBurst(); } catch (e) {} try { confetti(26); } catch (e) {} haptic("heavy"); juiceKick(10, 0); }   // J6 첫 승리 감정 피크
   }
-  // first activation guide to gacha (SPEC)
+  // first activation → D1 이유 (내일 또 열게). FTUE에서 SSR 이미 받았으므로 가챠 유도 대신 복귀 훅.
   if (win && !META._firstCoreDone) {
     META._firstCoreDone = true; saveMeta();
+    // first_core_loop already emitted on battle win (META._fcl)
     setTimeout(() => {
-      toast(t("firstClearToast"), "#a3e635");
-      if (typeof gacha === "function") {
-        const hint = document.createElement("button");
-        hint.textContent = t("openFirstGacha");
-        // SENSE fix: was raw green #22c55e at z-index:9999 (floated over odds/SSR modals, looked like a debug button). Now theme gold + z-index:11 (above victory overlay to guide, below all other modals so it never covers them).
-        hint.style.cssText = "position:fixed;bottom:88px;left:50%;transform:translateX(-50%);z-index:11;padding:11px 22px;background:linear-gradient(135deg,#fbbf24,#d97706);color:#1a1400;font-weight:800;font-size:14px;border:none;border-radius:12px;box-shadow:0 8px 24px rgba(245,196,81,.4);cursor:pointer;";
-        hint.onclick = () => { hint.remove(); gacha(); };
-        document.body.appendChild(hint);
-        setTimeout(() => hint.remove(), 12000);
-      }
-    }, 1400);
+      try { toast(t("firstClearToast"), "#a3e635"); } catch (e) {}
+      try { showD1ReturnHook(); } catch (e) {}
+    }, 900);
   }
   $overlayMsg.innerHTML = title + extra + carried;
   window._lastWin = win;   // 오버레이 '계속' 버튼이 승리 시 다음 전투 자동 진행하도록 (rank17)
@@ -7017,12 +7010,12 @@ updateAutoBtn();
 updateMeta(); // ensure cohesion dash shows on load
 // Referral bonus ONLY when direct link join (start=ref). Button share gives nothing. (user: "초대를 직접 해야 보상")
 try { processReferralBonus(); } catch (e) {}
-// Daily 미션 힌트 (치명적 루프)
-if (!META.dailyMissionsClaimed && ((META.dailyBattles||0) + (META.dailyPulls||0)) < 2) {
+// Daily 미션 힌트 — 신규 FTUE 중엔 토스트 폭격 금지 (TTV 보호, 2026-08-01 deep)
+if (META.tutDone && !META.dailyMissionsClaimed && ((META.dailyBattles||0) + (META.dailyPulls||0)) < 2) {
   setTimeout(() => toast(t("eventMissionHint"), "#a3e635"), 2500);
 }
-// 🎟️ 무료 일일 소환 습관 리마인더 — 오늘 미사용 시 접속 훅(자정 소멸 = 매일 접속 유도)
-if (META.freeTicketDay !== today()) {
+// 🎟️ 무료 일일 소환 — 복귀 유저(tutDone)만 부팅 토스트. 신규는 첫 승리 후 D1 훅으로 안내.
+if (META.tutDone && META.freeTicketDay !== today()) {
   setTimeout(() => toast(t("freeSummonRemind"), "#38bdf8"), 3400);
 }
 // 기본 FTUE (신규 첫 경험 유도 — 출시 임박 최소 가이드)
@@ -7034,11 +7027,10 @@ if ((META.chapter || 1) <= 2 && ((META.pulls || 0) + (META.owned || []).length) 
     META.army.commander = (META.army.commander || 0) + 1;
     META.starterUnitsGiven = true;
     saveMeta();
-    setTimeout(() => toast(t("starterGrant"), "#a3e635"), 2000);
+    // 토스트 지연: 튜토 직후 SSR 연출과 겹치지 않게 FTUE 끝난 뒤(finishTutorial) 처리
+    if (META.tutDone) setTimeout(() => toast(t("starterGrant"), "#a3e635"), 2000);
   }
-  setTimeout(() => {
-    toast(t("ftueLoop"), "#a3e635");
-  }, 1400);
+  // ftueLoop 부팅 토스트 제거 — 튜토 1줄 + SSR 경험으로 대체 (장사꾼 냄새 제거)
 }
 setTimeout(() => { try { maybeSortie(); } catch (e) {} }, 700);   // ⚔️ 일일 출정식 의례
 // 🎓 신규 가이드 튜토리얼 (스포트라이트 코치마크 — 핵심 루프 30초 안내)
@@ -7061,6 +7053,11 @@ function startTutorial() {
   const dots = document.getElementById("tut-dots"); if (dots) dots.style.display = TUT_STEPS.length > 1 ? "" : "none";   // 1단계면 점 숨김
   window.addEventListener("resize", tutReposition);
   tutShow();
+  // TTV: 1.6s 무클릭이면 자동 시작 (한 줄 읽기 시간만) — deep 2026-08-01
+  clearTimeout(window._tutAuto);
+  window._tutAuto = setTimeout(function () {
+    try { if (!META.tutDone) finishTutorial(); } catch (e) {}
+  }, 1600);
 }
 function tutShow() {
   const s = TUT_STEPS[_tutStep]; if (!s) { finishTutorial(); return; }
@@ -7097,7 +7094,44 @@ function finishTutorial() {
   window.removeEventListener("resize", tutReposition);
   // 🎬 SSR 먼저: 몰입환영 → 첫 뽑기 SSR 확정 + J3 풀연출("와") → 그 SSR을 편성한 채 첫 전투(이쁜 히어로가 선두) → J1 승리.
   //   이유: 이모지 잡병만 나오는 못난 첫 전투를 보기 전에 샤이니 SSR을 먼저 손에 쥐게. (neo 지시)
-  if (wasFresh) setTimeout(() => { try { ftueFirstPull(); } catch (e) {} }, 480);
+  // TTV: 480ms → 220ms (deep 2026-08-01)
+  if (wasFresh) setTimeout(() => { try { ftueFirstPull(); } catch (e) {} }, 220);
+  if (wasFresh && !META.starterUnitsGiven) {
+    /* starter already granted above on boot when possible */
+  } else if (wasFresh) {
+    setTimeout(() => { try { toast(t("starterGrant"), "#a3e635"); } catch (e) {} }, 2800);
+  }
+}
+/** D1 복귀 훅 — 첫 승리 직후. 내일 무료소환·연속·군단 성장 약속 (가챠 스팸 CTA 아님) */
+function showD1ReturnHook() {
+  if (document.getElementById("d1-hook")) return;
+  const el = document.createElement("div");
+  el.id = "d1-hook";
+  el.setAttribute("role", "dialog");
+  el.style.cssText = "position:fixed;inset:0;z-index:96;background:rgba(3,7,18,.88);display:flex;align-items:center;justify-content:center;padding:20px;";
+  const title = (typeof t === "function" && t("d1HookTitle")) || "내일 이 군단이 더 세진다";
+  const body = (typeof t === "function" && t("d1HookBody")) || "🎟️ 내일 무료 소환 · 🔥 연속 출석 보상 · 같은 영웅이 더 강해짐";
+  const cta = (typeof t === "function" && t("d1HookCta")) || "다음 전투로 ▶";
+  el.innerHTML = '<div style="max-width:320px;width:100%;background:linear-gradient(165deg,#12101c,#0b111f);border:1.5px solid #fbbf24;border-radius:16px;padding:22px 18px;text-align:center;color:#e2e8f0;box-shadow:0 16px 48px rgba(0,0,0,.75),0 0 28px rgba(245,196,81,.22);">'
+    + '<div style="font-size:28px;margin-bottom:8px;">⚔️</div>'
+    + '<div style="font-size:17px;font-weight:900;color:#fbbf24;margin-bottom:10px;line-height:1.35;">' + title + '</div>'
+    + '<div style="font-size:13px;line-height:1.65;color:#c4c4d4;margin-bottom:16px;">' + body + '</div>'
+    + '<button type="button" id="d1-hook-go" style="width:100%;padding:13px;border:none;border-radius:12px;font-weight:800;font-size:15px;cursor:pointer;background:linear-gradient(135deg,#fbbf24,#d97706);color:#1a1400;box-shadow:0 8px 22px rgba(245,196,81,.35);">' + cta + '</button>'
+    + '<button type="button" id="d1-hook-x" style="margin-top:10px;background:none;border:none;color:#8b8ba7;font-size:12px;cursor:pointer;text-decoration:underline;">닫기</button>'
+    + '</div>';
+  document.body.appendChild(el);
+  try { logEvent("d1_hook_shown", { ch: META.chapter || 1 }); } catch (e) {}
+  const kill = () => { try { el.remove(); } catch (e) {} };
+  const go = document.getElementById("d1-hook-go");
+  if (go) go.onclick = () => {
+    kill();
+    try { logEvent("d1_hook_cta", {}); } catch (e) {}
+    try { $("overlay").classList.add("hidden"); } catch (e) {}
+    try { reset(); start(); } catch (e) {}
+  };
+  const x = document.getElementById("d1-hook-x");
+  if (x) x.onclick = kill;
+  setTimeout(kill, 16000);
 }
 // FTUE 확정 첫 SSR 지급 → 편성 선두 배치 → J3 연출. 카드 닫으면 첫 전투 자동시작(이쁜 SSR이 이끔).
 function ftueFirstPull() {
@@ -7171,10 +7205,10 @@ try {
       META.weekChest = _wk;
       META.gems = (META.gems || 0) + 10;
       try { logEvent("week_chest", { n: 10, week: _wk, gems: META.gems || 0 }); } catch (e) {}
-  // 3H Co-Star/Duolingo: 일일 포커스 한 줄 (복귀 이유)
+  // 일일 포커스 — 복귀 유저만 (신규 FTUE 중 토스트 금지)
   try {
     const _df = today();
-    if (META.dailyFocusDay !== _df) {
+    if (META.tutDone && META.dailyFocusDay !== _df) {
       META.dailyFocusDay = _df;
       const _tips = [
         "오늘 목표: 전투 3승 → 젬 모아 소환",

@@ -1070,12 +1070,14 @@ Object.assign(I18N.zh, { openFirstGacha: "→ 首次召唤 (SSR必得!) 🌟", s
 Object.assign(I18N.hi, { openFirstGacha: "→ पहला सम्मन (SSR गारंटी!) 🌟", streakLadder: "🔥 {d}-दिन streak! बोनस 💎{gem}", firstWinBanner: "🏆 पहली जीत! तुम्हारे लीजन ने जीत पक्की की" });
 Object.assign(I18N.ru, { openFirstGacha: "→ Первый призыв (SSR гарантирован!) 🌟", streakLadder: "🔥 Серия {d} дней! Бонус 💎{gem}", firstWinBanner: "🏆 Первая победа! Твой легион решил исход" });
 // 잔여 2종 (동시편집 유입분 포함)
-Object.assign(I18N.ko, { firstClearToast: "🎯 첫 완주! 이제 가챠로 첫 영웅 영입 → 내 군단 완성", sfActivated: "⚔️ 특수부대 일당10000 유닛 가동! MY Legion" });
-Object.assign(I18N.en, { firstClearToast: "🎯 First clear! Now recruit your first hero via gacha → complete your legion", sfActivated: "⚔️ Special Forces 10000-unit ops active! MY Legion" });
-Object.assign(I18N.ja, { firstClearToast: "🎯 初完走! 次はガチャで最初の英雄を → 軍団完成", sfActivated: "⚔️ 特殊部隊 日当10000ユニット稼働! MY Legion" });
-Object.assign(I18N.zh, { firstClearToast: "🎯 首次通关! 现在用抽卡招募首位英雄 → 完成你的军团", sfActivated: "⚔️ 特种部队 日产10000单位启动! MY Legion" });
-Object.assign(I18N.hi, { firstClearToast: "🎯 पहली जीत! अब गाचा से पहला हीरो भर्ती करें → अपना लीजन पूरा करें", sfActivated: "⚔️ स्पेशल फोर्स 10000-यूनिट सक्रिय! MY Legion" });
-Object.assign(I18N.ru, { firstClearToast: "🎯 Первое прохождение! Теперь призови первого героя в гаче → собери легион", sfActivated: "⚔️ Спецназ 10000 юнитов активирован! MY Legion" });
+Object.assign(I18N.ko, { firstClearToast: "🎯 첫 지휘 성공 — 이 군단은 네 것", sfActivated: "⚔️ 특수부대 일당10000 유닛 가동! MY Legion", d1HookTitle: "내일 이 군단이 더 세진다", d1HookBody: "🎟️ 내일 무료 소환 · 🔥 연속 출석 보상 · 같은 영웅 강화로 파워 상승", d1HookCta: "다음 전투로 ▶" });
+Object.assign(I18N.en, { firstClearToast: "🎯 First command success — this legion is yours", sfActivated: "⚔️ Special Forces 10000-unit ops active! MY Legion", d1HookTitle: "Tomorrow this legion gets stronger", d1HookBody: "🎟️ Free summon tomorrow · 🔥 Streak rewards · Power grows with the same heroes", d1HookCta: "Next battle ▶" });
+Object.assign(I18N.ja, { firstClearToast: "🎯 初指揮成功 — この軍団は君のもの", sfActivated: "⚔️ 特殊部隊 日当10000ユニット稼働! MY Legion", d1HookTitle: "明日この軍団はさらに強くなる", d1HookBody: "🎟️ 明日の無料召喚 · 🔥 連続ログイン · 同じ英雄を強化", d1HookCta: "次の戦闘へ ▶" });
+Object.assign(I18N.zh, { firstClearToast: "🎯 首次指挥成功 — 这支军团是你的", sfActivated: "⚔️ 特种部队 日产10000单位启动! MY Legion", d1HookTitle: "明天这支军团会更强", d1HookBody: "🎟️ 明日免费召唤 · 🔥 连续签到 · 强化同一英雄", d1HookCta: "下一场战斗 ▶" });
+Object.assign(I18N.hi, { firstClearToast: "🎯 पहली कमान सफल — यह लीजन तुम्हारा है", sfActivated: "⚔️ स्पेशल फोर्स 10000-यूनिट सक्रिय! MY Legion", d1HookTitle: "कल यह लीजन और मजबूत", d1HookBody: "🎟️ कल मुफ्त समन · 🔥 स्ट्रीक · उन्हीं हीरो को अपग्रेड", d1HookCta: "अगली लड़ाई ▶" });
+Object.assign(I18N.ru, { firstClearToast: "🎯 Первый приказ выполнен — легион твой", sfActivated: "⚔️ Спецназ 10000 юнитов активирован! MY Legion", d1HookTitle: "Завтра легион станет сильнее", d1HookBody: "🎟️ Бесплатный призыв завтра · 🔥 Серия входов · Усиль тех же героев", d1HookCta: "Следующий бой ▶" });
+Object.assign(I18N.ko, { tut1: "사령관님.\n전장에 군단을 내려보냅니다.\n첫 SSR이 당신을 기다립니다." });
+Object.assign(I18N.en, { tut1: "Commander.\nYour legion drops into the field.\nA first SSR is waiting." });
 
 let LANG = "ko";
 function detectLang() {
