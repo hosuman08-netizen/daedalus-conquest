@@ -38,7 +38,7 @@ function run(label, code){
 // ── T1: pity 0→0 거짓경보 검증 — Math.random 제어로 N 강제
 run('T1', `
   var R=[];
-  running=false; META.gems=999999; META.pity=0;
+  running=false; META.gems=999999; META.pity=0; META.firstSSR=1; // 첫뽑기 SSR 보장 off — 아니면 pity 즉시 0 리셋 거짓경보
   var origRandom = Math.random;
   Math.random = function(){ return 0.01; };  // 최저등급(N) 강제 (r 낮음 = 첫 버킷 N)
   var p0 = META.pity; gacha(); var p1 = META.pity;

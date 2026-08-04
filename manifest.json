@@ -1,0 +1,9 @@
+{
+  "name": "Daedalus Conquest",
+  "short_name": "Daedalus",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b0a10",
+  "theme_color": "#e0b552",
+  "description": "Fictional gacha adventure · 18+ entertainment"
+}

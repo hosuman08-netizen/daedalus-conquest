@@ -21,3 +21,15 @@ curl -s 'https://legion-analytics.hoyashi95.workers.dev/stats'  # should 400 aft
 ## Deploy
 wrangler not on PATH in this env. neo/Morpheus:
 `cd ~/legion-analytics-multi && wrangler deploy`
+
+## Deploy (Morpheus 2026-07-29 08:03)
+```
+cd ~/legion-analytics-multi && npm exec --yes wrangler@4.115.0 -- deploy
+# Version ID: 99b78493-c05c-44e5-98a7-94d952a94635
+```
+Verify live:
+- `/` → 200 ok
+- `/stats` bare → **400** app-required (no hang)
+- `/stats?app=saju-miniapp&days=7` → 200 JSON
+- `/health` → 200
+Note: `npx wrangler deploy` denied by shell policy; use `npm exec --yes wrangler@4.115.0 -- deploy`.

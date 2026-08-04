@@ -64,15 +64,18 @@ const T = `(function(){
   chk('charEnhance 골드소비', 'META.gold', ()=>charEnhance(uid));
   chk('fuseChar 중복소비', 'META.dupes['+uid+']', ()=>fuseChar(uid));
   chk('goldGacha 일일뽑기', 'META.dailyPulls', ()=>goldGacha());
-  // gacha pity: N 강제 (랜덤 SR+ 리셋 플레이크 방지, deep-audit와 일관)
+  // gacha pity: firstSSR 보장 끄고 N 강제 (첫 뽑기 SSR이 pity 즉시 리셋 → 0→0 거짓경보 방지)
   try{
+    META.firstSSR = 1;
+    META.pity = 0;
+    META.gems = Math.max(META.gems||0, 999);
     var bp = (META.pity||0);
-    var oR = Math.random; Math.random = ()=>0.01;
+    var oR = Math.random; Math.random = function(){ return 0.01; }; // N 버킷
     gacha();
     Math.random = oR;
     var ap = (META.pity||0);
-    var chg = (bp !== ap);
-    R.push( (chg?'✅':'🔴') + ' gacha 천장 : META.pity ' + bp + '→' + ap + (chg?'':'  [안변함!]') );
+    var chg = (ap === bp + 1);
+    R.push( (chg?'✅':'🔴') + ' gacha 천장 : META.pity ' + bp + '→' + ap + (chg?' (N+1 정상)':'  [안변함/리셋!]') );
   }catch(e){ R.push('❌ gacha 천장 — '+e.message); }
   chk('gacha10 젬소비', 'META.gems', ()=>gacha10());
   chk('gearGacha(1) 장비수', 'META.gear.length', ()=>gearGacha(1));

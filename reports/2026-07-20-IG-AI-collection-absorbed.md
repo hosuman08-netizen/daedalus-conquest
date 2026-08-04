@@ -96,3 +96,10 @@ Claude Code + Supabase(회원/DB) + Stripe(결제/구독) + Cloudflare(배포) +
 
 ## ✅ 총평
 IG "ai 에이전트" 컬렉션 ~50개 전량 정독(사진·캐러셀·공식가이드 포함). **AI 알짜=15개** 심층흡수. 최대수확: ①두 스킬프레임워크(42/7·34/7)가 군단 청사진 ②Loop Engineering=우리 방식의 이름 ③공식 모델가이드=티어링 권위근거 ④채택가능 스킬 5종(UI/UX Pro Max·Remotion·Superpowers·Claude Mem·Marketing) ⑤갭 확정(Design·영상·Evals·Gateway). 나머지는 우리 도트린 검증.
+
+## 🔁 4차 흡수 (포스트51~81, 나머지 테일 비-AI)
+- **★★ Claude Cowork (p63/p75)** = 24/7+폰관제 공식답. 클라우드 백그라운드·예약자동·판단시 폰확인·승인전 미발행. Max부터, 2x 8/5까지. → launchd 대신 Cowork = neo 1순위.
+- **Claude Code repo 5 (p62)**: ruflo·Archon(결정적)·oh-my-claudecode·skills-for-humanity(171스킬)·career-ops.
+- **AI 스택맵 (p80)**: Orchestration=LangGraph/CrewAI, RAG=Pinecone/Milvus, Observability/Evals=LangSmith/W&B, Memory=Mem0/Zep.
+- **Fable5 복리자산(p76)**: 강한모델로 재사용 스킬구축→하위상속. 모델지형(p71): Fable5·GPT5.6·Grok4.5·Sonnet5·Muse Spark. Ferriss DEAL(p55)=제거>자동화>위임.
+## 📊 최종(81정독): AI 알짜 ~20개 흡수완료. 군단이 이미 스킬화(loop-engineering·cro-growth-gate·dual-track·money-pipe). 실행 1순위: Cowork·UI/UX Pro Max·Archon·Evals(LangSmith).
