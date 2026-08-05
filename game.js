@@ -524,12 +524,17 @@ function processReferralBonus() {
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) sp = tg.initDataUnsafe.start_param;
   } catch (e) {}
   // 🔗 폴백: 워커 /start 버튼이 동봉한 URL ?ref=<id> (?start= 경로는 mini app start_param을 안 채워서 보완)
-  let refUrl = "";
-  try { refUrl = new URLSearchParams(location.search).get("ref") || ""; } catch (e) {}
+  let refUrl = "", chUrl = "";
+  try {
+    const qs = new URLSearchParams(location.search);
+    refUrl = qs.get("ref") || "";
+    chUrl = qs.get("ch") || qs.get("channel") || "";
+  } catch (e) {}
   let refId = "";
   let channel = "direct";
   // Trinity spec: start=ref_{uid}_{channel}
-  const mNew = /^ref_(\d+)_?(\w*)$/.exec(sp || "");
+  // B안(2026-08-06): 웹 직링크에도 동일 문법 허용 — ?ref=ref_{uid}_{channel} / ?ref={uid}&ch={channel}
+  const mNew = /^ref_(\d+)_?(\w*)$/.exec(sp || "") || /^ref_(\d+)_?(\w*)$/.exec(refUrl || "");
   if (mNew) {
     refId = mNew[1];
     channel = mNew[2] || "direct";
@@ -538,6 +543,7 @@ function processReferralBonus() {
     if (m) refId = m[1];
     else if (/^\d{4,}$/.test(refUrl)) refId = refUrl;
   }
+  if (chUrl && channel === "direct") channel = String(chUrl).slice(0, 16);
   if (!refId) return;
   const myId = String(getTGUserId());
   if (refId === myId) return; // self
@@ -7194,11 +7200,15 @@ try {
     try {
       const sp = (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) || '';
       const params = new URLSearchParams(location.search);
-      const m = /^ref_(\d+)_?(\w*)$/.exec(sp);
+      const refQ = params.get('ref') || '';
+      // B안(2026-08-06): 웹 직링크 채널 귀속 — ?ref=ref_{uid}_{ch} 또는 ?ch={ch}
+      const m = /^ref_(\d+)_?(\w*)$/.exec(sp) || /^ref_(\d+)_?(\w*)$/.exec(refQ);
+      const chQ = params.get('ch') || params.get('channel') || '';
       src = {
-        ref: m ? m[1] : (sp.match(/^ref(\d+)/) ? RegExp.$1 : params.get('ref') || ''),
-        channel: m ? (m[2] || 'direct') : 'direct',
+        ref: m ? m[1] : (sp.match(/^ref(\d+)/) ? RegExp.$1 : (/^\d{4,}$/.test(refQ) ? refQ : '')),
+        channel: (m && m[2]) ? m[2] : (chQ ? String(chQ).slice(0, 16) : 'direct'),
         utm: params.get('utm') || params.get('source') || '',
+        plat: (typeof window !== "undefined" && window.__WEB_PLATFORM) ? 'web' : 'tg',
         start: sp
       };
     } catch(e){}
