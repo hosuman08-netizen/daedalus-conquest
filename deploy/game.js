@@ -524,12 +524,17 @@ function processReferralBonus() {
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) sp = tg.initDataUnsafe.start_param;
   } catch (e) {}
   // 🔗 폴백: 워커 /start 버튼이 동봉한 URL ?ref=<id> (?start= 경로는 mini app start_param을 안 채워서 보완)
-  let refUrl = "";
-  try { refUrl = new URLSearchParams(location.search).get("ref") || ""; } catch (e) {}
+  let refUrl = "", chUrl = "";
+  try {
+    const qs = new URLSearchParams(location.search);
+    refUrl = qs.get("ref") || "";
+    chUrl = qs.get("ch") || qs.get("channel") || "";
+  } catch (e) {}
   let refId = "";
   let channel = "direct";
   // Trinity spec: start=ref_{uid}_{channel}
-  const mNew = /^ref_(\d+)_?(\w*)$/.exec(sp || "");
+  // B안(2026-08-06): 웹 직링크에도 동일 문법 허용 — ?ref=ref_{uid}_{channel} / ?ref={uid}&ch={channel}
+  const mNew = /^ref_(\d+)_?(\w*)$/.exec(sp || "") || /^ref_(\d+)_?(\w*)$/.exec(refUrl || "");
   if (mNew) {
     refId = mNew[1];
     channel = mNew[2] || "direct";
@@ -538,6 +543,7 @@ function processReferralBonus() {
     if (m) refId = m[1];
     else if (/^\d{4,}$/.test(refUrl)) refId = refUrl;
   }
+  if (chUrl && channel === "direct") channel = String(chUrl).slice(0, 16);
   if (!refId) return;
   const myId = String(getTGUserId());
   if (refId === myId) return; // self
@@ -4262,9 +4268,15 @@ function mountShareHook(kind, shareText, mountSelector) {
   try {
     const uid = (typeof getTGUserId === "function") ? getTGUserId() : "0";
     const id = "share-hook-" + kind;
-    if (document.getElementById(id)) return;                 // 중복 방지
+    if (document.getElementById(id)) return;                 // 중복 방지 (같은 kind)
+    // P0-2 (2026-08-06): kind가 달라도 같은 마운트 자리에 이미 자랑 버튼이 있으면 스킵 —
+    //   first_gacha(+1.6s)와 ssr(+2.2s)이 #gacha-list에 둘 다 붙던 실측 버그(4244 주석의 전제 오류).
+    const mtEl = document.querySelector(mountSelector);
+    const mtParent = mtEl && (mtEl.parentNode || mtEl);
+    if (mtParent && mtParent.querySelector(".share-hook")) return;
     const sh = document.createElement("button");
     sh.id = id;
+    sh.className = "share-hook";
     sh.textContent = t("cardBragBtn");
     sh.style.cssText = "margin:8px 0;padding:6px 12px;background:#22c55e;color:#fff;border:none;border-radius:6px;cursor:pointer";
     sh.onclick = () => { try { logEvent("share_clicked", { type: kind, ref: uid }); } catch (e) {} if (window.legionTrack) { try { window.legionTrack('share'); } catch (e) {} } shareDominionCard(kind); };   // 🖼️ SSR/보스/환생 공통 자랑 카드 + 🛰️ beacon
@@ -5450,7 +5462,7 @@ function logEvent(name, data) {
         anon: getAnonId(),
         anonId: getAnonId(),
         ts: Date.now(),
-        d: data || {}
+        d: Object.assign({ plat: (typeof window !== "undefined" && window.__WEB_PLATFORM) ? "web" : "tg" }, data || {})   // B안: 웹/TG 소스 분리 계측
       });
       const url = ANALYTICS_BACKEND + "/ev";
       if (typeof navigator !== "undefined" && navigator.sendBeacon) { navigator.sendBeacon(url, body); }
@@ -6920,6 +6932,8 @@ $("overlay-btn").addEventListener("click", () => { const w = window._lastWin; re
 // gacha-btn removed (now handled in shop/quick-pull)
 $("gacha-close").addEventListener("click", () => {
   $("gacha").classList.add("hidden");
+  const gcBtn = $("gacha-close");   // P0-1: FTUE CTA 문구였다면 원래 라벨 복원
+  if (gcBtn && gcBtn.dataset.prevLabel) { gcBtn.textContent = gcBtn.dataset.prevLabel; delete gcBtn.dataset.prevLabel; }
   if (window._ftueBattlePending) {   // 🎬 FTUE: SSR 카드 닫으면 → 그 SSR 편성한 채 첫 전투 자동시작
     window._ftueBattlePending = false;
     setTimeout(() => { try { if (!running && !gameOver && META.mode !== "turnbased") { reset(); start(); } } catch (e) {} }, 350);
@@ -7144,6 +7158,20 @@ function ftueFirstPull() {
   window._ftueBattlePending = true;        // 결과 카드 닫으면 첫 전투 시작
   saveMeta(); updateMeta();
   showGacha(ssr, gu ? t("gachaGet", { name: gu.name }) : t("tTitan"), gu ? [{ name: gu.name, rarity: "SSR", isNew: true }] : []);   // J3 ssrSpectacle 트리거(암전→빛기둥→슬로모→카드)
+  // P0-1 (2026-08-06): 신규 유저가 SSR 카드에서 정지(2026-08-04 실측 132초, battle 0회) →
+  //   ① 닫기 버튼을 명확한 전투 CTA로 ② 10초 무반응 시 자동으로 첫 전투 진입.
+  try {
+    const gc = $("gacha-close");
+    if (gc) { gc.dataset.prevLabel = gc.textContent; gc.textContent = "⚔️ 첫 전투 시작 ▶"; }
+  } catch (e) {}
+  setTimeout(() => {
+    try {
+      if (window._ftueBattlePending) {
+        logEvent("ftue_auto_battle", { ch: META.chapter || 1 });
+        const btn = $("gacha-close"); if (btn) btn.click();
+      }
+    } catch (e) {}
+  }, 10000);
 }
 function maybeStartTutorial() {
   if (META.tutDone) return;
@@ -7172,11 +7200,15 @@ try {
     try {
       const sp = (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) || '';
       const params = new URLSearchParams(location.search);
-      const m = /^ref_(\d+)_?(\w*)$/.exec(sp);
+      const refQ = params.get('ref') || '';
+      // B안(2026-08-06): 웹 직링크 채널 귀속 — ?ref=ref_{uid}_{ch} 또는 ?ch={ch}
+      const m = /^ref_(\d+)_?(\w*)$/.exec(sp) || /^ref_(\d+)_?(\w*)$/.exec(refQ);
+      const chQ = params.get('ch') || params.get('channel') || '';
       src = {
-        ref: m ? m[1] : (sp.match(/^ref(\d+)/) ? RegExp.$1 : params.get('ref') || ''),
-        channel: m ? (m[2] || 'direct') : 'direct',
+        ref: m ? m[1] : (sp.match(/^ref(\d+)/) ? RegExp.$1 : (/^\d{4,}$/.test(refQ) ? refQ : '')),
+        channel: (m && m[2]) ? m[2] : (chQ ? String(chQ).slice(0, 16) : 'direct'),
         utm: params.get('utm') || params.get('source') || '',
+        plat: (typeof window !== "undefined" && window.__WEB_PLATFORM) ? 'web' : 'tg',
         start: sp
       };
     } catch(e){}
