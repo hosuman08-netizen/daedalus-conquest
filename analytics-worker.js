@@ -33,6 +33,7 @@ const ALLOWED = new Set([
   "shop_view", "checkout_open", "invoice_paid", "invoice_cancelled",
   "first_core_loop", "first_gacha", "free_ticket_used", "share_card_generated", "share_card_sent",
   "d1_hook_shown", "d1_hook_cta",
+  "ftue_auto_battle",   // P0-1 (2026-08-06): SSR 카드 10초 무반응 → 자동 첫 전투 진입 계측
   "raid_attack", "raid_win", "shield_buy", "revenge_start",
   // 리텐션 신설(2026-07-16 Morpheus) — game.js emit과 계약 일치. 누락 시 라이브 폐기됨
   "auto_deploy", "defeat_coach",

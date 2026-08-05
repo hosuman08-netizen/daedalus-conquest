@@ -4262,9 +4262,15 @@ function mountShareHook(kind, shareText, mountSelector) {
   try {
     const uid = (typeof getTGUserId === "function") ? getTGUserId() : "0";
     const id = "share-hook-" + kind;
-    if (document.getElementById(id)) return;                 // 중복 방지
+    if (document.getElementById(id)) return;                 // 중복 방지 (같은 kind)
+    // P0-2 (2026-08-06): kind가 달라도 같은 마운트 자리에 이미 자랑 버튼이 있으면 스킵 —
+    //   first_gacha(+1.6s)와 ssr(+2.2s)이 #gacha-list에 둘 다 붙던 실측 버그(4244 주석의 전제 오류).
+    const mtEl = document.querySelector(mountSelector);
+    const mtParent = mtEl && (mtEl.parentNode || mtEl);
+    if (mtParent && mtParent.querySelector(".share-hook")) return;
     const sh = document.createElement("button");
     sh.id = id;
+    sh.className = "share-hook";
     sh.textContent = t("cardBragBtn");
     sh.style.cssText = "margin:8px 0;padding:6px 12px;background:#22c55e;color:#fff;border:none;border-radius:6px;cursor:pointer";
     sh.onclick = () => { try { logEvent("share_clicked", { type: kind, ref: uid }); } catch (e) {} if (window.legionTrack) { try { window.legionTrack('share'); } catch (e) {} } shareDominionCard(kind); };   // 🖼️ SSR/보스/환생 공통 자랑 카드 + 🛰️ beacon
@@ -5450,7 +5456,7 @@ function logEvent(name, data) {
         anon: getAnonId(),
         anonId: getAnonId(),
         ts: Date.now(),
-        d: data || {}
+        d: Object.assign({ plat: (typeof window !== "undefined" && window.__WEB_PLATFORM) ? "web" : "tg" }, data || {})   // B안: 웹/TG 소스 분리 계측
       });
       const url = ANALYTICS_BACKEND + "/ev";
       if (typeof navigator !== "undefined" && navigator.sendBeacon) { navigator.sendBeacon(url, body); }
@@ -6920,6 +6926,8 @@ $("overlay-btn").addEventListener("click", () => { const w = window._lastWin; re
 // gacha-btn removed (now handled in shop/quick-pull)
 $("gacha-close").addEventListener("click", () => {
   $("gacha").classList.add("hidden");
+  const gcBtn = $("gacha-close");   // P0-1: FTUE CTA 문구였다면 원래 라벨 복원
+  if (gcBtn && gcBtn.dataset.prevLabel) { gcBtn.textContent = gcBtn.dataset.prevLabel; delete gcBtn.dataset.prevLabel; }
   if (window._ftueBattlePending) {   // 🎬 FTUE: SSR 카드 닫으면 → 그 SSR 편성한 채 첫 전투 자동시작
     window._ftueBattlePending = false;
     setTimeout(() => { try { if (!running && !gameOver && META.mode !== "turnbased") { reset(); start(); } } catch (e) {} }, 350);
@@ -7144,6 +7152,20 @@ function ftueFirstPull() {
   window._ftueBattlePending = true;        // 결과 카드 닫으면 첫 전투 시작
   saveMeta(); updateMeta();
   showGacha(ssr, gu ? t("gachaGet", { name: gu.name }) : t("tTitan"), gu ? [{ name: gu.name, rarity: "SSR", isNew: true }] : []);   // J3 ssrSpectacle 트리거(암전→빛기둥→슬로모→카드)
+  // P0-1 (2026-08-06): 신규 유저가 SSR 카드에서 정지(2026-08-04 실측 132초, battle 0회) →
+  //   ① 닫기 버튼을 명확한 전투 CTA로 ② 10초 무반응 시 자동으로 첫 전투 진입.
+  try {
+    const gc = $("gacha-close");
+    if (gc) { gc.dataset.prevLabel = gc.textContent; gc.textContent = "⚔️ 첫 전투 시작 ▶"; }
+  } catch (e) {}
+  setTimeout(() => {
+    try {
+      if (window._ftueBattlePending) {
+        logEvent("ftue_auto_battle", { ch: META.chapter || 1 });
+        const btn = $("gacha-close"); if (btn) btn.click();
+      }
+    } catch (e) {}
+  }, 10000);
 }
 function maybeStartTutorial() {
   if (META.tutDone) return;
