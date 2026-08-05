@@ -1,0 +1,80 @@
+id,rarity,archetype,faction,name,filename
+1,SSR,drone,Strategist,"Arclight",u1.png
+2,SSR,marksman,Executor,"Solace",u2.png
+3,SSR,guardian,Intel,"Cipher",u3.png
+4,SSR,bruiser,Swarm,"Ignis",u4.png
+5,SSR,commander,Strategist,"Vector",u5.png
+6,SSR,titan,Swarm,"Vespera",u6.png
+7,SSR,drone,Guardian,"Aegis",u7.png
+8,SSR,marksman,Executor,"Anvil",u8.png
+9,SSR,guardian,Guardian,"Dominus",u9.png
+10,SR,drone,Strategist,"와스프",u10.png
+11,SR,marksman,Executor,"헌터",u11.png
+12,SR,guardian,Swarm,"불워크",u12.png
+13,SR,bruiser,Guardian,"크래셔",u13.png
+14,SR,commander,Intel,"택틱스",u14.png
+15,SR,titan,Strategist,"골렘",u15.png
+16,SR,drone,Executor,"글리치",u16.png
+17,SR,marksman,Swarm,"바이퍼",u17.png
+18,SR,guardian,Guardian,"타워",u18.png
+19,SR,bruiser,Intel,"램페이지",u19.png
+20,SR,commander,Strategist,"마샬",u20.png
+21,SR,titan,Executor,"베히모스",u21.png
+22,SR,drone,Swarm,"호크아이",u22.png
+23,SR,marksman,Guardian,"사일런서",u23.png
+24,SR,guardian,Intel,"램파트",u24.png
+25,SR,bruiser,Strategist,"브레이커",u25.png
+26,SR,commander,Executor,"바이저",u26.png
+27,SR,titan,Swarm,"콜로서스",u27.png
+28,SR,drone,Guardian,"팬텀",u28.png
+29,SR,marksman,Intel,"아처",u29.png
+30,R,drone,Strategist,"Strategist 정찰기-030",u30.png
+31,R,marksman,Executor,"Executor 매-031",u31.png
+32,R,guardian,Swarm,"Swarm 수호자-032",u32.png
+33,R,bruiser,Guardian,"Guardian 분쇄기-033",u33.png
+34,R,commander,Intel,"Intel 총수-034",u34.png
+35,R,titan,Strategist,"Strategist 마룡-035",u35.png
+36,R,drone,Executor,"Executor 정찰기-036",u36.png
+37,R,marksman,Swarm,"Swarm 매-037",u37.png
+38,R,guardian,Guardian,"Guardian 수호자-038",u38.png
+39,R,bruiser,Intel,"Intel 분쇄기-039",u39.png
+40,R,commander,Strategist,"Strategist 총수-040",u40.png
+41,R,titan,Executor,"Executor 마룡-041",u41.png
+42,R,drone,Swarm,"Swarm 정찰기-042",u42.png
+43,R,marksman,Guardian,"Guardian 매-043",u43.png
+44,R,guardian,Intel,"Intel 수호자-044",u44.png
+45,R,bruiser,Strategist,"Strategist 분쇄기-045",u45.png
+46,R,commander,Executor,"Executor 총수-046",u46.png
+47,R,titan,Swarm,"Swarm 마룡-047",u47.png
+48,R,drone,Guardian,"Guardian 정찰기-048",u48.png
+49,R,marksman,Intel,"Intel 매-049",u49.png
+50,R,guardian,Strategist,"Strategist 수호자-050",u50.png
+51,R,bruiser,Executor,"Executor 분쇄기-051",u51.png
+52,R,commander,Swarm,"Swarm 총수-052",u52.png
+53,R,titan,Guardian,"Guardian 마룡-053",u53.png
+54,R,drone,Intel,"Intel 정찰기-054",u54.png
+55,R,marksman,Strategist,"Strategist 매-055",u55.png
+56,R,guardian,Executor,"Executor 수호자-056",u56.png
+57,R,bruiser,Swarm,"Swarm 분쇄기-057",u57.png
+58,R,commander,Guardian,"Guardian 총수-058",u58.png
+59,R,titan,Intel,"Intel 마룡-059",u59.png
+60,R,drone,Strategist,"Strategist 정찰기-060",u60.png
+61,R,marksman,Executor,"Executor 매-061",u61.png
+62,R,guardian,Swarm,"Swarm 수호자-062",u62.png
+63,R,bruiser,Guardian,"Guardian 분쇄기-063",u63.png
+64,R,commander,Intel,"Intel 총수-064",u64.png
+65,R,titan,Strategist,"Strategist 마룡-065",u65.png
+66,R,drone,Executor,"Executor 정찰기-066",u66.png
+67,R,marksman,Swarm,"Swarm 매-067",u67.png
+68,R,guardian,Guardian,"Guardian 수호자-068",u68.png
+69,R,bruiser,Intel,"Intel 분쇄기-069",u69.png
+70,R,commander,Strategist,"Strategist 총수-070",u70.png
+71,R,titan,Executor,"Executor 마룡-071",u71.png
+72,R,drone,Swarm,"Swarm 정찰기-072",u72.png
+73,R,marksman,Guardian,"Guardian 매-073",u73.png
+74,R,guardian,Intel,"Intel 수호자-074",u74.png
+75,R,bruiser,Strategist,"Strategist 분쇄기-075",u75.png
+76,R,commander,Executor,"Executor 총수-076",u76.png
+77,R,titan,Swarm,"Swarm 마룡-077",u77.png
+78,R,drone,Guardian,"Guardian 정찰기-078",u78.png
+79,R,marksman,Intel,"Intel 매-079",u79.png
