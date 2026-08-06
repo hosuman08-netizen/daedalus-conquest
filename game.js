@@ -7131,7 +7131,7 @@ function showD1ReturnHook() {
     + '<div style="font-size:17px;font-weight:900;color:#fbbf24;margin-bottom:10px;line-height:1.35;">' + title + '</div>'
     + '<div style="font-size:13px;line-height:1.65;color:#c4c4d4;margin-bottom:16px;">' + body + '</div>'
     + '<button type="button" id="d1-hook-go" style="width:100%;padding:13px;border:none;border-radius:12px;font-weight:800;font-size:15px;cursor:pointer;background:linear-gradient(135deg,#fbbf24,#d97706);color:#1a1400;box-shadow:0 8px 22px rgba(245,196,81,.35);">' + cta + '</button>'
-    + '<button type="button" id="d1-hook-x" style="margin-top:10px;background:none;border:none;color:#8b8ba7;font-size:12px;cursor:pointer;text-decoration:underline;">닫기</button>'
+    + '<button type="button" id="d1-hook-x" style="margin-top:10px;background:none;border:none;color:#8b8ba7;font-size:12px;cursor:pointer;text-decoration:underline;">' + ((typeof t === "function" && t("d1HookClose")) || "닫기") + '</button>'
     + '</div>';
   document.body.appendChild(el);
   try { logEvent("d1_hook_shown", { ch: META.chapter || 1 }); } catch (e) {}
