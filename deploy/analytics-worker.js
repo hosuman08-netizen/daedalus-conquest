@@ -45,7 +45,13 @@ const ALLOWED = new Set([
   "peak_share_any_ssr", "peak_share_battle", "peak_share_gacha",
   "return_user_welcome", "streak_break_nudge", "streak_freeze",
   "tower_floor", "ttv_first_session", "week_chest",
-  "win_gacha_cta_click", "win_gacha_cta_show"
+  "win_gacha_cta_click", "win_gacha_cta_show",
+  // 🚨 2026-08-13 Oracle 라이브 실측: 아래 14종이 화이트리스트에 없어 **전량 거부**되고 있었다.
+  //    p20 사주/p21 타로의 활성화·과금·바이럴이 통째로 여기 있었고, p1의 legionTrack('activate'|'share')도 폐기 중이었다.
+  //    → 08-04 "activate=0" 진단은 실제 0이 아니라 '수신 불가 이름'이었다. 같은 사고 3번째(7-20, 7-29, 지금).
+  "activate", "share", "share_peak", "share_refill", "share_peak_shown",
+  "k_link", "premium_unlock", "first_read", "birth",
+  "daily_focus", "recent_rerun", "import", "export", "undo", "streak"
 ]);
 const dayKey = (ts) => new Date(ts).toISOString().slice(0, 10);   // YYYY-MM-DD (UTC 일관 — game.js와 동일)
 
@@ -59,7 +65,18 @@ export default {
       if (!env.EVENTS) return json({ ok: false, reason: "kv-not-set" });   // graceful
       let b = {}; try { b = await req.json(); } catch (e) {}
       const type = b.type || b.n, anon = (b.anonId || b.a || "anon").slice(0, 40), ts = b.ts || 0;
-      if (!ALLOWED.has(type) || !ts) return json({ ok: false, reason: "bad-event" });
+      // 🩹 거부를 침묵시키지 않는다. sendBeacon은 응답을 안 읽어서 bad-event가 아무 데도 안 남았고,
+      //    그 침묵 때문에 같은 사고가 3번 반복됐다. 이제 거부도 카운트되어 데이터가 스스로 고발한다.
+      if (!ALLOWED.has(type) || !ts) {
+        if (env.EVENTS && type) {
+          try {
+            const rk = "rej:" + dayKey(ts || Date.now()) + ":" + String(type).slice(0, 32);
+            const rc = parseInt((await env.EVENTS.get(rk)) || "0", 10);
+            await env.EVENTS.put(rk, String(rc + 1), { expirationTtl: 30 * 86400 });
+          } catch (e) {}
+        }
+        return json({ ok: false, reason: "bad-event" });
+      }
       // 🩹 2026-08-13 측정 복구 (군단 전체회의 발견):
       //  ① 앱 차원 없음 → 49개 슬롯 지표가 한 통에 섞였음. app 네임스페이스 키를 병행 기록(레거시 키는 유지 = 대시보드 무중단).
       //  ② 비콘(legion-beacon.js)은 channel을 최상위로, game.js는 d.channel로 보냄 → 최상위만 읽던 쪽에서 41개 앱 귀속 유실. 양쪽 수용.
@@ -103,7 +120,9 @@ export default {
           const chk = "chan:" + day + ":" + ch;
           const chcur = parseInt((await env.EVENTS.get(chk)) || "0", 10);
           await env.EVENTS.put(chk, String(chcur + 1), { expirationTtl: 60 * 86400 });
-          const achk = "chan:" + day + ":" + app + ":" + ch;
+          // prefix를 분리(chanA:)한다 — 같은 "chan:" 아래 두면 아래 list() 스캔이 앱키까지 긁어
+          // out.channels에 invite와 saju-miniapp:invite가 동시에 들어가 채널 수가 2배로 부풀었다.
+          const achk = "chanA:" + day + ":" + app + ":" + ch;
           const achcur = parseInt((await env.EVENTS.get(achk)) || "0", 10);
           await env.EVENTS.put(achk, String(achcur + 1), { expirationTtl: 60 * 86400 });
         }
@@ -113,7 +132,7 @@ export default {
           const sk = "chans:" + day + ":" + chs;
           const scur = parseInt((await env.EVENTS.get(sk)) || "0", 10);
           await env.EVENTS.put(sk, String(scur + 1), { expirationTtl: 60 * 86400 });
-          const ask = "chans:" + day + ":" + app + ":" + chs;
+          const ask = "chansA:" + day + ":" + app + ":" + chs;   // chans: 스캔 오염 방지(위와 동일 이유)
           const ascur = parseInt((await env.EVENTS.get(ask)) || "0", 10);
           await env.EVENTS.put(ask, String(ascur + 1), { expirationTtl: 60 * 86400 });
         }
@@ -184,29 +203,38 @@ export default {
       // Project 2 (Phase2 gear/prestige/items) proxies — Oracle metrics for D7/conv/virality impact
       out.p2_unlock = parseInt((await env.EVENTS.get("p2:" + day)) || "0", 10);
       out.phase2_rate = out.install ? +(out.p2_unlock / out.install).toFixed(4) : 0;
-      out.gear_obtained = parseInt((await env.EVENTS.get("cnt:" + day + ":gear_obtained")) || "0", 10);
-      out.gear_equipped = parseInt((await env.EVENTS.get("cnt:" + day + ":gear_equipped")) || "0", 10);
+      // ⚠️ 아래 4개는 `pre`(=앱 스코프)를 써야 한다. 레거시 전역키를 쓰면 ?app= 지정이 무시되고
+      //    함대 총합이 섞여 나온다 — 이번 사고(앱 미분리)의 재발 지점이었다.
+      out.gear_obtained = parseInt((await env.EVENTS.get(pre + "gear_obtained")) || "0", 10);
+      out.gear_equipped = parseInt((await env.EVENTS.get(pre + "gear_equipped")) || "0", 10);
       out.gear_rate = out.install ? +(out.gear_obtained / out.install).toFixed(4) : 0;
-      out.set_activated = parseInt((await env.EVENTS.get("cnt:" + day + ":set_activated")) || "0", 10);
+      out.set_activated = parseInt((await env.EVENTS.get(pre + "set_activated")) || "0", 10);
       // A/B exposure proxy (ab_test events) — out.ab_test populated by ALLOWED loop
-      out.ab_exposure = parseInt((await env.EVENTS.get("cnt:" + day + ":ab_test")) || "0", 10);
+      out.ab_exposure = parseInt((await env.EVENTS.get(pre + "ab_test")) || "0", 10);
       // ── 결제 퍼널 전환 proxy (Oracle 2026-07-01) — 이제 완료뿐 아니라 의도·이탈까지 관측 ──
       //  shop_view→checkout_open→invoice_paid 단계별. cancelled로 이탈 지점 가시화.
       out.shop_to_checkout = (out.shop_view || 0) ? +((out.checkout_open || 0) / out.shop_view).toFixed(4) : 0;
       out.checkout_conv = (out.checkout_open || 0) ? +((out.invoice_paid || 0) / out.checkout_open).toFixed(4) : 0;
       out.checkout_abandon = (out.checkout_open || 0) ? +((out.invoice_cancelled || 0) / out.checkout_open).toFixed(4) : 0;
       out.activation_rate = out.install ? +((out.first_core_loop || 0) / out.install).toFixed(4) : 0;
-      // ── 채널별 install 슬라이싱 (CMO ROI) — chan:day:* 스캔 ──
+      // ── 채널 슬라이싱 — ?app= 지정 시 앱 전용키(chanA:/chansA:), 미지정 시 레거시 전역키 ──
+      const chPre  = qApp ? "chanA:"  + day + ":" + qApp + ":" : "chan:"  + day + ":";
+      const chsPre = qApp ? "chansA:" + day + ":" + qApp + ":" : "chans:" + day + ":";
       out.channels = {};
       try {
-        const cr = await env.EVENTS.list({ prefix: "chan:" + day + ":", limit: 100 });
-        for (const k of cr.keys) { const ch = k.name.split(":").slice(2).join(":"); out.channels[ch] = parseInt((await env.EVENTS.get(k.name)) || "0", 10); }
+        const cr = await env.EVENTS.list({ prefix: chPre, limit: 100 });
+        for (const k of cr.keys) { const ch = k.name.slice(chPre.length); out.channels[ch] = parseInt((await env.EVENTS.get(k.name)) || "0", 10); }
       } catch (e) {}
-      // ── 채널별 세션 슬라이싱 (코호트 성숙 전 채널 초기반응) — chans:day:* 스캔 ──
       out.channels_sessions = {};
       try {
-        const sr = await env.EVENTS.list({ prefix: "chans:" + day + ":", limit: 100 });
-        for (const k of sr.keys) { const ch = k.name.split(":").slice(2).join(":"); out.channels_sessions[ch] = parseInt((await env.EVENTS.get(k.name)) || "0", 10); }
+        const sr = await env.EVENTS.list({ prefix: chsPre, limit: 100 });
+        for (const k of sr.keys) { const ch = k.name.slice(chsPre.length); out.channels_sessions[ch] = parseInt((await env.EVENTS.get(k.name)) || "0", 10); }
+      } catch (e) {}
+      // ── 거부된 이벤트(화이트리스트 누락 조기경보) — 이게 0이 아니면 계측 계약이 깨진 것 ──
+      out.rejected = {};
+      try {
+        const rr = await env.EVENTS.list({ prefix: "rej:" + day + ":", limit: 100 });
+        for (const k of rr.keys) { const t = k.name.slice(("rej:" + day + ":").length); out.rejected[t] = parseInt((await env.EVENTS.get(k.name)) || "0", 10); }
       } catch (e) {}
       // ── North Star proxy: D7 Engaged-Payer (전체 유저 스캔) — ⚠️무거움(서브리퀘스트 한도). ?full=1일 때만.
       //  기본 /stats는 카운터만(데일리 digest·스모크용 = 빠르고 안정). 정밀은 /stats?full=1 또는 /cohort.
