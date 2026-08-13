@@ -8,3 +8,72 @@ CLAUDE.md
 game.js.bak-*
 
 .wrangler/
+
+# ─────────────────────────────────────────────────────────────
+# 🔒 INTERNAL-ONLY — 이 레포는 PUBLIC이다. 아래는 절대 커밋 금지.
+# 정본 위치: ~/legion-hq/   (군단 문서는 p1 레포에 살지 않는다)
+# 2026-08-13 Tank(CTO) 유출 차단
+# ─────────────────────────────────────────────────────────────
+
+# 군단 운영 로그 — p1 산출물이 아님. ~/legion-hq/p1-reports/
+reports/
+*-RUNLOG.md
+*-LEGION-BRIEF-*.md
+*-INTERIM*.md
+
+# 군단 아스날 / 교리
+ARSENAL*.md
+ARSENAL*.json
+AGENTS.md
+GEMINI.md
+legion-status.md
+LEGION_*.md
+LEGION-*.md
+군단_*.md
+
+# 핸드오프 / 군주 실행시트
+HANDOFF-*.md
+SOVEREIGN-*.md
+
+# 다크패턴·심리조작·수익화 교리 (공개 시 규제·평판 리스크)
+SPEC-darkpattern*.md
+SPEC-dopamine*.md
+SPEC-monetization*.md
+GAME-IDEAS.md
+선정성_*.md
+.claude/skills/full-cheat-engine/
+
+# 경쟁사·파트너 실명 분석 / 매출 목표
+COMPETITIVE-*.md
+COMPETITOR-*.md
+MARKETING-COMPETITOR-*.md
+*-TEARDOWN-*.md
+*-BENCHMARK*.md
+*PARTNERSHIP*.md
+*-DD.md
+REVENUE-PRD.md
+ORACLE-*.md
+
+# 마케팅/시딩 운영물
+SEED-*.md
+SEED-*.txt
+SEEDING-*.md
+*-GROWTH-*.md
+LAUNCH-MARKETING-*.md
+GO-NOGO-*.md
+READY_*.md
+
+# 인프라 셋업 문서 (계정·워커 토폴로지 + 보안 한계 노출)
+PAY-SETUP.md
+
+# 보안 감사 결과물 — 절대 공개 금지
+*security-audit*
+*SECURITY-AUDIT*
+*-panopticon*.md
+
+# 크리덴셜 (방어선. 애초에 커밋되면 안 됨)
+.env
+.env.*
+secrets.json
+*.pem
+*.key
