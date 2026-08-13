@@ -27,6 +27,7 @@ const ALLOWED = new Set([
   // Trinity P0 activation + funnel — game.js 실제 emit과 일치 (2026-07-02 Morpheus)
   "core_loop_complete", "tutorial_start", "tutorial_done",
   "stuck_upsell", "first_purchase_2x", "purchase_unverified", "purchase_pending",
+  "purchase_recovered",   // 💰 2026-08-13: 결제됐는데 미지급이던 건을 재진입 시 회수(원장 복구) — 유실 규모 관측용
   // Oracle(CDO) 2026-07-01: 결제 퍼널 관측 + 활성화 1회성 + North Star 교집합 배선
   //   shop_view=상점열람 / checkout_open=buyPack클릭(구매의도) / invoice_paid·invoice_cancelled=openInvoice 콜백 결과
   //   first_core_loop·first_gacha=신규 1회성(activation) — daily_return·invite_converted 슬롯은 기존 라인에 이미 존재
@@ -52,9 +53,30 @@ const ALLOWED = new Set([
   "activate", "share", "share_peak", "share_refill", "share_peak_shown",
   "k_link", "premium_unlock", "first_read", "birth",
   "daily_focus", "recent_rerun", "import", "export", "undo", "streak",
-  "sw_register_fail"   // 2026-08-13: SW 등록 실패를 침묵시키지 않기 위해 신설. 0이 아니면 PWA가 죽은 것.
+  "sw_register_fail",   // 2026-08-13: SW 등록 실패를 침묵시키지 않기 위해 신설. 0이 아니면 PWA가 죽은 것.
+  // 2026-08-13 계약 게이트(legion-contract-check)가 코어 3종에서 잡아낸 누락분. 앱이 쏘는데 워커가 버리던 것들.
+  //   p21 타로 — 재해석/재뽑기/일일공명/p10 무료권
+  "clarify", "redraw", "reobserve", "daily_resonance", "p10_daily_free",
+  //   p2 마이판테온 — 일일수령/축제/빈화면 CTA/비콘 기본 view
+  "daily_claim", "festival_claim", "festival_fomo_toast", "empty_cta_show", "view"
 ]);
 const dayKey = (ts) => new Date(ts).toISOString().slice(0, 10);   // YYYY-MM-DD (UTC 일관 — game.js와 동일)
+
+/* 🔒 2026-08-13 — 읽기 엔드포인트 인증 게이트 (Cipher/Ghostwire 2026-07-29 P1 실측 확인 후 수리)
+   확인된 사실: GET /export 가 무인증으로 유저 요약 레코드 99건을 그대로 덤프하고 있었다(라이브 curl 검증).
+   /stats·/cohort 도 동일하게 열려 있었다 — STATS_SECRET 이 프로덕션에 설정된 적이 없어
+   기존의 "if (ssec)" 조건부 검사가 통째로 건너뛰어졌기 때문이다(= fail-OPEN 이었다).
+   → 조건부를 fail-CLOSED 로 바꾼다. 시크릿 미설정도 '열림'이 아니라 '거부'다.
+   ⚠️ 배포 시 반드시 짝으로: wrangler secret put STATS_SECRET  (미설정 시 Oracle 읽기 전부 401)
+      거부는 침묵하지 않는다 — 이유를 명시해 대시보드가 스스로 고발하게 한다.
+   ※ POST /ev(수집)는 게이트하지 않는다. 익명 비콘이고 막으면 계측이 죽는다. 쓰기≠읽기. */
+function readAuth(req, env, url) {
+  const ssec = env.STATS_SECRET;
+  if (!ssec) return json({ ok: false, reason: "stats-auth-not-configured", fix: "wrangler secret put STATS_SECRET" }, 503);
+  const got = req.headers.get("X-Stats-Secret") || url.searchParams.get("k") || "";
+  if (got !== ssec) return json({ ok: false, reason: "stats-auth" }, 401);
+  return null;   // null = 통과
+}
 
 export default {
   async fetch(req, env) {
@@ -178,11 +200,7 @@ export default {
     }
     // ② 집계 조회 — 오라클(CDO) 대시보드용. GET /stats?day=YYYY-MM-DD
     if (req.method === "GET" && url.pathname === "/stats") {
-      const ssec = env.STATS_SECRET;
-      if (ssec) {
-        const got = req.headers.get("X-Stats-Secret") || url.searchParams.get("k") || "";
-        if (got !== ssec) return json({ ok: false, reason: "stats-auth" }, 401);
-      }
+      const deny = readAuth(req, env, url); if (deny) return deny;   // 🔒 fail-closed (구 조건부 = fail-open 이었음)
       if (!env.EVENTS) return json({ ok: false, reason: "kv-not-set" });
       const day = url.searchParams.get("day") || dayKey(Date.parse(new Date().toISOString()));
       // 🩹 2026-08-13: ?app=<slug> 지정 시 그 슬롯만. 미지정이면 기존 전체합(하위호환).
@@ -256,6 +274,7 @@ export default {
     //    u:anon {first,last} 기반 rolling retention(설치코호트별 Dn까지 잔존).
     //    정직: first/last만 있어 "정확히 N일째 활동"이 아닌 "N일 이상 잔존(rolling)" 근사.
     if (req.method === "GET" && url.pathname === "/cohort") {
+      const deny = readAuth(req, env, url); if (deny) return deny;   // 🔒 무인증 코호트 조회 차단
       if (!env.EVENTS) return json({ ok: false, reason: "kv-not-set" });
       const users = await listUsers(env);              // [{first,last}]
       const coh = {};                                  // first일 -> {n, d1, d7, d30}
@@ -277,6 +296,8 @@ export default {
 
     // ④ raw export — 오라클 오프라인 분석용. GET /export (u: 요약 레코드, 익명)
     if (req.method === "GET" && url.pathname === "/export") {
+      // 🔒 최우선 차단 지점 — 라이브에서 이게 유저 레코드 99건을 무인증으로 덤프하고 있었다.
+      const deny = readAuth(req, env, url); if (deny) return deny;
       if (!env.EVENTS) return json({ ok: false, reason: "kv-not-set" });
       const users = await listUsers(env);
       return json({ ok: true, count: users.length, users });
