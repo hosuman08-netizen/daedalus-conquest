@@ -60,14 +60,25 @@ export default {
       let b = {}; try { b = await req.json(); } catch (e) {}
       const type = b.type || b.n, anon = (b.anonId || b.a || "anon").slice(0, 40), ts = b.ts || 0;
       if (!ALLOWED.has(type) || !ts) return json({ ok: false, reason: "bad-event" });
+      // 🩹 2026-08-13 측정 복구 (군단 전체회의 발견):
+      //  ① 앱 차원 없음 → 49개 슬롯 지표가 한 통에 섞였음. app 네임스페이스 키를 병행 기록(레거시 키는 유지 = 대시보드 무중단).
+      //  ② 비콘(legion-beacon.js)은 channel을 최상위로, game.js는 d.channel로 보냄 → 최상위만 읽던 쪽에서 41개 앱 귀속 유실. 양쪽 수용.
+      const app = String(b.app || "unknown").slice(0, 32).replace(/[^a-zA-Z0-9_-]/g, "") || "unknown";
+      const chanOf = (x) => String((x && x.channel) || (x && x.d && x.d.channel) || "direct").slice(0, 20);
       // ⚠️ fire-and-forget: KV 쓰기 실패해도 절대 500 금지(게임 영향0). 예외는 잡아 진단 노출.
       try {
         // 일별 카운트 집계 (KV는 단순 카운터 — D1로 승급 가능). 키: cnt:YYYY-MM-DD:type
         const day = dayKey(ts), ck = "cnt:" + day + ":" + type;
         const cur = parseInt((await env.EVENTS.get(ck)) || "0", 10);
-        await env.EVENTS.put(ck, String(cur + 1), { expirationTtl: 60 * 86400 });   // 60일 보존
+        await env.EVENTS.put(ck, String(cur + 1), { expirationTtl: 60 * 86400 });   // 60일 보존(레거시 전체합)
+        // 앱별 카운트. 키: cnt:YYYY-MM-DD:app:type — 어느 슬롯이 살아있는지 이제 데이터로 답할 수 있음
+        const ack = "cnt:" + day + ":" + app + ":" + type;
+        const acur = parseInt((await env.EVENTS.get(ack)) || "0", 10);
+        await env.EVENTS.put(ack, String(acur + 1), { expirationTtl: 60 * 86400 });
         // DAU 근사: 일별 유니크 anonId 마킹 (set 키). 키: dau:YYYY-MM-DD:anon
         await env.EVENTS.put("dau:" + day + ":" + anon, "1", { expirationTtl: 14 * 86400 });
+        // 앱별 DAU — 전 슬롯이 같은 오리진이라 anon이 공유됨. 앱 네임스페이스로 교차오염 차단.
+        await env.EVENTS.put("dau:" + day + ":" + app + ":" + anon, "1", { expirationTtl: 14 * 86400 });
         // 리텐션 + North Star 교집합: 유저별 레코드. 키: u:anon → {first,last,eng,pay,fc,fg,streak,ch}
         //  ⚠️ 설계결정(Oracle): 새 usr: prefix 대신 기존 u: 레코드를 확장 — /cohort·/export·listUsers가 즉시 join.
         //  eng=engaged(코어루프 완주 경험), pay=payer(결제 경험) → 이 둘의 교집합이 North Star(D7 Engaged-Payer).
@@ -83,21 +94,28 @@ export default {
         // 복귀 스트릭(daily_return.d.streak 최대치 보존) — 리텐션 훅 강도
         if (type === "daily_return") { const s = (b.d && +b.d.streak) || 0; if (s > (u.streak || 0)) u.streak = s; }
         // 획득채널 최초 1회 고정(첫 비어있지 않은 값 승리 — install 유실돼도 session_start로 채움). CMO 채널 ROI 슬라이싱
-        if (!u.ch && b.d && b.d.channel) u.ch = String(b.d.channel).slice(0, 20);
+        if (!u.ch) { const c0 = chanOf(b); if (c0 !== "direct") u.ch = c0; }
+        if (!u.app) u.app = app;   // 유저 레코드에도 앱 각인(코호트 슬라이싱)
         await env.EVENTS.put(uk, JSON.stringify(u), { expirationTtl: 45 * 86400 });   // D30 코호트 성숙 대비 45일
-        // 채널별 install 일별 집계. 키: chan:YYYY-MM-DD:channel
+        // 채널별 install 일별 집계. 키: chan:YYYY-MM-DD:channel (+ 앱별)
         if (type === "install") {
-          const ch = String((b.d && b.d.channel) || "direct").slice(0, 20);
+          const ch = chanOf(b);
           const chk = "chan:" + day + ":" + ch;
           const chcur = parseInt((await env.EVENTS.get(chk)) || "0", 10);
           await env.EVENTS.put(chk, String(chcur + 1), { expirationTtl: 60 * 86400 });
+          const achk = "chan:" + day + ":" + app + ":" + ch;
+          const achcur = parseInt((await env.EVENTS.get(achk)) || "0", 10);
+          await env.EVENTS.put(achk, String(achcur + 1), { expirationTtl: 60 * 86400 });
         }
-        // 채널별 세션 일별 집계(코호트 성숙 전 채널 초기반응 읽기). 키: chans:YYYY-MM-DD:channel
-        if (type === "session_start" && b.d && b.d.channel) {
-          const chs = String(b.d.channel).slice(0, 20);
+        // 채널별 세션 일별 집계(코호트 성숙 전 채널 초기반응 읽기). 키: chans:YYYY-MM-DD:channel (+ 앱별)
+        if (type === "session_start") {
+          const chs = chanOf(b);
           const sk = "chans:" + day + ":" + chs;
           const scur = parseInt((await env.EVENTS.get(sk)) || "0", 10);
           await env.EVENTS.put(sk, String(scur + 1), { expirationTtl: 60 * 86400 });
+          const ask = "chans:" + day + ":" + app + ":" + chs;
+          const ascur = parseInt((await env.EVENTS.get(ask)) || "0", 10);
+          await env.EVENTS.put(ask, String(ascur + 1), { expirationTtl: 60 * 86400 });
         }
         // ch18 reach 특수: ascend 시 fromCh>=18 데이터 반영 (d.fromCh)
         if (type === "ascend" && b.d && (b.d.fromCh || 0) >= 18) {
@@ -147,8 +165,12 @@ export default {
       }
       if (!env.EVENTS) return json({ ok: false, reason: "kv-not-set" });
       const day = url.searchParams.get("day") || dayKey(Date.parse(new Date().toISOString()));
+      // 🩹 2026-08-13: ?app=<slug> 지정 시 그 슬롯만. 미지정이면 기존 전체합(하위호환).
+      const qApp = String(url.searchParams.get("app") || "").slice(0, 32).replace(/[^a-zA-Z0-9_-]/g, "");
+      const pre = "cnt:" + day + (qApp ? ":" + qApp : "") + ":";
       const out = {};
-      for (const t of ALLOWED) out[t] = parseInt((await env.EVENTS.get("cnt:" + day + ":" + t)) || "0", 10);
+      if (qApp) out._app = qApp;
+      for (const t of ALLOWED) out[t] = parseInt((await env.EVENTS.get(pre + t)) || "0", 10);
       out.ch18_ascend = parseInt((await env.EVENTS.get("c18:" + day)) || "0", 10);
       // 전환율 근사(설치 대비 결제 / 가챠)
       out.purchase_rate = out.install ? +(out.purchase / out.install).toFixed(4) : 0;
