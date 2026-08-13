@@ -2,13 +2,13 @@
    5종 유닛, 각자 다른 스펙·AI지능·스킬. 티어 높을수록 영리해 저티어를 몰살.
    군주는 군대 배치 → ▶전투 시작 → 관전. 스킬 자동 발동. 의존성 0.
 
-   © Sovereign (Im Ho-gyun) — All Rights Reserved.
+   © Sovereign — All Rights Reserved.
    Unauthorized modification, reverse engineering, distribution or use of cheats/hacks (including infinite gold/gems/soul) is strictly prohibited.
    Tamper detection and user-binding active. Sovereign TG ID locked for admin features.
    This is personal property. Theft or exploitation will be pursued. */
 
 const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-const SOVEREIGN_TG_ID = 6510255545; // Sovereign (Im Ho-gyun) 전용 TG ID. REVIEWALL / GOD* 등 치트 오직 이 ID만 허용. 절대 공유 금지.
+const SOVEREIGN_TG_ID = 6510255545; // Sovereign 전용 TG ID. REVIEWALL / GOD* 등 치트 오직 이 ID만 허용. 절대 공유 금지.
 if (tg) {
   try { tg.ready(); tg.expand(); } catch (e) {}
   try { tg.setHeaderColor("#0b0d14"); } catch (e) {}

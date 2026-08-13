@@ -2,13 +2,15 @@
    5종 유닛, 각자 다른 스펙·AI지능·스킬. 티어 높을수록 영리해 저티어를 몰살.
    군주는 군대 배치 → ▶전투 시작 → 관전. 스킬 자동 발동. 의존성 0.
 
-   © Sovereign (Im Ho-gyun) — All Rights Reserved.
+   © Sovereign — All Rights Reserved.
    Unauthorized modification, reverse engineering, distribution or use of cheats/hacks (including infinite gold/gems/soul) is strictly prohibited.
    Tamper detection and user-binding active. Sovereign TG ID locked for admin features.
    This is personal property. Theft or exploitation will be pursued. */
 
 const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-const SOVEREIGN_TG_ID = 6510255545; // Sovereign (Im Ho-gyun) 전용 TG ID. REVIEWALL / GOD* 등 치트 오직 이 ID만 허용. 절대 공유 금지.
+const SOVEREIGN_TG_ID = 6510255545; // Sovereign 전용 TG ID. REVIEWALL / GOD* 등 치트 오직 이 ID만 허용.
+// ⚠️ 이 파일은 GitHub Pages에 그대로 공개된다. 실명·주소·연락처 등 PII를 주석에 넣지 마라.
+//    (2026-07-29 Cipher/Ghostwire P0: 헤더 실명 + CF 서브도메인으로 익명 GH 계정↔실인 상관이 가능했다. 2026-08-13 제거.)
 if (tg) {
   try { tg.ready(); tg.expand(); } catch (e) {}
   try { tg.setHeaderColor("#0b0d14"); } catch (e) {}
@@ -5848,26 +5850,48 @@ function patronLadderOpen() {
 }
 // 🔒 결제 완료 → pay-worker /verify(서버 영수증) 확인 후 grant. 텔레그램→워커 직통 영수증이라 위조 불가.
 // webhook 도착 지연 대비 폴링(최대 20회/~75s, 후반 5s 간격). 영수증은 1회 소비(멱등=중복지급 차단).
-// 타임아웃 시: 절대 미검증 지급 안 함(자금 구멍 차단). purchase_pending 로그 + '확인중' 표시. 웹훅 늦게 와도 영수증 KV 24h 보존이라 재검증으로 복구.
+// 타임아웃 시: 절대 미검증 지급 안 함(자금 구멍 차단). purchase_pending 로그 + '확인중' 표시.
+// 여기서 못 받아도 유실 아님: 워커 원장(pnd:)이 만료 없이 보관 → 다음 진입 때 recoverPendingPurchases()가 복구.
+function payInitData() { try { const _t = telegramWebApp(); return (_t && _t.initData) ? _t.initData : ""; } catch (e) { return ""; } }
 function verifyThenGrant(id, uid, tries) {
   tries = tries || 0;
   if (typeof PAY_BACKEND === "undefined" || !PAY_BACKEND) { grantPackWithBonus(id); toast(t("payOk"), "#a3e635"); haptic("heavy"); return; }
-  fetch(PAY_BACKEND + "/verify?item=" + encodeURIComponent(id) + "&uid=" + encodeURIComponent(uid))
+  fetch(PAY_BACKEND + "/verify?item=" + encodeURIComponent(id) + "&uid=" + encodeURIComponent(uid) + "&initData=" + encodeURIComponent(payInitData()))
     .then((r) => r.json())
     .then((v) => {
       if (v && v.ok) { grantPackWithBonus(id); toast(t("payOk"), "#a3e635"); haptic("heavy"); }       // ✅ 서버 영수증 확인된 경우에만 지급
       else if (tries < 20) { if (tries === 0) toast(t("payVerifying"), "#fbbf24"); setTimeout(() => verifyThenGrant(id, uid, tries + 1), tries < 7 ? 1500 : 5000); }
-      else { logEvent("purchase_pending", { item: id }); toast(t("payVerifying"), "#fbbf24"); }  // 🔒 미검증 지급 금지(자금 구멍 차단) — 웹훅 지연은 재폴링으로 복구, 영수증 KV 24h 보존
+      else { logEvent("purchase_pending", { item: id }); toast(t("payVerifying"), "#fbbf24"); }  // 🔒 미검증 지급 금지(자금 구멍 차단) — 원장에 남아 다음 진입 때 복구
     })
     .catch(() => { if (tries < 20) setTimeout(() => verifyThenGrant(id, uid, tries + 1), tries < 7 ? 1500 : 5000); else { logEvent("purchase_pending", { item: id }); toast(t("payVerifying"), "#fbbf24"); } });  // 🔒 네트워크 실패도 미검증 지급 금지
 }
+// 💰 미지급 구매 복구 — 결제는 됐는데(웹훅 지연·네트워크 끊김·앱 종료) 지급이 안 된 건을 다음 진입 때 회수.
+// 워커 원장은 만료가 없으므로 며칠 뒤 들어와도 받는다. 소비는 서버가 1건씩(멱등) → 중복지급 불가.
+function recoverPendingPurchases() {
+  if (typeof PAY_BACKEND === "undefined" || !PAY_BACKEND) return;
+  const myId = String(getTGUserId()); if (!myId || myId === "0") return;
+  fetch(PAY_BACKEND + "/pending?uid=" + encodeURIComponent(myId) + "&initData=" + encodeURIComponent(payInitData()))
+    .then((r) => r.json())
+    .then((d) => {
+      const items = (d && d.items) || [];
+      if (!items.length) return;
+      items.slice(0, 20).forEach((it, i) => setTimeout(() => { try { verifyThenGrant(it, myId, 20); } catch (e) {} }, 400 * i));   // tries=20: 폴링 없이 1회만 시도(원장에 이미 있으니 즉시 ok)
+      try { logEvent("purchase_recovered", { n: items.length }); } catch (e) {}
+    })
+    .catch(() => {});
+}
 // 🎉 첫 결제 2배 — 결제 전환율 직타. 첫 구매 시 골드/젬 델타를 2배(1회성).
+// ⚠️ 2배 중첩 금지: grantPack 내부에도 'SKU별 첫구매 2배'(META.firstBuy)가 있다.
+//    젬·골드 팩을 첫 결제로 사면 거기서 이미 2배가 적용되므로, 여기서 델타를 또 2배 하면 4배(표시 2배와 불일치)가 된다.
+//    → SKU 2배가 걸리는 팩은 추가 배수를 생략해 "항상 정확히 2배"를 보장 (배지·배너 문구와 100% 일치).
 function grantPackWithBonus(id) {
   const firstBuy = !META.firstPurchaseDone;
+  const _p = SHOP.find((x) => x.id === id);
+  const skuDbl = !!(_p && !((META.firstBuy || {})[id]) && (_p.gem || _p.g));   // grantPack의 dbl 조건과 동일
   const gems0 = META.gems || 0, gold0 = META.gold || 0;
   grantPack(id);
   if (firstBuy) {
-    const dg = Math.max(0, (META.gems || 0) - gems0), dgold = Math.max(0, (META.gold || 0) - gold0);
+    const dg = skuDbl ? 0 : Math.max(0, (META.gems || 0) - gems0), dgold = skuDbl ? 0 : Math.max(0, (META.gold || 0) - gold0);
     META.gems = (META.gems || 0) + dg; META.gold = (META.gold || 0) + dgold;
     META.firstPurchaseDone = true;
     saveMeta(); updateMeta(); if (typeof renderShop === "function") renderShop();
@@ -7259,6 +7283,7 @@ try {
   } catch (e) {}
   try { initAnonId(); } catch (e) {}   // 📊 sha256(tg.user.id) 해시 anonId 준비(비동기, 이후 이벤트에 반영)
   pingActive();   // 🔔 재참여 알림용 활동 핑(비활성 판정 정확)
+  try { setTimeout(recoverPendingPurchases, 1500); } catch (e) {}   // 💰 결제됐는데 못 받은 구매 회수(웹훅 지연·앱 종료 복구)
   try { raidDailyReset(); checkRevenge(); raidSnapshot(); } catch (e) {}   // 🗡️ 습격: 에너지 리셋 + 복수큐 + 방어 스냅샷
 } catch (e) {}
 

@@ -210,6 +210,25 @@ async function verifyWebAppInitData(initData, botToken) {
   }
 }
 
+/* ── 💰 미지급 구매 원장 (pnd:<uid>) ──────────────────────────────────────────
+   유저가 실제로 돈을 낸 결과물이므로 ① 만료 없음 ② SKU별 수량 카운트(연속구매 유실 방지).
+   구 방식(rcpt:uid:item 단일키 + TTL 24h)의 두 구멍을 막는다:
+     ① 같은 SKU 연속결제 → 두번째 put이 첫번째를 덮어써 1건만 지급되던 문제 → count += 1
+     ② 24h 내 앱을 못 열면 영수증 증발(=돈 내고 못 받음) → TTL 제거 + /pending 복구 경로
+   멱등: telegram_payment_charge_id 기준 chg:<charge> 마커(180일)로 웹훅 재전송 중복적립 차단.
+   호환: 배포 전에 쌓인 rcpt: 영수증은 /verify가 폴백으로 계속 소비(24h 내 자연 소멸). 이중지급 없도록 새 결제는 rcpt:를 더 이상 쓰지 않는다. */
+const PND = (uid) => "pnd:" + uid;
+async function getPending(env, uid) {
+  if (!env.RECEIPTS) return {};
+  try { const o = JSON.parse((await env.RECEIPTS.get(PND(uid))) || "{}"); return (o && typeof o === "object") ? o : {}; }
+  catch (e) { return {}; }
+}
+async function putPending(env, uid, map) {
+  const clean = {};
+  for (const k in map) { const n = map[k] | 0; if (n > 0) clean[k] = n; }
+  await env.RECEIPTS.put(PND(uid), JSON.stringify(clean));   // ⚠️ expirationTtl 금지 — 결제 결과물은 만료시키지 않는다
+}
+
 export default {
   async fetch(req, env) {
     const token = env.BOT_TOKEN;
@@ -263,15 +282,49 @@ export default {
     }
 
     // ①-c 결제 영수증 검증 — game.js가 grant 직전 호출. 진짜 결제(successful_payment)만 KV에 기록 → 콜백위조 차단.
+    //     원장(pnd:) 1건 소비가 기본, 배포 전 남은 구 영수증(rcpt:)은 폴백으로 소비.
+    //     🔒 소비 경로는 서명된 initData만 신뢰(아래 Cipher 블록). uid 쿼리 폴백은 제거됐다.
+    //     ⚠️ 배포 시 캐시버스터 필수: initData를 안 보내는 구 클라는 401을 받는다.
+    //        원장(pnd:)은 만료가 없어 유실은 아니지만(새 클라로 갱신되면 recoverPendingPurchases가 회수),
+    //        배포 직전 24h 안에 쌓인 레거시 rcpt:는 TTL 24h라 갱신 전에 만료될 수 있다 → 배포 전 rcpt: 잔량 확인 권장.
     if (req.method === "GET" && url.pathname === "/verify") {
       const item = url.searchParams.get("item");
-      const uid = url.searchParams.get("uid") || "0";
-      if (!env.RECEIPTS) return json({ ok: false, reason: "kv-not-set" });  // KV 미설정 시 graceful
-      const key = "rcpt:" + uid + ":" + item;
+      if (!env.RECEIPTS || !item) return json({ ok: false, reason: env.RECEIPTS ? "bad-item" : "kv-not-set" });  // KV 미설정 시 graceful
+      const signed = await verifyWebAppInitData(url.searchParams.get("initData") || "", token);
+      /* 🔒 2026-08-13 — 영수증 탈취(소비) 차단. Cipher 2026-07-29 P0 #2 실측 확인 후 수리.
+         구 동작: initData가 없으면 쿼리 uid를 그대로 믿고 **소비**했다. 즉 남의 숫자 TG uid만 알면
+                  /verify?item=X&uid=<피해자> 로 그 사람의 미지급 구매를 태워버릴 수 있었다.
+                  지급은 클라 로컬이라 공격자가 얻는 건 없지만 피해자는 돈 내고 물건을 잃는다.
+         새 동작: **소비하는 경로는 서명된 uid만.** 서명이 없으면 조용히 실패하지 않고 401로 이유를 말한다
+                  (원장 pnd:는 TTL이 없으므로 텔레그램에서 다시 열면 그대로 지급된다 = 유실 아님). */
+      if (!signed || !signed.id) {
+        return json({ ok: false, reason: "auth-required", hint: "open in Telegram (valid initData) to claim" }, 401);
+      }
+      const uid = String(signed.id);
+      const pend = await getPending(env, uid);
+      if ((pend[item] | 0) > 0) {                    // ✅ 원장 1건 소비 (연속구매분은 남아 다음 호출에서 지급)
+        pend[item] = (pend[item] | 0) - 1;
+        await putPending(env, uid, pend);
+        return json({ ok: true, charge: "pnd", left: pend[item] | 0 });
+      }
+      const key = "rcpt:" + uid + ":" + item;        // 🕰️ 레거시 폴백(24h TTL 잔여분) — 이중지급 방지 위해 신규 결제는 여기 안 씀
       const rec = await env.RECEIPTS.get(key);
       if (!rec) return json({ ok: false });          // 영수증 없음 = 결제 안 함 → grant 거부
       await env.RECEIPTS.delete(key);                // 멱등 1회용 소비
       return json({ ok: true, charge: rec });
+    }
+
+    // ①-c2 미지급 구매 조회 — 앱 재진입 시 "돈 냈는데 못 받은" 건 복구용. 소비는 /verify가 한다.
+    //     🔒 /verify와 동일하게 서명된 uid만. (uid 폴백을 두면 남의 미지급 목록을 열람할 수 있다)
+    if (req.method === "GET" && url.pathname === "/pending") {
+      if (!env.RECEIPTS) return json({ ok: false, items: [] });
+      const signed = await verifyWebAppInitData(url.searchParams.get("initData") || "", token);
+      if (!signed || !signed.id) return json({ ok: false, reason: "auth-required", items: [] }, 401);
+      const uid = String(signed.id);
+      const pend = await getPending(env, uid);
+      const items = [];
+      for (const k in pend) for (let i = 0; i < (pend[k] | 0); i++) items.push(k);
+      return json({ ok: true, items: items });
     }
 
     // 🔥 ①-d Prominent disclosure + psych (full-cheat + Sun Tzu positioning + VR/near-miss/scarcity/identity fusion). Value isolation.
@@ -366,7 +419,20 @@ export default {
         const payloadParts = (sp.invoice_payload || "").split(":");
         const item = payloadParts[payloadParts.length-2] || payloadParts[0]; // support coded LGN: or old
         const uid = payloadParts[payloadParts.length-1] || "0";
-        if (env.RECEIPTS && item) await env.RECEIPTS.put("rcpt:" + uid + ":" + item, sp.telegram_payment_charge_id || "1", { expirationTtl: 86400 });
+        const charge = sp.telegram_payment_charge_id || "";
+        // 💰 원장 +1 (charge_id 멱등 · 만료 없음 · 같은 SKU 연속결제도 각각 카운트)
+        if (env.RECEIPTS && item && /^\d+$/.test(uid)) {
+          const dedupe = charge ? ("chg:" + charge) : "";
+          const seen = dedupe ? await env.RECEIPTS.get(dedupe) : null;
+          if (!seen) {
+            if (dedupe) await env.RECEIPTS.put(dedupe, uid + ":" + item, { expirationTtl: 180 * 86400 });
+            const pend = await getPending(env, uid);
+            pend[item] = (pend[item] | 0) + 1;
+            await putPending(env, uid, pend);
+            // 🧾 환불·CS 조회용 결제 기록
+            if (charge) await env.RECEIPTS.put("pay:" + uid + ":" + charge, JSON.stringify({ item: item, stars: sp.total_amount, ts: Date.now() }), { expirationTtl: 180 * 86400 });
+          }
+        }
         // Agentic yield credit on pay (full-cheat VR/near-miss identity)
         if (env.RECEIPTS && uid) {
           const cur = parseInt((await env.RECEIPTS.get("yld:" + uid)) || "0", 10);
