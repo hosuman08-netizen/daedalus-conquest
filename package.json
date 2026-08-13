@@ -4,6 +4,7 @@
   "scripts": {
     "minify": "node minify.js",
     "minify:sh": "bash minify.sh",
+    "test": "bash verify.sh",
     "verify": "bash verify.sh",
     "prepare-deploy": "bash minify.sh && bash verify.sh"
   },
