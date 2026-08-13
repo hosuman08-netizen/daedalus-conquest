@@ -51,7 +51,8 @@ const ALLOWED = new Set([
   //    → 08-04 "activate=0" 진단은 실제 0이 아니라 '수신 불가 이름'이었다. 같은 사고 3번째(7-20, 7-29, 지금).
   "activate", "share", "share_peak", "share_refill", "share_peak_shown",
   "k_link", "premium_unlock", "first_read", "birth",
-  "daily_focus", "recent_rerun", "import", "export", "undo", "streak"
+  "daily_focus", "recent_rerun", "import", "export", "undo", "streak",
+  "sw_register_fail"   // 2026-08-13: SW 등록 실패를 침묵시키지 않기 위해 신설. 0이 아니면 PWA가 죽은 것.
 ]);
 const dayKey = (ts) => new Date(ts).toISOString().slice(0, 10);   // YYYY-MM-DD (UTC 일관 — game.js와 동일)
 
