@@ -327,9 +327,14 @@ export default {
       return json({ ok: true, items: items });
     }
 
-    // 🔥 ①-d Prominent disclosure + psych (full-cheat + Sun Tzu positioning + VR/near-miss/scarcity/identity fusion). Value isolation.
+    // ①-d Prominent disclosure. 요율·고지는 정확히 공개한다 — 그게 우리 실드다.
+    // 2026-08-13 Trinity: `psych` 객체를 여기서 제거했다.
+    //   이 엔드포인트는 공개다. vr/near-miss/scarcity/identity 를 응답에 적는 건
+    //   설계 의도를 우리 서버가 스스로 증언하는 것이고, 10행의 자체 규칙
+    //   ("내부 psych 태그는 유저에게 절대 노출 안 되게 주석/키에만 유지")을 정면으로 어긴다.
+    //   설계는 안, 연출과 고지는 밖. 고지(disclosure)는 그대로 둔다 — 그건 숨길 게 아니다.
     if (req.method === "GET" && url.pathname === "/rates") {
-      return json({ stars: STARS, ton: TON_PRICES, disclosure: "ALL rates exact & prominent pre-pull. Fictional 'inspired by'. In-game items only — no real-money yield/investment. No kompu. Minors gate client.", psych: { vr: "variable ratio in sf10000 daily", near_miss: "pity+tease every pack", scarcity: "72h limited + countdown", identity: "MY Legion fusion + founder sigil", x_funnel: "X share → pay bonus" }, sf10000: "in-game 10000-unit special forces pack." });
+      return json({ stars: STARS, ton: TON_PRICES, disclosure: "ALL rates exact & prominent pre-pull. Fictional 'inspired by'. In-game items only — no real-money yield/investment. No kompu. Minors gate client.", sf10000: "in-game 10000-unit special forces pack." });
     }
 
     // 🔥 ①-e Agentic auto-yield — 🔒 Cipher P1: initData required; no free KV write by uid guess.
@@ -443,7 +448,9 @@ export default {
       return json({ ok: true });
     }
 
-    return json({ ok: true, service: "legion-pay", version: "legion-escalated-10000sf+cron", psych: "vr+near-miss+scarcity+MYLegion+RWA+agentic" });
+    // 2026-08-13 Trinity: 루트 응답에서 `psych` 와 내부 코드네임(escalated-10000sf)을 뺐다.
+    //   헬스체크에 필요한 건 ok 뿐이다. 나머지는 경쟁사·규제기관에 주는 무료 설계도였다.
+    return json({ ok: true, service: "pay" });
   },
 
   // 🔔 재참여 알림 — cron 스윕(하루 2회). 24h+ 비활성 유저 DM. 비스팸: 쿨다운48h·평생3회·25명/회 상한(차단 회피).

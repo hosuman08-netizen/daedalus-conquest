@@ -389,11 +389,15 @@
       if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot); else boot();
     })();
   </script>
-  <script defer src="i18n.js?v=20260806a"></script>
-  <script defer src="units.js?v=20260806a"></script>
-  <script defer src="gear.js?v=20260806a"></script>
-  <script defer src="lore.js?v=20260806a"></script>
-  <script defer src="game.js?v=20260806a"></script>
+  <!-- 2026-08-13 Trinity: v 를 20260806a → 20260813a 로 올린다.
+       game.js 가 08/13 에 바뀌었는데(보안 패치: 무인증 덤프 차단·영수증 탈취 차단) v 가 8/6 그대로였다.
+       → 재방문 유저 브라우저는 캐시된 '취약한 옛 game.js' 를 계속 쓰고 있었다.
+       보안 수정일수록 캐시버스터를 반드시 같이 올려야 한다. -->
+  <script defer src="i18n.js?v=20260813a"></script>
+  <script defer src="units.js?v=20260813a"></script>
+  <script defer src="gear.js?v=20260813a"></script>
+  <script defer src="lore.js?v=20260813a"></script>
+  <script defer src="game.js?v=20260813a"></script>
   <script>window.LEGION_APP='daedalus-conquest';window.LEGION_ANALYTICS_URL='https://legion-analytics.hoyashi95.workers.dev';</script>
   <script defer src="legion-beacon.js"></script>
 <!-- SW 등록 실패를 삼키지 않는다: 함대 sw.js 22개가 문법오류로 죽었는데 이 .catch(){} 때문에 아무도 몰랐다 (2026-08-13) -->
