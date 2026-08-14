@@ -87,3 +87,7 @@ PAY-SETUP.md
 secrets.json
 *.pem
 *.key
+
+# 함대 전체 포트폴리오 문서 — p1 산출물 아님. ~/legion-hq/portfolio/
+PROJECT-INVENTORY-*.md
+PROJECT-REGISTRY-*.md
