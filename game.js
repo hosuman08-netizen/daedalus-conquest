@@ -3383,7 +3383,7 @@ function executeTbTurn() {
     return; // 선택 대기 — 버튼이 executeTbTurn() 재호출
   }
 
-  // 🔥 아침고로 + 전술 지휘 변동 (미꾸라지: 선택은 투명하지만 결과는 높은 변동으로 "더 해보고 싶게")
+  // 🔥 아침고로 + 전술 지휘 변동. 선택지와 확률은 화면에 그대로 보여주고, 결과 분산만 크게 잡는다.
   // 모든 우선순위 설명 UI에 실제 효과 공개. 내부 변동은 전략적으로 숨김.
 
   let orderedP = _aliveP.slice();
@@ -4146,7 +4146,7 @@ function gachaFeatured() {
 }
 
 // 🔥 FULL CHEAT ENGINE — top micros: prominent rates + featured FOMO 72h + MY visuals. (Sovereign 2026-06-23)
-// SPEC-featured-banner-arclight.md 구현 즉시. Arclight 72h real FOMO override. Disclosure exact.
+// Arclight 배너: 72h 한정은 실제로 72h에 끝난다(연장·재등장 없음). 확률은 정확 표기.
 // p1 immediate. p2 sync later. Reversible.
 function isArclightBannerActive() {
   const fb = currentFeatured();
@@ -6178,7 +6178,7 @@ on("sg-gear1", "click", () => gearGacha(1));
 on("sg-gear10", "click", () => gearGacha(10));
 on("sg-gold1", "click", goldGacha);            // 🪙 골드 뽑기 (소울루프)
 on("sg-gold10", "click", goldGacha10);         // 🪙 골드 10연
-on("odds-view", "click", showOdds);            // 📊 전체 확률 공개 (법적 disclosure) — origin drops에도 항상 노출 필수 (미꾸라지)
+on("odds-view", "click", showOdds);            // 📊 전체 확률 공개 (법적 disclosure) — origin drops 포함 모든 뽑기 화면에서 항상 접근 가능해야 한다
 on("odds-close", "click", closeOdds);
 // also close on background for the odds disclosure modal (robust UX)
 const oddsM = $("odds-modal");
