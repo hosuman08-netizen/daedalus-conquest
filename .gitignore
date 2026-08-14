@@ -43,6 +43,16 @@ GAME-IDEAS.md
 선정성_*.md
 .claude/skills/full-cheat-engine/
 
+# 2026-08-14 Morpheus 2차 유출 차단 — 8/13 분리에서 빠진 설계문서. ~/legion-hq/p1-design/
+# 사유: 이 문서들은 "왜 중독시키는가"·"도박 분류 회피"를 우리 이름으로 문서화한다.
+#       공개 레포에 있으면 그 자체가 의도 증거물이 된다. 설계는 안, 고지는 밖.
+기획안.md
+ROADMAP.md
+SPEC-craft-jackpot.md
+SPEC-FTUE-starter.md
+SPEC-featured-banner-arclight.md
+SPEC-soul-fodder-loop.md
+
 # 경쟁사·파트너 실명 분석 / 매출 목표
 COMPETITIVE-*.md
 COMPETITOR-*.md
