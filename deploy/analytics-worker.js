@@ -58,7 +58,10 @@ const ALLOWED = new Set([
   //   p21 타로 — 재해석/재뽑기/일일공명/p10 무료권
   "clarify", "redraw", "reobserve", "daily_resonance", "p10_daily_free",
   //   p2 마이판테온 — 일일수령/축제/빈화면 CTA/비콘 기본 view
-  "daily_claim", "festival_claim", "festival_fomo_toast", "empty_cta_show", "view"
+  "daily_claim", "festival_claim", "festival_fomo_toast", "empty_cta_show", "view",
+  // 2026-08-20 p20/p21 함대 게이트 — 앱이 쏘는데 ALLOWED 없어 침묵폐기
+  "ja_chip", "ja_day_copy", "ja_recalc", "ja_result_chip", "lon_preset",
+  "lesson"
 ]);
 const dayKey = (ts) => new Date(ts).toISOString().slice(0, 10);   // YYYY-MM-DD (UTC 일관 — game.js와 동일)
 
