@@ -2995,7 +2995,11 @@ function finish(p, e) {
   if (win) {
     logEvent("battle_win", { mode: META.mode, ch: META.chapter, tower: META.tower, lvl: curLevel });   // 📊 계측
     try { bumpDailyMission("battle"); } catch (e) {}
-    if (!META._fcl) { META._fcl = 1; try { logEvent("first_core_loop", { ch: META.chapter || 1 }); } catch (e) {} }   // 📊 첫 코어루프 완주(activation)
+    if (!META._fcl) {
+      META._fcl = 1;
+      try { logEvent("first_core_loop", { ch: META.chapter || 1 }); } catch (e) {}
+      try { logEvent("peak_share_first_win", { ch: META.chapter || 1 }); } catch (e) {}
+    }   // 📊 첫 코어루프 완주(activation) — 자랑은 overlay-share가 주인공
     if (window.legionTrack) { try { window.legionTrack('activate'); } catch (e) {} }   // 🛰️ 통합 beacon(앱 자체 계측과 병행)
     logEvent("core_loop_complete", { type: "battle", ch: META.chapter || 1 });  // Trinity P0 activation
     // 💎 승리 젬 낙수 (2026-07-20 Morpheus): grinding 유저도 서서히 가챠(8젬) 도달. 일상한 30으로 인플레 방지.
@@ -3251,14 +3255,12 @@ function finish(p, e) {
     carried = `<div class="rwd2" style="color:#fbbf24;font-size:12px;">${fwin.replace('{carried}', getCarriedFeedback().match(/(\d+)%/)?.[1]||'42')}</div>`;
     if (!META._firstWinCelebrated) { META._firstWinCelebrated = true; try { confettiBurst(); } catch (e) {} try { confetti(26); } catch (e) {} haptic("heavy"); juiceKick(10, 0); }   // J6 첫 승리 감정 피크
   }
-  // first activation → D1 이유 (내일 또 열게). FTUE에서 SSR 이미 받았으므로 가챠 유도 대신 복귀 훅.
+  // first activation → D1 이유. 900ms 팝업은 승리 자랑을 덮었음(실측). 계속 탭 후로 미룸.
   if (win && !META._firstCoreDone) {
     META._firstCoreDone = true; saveMeta();
-    // first_core_loop already emitted on battle win (META._fcl)
     setTimeout(() => {
       try { toast(t("firstClearToast"), "#a3e635"); } catch (e) {}
-      try { showD1ReturnHook(); } catch (e) {}
-    }, 900);
+    }, 400);
   }
   $overlayMsg.innerHTML = title + extra + carried;
   window._lastWin = win;   // 오버레이 '계속' 버튼이 승리 시 다음 전투 자동 진행하도록 (rank17)
@@ -4192,7 +4194,9 @@ function showGacha(rar, msg, results) {
   const g = $("gacha"); if (!g) return;
   if (!META._fg) { META._fg = 1; try { logEvent("first_gacha", { ch: META.chapter || 1 }); } catch (e) {} }   // 📊 첫 뽑기(activation)
   // 3H Notcoin/Niobe: share-at-peak after first gacha
-  if (META._fg === 1 && !META._peakShareGacha) {
+  // FTUE 첫뽑은 전투 CTA가 주인공 — 자랑 토스트는 첫 승리 피크로 미룸 (2026-08-20 TTV)
+  const ftueQuiet = !!window._ftueBattlePending;
+  if (META._fg === 1 && !META._peakShareGacha && !ftueQuiet) {
     META._peakShareGacha = 1;
     try { logEvent("peak_share_gacha", { ch: META.chapter || 1 }); } catch (e) {}
     setTimeout(function () {
@@ -4244,7 +4248,7 @@ function showGacha(rar, msg, results) {
   if (pity >= 9 && pity < 12 && Math.random() < 0.45) {
     setTimeout(() => toast(t("dalioWindow", { p: pity }), "#fbbf24"), 1400);
   }
-  if (rar.key === "SSR") {
+  if (rar.key === "SSR" && !ftueQuiet) {
     setTimeout(() => toast(t("ssrForged"), "#a3e635"), 1600);
     // Trinity P0: SSR share hook (switchInline or TG share with start=ref)
     // BUGFIX: 이전엔 매 SSR마다 새 자랑 버튼을 gacha-list.parentNode에 append(가드 없음) →
@@ -5018,6 +5022,7 @@ function ssrSpectacle(name) {
 // 일일 출정식 의례 (종교 도메인 — 데일리를 '숙제'가 아닌 '의식'으로). 하루 1회.
 function maybeSortie() {
   if (!META || META.sortieDay === today()) return;
+  if (!META.tutDone || window._ftueBattlePending) return;   // 첫 세션 TTV: 강림 베일 도둑질 금지
   META.sortieDay = today(); saveMeta();
   const v = $("rebirth-veil"), txt = $("rebirth-text");
   if (!v) return;
@@ -6952,7 +6957,17 @@ on("settings-corner", "click", openSettings);   // 설정 = 상단 구석
 initViralA11y(); // Community Viral A11y loop init (share/profile/a11y/faction/carried export)
 
 // rank17: 승리 '계속'은 다음 전투 자동 진행(마찰 제거), 패배 '다시'는 준비화면 복귀
-$("overlay-btn").addEventListener("click", () => { const w = window._lastWin; reset(); if (w) { try { start(); } catch (e) {} } });
+$("overlay-btn").addEventListener("click", () => {
+  const w = window._lastWin;
+  if (w && META._firstCoreDone && !META._d1HookShown) {
+    META._d1HookShown = true;
+    try { saveMeta(); } catch (e) {}
+    try { $("overlay").classList.add("hidden"); } catch (e) {}
+    try { showD1ReturnHook(); } catch (e) {}
+    return;
+  }
+  reset(); if (w) { try { start(); } catch (e) {} }
+});
 // gacha-btn removed (now handled in shop/quick-pull)
 $("gacha-close").addEventListener("click", () => {
   $("gacha").classList.add("hidden");
@@ -7091,11 +7106,11 @@ function startTutorial() {
   const dots = document.getElementById("tut-dots"); if (dots) dots.style.display = TUT_STEPS.length > 1 ? "" : "none";   // 1단계면 점 숨김
   window.addEventListener("resize", tutReposition);
   tutShow();
-  // TTV: 1.6s 무클릭이면 자동 시작 (한 줄 읽기 시간만) — deep 2026-08-01
+  // TTV: 0.7s 무클릭이면 자동 시작 (한 줄) — GOLD50 first-session 2026-08-20
   clearTimeout(window._tutAuto);
   window._tutAuto = setTimeout(function () {
     try { if (!META.tutDone) finishTutorial(); } catch (e) {}
-  }, 1600);
+  }, 700);
 }
 function tutShow() {
   const s = TUT_STEPS[_tutStep]; if (!s) { finishTutorial(); return; }
@@ -7150,13 +7165,16 @@ function showD1ReturnHook() {
   const title = (typeof t === "function" && t("d1HookTitle")) || "내일 이 군단이 더 세진다";
   const body = (typeof t === "function" && t("d1HookBody")) || "🎟️ 내일 무료 소환 · 🔥 연속 출석 보상 · 같은 영웅이 더 강해짐";
   const cta = (typeof t === "function" && t("d1HookCta")) || "다음 전투로 ▶";
+  const shareLbl = (typeof t === "function" && t("cardBragBtn")) || "자랑하기";
   el.innerHTML = '<div style="max-width:320px;width:100%;background:linear-gradient(165deg,#12101c,#0b111f);border:1.5px solid #fbbf24;border-radius:16px;padding:22px 18px;text-align:center;color:#e2e8f0;box-shadow:0 16px 48px rgba(0,0,0,.75),0 0 28px rgba(245,196,81,.22);">'
     + '<div style="font-size:28px;margin-bottom:8px;">⚔️</div>'
     + '<div style="font-size:17px;font-weight:900;color:#fbbf24;margin-bottom:10px;line-height:1.35;">' + title + '</div>'
     + '<div style="font-size:13px;line-height:1.65;color:#c4c4d4;margin-bottom:16px;">' + body + '</div>'
     + '<button type="button" id="d1-hook-go" style="width:100%;padding:13px;border:none;border-radius:12px;font-weight:800;font-size:15px;cursor:pointer;background:linear-gradient(135deg,#fbbf24,#d97706);color:#1a1400;box-shadow:0 8px 22px rgba(245,196,81,.35);">' + cta + '</button>'
-    + '<button type="button" id="d1-hook-x" style="margin-top:10px;background:none;border:none;color:#8b8ba7;font-size:12px;cursor:pointer;text-decoration:underline;">' + ((typeof t === "function" && t("d1HookClose")) || "닫기") + '</button>'
-    + '</div>';
+    + '<div style="margin-top:12px;display:flex;justify-content:center;gap:18px;">'
+    + '<button type="button" id="d1-hook-share" style="background:none;border:none;color:#fbbf24;font-size:12px;cursor:pointer;">📤 ' + shareLbl + '</button>'
+    + '<button type="button" id="d1-hook-x" style="background:none;border:none;color:#8b8ba7;font-size:12px;cursor:pointer;text-decoration:underline;">' + ((typeof t === "function" && t("d1HookClose")) || "닫기") + '</button>'
+    + '</div></div>';
   document.body.appendChild(el);
   try { logEvent("d1_hook_shown", { ch: META.chapter || 1 }); } catch (e) {}
   const kill = () => { try { el.remove(); } catch (e) {} };
@@ -7166,6 +7184,11 @@ function showD1ReturnHook() {
     try { logEvent("d1_hook_cta", {}); } catch (e) {}
     try { $("overlay").classList.add("hidden"); } catch (e) {}
     try { reset(); start(); } catch (e) {}
+  };
+  const sh = document.getElementById("d1-hook-share");
+  if (sh) sh.onclick = () => {
+    try { logEvent("share_clicked", { type: "d1_hook" }); } catch (e) {}
+    try { shareDominion("d1_hook"); } catch (e) {}
   };
   const x = document.getElementById("d1-hook-x");
   if (x) x.onclick = kill;
@@ -7182,8 +7205,8 @@ function ftueFirstPull() {
   window._ftueBattlePending = true;        // 결과 카드 닫으면 첫 전투 시작
   saveMeta(); updateMeta();
   showGacha(ssr, gu ? t("gachaGet", { name: gu.name }) : t("tTitan"), gu ? [{ name: gu.name, rarity: "SSR", isNew: true }] : []);   // J3 ssrSpectacle 트리거(암전→빛기둥→슬로모→카드)
-  // P0-1 (2026-08-06): 신규 유저가 SSR 카드에서 정지(2026-08-04 실측 132초, battle 0회) →
-  //   ① 닫기 버튼을 명확한 전투 CTA로 ② 10초 무반응 시 자동으로 첫 전투 진입.
+  // P0-1 (2026-08-06): SSR 카드에서 정지(실측 132초, battle 0회).
+  // 2026-08-20 GOLD50: 강림(~1.75s) 후 카드 2.4s만 보여주고 자동 첫 전투. CTA는 즉시 탭 가능.
   try {
     const gc = $("gacha-close");
     if (gc) { gc.dataset.prevLabel = gc.textContent; gc.textContent = "⚔️ 첫 전투 시작 ▶"; }
@@ -7195,12 +7218,12 @@ function ftueFirstPull() {
         const btn = $("gacha-close"); if (btn) btn.click();
       }
     } catch (e) {}
-  }, 10000);
+  }, 1750 + 2400);
 }
 function maybeStartTutorial() {
   if (META.tutDone) return;
   if ((META.owned || []).length > 3 || (META.pulls || 0) > 0 || (META.chapter || 1) > 2) { META.tutDone = true; try { saveMeta(); } catch (e) {} return; }   // 기존 유저 스킵
-  setTimeout(() => { try { startTutorial(); } catch (e) {} }, 500);
+  setTimeout(() => { try { startTutorial(); } catch (e) {} }, 160);
 }
 // 🔞 연령 확인 게이트 (확률형 아이템 미성년 보호 — 1회, META.ageOk 저장)
 (function () {
