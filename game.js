@@ -1495,14 +1495,15 @@ function spawnArmy(side) {
       atkM *= 1.3;
     }
     if (side === "p") { atkM *= ascAtkMul(); hpM *= ascHpMul(); }   // 🔄 환생 선형 보너스 (제네릭 부대 경로)
-    const isBoss = side === "e" && bossFight;
+    const bossIdx = (window._bossType && arr) ? arr.indexOf(window._bossType) : -1;
+    const isBoss = side === "e" && bossFight && i === bossIdx && bossIdx >= 0;
     let rr = isBoss ? s.r * 1.8 : s.r;                 // 🔧 선언을 isBoss 블록 위로 (TDZ 크래시 수정 — 879서 선언전 사용했었음)
     if (isBoss) {
-      // 챕터가 높을수록 점점 더 강하고 깨기 어려움
-      const bossScale = 5 + Math.floor(curLevel / 5) * 0.8;
+      // 스펀지 금지: 읽히는 보스(HP 벽이 아니라 페이즈). Genshin weekly / HSR echo 쪽.
+      const bossScale = 2.6 + Math.floor(curLevel / 10) * 0.35;
       hpM *= bossScale;
-      atkM *= 1.6 + Math.floor(curLevel / 8) * 0.3;
-      rr *= 1.1 + Math.min(0.4, curLevel / 100); // bigger for high ch
+      atkM *= 1.35 + Math.floor(curLevel / 12) * 0.18;
+      rr *= 1.25 + Math.min(0.35, curLevel / 120);
     }
     const hp = Math.round(s.hp * hpM), atk = Math.round(s.atk * atkM);
     const ai = Math.min(3, s.ai + hb.aiBonus + aw);   // ✦ 각성마다 AI +1 (소울로만 가능)
@@ -1523,8 +1524,13 @@ function spawnArmy(side) {
         else if (t === "drone") portraitKey = "elite-drone";
         else portraitKey = "titan";
 
-        eName = curLevel < 15 ? i18nt("enWeakBoss") : (curLevel < 40 ? i18nt("enStrongBoss") : i18nt("enFinalBoss"));
-        eName = i18nt("enBossNamed", { name: uName(t) }) + (curLevel > 40 ? i18nt("enLegendSuffix") : "");
+        eName = (curLevel >= 50)
+          ? ((typeof t === "function" && t("enFinalTitan")) || "종언의 거신")
+          : (curLevel >= 40)
+            ? ((typeof t === "function" && t("enAbyssJudge")) || "심연 판관")
+            : (curLevel >= 25)
+              ? ((typeof t === "function" && t("enCorruptLord")) || "타락한 군주")
+              : (i18nt("enBossNamed", { name: uName(t) }) || (uName(t) + " 보스"));
       } else if (t === "titan") {
         // 무한탑 등 고층에서도 고급 아트 사용 (final-titan nukki로 눈/중간 요소 깨끗)
         if (curLevel >= 55) portraitKey = "giant-titan";
@@ -1533,7 +1539,7 @@ function spawnArmy(side) {
         else portraitKey = "titan";
         eName = curLevel < 15 ? i18nt("bnCorruptedTitan") : (curLevel < 40 ? i18nt("bnCorruptedAbyss") : i18nt("bnFinalJudge"));
       }
-      else if (curLevel >= 40) { portraitKey = "corrupted-titan"; eName = i18nt("enCorruptedNamed", { name: uName(t) }); }
+      else if (curLevel >= 40 && t === "titan") { portraitKey = "corrupted-titan"; eName = i18nt("enCorruptedNamed", { name: uName(t) }); }
       else if (t === "drone" && (curLevel >= 18 || (curLevel >= 10 && (i % 2 === 0)))) { portraitKey = "drone"; eName = i18nt("enScout"); }
       else if (t === "marksman" && curLevel >= 14) { portraitKey = "marksman"; eName = i18nt("enSniper"); }
       else if (curLevel >= 25 && (i % 3 === 0)) { portraitKey = "elite-drone"; eName = i18nt("enWraithNamed", { name: uName(t) }); }
@@ -1582,15 +1588,33 @@ function enemyForChapter(ch) {
       titan:     0,
     };
   }
-  // 21+ : 가파른 증가 (ch20 drone=8과 연속화 — 가짜벽 제거: 4→8, 수학자 P0)
+  // 21+ : 램프하되 화면이 안 죽게 캡 (후반 보스감 = 잡몹 23마리가 아님)
   return {
-    drone:     8 + Math.floor((ch - 20) / 2),
-    marksman:  3 + Math.floor((ch - 20) / 4),
-    guardian:  2 + Math.floor((ch - 20) / 5),
-    bruiser:   1 + Math.floor((ch - 20) / 4),
-    commander: ch >= 30 ? 1 + Math.floor((ch - 30) / 8) : 0,
-    titan:     ch >= 50 ? 1 + Math.floor((ch - 50) / 30) : 0,
+    drone:     Math.min(6, 4 + Math.floor((ch - 20) / 4)),
+    marksman:  Math.min(3, 2 + Math.floor((ch - 20) / 6)),
+    guardian:  Math.min(2, 1 + Math.floor((ch - 20) / 8)),
+    bruiser:   Math.min(2, 1 + Math.floor((ch - 20) / 7)),
+    commander: ch >= 30 ? 1 : 0,
+    titan:     ch >= 50 ? 1 : 0,
   };
+}
+function pickBossType(ch) {
+  ch = ch | 0;
+  if (ch >= 50) return "titan";
+  if (ch >= 35) return "commander";
+  if (ch >= 25) return "bruiser";
+  if (ch >= 15) return "guardian";
+  if (ch >= 8) return "marksman";
+  return "drone";
+}
+function campaignBossWave(ch) {
+  const bossT = pickBossType(ch);
+  const w = { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 };
+  w[bossT] = 1;
+  if (ch >= 20) { w.drone = 2; w.marksman = 1; }
+  else if (ch >= 10) w.drone = 2;
+  else w.drone = 1;
+  return w;
 }
 // 적 스탯 배율: 초반(10챕 이하) 약화 + 25챕터까지 base, 이후 완만 상승 (유저 접근성 + 후반 투자 보상)
 function enemyPowerMul(ch) {
@@ -1625,6 +1649,7 @@ function ascNodeCost(lv) { return Math.round(5 * Math.pow(1.25, lv)); }  // 노�
 function applyMode() {
   const m = META.mode;
   bossFight = false;
+  window._bossType = null;
   if (window._raidActive) {   // 🗡️ 습격: 방어 편성과 오토배틀 (전투력은 epm×_raidMul로 타겟에 맞춤)
     curLevel = Math.max(1, META.chapter || 1);
     counts.e = { drone: 3, marksman: 2, guardian: 1, bruiser: 1, commander: 1, titan: 0 };   // 혼성 방어군
@@ -1634,7 +1659,11 @@ function applyMode() {
   if (m === "tower") {
     curLevel = META.tower + 8;                        // 탑은 챕터보다 빡셈
     counts.e = enemyForChapter(META.tower);
-    if (META.tower % 50 === 0) bossFight = true;       // 🗼 50층마다 보스 관문(벽)
+    if (META.tower % 50 === 0) {
+      bossFight = true;
+      window._bossType = pickBossType(curLevel);
+      counts.e = campaignBossWave(META.tower);
+    }
     $status.textContent = (META.tower % 50 === 0 ? t("bossGate", { n: META.tower }) : "") + t("sTower", { n: META.tower, b: META.towerBest || 0 });
   } else if (m === "daily") {
     curLevel = META.chapter + 4;
@@ -1642,16 +1671,8 @@ function applyMode() {
     $status.textContent = META.dailyDone === today() ? t("sDailyDone") : t("sDaily");
   } else if (m === "boss") {
     curLevel = META.chapter; bossFight = true;
-    // 챕터별 보스 다양성 (초반 약해 보이게 → 후반 간지+강력)
-    let bossT = "titan";
-    if (curLevel >= 50) bossT = "titan";       // final titan
-    else if (curLevel >= 35) bossT = "commander";
-    else if (curLevel >= 25) bossT = "bruiser";
-    else if (curLevel >= 15) bossT = "guardian";
-    else if (curLevel >= 8) bossT = "marksman";
-    else bossT = "drone";                      // 초반: 드론 보스 (안 쌔보임)
-    counts.e = { drone: 0, marksman: 0, guardian: 0, bruiser: 0, commander: 0, titan: 0 };
-    counts.e[bossT] = 1;
+    window._bossType = pickBossType(curLevel);
+    counts.e = campaignBossWave(curLevel);
     $status.textContent = t("sBoss");
   } else if (m === "turnbased") {                   // 🧠 턴제: 캠페인 적 사용 + 별도 턴 로직
     curLevel = META.chapter;
@@ -1659,12 +1680,19 @@ function applyMode() {
     $status.textContent = t("tbStatusDeploy");
   } else {                                            // campaign
     curLevel = META.chapter;
-    counts.e = enemyForChapter(META.chapter);
-    let st = t("sDeploy", { n: META.chapter });
-    if (META.chapter <= 8) st += t("stBeginner");
-    else if (META.chapter > 20) st += t("stFullDiff");
-    st += t("stWinNext");
-    $status.textContent = st;
+    if (META.chapter >= 5 && META.chapter % 5 === 0) {
+      bossFight = true;
+      window._bossType = pickBossType(curLevel);
+      counts.e = campaignBossWave(curLevel);
+      $status.textContent = (typeof t === "function" ? t("sBoss") : "🐲 챕터 보스") + " · ch" + META.chapter;
+    } else {
+      counts.e = enemyForChapter(META.chapter);
+      let st = t("sDeploy", { n: META.chapter });
+      if (META.chapter <= 8) st += t("stBeginner");
+      else if (META.chapter > 20) st += t("stFullDiff");
+      st += t("stWinNext");
+      $status.textContent = st;
+    }
   }
 }
 
@@ -1936,23 +1964,30 @@ function step(u, dt) {
     else if (u.skill === "overclock") { const m = alliesOf(u).filter((a) => dist(u, a) < 85); if (m.length) { m.forEach((a) => { a.hp = Math.min(a.maxHp, a.hp + 22 * skillScale); a.buff = 5 * skillScale; a.buffT = 5; }); u.hp = Math.min(u.maxHp, u.hp + 12 * skillScale); u.skT = u.skillCd; addFx(u.x, u.y, "overclock"); } }
   }
 
-  // ★ 보스 전용 스킬 — 명명 로테이션 + 깊이 스케일(데미지↑·쿨다운↓) + 시네마틱 배너 (뒤로 갈수록 간지·강·잦음)
+  // ★ 보스 전용 스킬 — 예고 후 타격 (Genshin weekly: 읽히지 않으면 불공정)
   if (u.boss && u.bossSkillT <= 0 && foes.length) {
     const v = u.bossVariant || 'base';
     const cl = curLevel;
-    const sc = 1 + Math.max(0, cl - 10) * 0.022;                         // 깊을수록 스킬 데미지↑
-    const cdK = Math.max(0.6, 1 - Math.max(0, cl - 20) * 0.012);          // 깊을수록 쿨다운↓ (더 자주 = 난이도↑)
+    const sc = 1 + Math.max(0, cl - 10) * 0.018;
+    const cdK = Math.max(0.72, 1 - Math.max(0, cl - 20) * 0.008);
+    if (!u._teleOn) {
+      u._teleOn = true;
+      u.bossSkillT = 0.9;
+      window._bossFlash = { name: (typeof t === "function" && t("bskTele")) || "⚠ 강습 예고", color: "#fde047", t: 0.95 };
+      juiceKick(6, 2);
+    } else {
+    u._teleOn = false;
     let name = "", col = "#ff3b3b";
     if (v === 'final' || cl > 40) {                                       // 🔴 최종 — 4종 로테이션
       const r = (u._bsk = (u._bsk || 0) + 1) % 4;
-      if (r === 0) {            // 멸절의 빔 (전체 강타)
+      if (r === 0) {            // 멸절의 빔 (예고 후 중타 — 전멸기 아님)
         name = t("bskBeam"); col = "#fde047";
-        foes.forEach((f) => dmg(f, u.atk * 1.1 * sc, u));
+        foes.forEach((f) => dmg(f, u.atk * 0.48 * sc, u));
         for (let k = 0; k < 7; k++) { const x = W * (0.16 + k * 0.11); addFx(x, 3, "snipe", x, H * 0.5, "e"); }
         u.bossSkillT = 6.5 * cdK;
       } else if (r === 1) {     // 광란의 진노 (자버프 + 흡혈)
         name = t("bskWrath"); col = "#ef4444";
-        u.buff = Math.round(u.atk * 0.6); u.buffT = 5; u.hp = Math.min(u.maxHp, u.hp + u.maxHp * 0.1);
+        u.buff = Math.round(u.atk * 0.45); u.buffT = 5; u.hp = Math.min(u.maxHp, u.hp + u.maxHp * 0.06);
         for (let k = 0; k < 5; k++) addFx(u.x + (Math.random() - 0.5) * 55, u.y, "charge");
         u.bossSkillT = 5.5 * cdK;
       } else if (r === 2) {     // 절대 방벽 + 전체 약화
@@ -1962,7 +1997,7 @@ function step(u, dt) {
         u.bossSkillT = 6 * cdK;
       } else {                  // 중력 붕괴 (광역 + 둔화)
         name = t("bskGravity"); col = "#c026d3";
-        foes.forEach((f) => { dmg(f, u.atk * 0.7 * sc, u); f.spd = 0.4; f.spdT = 2.5; });
+        foes.forEach((f) => { dmg(f, u.atk * 0.42 * sc, u); f.spd = 0.4; f.spdT = 2.5; });
         for (let k = 0; k < 5; k++) addFx(u.x + (Math.random() - 0.5) * 80, u.y + (Math.random() - 0.5) * 50, "overclock");
         u.bossSkillT = 6 * cdK;
       }
@@ -1985,9 +2020,23 @@ function step(u, dt) {
       addFx(u.x, u.y, "charge", tgt ? tgt.x : 0, tgt ? tgt.y : 0, u.side);
       u.bossSkillT = 6 * cdK;
     }
-    if (name) { window._bossFlash = { name, color: col, t: 1.2 }; juiceKick(11, 4); }   // 캔버스 보스 스킬 배너 + 🎯 셰이크
-    // 고챕터 보스 phase: 하수인 소환 (다른 게임 레이드처럼, 깨기 어렵게)
-    if ((curLevel > 30 || v === 'final') && u.hp < u.maxHp * 0.55 && !u.minionsSpawned) {
+    if (name) { window._bossFlash = { name, color: col, t: 1.2 }; juiceKick(11, 4); }
+    }
+  }
+  if (u.boss) {
+    const hpR = u.maxHp ? (u.hp / u.maxHp) : 1;
+    if (hpR < 0.66 && !u._ph2) {
+      u._ph2 = true;
+      window._bossFlash = { name: (typeof t === "function" && t("bossPhase2")) || "2페이즈", color: "#a855f7", t: 1.15 };
+      juiceKick(10, 3);
+    }
+    if (hpR < 0.33 && !u._ph3) {
+      u._ph3 = true;
+      u.atk = Math.round(u.atk * 1.12);
+      window._bossFlash = { name: (typeof t === "function" && t("bossPhase3")) || "최후 페이즈", color: "#fbbf24", t: 1.2 };
+      juiceKick(14, 5);
+    }
+    if ((curLevel > 30 || u.bossVariant === 'final') && hpR < 0.55 && !u.minionsSpawned) {
       u.minionsSpawned = true;
       for (let k = 0; k < (curLevel > 45 ? 3 : 2); k++) {
         const addT = ["drone", "marksman"][k % 2];
