@@ -43,7 +43,7 @@ const ALLOWED = new Set([
   "gacha_intent", "gacha_nudge", "gacha_view", "gem_drip",
   "gg_comeback_boot", "gg_comeback_toast", "lose_recover_cta",
   "money_pipe_shop", "money_pipe_shown",
-  "peak_share_any_ssr", "peak_share_battle", "peak_share_gacha",
+  "peak_share_any_ssr", "peak_share_battle", "peak_share_gacha", "peak_share_first_win",
   "return_user_welcome", "streak_break_nudge", "streak_freeze",
   "tower_floor", "ttv_first_session", "week_chest",
   "win_gacha_cta_click", "win_gacha_cta_show",
